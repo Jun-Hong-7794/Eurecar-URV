@@ -16,7 +16,7 @@
 ###4) Caffe Installation 
 * Edit "MkaeConfig" file.(#USE_CUDNN and #OPENCV_VERSION:=3 => comment out)
 * `$ make & sudo make install -j8`
-
+-
 
 ##2. VTK & PCL installation for Velodyne
 ###1) VTK-7.1.0 Installatoin
@@ -36,3 +36,11 @@
 * `$ mkdir build`
 * `$ cmake`
 * Add "VTK_Module_INIT(VtkRenderingOpenGL2);" in your source code.
+-
+
+##3. KINOVA(MICO2)
+###1) Download SDK and install [here](https://drive.google.com/file/d/0B5d8FVDq3A-XOUludDJnM3ppM28/view)
+* `$ cd ~/KINOVA SDK MICO2/Ubuntu/64bits`
+* `$ chmod a+x *`
+* `$ ./installSDK64.sh`
+
