@@ -1,4 +1,7 @@
 # 2017 MBZIRC Challenge 2 Project(Eurecar-URV)
+![KAIST Logo](http://www.kaist.ac.kr/Img/kr/kaist/sym_new_01.gif)
+![USRG Background](http://unmanned.kaist.ac.kr/student/photo/all2015.jpg)
+
 ##1. Caffe
 ###1) Cuda 8.0(or Latest Version)
 * Download and install Cuda8.0(Latest Version) [here](https://developer.nvidia.com/cuda-downloads)
