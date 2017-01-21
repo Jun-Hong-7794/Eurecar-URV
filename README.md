@@ -42,3 +42,9 @@
 * `$ chmod a+x *`
 * `$ ./installSDK64.sh`
 
+#Trouble Shooting
+### Access to /dev/ttyACM0 with no super user.
+* `$ sudo apt-get remove modemmanager`
+* `$ sudo usermode -a -G dialout [user name]`
+* (Reboot) or (Logout and Login)
+
