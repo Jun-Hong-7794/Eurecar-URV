@@ -73,7 +73,7 @@ bool CDriving::IsVelodyneConnected(){
 void CDriving::PCLInit(){
     mpc_velodyne->PCLInitialize();
 
-    std::string str_ugv3dmodel = "/home/winner/Workspace/QT Project/Eurecar-URV/Eurecar-URV/ugv_3d_model.STL";
+    std::string str_ugv3dmodel = "/home/winner/Workspace/2017MBZIRC_Code/Eurecar-URV/Eurecar-URV/ugv_3d_model.STL";
     pcl::PolygonMesh mesh;
     pcl::io::loadPolygonFileSTL(str_ugv3dmodel,mesh);
     mpc_velodyne->GetPCL()->viewer->addPolygonMesh(mesh);
