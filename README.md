@@ -1,5 +1,24 @@
 # 2017 MBZIRC Challenge 2 Project(Eurecar-URV)
-##1. VTK & PCL installation for Velodyne
+##1. Caffe
+###1) Cuda 8.0(or Latest Version)
+* Download and install Cuda8.0(Latest Version) [here](https://developer.nvidia.com/cuda-downloads)
+
+###2) Cudnn 5.1(or Latest Version)
+* Download and install Cudnn5.1(Latest Version) [here](https://developer.nvidia.com/cudnn)
+
+###3) Opencv 3.2(Download [here](https://github.com/opencv/opencv))
+* `$ cd opencv-master`
+* `$ mkdir build`
+* `$ cd build`
+* `$ cmake -DWITH_CUDA=ON -DWITH_CUBLAS=ON -DPYTHON_INCLUDE_DIRS=/usr/include/python2.7 -DPYTHON_LIBRARY=/usr/lib/python2.7/config-x86_64-linux-gnu/libpython2.7.so -DWITH_TBB=ON -DWITH_EXAMPLES=ON -DBUILD_EXAMPLES=ON -DWITH_DOC=ON ..`
+* `$ make & sudo make install -j8`
+
+###4) Caffe Installation 
+* Edit "MkaeConfig" file.(#USE_CUDNN and #OPENCV_VERSION:=3 => comment out)
+* `$ make & sudo make install -j8`
+
+
+##2. VTK & PCL installation for Velodyne
 ###1) VTK-7.1.0 Installatoin
 * `$ sudo apt-get install libeigen3-dev libflann-dev`
 * Download VTK-7.1.0 [here](http://www.vtk.org/download/)
