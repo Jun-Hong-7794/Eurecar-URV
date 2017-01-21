@@ -1,0 +1,75 @@
+//-------------------------------------------------
+// Eurecar-URV(Team KAIST) is Winner of 2017 MBZIRC Challenge 2.
+// This Project created by Jun Hong. 2017-01-18
+//-------------------------------------------------
+#ifndef EURECARURV_DLG_H
+#define EURECARURV_DLG_H
+
+#include <QMainWindow>
+#include <QtWidgets>
+
+#include "Driving_Dlg.h"
+#include "Manipulation_Dlg.h"
+
+//-------------------------------------------------
+// Script Class
+//-------------------------------------------------
+#include "Mission_Class/CScript/CScript.h"
+
+
+namespace Ui {
+class EurecarURV_Dlg;
+}
+
+class EurecarURV_Dlg : public QMainWindow
+{
+    Q_OBJECT
+
+public:
+    explicit EurecarURV_Dlg(QWidget *parent = 0);
+    ~EurecarURV_Dlg();
+
+private:
+    Ui::EurecarURV_Dlg *ui;
+    Driving_Dlg mdlg_driving;
+    Manipulation_Dlg mdlg_manipulation;
+
+private:
+    //-------------------------------------------------
+    // Device Class
+    //-------------------------------------------------
+    CGPS* mpc_gps;
+    CLRF* mpc_lrf;
+    CCamera* mpc_camera;
+    CKinova* mpc_kinova;
+    CVehicle* mpc_vehicle;
+    CVelodyne* mpc_velodyne;
+
+    //-------------------------------------------------
+    // Mission Class
+    //-------------------------------------------------
+    CDriving* mpc_drivig;
+    CManipulation* mpc_manipulation;
+
+    //-------------------------------------------------
+    // Script Class
+    //-------------------------------------------------
+    CScript* mpc_script;
+
+
+public slots:
+    //-------------------------------------------------
+    // Button
+    //-------------------------------------------------
+
+    // Menu Button
+    void SlotMenuButtonDriving_Dlg();
+    void SlotMenuButtonManipulation_Dlg();
+
+    // Push Button
+    void SlotButtonVelodyne();
+
+
+};
+
+#endif // EURECARURV_DLG_H
