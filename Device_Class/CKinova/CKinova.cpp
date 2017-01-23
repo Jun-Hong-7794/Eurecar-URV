@@ -9,6 +9,8 @@ CKinova::CKinova(){
     Kinova_InitAPI = (int (*)()) dlsym(mp_commandLayer_handle,"InitAPI");
     Kinova_CloseAPI = (int (*)()) dlsym(mp_commandLayer_handle,"CloseAPI");
     Kinova_MoveHome = (int (*)()) dlsym(mp_commandLayer_handle,"MoveHome");
+    Kinova_SetFrameType = (int (*)(int)) dlsym(mp_commandLayer_handle,"SetFrameType");;
+
     //Kinova_InitFingers = (int (*)()) dlsym(mp_commandLayer_handle,"InitFingers");
     Kinova_GetDevices = (int (*)(KinovaDevice devices[MAX_KINOVA_DEVICE], int &result)) dlsym(mp_commandLayer_handle,"GetDevices");
     Kinova_SetActiveDevice = (int (*)(KinovaDevice devices)) dlsym(mp_commandLayer_handle,"SetActiveDevice");
@@ -20,14 +22,13 @@ CKinova::CKinova(){
     Kinova_EraseAllTrajectories = (int (*)()) dlsym(mp_commandLayer_handle,"EraseAllTrajectories");
     Kinova_GetCartesianPosition = (int (*)(CartesianPosition &)) dlsym(mp_commandLayer_handle,"GetCartesianPosition");
 
-    KinovaUnitStepMoving = (int (*)(TrajectoryPoint)) dlsym(mp_commandLayer_handle,"SendBasicTrajectory");
+    KinovaUnitStepMoving = (int (*)(TrajectoryPoint)) dlsym(mp_commandLayer_handle,"SendAdvanceTrajectory");
 
     Kinova_SendJoystickCommand = (int (*)(JoystickCommand command)) dlsym(mp_commandLayer_handle,"SendJoystickCommand");
     Kinova_GetJoystickValue = (int (*)(JoystickCommand &command)) dlsym(mp_commandLayer_handle,"GetJoystickValue");
-    Kinova_SetFrameType = (int (*)(int)) dlsym(mp_commandLayer_handle,"SetFrameType");;
 
     Kinova_GetForcesInfo = (int (*)(ForcesInfo &)) dlsym(mp_commandLayer_handle,"GetForcesInfo");
-
+    Kinova_GetCartesianForce = (int (*)(CartesianPosition &)) dlsym(mp_commandLayer_handle, "GetCartesianForce");
     fl_kinova_init = false;
     fl_kinova_manipulation = false;
     fl_kinova_init_position = false;
@@ -115,9 +116,7 @@ bool CKinova::InitKinova(){
             return false;
         }
 
-        Kinova_SetFrameType(1);
-
-//        Kinova_InitFingers();
+        Kinova_SetFrameType(0);
 
         fl_kinova_init = true;
         return true;
@@ -182,6 +181,13 @@ CartesianPosition CKinova::KinovaGetPosition(){
     Kinova_GetCartesianPosition(position);
 
     return position;
+}
+
+CartesianPosition CKinova::KinovaGetCartesianForce(){
+    CartesianPosition force;
+    Kinova_GetCartesianForce(force);
+
+    return force;
 }
 
 bool CKinova::KinovaMoveUnitStepUp(){

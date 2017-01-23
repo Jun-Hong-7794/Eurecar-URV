@@ -14,6 +14,7 @@ CManipulation::CManipulation(CLRF *_p_lrf, CCamera *_p_camera, CKinova *_p_kinov
 
     connect(mpc_kinova, SIGNAL(SignalKinovaPosition(CartesianPosition)), this, SIGNAL(SignalKinovaPosition(CartesianPosition)));
     connect(mpc_lrf, SIGNAL(SignalLRFImage(cv::Mat)), this, SIGNAL(SignalLRFImage(cv::Mat)));
+    connect(mpc_camera, SIGNAL(SignalCameraImage(cv::Mat)), this, SIGNAL(SignalCameraImage(cv::Mat)));
 }
 
 
@@ -132,6 +133,23 @@ bool CManipulation::IsLRFConnected(){
     return mpc_lrf->isRunning();
 }
 
+
+//Camera
+bool CManipulation::InitCamera(){
+
+    if(!mpc_camera->InitCamera(CAMERA_DEVICE_NUMBER))
+        return false;
+
+    return true;
+}
+
+void CManipulation::CloseCamera(){
+    mpc_camera->CloseCamera();
+}
+
+bool CManipulation::IsCameraConnected(){
+    return mpc_camera->IsCameraConnected();
+}
 
 //----------------------------------------------------------------
 //

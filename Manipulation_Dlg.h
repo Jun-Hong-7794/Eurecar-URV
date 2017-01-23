@@ -42,6 +42,7 @@ public:
     void InitDlg(CManipulation* _p_manipulation);
 
 private:// Graphic Scene
+    QGraphicsScene *mp_camera_image_grahicscene;
     QGraphicsScene *mp_lrf_image_grahicscene;
 
 public://Display Image to Qt Graphicview
@@ -66,6 +67,9 @@ public slots:
     //LRF
     void SlotButtonLRFOn();
 
+    //Camera
+    void SlotButtonCameraOn();
+
     //-------------------------------------------------
     // Edite Update
     //-------------------------------------------------
@@ -75,6 +79,9 @@ public slots:
     //-------------------------------------------------
     // View Update
     //-------------------------------------------------
+    //Camera
+    void SlotViewCameraImage(cv::Mat _image);
+
     //LRF
     void SlotViewLRFImage(cv::Mat _image);
 };

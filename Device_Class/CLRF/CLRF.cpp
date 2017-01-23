@@ -63,9 +63,6 @@ bool CLRF::LRFOpen(int _dev_type){
         {
             ret = urg_open(&m_urg, URG_SERIAL, mp_connect_device, m_baudrate);
 
-
-            mp_distance_data = new long[urg_max_data_size(&m_urg)];
-
             // Check error code
             if(ret < 0){
                 std::cout << "Fail to Open Device"<< std::endl;
@@ -76,6 +73,8 @@ bool CLRF::LRFOpen(int _dev_type){
             else{
                 std::cout << "Success to Open Device"<< std::endl;
             }
+
+            mp_distance_data = new long[urg_max_data_size(&m_urg)];
 
             ret = urg_start_measurement(&m_urg, URG_DISTANCE, URG_SCAN_INFINITY, 0);
 

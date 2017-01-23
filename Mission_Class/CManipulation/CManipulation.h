@@ -57,9 +57,16 @@ public:
     bool InitLRF();
     bool CloseLRF();
     bool IsLRFConnected();
+
+    //Camera
+    bool InitCamera();
+    void CloseCamera();
+    bool IsCameraConnected();
+
 signals:
     void SignalKinovaPosition(CartesianPosition);
     void SignalLRFImage(cv::Mat);
+    void SignalCameraImage(cv::Mat);
 };
 
 #endif // CMANIPULATION_H

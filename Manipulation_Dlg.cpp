@@ -13,6 +13,11 @@ Manipulation_Dlg::Manipulation_Dlg(QWidget *parent) :
 
     mp_lrf_image_grahicscene = new QGraphicsScene(QRectF(0, 0, lrf_view_width, lrf_view_height), 0);
 
+    int camera_view_width  = ui->view_lrf->geometry().width();
+    int camera_view_height = ui->view_lrf->geometry().height();
+
+    mp_camera_image_grahicscene = new QGraphicsScene(QRectF(0, 0, camera_view_width, camera_view_height), 0);
+
 
     //Button Connetion
     connect(ui->bt_kinova_init, SIGNAL(clicked()), this, SLOT(SlotButtonKinovaInit()));
@@ -27,6 +32,8 @@ Manipulation_Dlg::Manipulation_Dlg(QWidget *parent) :
     connect(ui->bt_kinova_left, SIGNAL(clicked()), this, SLOT(SlotButtonKinovaMoveStepLe()));
 
     connect(ui->bt_lrf_on, SIGNAL(clicked()), this, SLOT(SlotButtonLRFOn()));
+
+    connect(ui->bt_camera_on, SIGNAL(clicked()), this, SLOT(SlotButtonCameraOn()));
 }
 
 Manipulation_Dlg::~Manipulation_Dlg()
@@ -38,8 +45,10 @@ void Manipulation_Dlg::InitDlg(CManipulation* _p_manipulation){
     mpc_manipulation = _p_manipulation;
 
     connect(mpc_manipulation, SIGNAL(SignalKinovaPosition(CartesianPosition)), this, SLOT(SlotEditeKinovaPosition(CartesianPosition)));
-        //View Connetion
+
+    //View Connetion
     connect(mpc_manipulation, SIGNAL(SignalLRFImage(cv::Mat)), this, SLOT(SlotViewLRFImage(cv::Mat)));
+    connect(mpc_manipulation, SIGNAL(SignalCameraImage(cv::Mat)), this, SLOT(SlotViewCameraImage(cv::Mat)));
 
 }
 
@@ -125,6 +134,23 @@ void Manipulation_Dlg::SlotEditeKinovaPosition(CartesianPosition _position){
     return;
 }
 
+//Camera
+void Manipulation_Dlg::SlotButtonCameraOn(){
+    if(!mpc_manipulation->IsCameraConnected()){
+        if(!mpc_manipulation->InitCamera()){
+            QMessageBox::information(this, tr("Fail to Connect Camera"), tr("Check Camera Status"));
+            return;
+        }
+        else{
+            ui->bt_camera_on->setText("Off");
+        }
+    }
+    else{
+        mpc_manipulation->CloseCamera();
+        ui->bt_camera_on->setText("On");
+    }
+}
+
 // LRF
 void Manipulation_Dlg::SlotButtonLRFOn(){
     if(!mpc_manipulation->IsLRFConnected()){
@@ -154,7 +180,10 @@ void Manipulation_Dlg::SlotButtonLRFOn(){
 //-------------------------------------------------
 // View
 //-------------------------------------------------
-//View
+void Manipulation_Dlg::SlotViewCameraImage(cv::Mat _image){
+    Display_Image(_image,mp_camera_image_grahicscene,ui->view_camera);
+}
+
 void Manipulation_Dlg::SlotViewLRFImage(cv::Mat _image){
 
     Display_Image(_image,mp_lrf_image_grahicscene,ui->view_lrf);

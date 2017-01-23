@@ -78,7 +78,7 @@ public://Function pointers to the functions we need
     int (*Kinova_EraseAllTrajectories)();
 
     int (*Kinova_GetQuickStatus)(QuickStatus &);
-
+    int (*Kinova_GetCartesianForce)(CartesianPosition &);
 private:
     double m_scan_unit_step;
     double m_scan_current_step;
@@ -96,7 +96,7 @@ public: // Basic Motion
     bool KinovaDoManipulate(CartesianPosition _desired_position,int _mode = 1);//mode = 1 : Joystic, mode = 2 : Trajectory
 
     CartesianPosition KinovaGetPosition();
-
+    CartesianPosition KinovaGetCartesianForce();
     bool KinovaMoveUnitStepUp();
     bool KinovaMoveUnitStepDw();
     bool KinovaMoveUnitStepRi();

@@ -57,7 +57,6 @@ public:
     bool InitLRF(char* _dev_path = (char *)"/dev/ttyACM0",int _dev_type = UTM_30LX);
     bool LRFOpen(int _dev_type = UTM_30LX);
 
-//    void LRFOpen();
     void CloseLRF();
 
     bool IsLRFOn();
