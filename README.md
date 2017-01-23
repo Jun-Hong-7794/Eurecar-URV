@@ -18,7 +18,17 @@
 
 ###4) Caffe Installation 
 * Edit "Makefile.config" file.(#USE_CUDNN and #OPENCV_VERSION:=3 => comment out)
-* `$ make & sudo make install -j8`
+* `$ sudo apt-get install libprotobuf-dev libleveldb-dev libsnappy-dev libhdf5-serial-dev protobuf-compiler`
+* `$ sudo apt-get install --no-install-recommends libboost-all-dev`
+* `$ sudo apt-get install libatlas-base-dev`
+* `$ sudo apt-get install libgflags-dev libgoogle-glog-dev liblmdb-dev`
+* `$ mkdir build`
+* `$ cd build `
+* `$ cmake ..`
+* `$ make -j8`
+* `$ make py`
+* `$ make install`
+
 
 ##2. VTK & PCL installation for Velodyne
 ###1) VTK-7.1.0 Installatoin
