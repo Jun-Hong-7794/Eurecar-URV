@@ -52,6 +52,13 @@
 * `$ chmod a+x *`
 * `$ ./installSDK64.sh`
 
+##3. Hokuyo LRF(UTM-30LX)
+###1) Download urg_library-1.2.0.zip [here](https://sourceforge.net/projects/urgnetwork/files/urg_library/)
+* Extract
+* `$ cd ~/urg_library-1.2.0`
+* `$ make`
+* `$ sudo make install`
+
 #Trouble Shooting
 ### Access to /dev/ttyACM0 with no super user.
 * `$ sudo apt-get remove modemmanager`
