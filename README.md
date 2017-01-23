@@ -27,7 +27,13 @@
 * Extract
 * `$ cd VTK-7.1.0`
 * `$ mkdir build`
-* `$ cmake`
+* `$ cd build`
+* `$ cmake -DCMAKE_BUILD_TYPE:STRING=Release \ 
+   -DVTK_QT_VERSION:STRING=5 \
+   -DQT_QMAKE_EXECUTABLE:PATH=/home/winner/Qt5.7.0/5.7/gcc_64/bin/qmake \
+   -DVTK_Group_Qt:BOOL=ON \
+   -DCMAKE_PREFIX_PATH:PATH=/home/winner/Qt5.7.0/5.7/gcc_64/lib/cmake  \
+   -DBUILD_SHARED_LIBS:BOOL=ON ..`
 * `$ make & sudo make install`
 * _Copy_  ~/build/lib/libQVTKWidgetplugin.so   _To_   ~/Qt5.7/Tools/QtCreator/lib/Qt/plugins/designer
 
@@ -36,7 +42,9 @@
 * Extract
 * `$ cd pcl-pcl-1.8.0`
 * `$ mkdir build`
-* `$ cmake`
+* `$ cd build`
+* `$ cmake -DCMAKE_BUILD_TYPE=Release ..`
+
 * Add "VTK_Module_INIT(VtkRenderingOpenGL2);" in your source code.
 
 ##3. KINOVA(MICO2)
