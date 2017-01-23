@@ -44,7 +44,6 @@
 * `$ mkdir build`
 * `$ cd build`
 * `$ cmake -DCMAKE_BUILD_TYPE=Release ..`
-
 * Add "VTK_Module_INIT(VtkRenderingOpenGL2);" in your source code.
 
 ##3. KINOVA(MICO2)
