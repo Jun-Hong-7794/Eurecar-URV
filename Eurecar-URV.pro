@@ -197,3 +197,29 @@ LIBS += -L/usr/local/lib \
     -lboost_system \
     -lgomp
 #-------------------------------------------------
+
+#-------------------------------------------------
+#
+# KINOVA Configuration
+#
+#-------------------------------------------------
+INCLUDEPATH += /opt/kinova/API
+
+LIBS += -L /opt/kinova/API
+LIBS += -ldl
+#-------------------------------------------------
+
+#-------------------------------------------------
+#
+# UST-20LX Configuration
+#
+#-------------------------------------------------
+
+INCLUDEPATH += /usr/local/include/urg_c
+INCLUDEPATH += /usr/local/include/urg_cpp
+
+LIBS += -L/usr/local/lib
+
+LIBS += -lurg_c
+LIBS += -lurg_cpp
+#-------------------------------------------------

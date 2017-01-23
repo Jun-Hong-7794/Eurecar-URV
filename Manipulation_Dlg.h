@@ -41,7 +41,42 @@ private:
 public:
     void InitDlg(CManipulation* _p_manipulation);
 
+private:// Graphic Scene
+    QGraphicsScene *mp_lrf_image_grahicscene;
 
+public://Display Image to Qt Graphicview
+    QImage Mat2QImage(cv::Mat src);
+    void Display_Image(cv::Mat,QGraphicsScene*,QGraphicsView*,bool _fl_clear = false);
+
+public slots:
+    //-------------------------------------------------
+    // Button
+    //-------------------------------------------------
+    //KINOVA
+    void SlotButtonKinovaInit();
+    void SlotButtonKinovaInitMotion();
+    void SlotButtonKinovaAlignPanel();
+    void SlotButtonKinovaDoManipulate();
+
+    void SlotButtonKinovaMoveStepUp();
+    void SlotButtonKinovaMoveStepDw();
+    void SlotButtonKinovaMoveStepRi();
+    void SlotButtonKinovaMoveStepLe();
+
+    //LRF
+    void SlotButtonLRFOn();
+
+    //-------------------------------------------------
+    // Edite Update
+    //-------------------------------------------------
+
+    void SlotEditeKinovaPosition(CartesianPosition _position);
+
+    //-------------------------------------------------
+    // View Update
+    //-------------------------------------------------
+    //LRF
+    void SlotViewLRFImage(cv::Mat _image);
 };
 
 #endif // MANIPULATION_DLG_H

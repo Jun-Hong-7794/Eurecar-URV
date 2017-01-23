@@ -2,6 +2,12 @@
 #define CMANIPULATION_H
 
 //-------------------------------------------------
+// Qt Dependences Class
+//-------------------------------------------------
+#include <QThread>
+#include <QMutex>
+
+//-------------------------------------------------
 // Device Class
 //-------------------------------------------------
 #include "Device_Class/CLRF/CLRF.h"
@@ -10,7 +16,11 @@
 #include "Device_Class/CVehicle/CVehicle.h"
 #include "Device_Class/CVelodyne/CVelodyne.h"
 
-class CManipulation{
+class CManipulation:public QThread{
+    Q_OBJECT
+
+protected:
+    void run();
 
 public:
     CManipulation();
@@ -25,6 +35,31 @@ private:
     CKinova* mpc_kinova;
     CVehicle* mpc_vehicle;
     CVelodyne* mpc_velodyne;
+
+public:
+    //-------------------------------------------------
+    // Dvice Class Initialize(Connect) Function
+    //-------------------------------------------------
+    //KINOVA
+    bool InitKinova();
+    bool CloseKinova();
+    bool KinovaInitMotion();
+    bool KinovaAlignPanel();
+    bool KinovaGetPosition(CartesianPosition& _position);
+    bool KinovaDoManipulate(CartesianPosition _position);
+
+    bool KinovaMoveUnitStepUp();
+    bool KinovaMoveUnitStepDw();
+    bool KinovaMoveUnitStepRi();
+    bool KinovaMoveUnitStepLe();
+
+    //LRF
+    bool InitLRF();
+    bool CloseLRF();
+    bool IsLRFConnected();
+signals:
+    void SignalKinovaPosition(CartesianPosition);
+    void SignalLRFImage(cv::Mat);
 };
 
 #endif // CMANIPULATION_H

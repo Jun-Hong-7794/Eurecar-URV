@@ -47,7 +47,7 @@
     </font>
    </property>
    <property name="title">
-    <string>GroupBox</string>
+    <string>Driving</string>
    </property>
    <widget class="QGroupBox" name="rgbx_velodyne">
     <property name="geometry">

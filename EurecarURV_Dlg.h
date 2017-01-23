@@ -56,6 +56,9 @@ private:
     //-------------------------------------------------
     CScript* mpc_script;
 
+public://Display Image to Qt Graphicview
+    QImage Mat2QImage(cv::Mat src);
+    void Display_Image(cv::Mat,QGraphicsScene*,QGraphicsView*,bool _fl_clear = false);
 
 public slots:
     //-------------------------------------------------
@@ -68,6 +71,7 @@ public slots:
 
     // Push Button
     void SlotButtonVelodyne();
+    void SlotButtonKinova();
 
 
 };

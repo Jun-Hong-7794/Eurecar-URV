@@ -7,6 +7,8 @@ EurecarURV_Dlg::EurecarURV_Dlg(QWidget *parent) :
 {
     ui->setupUi(this);
 
+    qRegisterMetaType<CartesianPosition>("CartesianPosition");
+
     //-------------------------------------------------
     // Device Class Initialize
     //-------------------------------------------------
@@ -51,6 +53,7 @@ EurecarURV_Dlg::EurecarURV_Dlg(QWidget *parent) :
     connect(ui->action_manipulation_dialog_box,SIGNAL(triggered()),this,SLOT(SlotMenuButtonManipulation_Dlg()));
     //Push Button Connect
     connect(ui->bt_velodyne,SIGNAL(clicked()), this, SLOT(SlotButtonVelodyne()));
+    connect(ui->bt_kinova,SIGNAL(clicked()), this, SLOT(SlotButtonKinova()));
 
 
 }
@@ -76,11 +79,28 @@ void EurecarURV_Dlg::SlotButtonVelodyne(){
     if(!mpc_velodyne->IsVelodyneConneted()){
         if(!mpc_velodyne->SetVelodyneThread(true))
             QMessageBox::information(this, tr("Fail to Connect Velodyne"), tr("Check Velodyne"));
-        ui->bt_velodyne->setText("Velodyne Off");
+        else
+            ui->bt_velodyne->setText("Velodyne Off");
     }
     else{
         mpc_velodyne->SetVelodyneThread(false);
         ui->bt_velodyne->setText("Velodyne On");
+    }
+}
+
+void EurecarURV_Dlg::SlotButtonKinova(){
+
+    if(!mpc_kinova->IsKinovaInitialized()){
+        if(!mpc_kinova->InitKinova())
+            QMessageBox::information(this, tr("Fail to Connect KINOVA"), tr("Check KINOVA"));
+        else{
+            ui->bt_kinova->setText("Kinova Close");
+            mpc_kinova->KinovaInitMotion();
+        }
+    }
+    else{
+        mpc_kinova->CloseKinova();
+        ui->bt_kinova->setText("Kinova On");
     }
 }
 
