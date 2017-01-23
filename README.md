@@ -52,7 +52,7 @@
 * `$ chmod a+x *`
 * `$ ./installSDK64.sh`
 
-##3. Hokuyo LRF(UTM-30LX)
+##4. Hokuyo LRF(UTM-30LX)
 ###1) Download urg_library-1.2.0.zip [here](https://sourceforge.net/projects/urgnetwork/files/urg_library/)
 * Extract
 * `$ cd ~/urg_library-1.2.0`
