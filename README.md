@@ -17,7 +17,7 @@
 * `$ make & sudo make install -j8`
 
 ###4) Caffe Installation 
-* Edit "MkaeConfig" file.(#USE_CUDNN and #OPENCV_VERSION:=3 => comment out)
+* Edit "Makefile.config" file.(#USE_CUDNN and #OPENCV_VERSION:=3 => comment out)
 * `$ make & sudo make install -j8`
 
 ##2. VTK & PCL installation for Velodyne
