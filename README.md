@@ -17,8 +17,18 @@
 * `$ make & sudo make install -j8`
 
 ###4) Caffe Installation 
-* Edit "MkaeConfig" file.(#USE_CUDNN and #OPENCV_VERSION:=3 => comment out)
-* `$ make & sudo make install -j8`
+* Edit "Makefile.config" file.(#USE_CUDNN and #OPENCV_VERSION:=3 => comment out)
+* `$ sudo apt-get install libprotobuf-dev libleveldb-dev libsnappy-dev libhdf5-serial-dev protobuf-compiler`
+* `$ sudo apt-get install --no-install-recommends libboost-all-dev`
+* `$ sudo apt-get install libatlas-base-dev`
+* `$ sudo apt-get install libgflags-dev libgoogle-glog-dev liblmdb-dev`
+* `$ mkdir build`
+* `$ cd build `
+* `$ cmake ..`
+* `$ make -j8`
+* `$ make py`
+* `$ make install`
+
 
 ##2. VTK & PCL installation for Velodyne
 ###1) VTK-7.1.0 Installatoin
@@ -52,7 +62,7 @@
 * `$ chmod a+x *`
 * `$ ./installSDK64.sh`
 
-##3. Hokuyo LRF(UTM-30LX)
+##4. Hokuyo LRF(UTM-30LX)
 ###1) Download urg_library-1.2.0.zip [here](https://sourceforge.net/projects/urgnetwork/files/urg_library/)
 * Extract
 * `$ cd ~/urg_library-1.2.0`
