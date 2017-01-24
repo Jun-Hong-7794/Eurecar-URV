@@ -17,6 +17,10 @@
 
 #define UST_20LX 1
 #define UTM_30LX 2
+/*
+ * Hokuyo UTM_30LX
+ * Angle Resolution : 0.25(deg)(0 ~ 270deg = 1080 step)
+ */
 
 class CLRF: public QThread{
     Q_OBJECT
@@ -63,7 +67,7 @@ public:
 
     int GetDeviceType();
 
-    long GetLRFData(long *_length_data, unsigned short *_intensity_data = NULL) ;
+    long GetLRFData(long *_distance_data, unsigned short *_intensity_data = NULL) ;
 
 signals:
     void SignalLRFImage(cv::Mat);

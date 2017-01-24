@@ -39,10 +39,10 @@ EurecarURV_Dlg::EurecarURV_Dlg(QWidget *parent) :
     //-------------------------------------------------
 
     //Driving Dialog Box Initialize
-    mdlg_driving.InitDlg(mpc_drivig);
+    mpdlg_driving = new Driving_Dlg(mpc_drivig);
 
     //Manipulation Dialog Box Initialize
-    mdlg_manipulation.InitDlg(mpc_manipulation);
+    mpdlg_manipulation = new Manipulation_Dlg(mpc_manipulation);
 
     //-------------------------------------------------
     // Connection
@@ -107,7 +107,7 @@ void EurecarURV_Dlg::SlotButtonKinova(){
 // Menu Button
 void EurecarURV_Dlg::SlotMenuButtonDriving_Dlg(){
 
-    if(mdlg_driving.isVisible()){
+    if(mpdlg_driving->isVisible()){
         QMessageBox::information(this, tr("Fail to Open Dialog"), tr("Isn't it already open?"));
         return;
     }
@@ -116,23 +116,23 @@ void EurecarURV_Dlg::SlotMenuButtonDriving_Dlg(){
 
     foreach(pwidget,QApplication::topLevelWidgets()){
         if((pwidget->isWindow()) && pwidget->isModal() ){
-            mdlg_driving.setParent(pwidget);
+            mpdlg_driving->setParent(pwidget);
         }
     }
 
     if(pwidget == NULL){
-        mdlg_driving.setParent(this);
+        mpdlg_driving->setParent(this);
     }
 
-    mdlg_driving.show();
-    mdlg_driving.activateWindow();
-    mdlg_driving.activateWindow();
-    mdlg_driving.setFocus();
+    mpdlg_driving->show();
+    mpdlg_driving->activateWindow();
+    mpdlg_driving->activateWindow();
+    mpdlg_driving->setFocus();
 
 }
 
 void EurecarURV_Dlg::SlotMenuButtonManipulation_Dlg(){
-    if(mdlg_manipulation.isVisible()){
+    if(mpdlg_manipulation->isVisible()){
         QMessageBox::information(this, tr("Fail to Open Dialog"), tr("Isn't it already open?"));
         return;
     }
@@ -141,16 +141,16 @@ void EurecarURV_Dlg::SlotMenuButtonManipulation_Dlg(){
 
     foreach(pwidget,QApplication::topLevelWidgets()){
         if((pwidget->isWindow()) && pwidget->isModal() ){
-            mdlg_manipulation.setParent(pwidget);
+            mpdlg_manipulation->setParent(pwidget);
         }
     }
 
     if(pwidget == NULL){
-        mdlg_manipulation.setParent(this);
+        mpdlg_manipulation->setParent(this);
     }
 
-    mdlg_manipulation.show();
-    mdlg_manipulation.activateWindow();
-    mdlg_manipulation.activateWindow();
-    mdlg_manipulation.setFocus();
+    mpdlg_manipulation->show();
+    mpdlg_manipulation->activateWindow();
+    mpdlg_manipulation->activateWindow();
+    mpdlg_manipulation->setFocus();
 }

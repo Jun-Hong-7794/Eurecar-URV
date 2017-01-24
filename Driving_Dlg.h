@@ -37,6 +37,7 @@ class Driving_Dlg : public QDialog
 
 public:
     explicit Driving_Dlg(QWidget *parent = 0);
+    explicit Driving_Dlg(CDriving* _pc_driving,QWidget *parent = 0);
     ~Driving_Dlg();
 
 private:

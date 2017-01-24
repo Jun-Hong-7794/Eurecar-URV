@@ -31,8 +31,8 @@ public:
 
 private:
     Ui::EurecarURV_Dlg *ui;
-    Driving_Dlg mdlg_driving;
-    Manipulation_Dlg mdlg_manipulation;
+    Driving_Dlg *mpdlg_driving;
+    Manipulation_Dlg *mpdlg_manipulation;
 
 private:
     //-------------------------------------------------

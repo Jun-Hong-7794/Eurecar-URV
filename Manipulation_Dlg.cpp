@@ -1,11 +1,13 @@
 #include "Manipulation_Dlg.h"
 #include "ui_Manipulation_Dlg.h"
 
-Manipulation_Dlg::Manipulation_Dlg(QWidget *parent) :
+Manipulation_Dlg::Manipulation_Dlg(CManipulation* _pc_manipulation, QWidget *parent) :
     QDialog(parent),
-    ui(new Ui::Manipulation_Dlg)
-{
+    ui(new Ui::Manipulation_Dlg){
+
     ui->setupUi(this);
+
+    mpc_manipulation = _pc_manipulation;
 
     //Graphic Scene Initialize
     int lrf_view_width  = ui->view_lrf->geometry().width();
@@ -34,15 +36,6 @@ Manipulation_Dlg::Manipulation_Dlg(QWidget *parent) :
     connect(ui->bt_lrf_on, SIGNAL(clicked()), this, SLOT(SlotButtonLRFOn()));
 
     connect(ui->bt_camera_on, SIGNAL(clicked()), this, SLOT(SlotButtonCameraOn()));
-}
-
-Manipulation_Dlg::~Manipulation_Dlg()
-{
-    delete ui;
-}
-
-void Manipulation_Dlg::InitDlg(CManipulation* _p_manipulation){
-    mpc_manipulation = _p_manipulation;
 
     connect(mpc_manipulation, SIGNAL(SignalKinovaPosition(CartesianPosition)), this, SLOT(SlotEditeKinovaPosition(CartesianPosition)));
 
@@ -50,6 +43,11 @@ void Manipulation_Dlg::InitDlg(CManipulation* _p_manipulation){
     connect(mpc_manipulation, SIGNAL(SignalLRFImage(cv::Mat)), this, SLOT(SlotViewLRFImage(cv::Mat)));
     connect(mpc_manipulation, SIGNAL(SignalCameraImage(cv::Mat)), this, SLOT(SlotViewCameraImage(cv::Mat)));
 
+}
+
+Manipulation_Dlg::~Manipulation_Dlg()
+{
+    delete ui;
 }
 
 //-------------------------------------------------

@@ -8,6 +8,11 @@
 #include <QMutex>
 
 //-------------------------------------------------
+// ElementTech Class
+//-------------------------------------------------
+#include "ElementTech_Class/CRGBD/CRGBD.h"
+
+//-------------------------------------------------
 // Device Class
 //-------------------------------------------------
 #include "Device_Class/CLRF/CLRF.h"
@@ -25,6 +30,12 @@ protected:
 public:
     CManipulation();
     CManipulation(CLRF* _p_lrf, CCamera* _p_camera, CKinova* _p_kinova, CVehicle* _p_vehicle, CVelodyne* _p_velodyne);
+
+private:
+    //-------------------------------------------------
+    // ElementTech Class
+    //-------------------------------------------------
+    CRGBD* mpc_rgb_d;
 
 private:
     //-------------------------------------------------

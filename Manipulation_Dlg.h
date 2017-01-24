@@ -26,7 +26,7 @@ class Manipulation_Dlg : public QDialog
     Q_OBJECT
 
 public:
-    explicit Manipulation_Dlg(QWidget *parent = 0);
+    explicit Manipulation_Dlg(CManipulation* _pc_manipulation, QWidget *parent = 0);
     ~Manipulation_Dlg();
 
 private:
@@ -37,9 +37,6 @@ private:
     // Mission Class
     //-------------------------------------------------
     CManipulation* mpc_manipulation;
-
-public:
-    void InitDlg(CManipulation* _p_manipulation);
 
 private:// Graphic Scene
     QGraphicsScene *mp_camera_image_grahicscene;
