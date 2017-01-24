@@ -1,28 +1,6 @@
 #include "Driving_Dlg.h"
 #include "ui_Driving_Dlg.h"
 
-Driving_Dlg::Driving_Dlg(QWidget *parent) :
-    QDialog(parent),
-    ui(new Ui::Driving_Dlg)
-{
-    VTK_MODULE_INIT(vtkRenderingOpenGL2);
-    ui->setupUi(this);
-
-    qRegisterMetaType<QString>("QString");
-    qRegisterMetaType<cv::Mat>("cv::Mat");
-
-    //-------------------------------------------------
-    // Connection
-    //-------------------------------------------------
-
-    //Button Connect
-    connect(ui->bt_vehicle_run,SIGNAL(clicked()),this,SLOT(SlotButtonVehicleOperate()));
-    connect(ui->bt_vehicle_connection,SIGNAL(clicked()),this,SLOT(SlotButtonVehicleConnet()));
-    connect(ui->bt_vehicle_set_option,SIGNAL(clicked()),this,SLOT(SlotButtonVehicleOptionSetting()));
-
-    connect(ui->bt_velodyne_connection,SIGNAL(clicked()),this,SLOT(SlotButtonVelodyneConnet()));
-}
-
 Driving_Dlg::Driving_Dlg(CDriving* _pc_driving,QWidget *parent):
     QDialog(parent),
     ui(new Ui::Driving_Dlg)

@@ -30,7 +30,6 @@ bool CCamera::InitCamera(int _dev_number){
 
         return true;
     }
-
 }
 
 void CCamera::CloseCamera(){

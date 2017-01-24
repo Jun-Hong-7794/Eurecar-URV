@@ -22,6 +22,8 @@
  * Angle Resolution : 0.25(deg)(0 ~ 270deg = 1080 step)
  */
 
+#define NUMBER_OF_LRF_POINTS 1081
+
 class CLRF: public QThread{
     Q_OBJECT
 protected:
