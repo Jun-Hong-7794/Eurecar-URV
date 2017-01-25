@@ -158,6 +158,7 @@ void Driving_Dlg::SlotButtonVehicleOptionSetting(){
 
 void Driving_Dlg::SlotVeloyneParser(bool _parser_complete){
     if(_parser_complete){
+
         ui->qvtk_velodyne_driving_dlg->update();
     }
 }
@@ -170,3 +171,8 @@ void Driving_Dlg::SlotVeloyneParser(bool _parser_complete){
 
 
 
+
+void Driving_Dlg::on_rd_vehicle_dir_forward_clicked()
+{
+
+}

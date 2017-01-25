@@ -84,6 +84,39 @@ CPCL* CDriving::GetPCL(){
     return mpc_velodyne->GetPCL();
 }
 
+int CDriving::GetPanelHeadingError(){
+    std::vector<double> panel_loc;
+
+    panel_loc = mpc_velodyne->GetPanelCenterLoc();
+
+    double heading_error;
+
+    double error_margin = 3.141592/180.0*(10.0);
+
+    if((panel_loc.at(0) == 0) | (panel_loc.at(1) == 0))
+    {
+        return -2;
+    }
+    else
+    {
+        heading_error = std::atan(panel_loc.at(1)/(-panel_loc.at(0))) -0.06;
+
+        if((heading_error >  0) &&  (heading_error > error_margin))
+        {
+            return 1;
+        }
+        else if((heading_error <  0) &&  (heading_error < error_margin))
+        {
+            return -1;
+        }
+        else
+        {
+            return 0;
+        }
+    }
+
+}
+
 
 //----------------------------------------------------------------
 // Option Function
@@ -170,7 +203,40 @@ bool CDriving::DriveToPanel(){
     }
 
     do{
-        driving_struct = GetDrivingOption();
+//        driving_struct = GetDrivingOption();
+
+//        mpc_vehicle->Move(driving_struct.direction, driving_struct.velocity);
+
+        int heading_control_flag = GetPanelHeadingError();
+        vector<double> panel_loc_info = mpc_velodyne->GetPanelCenterLoc();
+
+        double distance = panel_loc_info.at(2);
+        int test_vel;
+        if(distance < 0.6)
+            test_vel =0;
+        else if(distance >= 0.6)
+            test_vel = 65;
+        else
+            test_vel =0;
+
+        switch(heading_control_flag)
+        {
+        case -1: // turn left
+            driving_struct.direction = UGV_move_left;
+            driving_struct.velocity =75;
+            break;
+        case 1: // turn right
+            driving_struct.direction = UGV_move_right;
+            driving_struct.velocity =75;
+            break;
+        case 0: // Go straight
+            driving_struct.direction = UGV_move_forward;
+            driving_struct.velocity =test_vel;
+            break;
+        default:
+
+            break;
+        }
 
         mpc_vehicle->Move(driving_struct.direction, driving_struct.velocity);
 

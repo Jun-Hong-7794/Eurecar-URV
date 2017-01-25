@@ -57,12 +57,25 @@ private:
 
     VELODYNE_DATA m_velodyne_data_ary[VELODYNE_TOTAL_PACKET_NUMBER];
 
+    std::vector<double> panel_point_loc_x;
+    std::vector<double> panel_point_loc_y;
+
+    double sum_panel_x = 0.0;
+    double sum_panel_y = 0.0;
+    double mean_panel_x = 0.0;
+    double mean_panel_y = 0.0;
+    double sum_dist = 0.0;
+    double mean_dist = 0.0;
+
     bool RunVelodyne();
 public:
     bool ConnectVelodyne();
     bool SetVelodyneThread(bool _thread_switch);
 
     bool IsVelodyneConneted();
+
+    // Get panel center x and y location
+    std::vector<double> GetPanelCenterLoc();
 
 public:
     //PCL
