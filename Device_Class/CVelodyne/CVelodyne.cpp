@@ -119,6 +119,7 @@ bool CVelodyne::RunVelodyne(){
     memset(buffer,0,sizeof(VELODYNE_DATA)*VELODYNE_TOTAL_PACKET_NUMBER);
 
     size_t point_index = 0;
+    size_t panel_point_index = 0;
 
     while(fl_velodyne_thread){
 
@@ -135,6 +136,14 @@ bool CVelodyne::RunVelodyne(){
 
         if (deg < prev_deg){
 
+
+            sum_panel_x = 0.0;
+            sum_panel_y = 0.0;
+            sum_dist = 0.0;
+            mean_panel_x = 0.0;
+            mean_panel_y = 0.0;
+            mean_dist = 0.0;
+
             mtx_pcl_class.lock();
             {
                 memcpy(mpc_pcl->m_velodyne_data_ary, buffer,
@@ -145,6 +154,7 @@ bool CVelodyne::RunVelodyne(){
                 mpc_pcl->cloud->points.resize(VELODYNE_LASERS_NUM*VELODYNE_TOTAL_PACKET_NUMBER*VELODYNE_BOLCKS_NUM);
 
                 point_index = 0;
+                panel_point_index = 0;
 
                 for(int k = 0;k < VELODYNE_LASERS_NUM;k++){
                     for(int i=0; i< VELODYNE_TOTAL_PACKET_NUMBER;i++){
@@ -153,7 +163,17 @@ bool CVelodyne::RunVelodyne(){
                             mpc_pcl->cloud->points[point_index].y = mpc_pcl->m_y_data[k][(j + i*VELODYNE_BOLCKS_NUM)]*0.001;
                             mpc_pcl->cloud->points[point_index].z = mpc_pcl->m_z_data[k][(j + i*VELODYNE_BOLCKS_NUM)]*0.001;
 
-                            if(firing_vertical_angle[k] <= 0){
+                            if((firing_vertical_angle[k] == 0)
+                                    && (mpc_pcl->m_dist_data[k][(j + i*VELODYNE_BOLCKS_NUM)] > 700)
+                                    && (mpc_pcl->m_dist_data[k][(j + i*VELODYNE_BOLCKS_NUM)] < 2000)
+                                    && (mpc_pcl->m_x_data[k][(j + i*VELODYNE_BOLCKS_NUM)] < 0 )){
+
+                                sum_panel_x += mpc_pcl->m_x_data[k][(j + i*VELODYNE_BOLCKS_NUM)]*0.001;
+                                sum_panel_y += mpc_pcl->m_y_data[k][(j + i*VELODYNE_BOLCKS_NUM)]*0.001;
+                                sum_dist += mpc_pcl->m_dist_data[k][(j + i*VELODYNE_BOLCKS_NUM)]*0.001;
+
+                                panel_point_index++;
+
                                 mpc_pcl->cloud->points[point_index].r = 255;// *(1024 * rand () / (RAND_MAX + 1.0f));
                                 mpc_pcl->cloud->points[point_index].g = 0;// *(1024 * rand () / (RAND_MAX + 1.0f));
                                 mpc_pcl->cloud->points[point_index].b = 0;// *(1024 * rand () / (RAND_MAX + 1.0f));
@@ -168,6 +188,10 @@ bool CVelodyne::RunVelodyne(){
                         }
                     }
                 }
+
+                mean_panel_x = sum_panel_x/(double)(panel_point_index+1.0);
+                mean_panel_y = sum_panel_y/(double)(panel_point_index+1.0);
+                mean_dist = sum_dist/(double)(panel_point_index+1.0);
 
                 mpc_pcl->viewer->updatePointCloud(mpc_pcl->cloud,"cloud");
             }
@@ -193,6 +217,18 @@ bool CVelodyne::RunVelodyne(){
     }
 
     return true;
+}
+
+std::vector<double> CVelodyne::GetPanelCenterLoc()
+{
+
+    std::vector<double> mean_panel_loc;
+
+    mean_panel_loc.push_back(mean_panel_x);
+    mean_panel_loc.push_back(mean_panel_y);
+    mean_panel_loc.push_back(mean_dist);
+
+    return mean_panel_loc;
 }
 
 //----------------------------------------------------------------

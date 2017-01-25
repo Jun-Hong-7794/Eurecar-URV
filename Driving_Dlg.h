@@ -67,6 +67,8 @@ public slots:
     void SlotVeloyneParser(bool _parser_complete);
 
 
+private slots:
+    void on_rd_vehicle_dir_forward_clicked();
 };
 
 #endif // DRIVING_DLG_H

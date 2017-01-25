@@ -96,6 +96,8 @@ public:
     bool DriveToPanel();
     bool ParkingFrontPanel();
 
+    int GetPanelHeadingError();
+
 signals:
     void SignalVelodyneParser(bool _parser_complete);
 
