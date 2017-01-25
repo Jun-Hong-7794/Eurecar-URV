@@ -67,26 +67,34 @@ void CRGBD::GetLRFInfo(double &_slope, double &_distance, double _s_deg, double 
 
     long* lrf_distance = new long[number_of_point];
 
-    LINE_PARAM optimal_line_eq;
+    int line_eq_num_of_samples = 5;
+    std::vector<LINE_PARAM> optimal_line_eq_vec;
 
-    if(!mpc_lrf->GetLRFData(mary_lrf_distance)){
-        std::cout << "LRF : GetLRFData Error" << std::endl;
-        return;
-    }
-    else{
-        std::vector<POINT_PARAM> point_vec;
+    for(int i = 0; i < line_eq_num_of_samples; i++){
+        if(!mpc_lrf->GetLRFData(mary_lrf_distance)){
+            std::cout << "LRF : GetLRFData Error" << std::endl;
+            return;
+        }
+        else{
+            std::vector<POINT_PARAM> point_vec;
 
-        memcpy(lrf_distance, &mary_lrf_distance[s_index], sizeof(long)*(number_of_point));
+            memcpy(lrf_distance, &mary_lrf_distance[s_index], sizeof(long)*(number_of_point));
 
-        ClaculateLRFHeightDistance(lrf_distance, _s_deg, _e_deg, point_vec);
+            ClaculateLRFHeightDistance(lrf_distance, _s_deg, _e_deg, point_vec);
 
-        optimal_line_eq = EstimateLineEquation(point_vec);
+            optimal_line_eq_vec.push_back(EstimateLineEquation(point_vec));
+        }
     }
 
     delete[] lrf_distance;
 
-    _slope = optimal_line_eq.yaw;
-    _distance = optimal_line_eq.Distance;
+    for(int i = 0; i < line_eq_num_of_samples; i++){
+        _slope += optimal_line_eq_vec.at(i).yaw;
+        _distance += optimal_line_eq_vec.at(i).Distance;
+    }
+
+    _slope /= line_eq_num_of_samples;
+    _distance /= line_eq_num_of_samples;
 
     return;
 }
@@ -121,7 +129,7 @@ void CRGBD::ClaculateLRFHeightDistance(long* _lrf_org_data, double _s_deg, doubl
 
 LINE_PARAM CRGBD::EstimateLineEquation(std::vector<POINT_PARAM>& _point_vec){
 
-    int iteration = 1000;
+    int iteration = 500;
 
     int random_num_1 = 0;
     int random_num_2 = 0;
@@ -163,7 +171,7 @@ LINE_PARAM CRGBD::EstimateLineEquation(std::vector<POINT_PARAM>& _point_vec){
 
     double line_max_count = 0;
 
-    double line_inlier_standard = 10;
+    double line_inlier_standard = 7;
 
     for(unsigned int i = 0; i < line_eq_vector.size(); i++){
 
