@@ -107,6 +107,22 @@ bool CManipulation::KinovaMoveUnitStepLe(){
     return true;
 }
 
+bool CManipulation::KinovaMoveUnitStepFw(){
+
+    if(!mpc_kinova->KinovaMoveUnitStepFw())
+        return false;
+
+    return true;
+}
+
+bool CManipulation::KinovaMoveUnitStepBw(){
+
+    if(!mpc_kinova->KinovaMoveUnitStepBw())
+        return false;
+
+    return true;
+}
+
 bool CManipulation::KinovaGetPosition(CartesianPosition& _position){
 
     if(!mpc_kinova->IsKinovaInitialized())
@@ -138,6 +154,15 @@ bool CManipulation::IsLRFConnected(){
     return mpc_lrf->isRunning();
 }
 
+bool CManipulation::GetLRFInfo(double &_slope, double &_distance, double _s_deg, double _e_deg){
+
+    if(!InitLRF())
+        return false;
+
+    mpc_rgb_d->GetLRFInfo(_slope, _distance, _s_deg, _e_deg);
+
+    return true;
+}
 
 //Camera
 bool CManipulation::InitCamera(){
@@ -165,6 +190,84 @@ bool CManipulation::SetRGBDFunction(int _index){
 }
 
 //----------------------------------------------------------------
+// Option Function
+//----------------------------------------------------------------
+bool CManipulation::SelectMainFunction(int _fnc_index_){
+
+    if(this->isRunning()){ //A thread is Running?
+        return false;
+    }
+
+    if(_fnc_index_ == MANIPUL_INX_LRF_KINOVA){
+        m_main_fnc_index = MANIPUL_INX_LRF_KINOVA;
+        this->start();
+
+        return true;
+    }
+    else
+        return false;
+}
+
+void CManipulation::SetManipulationOption(LRF_KINOVA_STRUCT _lrf_kinova_option){
+
+    mxt_lrf_kinova.lock();
+    {
+        mstruct_lrf_kinova = _lrf_kinova_option;
+    }
+    mxt_lrf_kinova.unlock();
+}
+
+LRF_KINOVA_STRUCT CManipulation::GetLRFKinovaOption(){
+
+    LRF_KINOVA_STRUCT lrf_kinova_struct;
+
+    mxt_lrf_kinova .lock();
+    {
+        lrf_kinova_struct = mstruct_lrf_kinova;
+    }
+    mxt_lrf_kinova.unlock();
+
+    return lrf_kinova_struct;
+}
+
+//----------------------------------------------------------------
+// Main Function
+//----------------------------------------------------------------
+bool CManipulation::LRFKinovaDepthControl(){
+
+    if(!mpc_lrf->IsLRFOn())
+        return false;
+    if(!mpc_kinova->IsKinovaInitialized())
+        return false;
+
+    double slope = 0;
+    double current_distance = 0;
+
+    LRF_KINOVA_STRUCT lrf_kinova_struct = GetLRFKinovaOption();
+
+    do{
+        mpc_rgb_d->GetLRFInfo(slope, current_distance, lrf_kinova_struct.s_deg, lrf_kinova_struct.e_deg);
+
+        double current_error = lrf_kinova_struct.desired_distance - current_distance;
+
+        if(fabs(current_error) < lrf_kinova_struct.error){
+            break;
+        }
+
+        if(current_error < 0){
+            mpc_kinova->KinovaMoveUnitStepFw();
+        }
+        else if(current_error > 0){
+            mpc_kinova->KinovaMoveUnitStepBw();
+        }
+
+    }
+    while(true);
+
+    return true;
+}
+
+//----------------------------------------------------------------
 //
 //                            Run Thread
 //
@@ -172,6 +275,15 @@ bool CManipulation::SetRGBDFunction(int _index){
 
 void CManipulation::run(){
 
+    switch (m_main_fnc_index){
 
+    case MANIPUL_INX_LRF_KINOVA:
+        LRFKinovaDepthControl();
+        break;
+
+    default:
+        break;
+
+    }
 }
 

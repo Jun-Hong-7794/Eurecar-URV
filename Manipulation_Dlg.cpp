@@ -37,10 +37,17 @@ Manipulation_Dlg::Manipulation_Dlg(CManipulation* _pc_manipulation, QWidget *par
     connect(ui->bt_kinova_down, SIGNAL(clicked()), this, SLOT(SlotButtonKinovaMoveStepDw()));
     connect(ui->bt_kinova_right, SIGNAL(clicked()), this, SLOT(SlotButtonKinovaMoveStepRi()));
     connect(ui->bt_kinova_left, SIGNAL(clicked()), this, SLOT(SlotButtonKinovaMoveStepLe()));
+    connect(ui->bt_kinova_forward, SIGNAL(clicked()), this, SLOT(SlotButtonKinovaMoveStepFw()));
+    connect(ui->bt_kinova_backward, SIGNAL(clicked()), this, SLOT(SlotButtonKinovaMoveStepBw()));
+
+    connect(ui->bt_lrf_kinova_ctrl, SIGNAL(clicked()), this, SLOT(SlotButtonLRFKinovaCtrl()));
+
 
     connect(ui->bt_lrf_on, SIGNAL(clicked()), this, SLOT(SlotButtonLRFOn()));
     connect(ui->bt_camera_on, SIGNAL(clicked()), this, SLOT(SlotButtonCameraOn()));
     connect(mpc_manipulation, SIGNAL(SignalKinovaPosition(CartesianPosition)), this, SLOT(SlotEditeKinovaPosition(CartesianPosition)));
+
+    connect(ui->bt_lrf_get_info, SIGNAL(clicked()), this, SLOT(SlotButtonGetLRFInfo()));
 
     //Check Button
     connect(ui->ck_segnet_switch, SIGNAL(clicked(bool)), this, SLOT(SlotButtonSegnetOn(bool)));
@@ -123,7 +130,17 @@ void Manipulation_Dlg::SlotButtonKinovaMoveStepRi(){
 void Manipulation_Dlg::SlotButtonKinovaMoveStepLe(){
 
     if(!mpc_manipulation->KinovaMoveUnitStepLe())
-        QMessageBox::information(this, tr("Fail to Align Panel"), tr("Check Kinova Status"));
+        QMessageBox::information(this, tr("Fail to Move Step"), tr("Check Kinova Status"));
+}
+
+void Manipulation_Dlg::SlotButtonKinovaMoveStepFw(){
+    if(!mpc_manipulation->KinovaMoveUnitStepFw())
+        QMessageBox::information(this, tr("Fail to Move Step"), tr("Check Kinova Status"));
+}
+
+void Manipulation_Dlg::SlotButtonKinovaMoveStepBw(){
+    if(!mpc_manipulation->KinovaMoveUnitStepBw())
+        QMessageBox::information(this, tr("Fail to Move Step"), tr("Check Kinova Status"));
 }
 
 void Manipulation_Dlg::SlotEditeKinovaPosition(CartesianPosition _position){
@@ -137,6 +154,22 @@ void Manipulation_Dlg::SlotEditeKinovaPosition(CartesianPosition _position){
     ui->ed_kinova_yaw->setText(QString::number(_position.Coordinates.ThetaZ, 'f', 4));
 
     return;
+}
+
+//LRF-Kinova
+void Manipulation_Dlg::SlotButtonLRFKinovaCtrl(){
+
+    LRF_KINOVA_STRUCT lrf_kinova_option;
+
+    lrf_kinova_option.desired_distance = ui->ed_lrf_kinova_desired_dst->text().toDouble();
+    lrf_kinova_option.error = ui->ed_lrf_kinova_error->text().toDouble();
+    lrf_kinova_option.s_deg = ui->ed_lrf_kinova_s_deg->text().toDouble();
+    lrf_kinova_option.e_deg = ui->ed_lrf_kinova_e_deg->text().toDouble();
+
+    mpc_manipulation->SetManipulationOption(lrf_kinova_option);
+
+    if(!mpc_manipulation->SelectMainFunction(MANIPUL_INX_LRF_KINOVA))
+        QMessageBox::information(this, tr("Fail to Operate LRF Kinova"), tr("Check LRF Or Kinova"));
 }
 
 //Camera
@@ -190,6 +223,21 @@ void Manipulation_Dlg::SlotButtonLRFOn(){
     }
 }
 
+void Manipulation_Dlg::SlotButtonGetLRFInfo(){
+
+    double slope = 0;
+    double distance = 0;
+
+    if(!mpc_manipulation->GetLRFInfo(slope, distance, 30, 150)){
+        QMessageBox::information(this, tr("Fail to Get LRF Info"), tr("Check LRF Status"));
+        return;
+    }
+    else{
+        ui->ed_lrf_slope->setText(QString::number(slope, 'f', 3));
+        ui->ed_lrf_distance->setText(QString::number(distance, 'f', 3));
+    }
+}
+
 // Camera
 
 
@@ -212,7 +260,6 @@ void Manipulation_Dlg::SlotViewLRFImage(cv::Mat _image){
     Display_Image(_image,mp_lrf_image_grahicscene,ui->view_lrf);
 
 }
-
 
 QImage Manipulation_Dlg::Mat2QImage(cv::Mat src){
     cv::Mat temp; // make the same cv::Mat

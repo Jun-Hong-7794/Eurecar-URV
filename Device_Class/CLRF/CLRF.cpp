@@ -313,7 +313,7 @@ void CLRF::run(){
         mtx_LRF_data.unlock();
 
 //        LRFDataToMat(lrf_mat);
-        lrf_mat = LRFDataToMat(45*4,225*4);
+        lrf_mat = LRFDataToMat(75*4,195*4);
 
         emit SignalLRFImage(lrf_mat);
 

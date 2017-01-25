@@ -62,9 +62,15 @@ public slots:
     void SlotButtonKinovaMoveStepDw();
     void SlotButtonKinovaMoveStepRi();
     void SlotButtonKinovaMoveStepLe();
+    void SlotButtonKinovaMoveStepFw();
+    void SlotButtonKinovaMoveStepBw();
+
+    //LRF-KINOVA
+    void SlotButtonLRFKinovaCtrl();
 
     //LRF
     void SlotButtonLRFOn();
+    void SlotButtonGetLRFInfo();
 
     //Camera
     void SlotButtonCameraOn();

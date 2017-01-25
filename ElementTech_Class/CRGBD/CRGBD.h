@@ -3,6 +3,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <cstdlib>
 
 #include "Device_Class/CLRF/CLRF.h"
 #include "Device_Class/CCamera/CCamera.h"
@@ -67,8 +68,8 @@ private:
     //-------------------------------------------------
     // Calculation Function
     //-------------------------------------------------
-    void ClaculateLRFHeightDistance(long* _lrf_org_data, double _s_deg);
-    void EstimateLineEquation();
+    void ClaculateLRFHeightDistance(long* _lrf_org_data, double _s_deg, double _e_deg, std::vector<POINT_PARAM>& _point_vec);
+    LINE_PARAM EstimateLineEquation(std::vector<POINT_PARAM>& _point_vec);
 
 public:
     void SegnetFunction();

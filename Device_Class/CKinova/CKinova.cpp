@@ -302,6 +302,62 @@ bool CKinova::KinovaMoveUnitStepLe(){
     return true;
 }
 
+bool CKinova::KinovaMoveUnitStepFw(){
+
+    if(!(fl_kinova_init && fl_kinova_init_position))
+        return false;
+
+    TrajectoryPoint pointToSend;
+    pointToSend.InitStruct();
+
+    pointToSend.Position.Type = CARTESIAN_VELOCITY;
+
+    pointToSend.Position.CartesianPosition.X = VEL;
+    pointToSend.Position.CartesianPosition.Y = 0;
+    pointToSend.Position.CartesianPosition.Z = 0;
+    pointToSend.Position.CartesianPosition.ThetaX = 0;
+    pointToSend.Position.CartesianPosition.ThetaY = 0;
+    pointToSend.Position.CartesianPosition.ThetaZ = 0;
+
+    for(int i = 0; i<=STEP_NUM; i++)
+    {
+        KinovaUnitStepMoving(pointToSend);
+        usleep(SLEEP_TIME);
+    }
+    emit SignalKinovaPosition(KinovaGetPosition());
+    sleep(0.5);
+
+    return true;
+}
+
+bool CKinova::KinovaMoveUnitStepBw(){
+
+    if(!(fl_kinova_init && fl_kinova_init_position))
+        return false;
+
+    TrajectoryPoint pointToSend;
+    pointToSend.InitStruct();
+
+    pointToSend.Position.Type = CARTESIAN_VELOCITY;
+
+    pointToSend.Position.CartesianPosition.X = -VEL;
+    pointToSend.Position.CartesianPosition.Y = 0;
+    pointToSend.Position.CartesianPosition.Z = 0;
+    pointToSend.Position.CartesianPosition.ThetaX = 0;
+    pointToSend.Position.CartesianPosition.ThetaY = 0;
+    pointToSend.Position.CartesianPosition.ThetaZ = 0;
+
+    for(int i = 0; i<=STEP_NUM; i++)
+    {
+        KinovaUnitStepMoving(pointToSend);
+        usleep(SLEEP_TIME);
+    }
+    emit SignalKinovaPosition(KinovaGetPosition());
+    sleep(0.5);
+
+    return true;
+}
+
 void CKinova::Kinova_Scan_End(){
 
     m_scan_final_z = 0;

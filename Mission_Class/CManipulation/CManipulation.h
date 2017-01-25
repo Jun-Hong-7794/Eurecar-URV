@@ -11,6 +11,7 @@
 // ElementTech Class
 //-------------------------------------------------
 #include "ElementTech_Class/CRGBD/CRGBD.h"
+#include "Def_Manipulation.h"
 
 //-------------------------------------------------
 // Device Class
@@ -20,6 +21,11 @@
 #include "Device_Class/CKinova/CKinova.h"
 #include "Device_Class/CVehicle/CVehicle.h"
 #include "Device_Class/CVelodyne/CVelodyne.h"
+
+//-------------------------------------------------
+// Definetion
+//-------------------------------------------------
+#define MANIPUL_INX_LRF_KINOVA 1
 
 class CManipulation:public QThread{
     Q_OBJECT
@@ -32,6 +38,9 @@ public:
     CManipulation(CLRF* _p_lrf, CCamera* _p_camera, CKinova* _p_kinova, CVehicle* _p_vehicle, CVelodyne* _p_velodyne);
 
 private:
+    int m_main_fnc_index;
+    LRF_KINOVA_STRUCT mstruct_lrf_kinova;
+    QMutex mxt_lrf_kinova;
     //-------------------------------------------------
     // ElementTech Class
     //-------------------------------------------------
@@ -63,11 +72,14 @@ public:
     bool KinovaMoveUnitStepDw();
     bool KinovaMoveUnitStepRi();
     bool KinovaMoveUnitStepLe();
+    bool KinovaMoveUnitStepFw();
+    bool KinovaMoveUnitStepBw();
 
     //LRF
     bool InitLRF();
     bool CloseLRF();
     bool IsLRFConnected();
+    bool GetLRFInfo(double &_slope, double &_distance, double _s_deg, double _e_deg);
 
     //Camera
     bool InitCamera();
@@ -75,6 +87,16 @@ public:
     bool IsCameraConnected();
 
     bool SetRGBDFunction(int _index);
+public:
+    bool SelectMainFunction(int _fnc_index_);
+    void SetManipulationOption(LRF_KINOVA_STRUCT _manipulation_option);
+    LRF_KINOVA_STRUCT GetLRFKinovaOption();
+
+private:
+    //-------------------------------------------------
+    // Main Function
+    //-------------------------------------------------
+    bool LRFKinovaDepthControl();
 
 signals:
     void SignalKinovaPosition(CartesianPosition);

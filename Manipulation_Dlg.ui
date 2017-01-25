@@ -137,7 +137,7 @@
    <property name="title">
     <string>Manipulation</string>
    </property>
-   <widget class="QPushButton" name="bt_valve_estimate">
+   <widget class="QPushButton" name="bt_lrf_kinova_ctrl">
     <property name="geometry">
      <rect>
       <x>300</x>
@@ -147,7 +147,7 @@
      </rect>
     </property>
     <property name="text">
-     <string>1. Valve Estimate</string>
+     <string>1. LRF Kinova Ctrl</string>
     </property>
    </widget>
    <widget class="QGroupBox" name="grbx_kinova">
@@ -356,7 +356,7 @@
      <property name="geometry">
       <rect>
        <x>156</x>
-       <y>54</y>
+       <y>47</y>
        <width>31</width>
        <height>22</height>
       </rect>
@@ -369,7 +369,7 @@
      <property name="geometry">
       <rect>
        <x>156</x>
-       <y>104</y>
+       <y>97</y>
        <width>31</width>
        <height>22</height>
       </rect>
@@ -382,7 +382,7 @@
      <property name="geometry">
       <rect>
        <x>138</x>
-       <y>79</y>
+       <y>72</y>
        <width>31</width>
        <height>22</height>
       </rect>
@@ -395,7 +395,7 @@
      <property name="geometry">
       <rect>
        <x>172</x>
-       <y>79</y>
+       <y>72</y>
        <width>31</width>
        <height>22</height>
       </rect>
@@ -427,6 +427,32 @@
       <string>Unit Step</string>
      </property>
     </widget>
+    <widget class="QPushButton" name="bt_kinova_forward">
+     <property name="geometry">
+      <rect>
+       <x>156</x>
+       <y>23</y>
+       <width>31</width>
+       <height>22</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>&amp;F</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="bt_kinova_backward">
+     <property name="geometry">
+      <rect>
+       <x>156</x>
+       <y>121</y>
+       <width>31</width>
+       <height>22</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>&amp;B</string>
+     </property>
+    </widget>
    </widget>
    <widget class="QGroupBox" name="grbx_lrf">
     <property name="geometry">
@@ -443,9 +469,9 @@
     <widget class="QPushButton" name="bt_lrf_on">
      <property name="geometry">
       <rect>
-       <x>96</x>
+       <x>140</x>
        <y>40</y>
-       <width>91</width>
+       <width>51</width>
        <height>31</height>
       </rect>
      </property>
@@ -546,6 +572,19 @@
      </property>
      <property name="alignment">
       <set>Qt::AlignCenter</set>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="bt_lrf_get_info">
+     <property name="geometry">
+      <rect>
+       <x>80</x>
+       <y>40</y>
+       <width>51</width>
+       <height>31</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Get</string>
      </property>
     </widget>
    </widget>
@@ -750,10 +789,131 @@
     <property name="currentIndex">
      <number>0</number>
     </property>
-    <widget class="QWidget" name="tab_valve_estimation">
+    <widget class="QWidget" name="tab_lrf_kinova_distance_ctrl">
      <attribute name="title">
-      <string>1.VE</string>
+      <string>1.LK</string>
      </attribute>
+     <widget class="QLineEdit" name="ed_lrf_kinova_desired_dst">
+      <property name="geometry">
+       <rect>
+        <x>6</x>
+        <y>18</y>
+        <width>81</width>
+        <height>22</height>
+       </rect>
+      </property>
+     </widget>
+     <widget class="QLineEdit" name="ed_lrf_kinova_error">
+      <property name="geometry">
+       <rect>
+        <x>6</x>
+        <y>60</y>
+        <width>61</width>
+        <height>22</height>
+       </rect>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label_16">
+      <property name="geometry">
+       <rect>
+        <x>6</x>
+        <y>1</y>
+        <width>121</width>
+        <height>16</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Desired Dst(mm)</string>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label_18">
+      <property name="geometry">
+       <rect>
+        <x>6</x>
+        <y>44</y>
+        <width>81</width>
+        <height>16</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Error(mm)</string>
+      </property>
+     </widget>
+     <widget class="QLineEdit" name="ed_lrf_kinova_current_dst">
+      <property name="geometry">
+       <rect>
+        <x>86</x>
+        <y>59</y>
+        <width>81</width>
+        <height>22</height>
+       </rect>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label_19">
+      <property name="geometry">
+       <rect>
+        <x>86</x>
+        <y>42</y>
+        <width>121</width>
+        <height>16</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Crurrent Dst(mm)</string>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label_20">
+      <property name="geometry">
+       <rect>
+        <x>7</x>
+        <y>84</y>
+        <width>71</width>
+        <height>16</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Start Deg</string>
+      </property>
+     </widget>
+     <widget class="QLineEdit" name="ed_lrf_kinova_s_deg">
+      <property name="geometry">
+       <rect>
+        <x>6</x>
+        <y>100</y>
+        <width>61</width>
+        <height>21</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>45</string>
+      </property>
+     </widget>
+     <widget class="QLineEdit" name="ed_lrf_kinova_e_deg">
+      <property name="geometry">
+       <rect>
+        <x>86</x>
+        <y>99</y>
+        <width>61</width>
+        <height>22</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>135</string>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label_21">
+      <property name="geometry">
+       <rect>
+        <x>87</x>
+        <y>84</y>
+        <width>61</width>
+        <height>16</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>End Deg</string>
+      </property>
+     </widget>
     </widget>
     <widget class="QWidget" name="tab_find_wrench">
      <attribute name="title">

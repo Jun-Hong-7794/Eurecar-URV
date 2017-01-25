@@ -101,6 +101,8 @@ public: // Basic Motion
     bool KinovaMoveUnitStepDw();
     bool KinovaMoveUnitStepRi();
     bool KinovaMoveUnitStepLe();
+    bool KinovaMoveUnitStepFw();
+    bool KinovaMoveUnitStepBw();
 
 
 
