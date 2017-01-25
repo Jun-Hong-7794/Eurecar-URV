@@ -12,9 +12,14 @@ CManipulation::CManipulation(CLRF *_p_lrf, CCamera *_p_camera, CKinova *_p_kinov
     mpc_vehicle = _p_vehicle;
     mpc_velodyne = _p_velodyne;
 
+    mpc_rgb_d = new CRGBD(_p_camera, _p_lrf);
+
     connect(mpc_kinova, SIGNAL(SignalKinovaPosition(CartesianPosition)), this, SIGNAL(SignalKinovaPosition(CartesianPosition)));
     connect(mpc_lrf, SIGNAL(SignalLRFImage(cv::Mat)), this, SIGNAL(SignalLRFImage(cv::Mat)));
     connect(mpc_camera, SIGNAL(SignalCameraImage(cv::Mat)), this, SIGNAL(SignalCameraImage(cv::Mat)));
+
+    connect(mpc_camera, SIGNAL(SignalCameraImage(cv::Mat)), this, SIGNAL(SignalCameraImage(cv::Mat)));
+    connect(mpc_rgb_d, SIGNAL(SignalSegnetImage(cv::Mat)), this, SIGNAL(SignalSegnetImage(cv::Mat)));
 }
 
 
@@ -149,6 +154,14 @@ void CManipulation::CloseCamera(){
 
 bool CManipulation::IsCameraConnected(){
     return mpc_camera->IsCameraConnected();
+}
+
+bool CManipulation::SetRGBDFunction(int _index){
+
+    if(!mpc_rgb_d->RGB_DThreadSetting(_index))
+        return false;
+
+    return true;
 }
 
 //----------------------------------------------------------------

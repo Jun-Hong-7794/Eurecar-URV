@@ -1,6 +1,7 @@
 #ifndef CSEGNET_H
 #define CSEGNET_H
 
+#include <string>
 #include "opencv_header.h"
 #include "../../Caffe_Header.h"
 
@@ -12,6 +13,10 @@ public:
 public:
     void NetInitialize(const string& _model_file, const string& _trained_file);
     cv::Mat GetSegnetImage(cv::Mat _org_image);
+
+private:
+    std::string mstr_model_path;
+    std::string mstr_weight_path;
 
 private:
     cv::Mat Predict(const cv::Mat& _img);

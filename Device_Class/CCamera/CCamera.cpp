@@ -51,6 +51,17 @@ bool CCamera::IsCameraConnected(){
     return this->isRunning();
 }
 
+bool CCamera::GetCameraImage(cv::Mat &_image){
+
+    mtx_camera.lock();
+    {
+         _image = m_mat_original_image.clone();
+//       m_cam >> _image;
+    }
+    mtx_camera.unlock();
+    return true;
+}
+
 //----------------------------------------------------------------
 //
 //                            Run Thread
@@ -64,9 +75,9 @@ void CCamera::run(){
         mtx_camera.lock();
         {
             m_cam >> m_mat_original_image;
-
             emit SignalCameraImage(m_mat_original_image);
         }
         mtx_camera.unlock();
+        msleep(30);
     }
 }

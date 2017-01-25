@@ -22,6 +22,7 @@
  * Angle Resolution : 0.25(deg)(0 ~ 270deg = 1080 step)
  */
 
+#define ANGLE_RESOLUTION 0.25
 #define NUMBER_OF_LRF_POINTS 1081
 
 class CLRF: public QThread{
@@ -57,7 +58,9 @@ private:
 
 public:
     bool CalculateColorStep(unsigned int _max_num,unsigned int _current_num, int &_red,int &_green,int &_blue);
-    void LRFDataToMat(long *lrf_length_data,cv::Mat &_lrf_map);
+
+    void LRFDataToMat(cv::Mat &_lrf_map);
+    cv::Mat LRFDataToMat(int _s_index = 45, int _e_index = 225);
 
 public:
     bool InitLRF(char* _dev_path = (char *)"/dev/ttyACM0",int _dev_type = UTM_30LX);
@@ -69,7 +72,7 @@ public:
 
     int GetDeviceType();
 
-    long GetLRFData(long *_distance_data, unsigned short *_intensity_data = NULL) ;
+    bool GetLRFData(long *_distance_data, unsigned short *_intensity_data = NULL) ;
 
 signals:
     void SignalLRFImage(cv::Mat);

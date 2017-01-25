@@ -40,6 +40,8 @@ private:
 
 private:// Graphic Scene
     QGraphicsScene *mp_camera_image_grahicscene;
+    QGraphicsScene *mp_segnet_image_grahicscene;
+
     QGraphicsScene *mp_lrf_image_grahicscene;
 
 public://Display Image to Qt Graphicview
@@ -66,6 +68,7 @@ public slots:
 
     //Camera
     void SlotButtonCameraOn();
+    void SlotButtonSegnetOn(bool _check);
 
     //-------------------------------------------------
     // Edite Update
@@ -78,6 +81,7 @@ public slots:
     //-------------------------------------------------
     //Camera
     void SlotViewCameraImage(cv::Mat _image);
+    void SlotViewSegnetImage(cv::Mat _image);
 
     //LRF
     void SlotViewLRFImage(cv::Mat _image);

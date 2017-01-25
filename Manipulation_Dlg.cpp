@@ -15,10 +15,15 @@ Manipulation_Dlg::Manipulation_Dlg(CManipulation* _pc_manipulation, QWidget *par
 
     mp_lrf_image_grahicscene = new QGraphicsScene(QRectF(0, 0, lrf_view_width, lrf_view_height), 0);
 
-    int camera_view_width  = ui->view_lrf->geometry().width();
-    int camera_view_height = ui->view_lrf->geometry().height();
+    int camera_view_width  = ui->view_camera->geometry().width();
+    int camera_view_height = ui->view_camera->geometry().height();
 
     mp_camera_image_grahicscene = new QGraphicsScene(QRectF(0, 0, camera_view_width, camera_view_height), 0);
+
+    int segnet_view_width  = ui->view_segnet->geometry().width();
+    int segnet_view_height = ui->view_segnet->geometry().height();
+
+    mp_segnet_image_grahicscene = new QGraphicsScene(QRectF(0, 0, segnet_view_width, segnet_view_height), 0);
 
 
     //Button Connetion
@@ -34,14 +39,16 @@ Manipulation_Dlg::Manipulation_Dlg(CManipulation* _pc_manipulation, QWidget *par
     connect(ui->bt_kinova_left, SIGNAL(clicked()), this, SLOT(SlotButtonKinovaMoveStepLe()));
 
     connect(ui->bt_lrf_on, SIGNAL(clicked()), this, SLOT(SlotButtonLRFOn()));
-
     connect(ui->bt_camera_on, SIGNAL(clicked()), this, SLOT(SlotButtonCameraOn()));
-
     connect(mpc_manipulation, SIGNAL(SignalKinovaPosition(CartesianPosition)), this, SLOT(SlotEditeKinovaPosition(CartesianPosition)));
+
+    //Check Button
+    connect(ui->ck_segnet_switch, SIGNAL(clicked(bool)), this, SLOT(SlotButtonSegnetOn(bool)));
 
     //View Connetion
     connect(mpc_manipulation, SIGNAL(SignalLRFImage(cv::Mat)), this, SLOT(SlotViewLRFImage(cv::Mat)));
     connect(mpc_manipulation, SIGNAL(SignalCameraImage(cv::Mat)), this, SLOT(SlotViewCameraImage(cv::Mat)));
+    connect(mpc_manipulation, SIGNAL(SignalSegnetImage(cv::Mat)), this, SLOT(SlotViewSegnetImage(cv::Mat)));
 
 }
 
@@ -149,6 +156,20 @@ void Manipulation_Dlg::SlotButtonCameraOn(){
     }
 }
 
+void Manipulation_Dlg::SlotButtonSegnetOn(bool _check){
+
+    if(_check){
+        if(!mpc_manipulation->IsCameraConnected()){
+            QMessageBox::information(this, tr("Fail to Connect Camera"), tr("Check Camera Status"));
+        }
+        if(!mpc_manipulation->SetRGBDFunction(THREAD_SEGNET_INDEX))
+            QMessageBox::information(this, tr("Fail to Run Segnet"), tr("Check Camera Status"));;
+    }
+    else{
+        mpc_manipulation->SetRGBDFunction(0);
+    }
+}
+
 // LRF
 void Manipulation_Dlg::SlotButtonLRFOn(){
     if(!mpc_manipulation->IsLRFConnected()){
@@ -180,6 +201,10 @@ void Manipulation_Dlg::SlotButtonLRFOn(){
 //-------------------------------------------------
 void Manipulation_Dlg::SlotViewCameraImage(cv::Mat _image){
     Display_Image(_image,mp_camera_image_grahicscene,ui->view_camera);
+}
+
+void Manipulation_Dlg::SlotViewSegnetImage(cv::Mat _image){
+    Display_Image(_image,mp_segnet_image_grahicscene,ui->view_segnet);
 }
 
 void Manipulation_Dlg::SlotViewLRFImage(cv::Mat _image){

@@ -74,10 +74,13 @@ public:
     void CloseCamera();
     bool IsCameraConnected();
 
+    bool SetRGBDFunction(int _index);
+
 signals:
     void SignalKinovaPosition(CartesianPosition);
     void SignalLRFImage(cv::Mat);
     void SignalCameraImage(cv::Mat);
+    void SignalSegnetImage(cv::Mat);
 };
 
 #endif // CMANIPULATION_H

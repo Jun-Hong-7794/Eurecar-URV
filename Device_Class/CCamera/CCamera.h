@@ -33,6 +33,8 @@ public:
     void CloseCamera();
     bool IsCameraConnected();
 
+    bool GetCameraImage(cv::Mat &_image);
+
 signals:
     void SignalCameraImage(cv::Mat);
 };

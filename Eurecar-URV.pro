@@ -56,7 +56,8 @@ HEADERS  += EurecarURV_Dlg.h \
     Device_Class/CVehicle/RoboteqDevice.h \
     Mission_Class/CDriving/Def_Driving.h \
     Device_Class/CUDP/CUDP.h \
-    Device_Class/CVelodyne/CPCL.h
+    Device_Class/CVelodyne/CPCL.h \
+    ElementTech_Class/CRGBD/RGBD_Data.h
 
 FORMS    += EurecarURV_Dlg.ui \
     Driving_Dlg.ui \

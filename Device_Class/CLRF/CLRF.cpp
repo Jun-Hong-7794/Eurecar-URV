@@ -171,15 +171,74 @@ bool CLRF::CalculateColorStep(unsigned int _max_num,unsigned int _current_num, i
     return true;
 }
 
-void CLRF::LRFDataToMat(long *lrf_length_data, cv::Mat &_lrf_map){
+cv::Mat CLRF::LRFDataToMat(int _s_index, int _e_index){
 
+    cv::Mat lrf_map = cv::Mat::zeros(480,640,CV_8UC3);
+
+    long* lrf_distance_data = NULL;
+
+    int width = lrf_map.cols * 3;
+    int height = lrf_map.rows;
+
+    if(width == 0 || height == 0){
+        return lrf_map;
+    }
+
+    mtx_LRF_data.lock();
+    {
+        lrf_distance_data = new long[urg_max_data_size(&m_urg)];
+        memcpy(lrf_distance_data,mp_distance_data,sizeof(long) * urg_max_data_size(&m_urg));
+    }
+    mtx_LRF_data.unlock();
+
+    for(int i = _s_index; i < _e_index; i++){
+        double radian;
+        long length;
+        int x;
+        int y;
+
+        radian = urg_index2rad(&m_urg, i);
+        length = lrf_distance_data[i];
+
+        x = (int)( ((length * cos(radian) * 240) / (MAX_LRF_RANGE)) + 320);
+        y = (int)( ((length * sin((-1)*radian) * 240) / (MAX_LRF_RANGE)) + 240);
+
+        if(x >= 640) x = 0;
+        if(x <    0) x = 0;
+
+        if(y >= 480) y = 0;
+        if(y <    0) y = 0;
+
+        int red = 0;
+        int green = 0;
+        int blue = 0;
+
+        CalculateColorStep(2000,length,red,green,blue);
+        lrf_map.data[y*width + x*3 + 0] = blue; //B
+        lrf_map.data[y*width + x*3 + 1] = green; //G
+        lrf_map.data[y*width + x*3 + 2] = red; //R
+    }
+
+    return lrf_map;
+}
+
+void CLRF::LRFDataToMat(cv::Mat &_lrf_map){
 
     int width = _lrf_map.cols * 3;
     int height = _lrf_map.rows;
 
+    long* lrf_distance_data = NULL;
+
     if(width == 0 || height == 0){
         return;
     }
+
+    mtx_LRF_data.lock();
+    {
+        lrf_distance_data = new long[urg_max_data_size(&m_urg)];
+        memcpy(lrf_distance_data,mp_distance_data,sizeof(long) * urg_max_data_size(&m_urg));
+    }
+    mtx_LRF_data.unlock();
 
     for(int i = 0; i < m_number_of_point; i++){
         double radian;
@@ -188,7 +247,7 @@ void CLRF::LRFDataToMat(long *lrf_length_data, cv::Mat &_lrf_map){
         int y;
 
         radian = urg_index2rad(&m_urg, i);
-        length = lrf_length_data[i];
+        length = lrf_distance_data[i];
 
         x = (int)( ((length * cos(radian) * 240) / (MAX_LRF_RANGE)) + 320);
         y = (int)( ((length * sin((-1)*radian) * 240) / (MAX_LRF_RANGE)) + 240);
@@ -208,13 +267,18 @@ void CLRF::LRFDataToMat(long *lrf_length_data, cv::Mat &_lrf_map){
         _lrf_map.data[y*width + x*3 + 1] = green; //G
         _lrf_map.data[y*width + x*3 + 2] = red; //R
     }
+
+    delete[] lrf_distance_data;
 }
 
-long CLRF::GetLRFData(long *_distance_data, unsigned short *_intensity_data){
-    long distance;
+bool CLRF::GetLRFData(long *_distance_data, unsigned short *_intensity_data){
+
+
+    if(!fl_lrf_init)
+        return false;
+
     mtx_LRF_data.lock();
     {
-        distance = mp_distance_data[540];
         memcpy(_distance_data,mp_distance_data,sizeof(long) * urg_max_data_size(&m_urg));
 
         if(m_device_type == UST_20LX)
@@ -223,7 +287,7 @@ long CLRF::GetLRFData(long *_distance_data, unsigned short *_intensity_data){
     }
     mtx_LRF_data.unlock();
 
-    return distance;
+    return true;
 }
 
 //----------------------------------------------------------------
@@ -234,29 +298,22 @@ long CLRF::GetLRFData(long *_distance_data, unsigned short *_intensity_data){
 
 void CLRF::run(){
 
-    long *lrf_length_data;
-
     while(fl_stream){
 
        cv::Mat lrf_mat = cv::Mat::zeros(480,640,CV_8UC3);
 
         mtx_LRF_data.lock();
         {
-            lrf_length_data = new long[urg_max_data_size(&m_urg)];
 
             if(m_device_type == UST_20LX)
                 m_number_of_point = urg_get_distance_intensity(&m_urg, mp_distance_data, mp_intensity_data, NULL);
             else//UTM_30LX
                 m_number_of_point = urg_get_distance(&m_urg, mp_distance_data, NULL);
-
-
-            memcpy(lrf_length_data,mp_distance_data,sizeof(long) * urg_max_data_size(&m_urg));
-
-            LRFDataToMat(lrf_length_data, lrf_mat);
         }
         mtx_LRF_data.unlock();
 
-        delete[] lrf_length_data;
+//        LRFDataToMat(lrf_mat);
+        lrf_mat = LRFDataToMat(45*4,225*4);
 
         emit SignalLRFImage(lrf_mat);
 

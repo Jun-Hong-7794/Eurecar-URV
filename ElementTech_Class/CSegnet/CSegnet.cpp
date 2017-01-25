@@ -2,7 +2,13 @@
 
 CSegnet::CSegnet()
 {
+    mstr_model_path = "/home/winner/Workspace/2017MBZIRC_Code/Eurecar-URV/CaffeFile/segnet_inference_input.prototxt";
+    mstr_weight_path = "/home/winner/Workspace/2017MBZIRC_Code/Eurecar-URV/CaffeFile/test_weights.caffemodel";
 
+//    mstr_model_path = "/media/winner/JUNG/caffe_test/segnet_inference_input.prototxt";
+//    mstr_weight_path = "/media/winner/JUNG/caffe_test/test_weights.caffemodel";
+
+    NetInitialize(mstr_model_path, mstr_weight_path);
 }
 
 void CSegnet::NetInitialize(const string &_model_file, const string &_trained_file){
