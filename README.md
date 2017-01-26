@@ -70,7 +70,7 @@
 * `$ sudo make install`
 
 ##5. Dynamixel(For Gripper)
-###1) Download DynamixelSDK 3.4.1 [here](https://github.com/ROBOTIS-GIT/DynamixelSDK/releases)
+###1) Download DynamixelSDK 3.4.1(zip) [here](https://github.com/ROBOTIS-GIT/DynamixelSDK/releases)
 * Extract
 * `$ cd ~/DynamixelSDK-3.4.1/c++/build/linux64`
 * `$ make`
