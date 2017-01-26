@@ -65,9 +65,6 @@ public slots:
     void SlotButtonKinovaMoveStepFw();
     void SlotButtonKinovaMoveStepBw();
 
-    //LRF-KINOVA
-    void SlotButtonLRFKinovaCtrl();
-
     //LRF
     void SlotButtonLRFOn();
     void SlotButtonGetLRFInfo();
@@ -76,11 +73,16 @@ public slots:
     void SlotButtonCameraOn();
     void SlotButtonSegnetOn(bool _check);
 
+    //Step Function
+    void SlotButtonLRFKinovaCtrl();
+    void SlotButtonKinovaForceCtrl();
+
     //-------------------------------------------------
     // Edite Update
     //-------------------------------------------------
 
     void SlotEditeKinovaPosition(CartesianPosition _position);
+    void SlotEditeKinovaForceVector(CartesianPosition _force_vector);
 
     //-------------------------------------------------
     // View Update

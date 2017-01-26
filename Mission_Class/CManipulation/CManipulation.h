@@ -25,7 +25,8 @@
 //-------------------------------------------------
 // Definetion
 //-------------------------------------------------
-#define MANIPUL_INX_LRF_KINOVA 1
+#define MANIPUL_INX_LRF_KINOVA          1
+#define MANIPUL_INX_KINOVA_FORCE_CLRL   2
 
 class CManipulation:public QThread{
     Q_OBJECT
@@ -36,11 +37,15 @@ protected:
 public:
     CManipulation();
     CManipulation(CLRF* _p_lrf, CCamera* _p_camera, CKinova* _p_kinova, CVehicle* _p_vehicle, CVelodyne* _p_velodyne);
-
+    ~CManipulation();
 private:
     int m_main_fnc_index;
+
     LRF_KINOVA_STRUCT mstruct_lrf_kinova;
     QMutex mxt_lrf_kinova;
+
+    KINOVA_FORCE_CTRL_STRUCT mstruct_kinova_force_ctrl;
+    QMutex mxt_kinova_force_ctrl;
     //-------------------------------------------------
     // ElementTech Class
     //-------------------------------------------------
@@ -89,17 +94,24 @@ public:
     bool SetRGBDFunction(int _index);
 public:
     bool SelectMainFunction(int _fnc_index_);
+
     void SetManipulationOption(LRF_KINOVA_STRUCT _manipulation_option);
     LRF_KINOVA_STRUCT GetLRFKinovaOption();
+
+    void SetManipulationOption(KINOVA_FORCE_CTRL_STRUCT _manipulation_option);
+    KINOVA_FORCE_CTRL_STRUCT GetKinovaForceCtrlOption();
 
 private:
     //-------------------------------------------------
     // Main Function
     //-------------------------------------------------
     bool LRFKinovaDepthControl();
+    bool KinovaForceCtrl();
 
 signals:
     void SignalKinovaPosition(CartesianPosition);
+    void SignalKinovaForceVector(CartesianPosition);
+
     void SignalLRFImage(cv::Mat);
     void SignalCameraImage(cv::Mat);
     void SignalSegnetImage(cv::Mat);

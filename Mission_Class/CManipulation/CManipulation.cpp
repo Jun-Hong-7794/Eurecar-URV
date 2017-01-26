@@ -4,6 +4,12 @@ CManipulation::CManipulation(){
 
 }
 
+CManipulation::~CManipulation(){
+
+    if(this->isRunning())
+        this->terminate();
+}
+
 CManipulation::CManipulation(CLRF *_p_lrf, CCamera *_p_camera, CKinova *_p_kinova, CVehicle *_p_vehicle, CVelodyne *_p_velodyne){
 
     mpc_lrf = _p_lrf;
@@ -204,6 +210,12 @@ bool CManipulation::SelectMainFunction(int _fnc_index_){
 
         return true;
     }
+    else if(_fnc_index_ == MANIPUL_INX_KINOVA_FORCE_CLRL){
+        m_main_fnc_index = MANIPUL_INX_KINOVA_FORCE_CLRL;
+        this->start();
+
+        return true;
+    }
     else
         return false;
 }
@@ -228,6 +240,28 @@ LRF_KINOVA_STRUCT CManipulation::GetLRFKinovaOption(){
     mxt_lrf_kinova.unlock();
 
     return lrf_kinova_struct;
+}
+
+void CManipulation::SetManipulationOption(KINOVA_FORCE_CTRL_STRUCT _kinova_force_ctrl){
+
+    mxt_lrf_kinova.lock();
+    {
+        mstruct_kinova_force_ctrl = _kinova_force_ctrl;
+    }
+    mxt_lrf_kinova.unlock();
+}
+
+KINOVA_FORCE_CTRL_STRUCT CManipulation::GetKinovaForceCtrlOption(){
+
+    KINOVA_FORCE_CTRL_STRUCT kinova_force_ctrl;
+
+    mxt_kinova_force_ctrl .lock();
+    {
+        kinova_force_ctrl = mstruct_kinova_force_ctrl;
+    }
+    mxt_kinova_force_ctrl.unlock();
+
+    return kinova_force_ctrl;
 }
 
 //----------------------------------------------------------------
@@ -267,6 +301,41 @@ bool CManipulation::LRFKinovaDepthControl(){
     return true;
 }
 
+bool CManipulation::KinovaForceCtrl(){
+
+    if(!mpc_kinova->IsKinovaInitialized())
+        return false;
+
+    int step_count = 0;
+
+    KINOVA_FORCE_CTRL_STRUCT kinova_force_ctrl = GetKinovaForceCtrlOption();
+
+    do{
+        CartesianPosition cartesian_pos = mpc_kinova->KinovaGetCartesianForce();
+        emit SignalKinovaForceVector(cartesian_pos);
+
+        if(step_count > kinova_force_ctrl.step_count)
+            break;
+
+        if(fabs(cartesian_pos.Coordinates.X) > kinova_force_ctrl.forece_threshold){//Over Threshold X axis force
+            break;
+        }
+        if(fabs(cartesian_pos.Coordinates.Y) > kinova_force_ctrl.forece_threshold){//Over Threshold Y axis force
+            break;
+        }
+        if(fabs(cartesian_pos.Coordinates.Z) > kinova_force_ctrl.forece_threshold){//Over Threshold Z axis force
+            break;
+        }
+
+        mpc_kinova->KinovaMoveUnitStep(0, 0.1, 0.1);
+
+        step_count++;
+    }
+    while(true);
+
+    return true;
+}
+
 //----------------------------------------------------------------
 //
 //                            Run Thread
@@ -279,6 +348,10 @@ void CManipulation::run(){
 
     case MANIPUL_INX_LRF_KINOVA:
         LRFKinovaDepthControl();
+        break;
+
+    case MANIPUL_INX_KINOVA_FORCE_CLRL:
+        KinovaForceCtrl();
         break;
 
     default:

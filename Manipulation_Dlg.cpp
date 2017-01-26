@@ -41,11 +41,13 @@ Manipulation_Dlg::Manipulation_Dlg(CManipulation* _pc_manipulation, QWidget *par
     connect(ui->bt_kinova_backward, SIGNAL(clicked()), this, SLOT(SlotButtonKinovaMoveStepBw()));
 
     connect(ui->bt_lrf_kinova_ctrl, SIGNAL(clicked()), this, SLOT(SlotButtonLRFKinovaCtrl()));
+    connect(ui->bt_kinova_force_ctrl, SIGNAL(clicked()), this, SLOT(SlotButtonKinovaForceCtrl()));
 
 
     connect(ui->bt_lrf_on, SIGNAL(clicked()), this, SLOT(SlotButtonLRFOn()));
     connect(ui->bt_camera_on, SIGNAL(clicked()), this, SLOT(SlotButtonCameraOn()));
     connect(mpc_manipulation, SIGNAL(SignalKinovaPosition(CartesianPosition)), this, SLOT(SlotEditeKinovaPosition(CartesianPosition)));
+    connect(mpc_manipulation, SIGNAL(SignalKinovaForceVector(CartesianPosition)), this, SLOT(SlotEditeKinovaForceVector(CartesianPosition)));
 
     connect(ui->bt_lrf_get_info, SIGNAL(clicked()), this, SLOT(SlotButtonGetLRFInfo()));
 
@@ -156,6 +158,34 @@ void Manipulation_Dlg::SlotEditeKinovaPosition(CartesianPosition _position){
     return;
 }
 
+void Manipulation_Dlg::SlotEditeKinovaForceVector(CartesianPosition _force_vector){
+
+    ui->ed_kinova_force_x->setText(QString::number(_force_vector.Coordinates.X, 'f', 4));
+    ui->ed_kinova_force_y->setText(QString::number(_force_vector.Coordinates.Y, 'f', 4));
+    ui->ed_kinova_force_z->setText(QString::number(_force_vector.Coordinates.Z, 'f', 4));
+
+    ui->ed_kinova_force_roll->setText(QString::number(_force_vector.Coordinates.ThetaX, 'f', 4));
+    ui->ed_kinova_force_pitch->setText(QString::number(_force_vector.Coordinates.ThetaY, 'f', 4));
+    ui->ed_kinova_force_yaw->setText(QString::number(_force_vector.Coordinates.ThetaZ, 'f', 4));
+
+    return;
+}
+
+void Manipulation_Dlg::SlotButtonKinovaForceCtrl(){
+
+    KINOVA_FORCE_CTRL_STRUCT kinova_force_ctrl_option;
+
+    kinova_force_ctrl_option.kinova_force_ctrl_mission = true;
+    kinova_force_ctrl_option.step_count = ui->ed_kinova_force_step_count->text().toDouble();
+    kinova_force_ctrl_option.forece_threshold = ui->ed_kinova_force_threshold->text().toDouble();
+
+    mpc_manipulation->SetManipulationOption(kinova_force_ctrl_option);
+
+    if(!mpc_manipulation->SelectMainFunction(MANIPUL_INX_KINOVA_FORCE_CLRL))
+        QMessageBox::information(this, tr("Fail to Operate LRF Kinova"), tr("Check LRF Or Kinova"));
+
+}
+
 //LRF-Kinova
 void Manipulation_Dlg::SlotButtonLRFKinovaCtrl(){
 
@@ -171,6 +201,7 @@ void Manipulation_Dlg::SlotButtonLRFKinovaCtrl(){
     if(!mpc_manipulation->SelectMainFunction(MANIPUL_INX_LRF_KINOVA))
         QMessageBox::information(this, tr("Fail to Operate LRF Kinova"), tr("Check LRF Or Kinova"));
 }
+
 
 //Camera
 void Manipulation_Dlg::SlotButtonCameraOn(){
