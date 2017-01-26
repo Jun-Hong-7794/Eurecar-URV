@@ -30,7 +30,8 @@ SOURCES += main.cpp\
     ElementTech_Class/CSegnet/CSegnet.cpp \
     Device_Class/CVelodyne/CVelodyne.cpp \
     Device_Class/CVehicle/RoboteqDevice.cpp \
-    Device_Class/CUDP/CUDP.cpp
+    Device_Class/CUDP/CUDP.cpp \
+    Device_Class/CGripper/CGripper.cpp
 
 
 HEADERS  += EurecarURV_Dlg.h \
@@ -58,12 +59,25 @@ HEADERS  += EurecarURV_Dlg.h \
     Device_Class/CUDP/CUDP.h \
     Device_Class/CVelodyne/CPCL.h \
     ElementTech_Class/CRGBD/RGBD_Data.h \
-    Mission_Class/CManipulation/Def_Manipulation.h
+    Mission_Class/CManipulation/Def_Manipulation.h \
+    Device_Class/CGripper/CGripper.h
 
 FORMS    += EurecarURV_Dlg.ui \
     Driving_Dlg.ui \
     Manipulation_Dlg.ui
 
+#-------------------------------------------------
+#
+# Dynamixel Configuration
+#
+#-------------------------------------------------
+
+INCLUDEPATH += /home/winner/Downloads/DynamixelSDK-3.4.1/c++/include
+LIBS += -L/usr/local/lib
+
+LIBS  += -ldxl_x64_cpp
+LIBS  += -lrt
+#-------------------------------------------------
 
 #-------------------------------------------------
 #
