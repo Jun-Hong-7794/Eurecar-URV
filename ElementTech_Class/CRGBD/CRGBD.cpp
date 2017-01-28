@@ -99,6 +99,38 @@ void CRGBD::GetLRFInfo(double &_slope, double &_distance, double _s_deg, double 
     return;
 }
 
+void CRGBD::GetHorizenDistance(double _inlier_distance,double& _horizen_distance, double& _s_inlier_deg, double& _e_inlier_deg){
+
+    //Convert to Original Coordinate
+
+    double s_deg = 30;
+    double e_deg = 150;
+    int s_index = (int)((s_deg + 45) / ANGLE_RESOLUTION);
+    int e_index = (int)((e_deg + 45) / ANGLE_RESOLUTION);
+
+    int number_of_point = e_index -s_index + 1;
+
+    long* lrf_distance = new long[number_of_point];
+
+    std::vector<POINT_PARAM> point_vec;
+    if(!mpc_lrf->GetLRFData(mary_lrf_distance)){
+        std::cout << "LRF : GetLRFData Error" << std::endl;
+        return;
+    }
+    else{
+        int s_inlier_inx = 0;
+        int e_inlier_inx = 0;
+        memcpy(lrf_distance, &mary_lrf_distance[s_index], sizeof(long)*(number_of_point));
+
+        ClaculateLRFHeightDistance(lrf_distance, s_deg, e_deg, point_vec);
+        ClaculateHorizenDistance(point_vec, _inlier_distance, _horizen_distance, s_inlier_inx, e_inlier_inx);
+        _s_inlier_deg = s_deg + s_inlier_inx * (ANGLE_RESOLUTION);
+        _e_inlier_deg = s_deg + e_inlier_inx * (ANGLE_RESOLUTION); // s_deg is right
+    }
+
+    return;
+}
+
 cv::Mat CRGBD::GetSegnetImage(cv::Mat _org_img){
 
     cv::Mat segnet_image;
@@ -212,6 +244,35 @@ LINE_PARAM CRGBD::EstimateLineEquation(std::vector<POINT_PARAM>& _point_vec){
     return optimal_line_eq;
 }
 
+void CRGBD::ClaculateHorizenDistance(std::vector<POINT_PARAM>& _point_vec, double _inlier_distance,double& _horizen_distance, int& _s_inlier_inx, int& _e_inlier_inx){
+
+    unsigned int s_inlier_index = 1000;
+    unsigned int e_inlier_index = 0;
+
+    for(unsigned int i = 0; i < _point_vec.size(); i++){
+
+        if(_inlier_distance > _point_vec.at(i).y){
+            if(s_inlier_index > i)
+                s_inlier_index = i;
+
+            e_inlier_index = i;
+        }
+    }
+
+    if(s_inlier_index > e_inlier_index){
+        _horizen_distance = 0;
+
+        _s_inlier_inx = 0;
+        _e_inlier_inx = 0;
+
+        return;
+    }
+
+    _horizen_distance = fabs(_point_vec.at(s_inlier_index).x) + fabs(_point_vec.at(e_inlier_index).x);
+
+    _s_inlier_inx = s_inlier_index;
+    _e_inlier_inx = e_inlier_index;
+}
 
 //----------------------------------------------------------------
 //

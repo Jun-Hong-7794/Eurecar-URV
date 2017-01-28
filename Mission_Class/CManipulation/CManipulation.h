@@ -29,6 +29,7 @@
 #define MANIPUL_INX_LRF_KINOVA           1
 #define MANIPUL_INX_KINOVA_FORCE_CLRL    2
 #define MANIPUL_INX_GRIPPER_FORCE_CLRL   3
+#define MANIPUL_INX_LRF_VEHICLE   4
 
 class CManipulation:public QThread{
     Q_OBJECT
@@ -51,6 +52,9 @@ private:
 
     GRIPPER_FORCE_CTRL_STRUCT mstruct_gripper_force_ctrl;
     QMutex mxt_gripper_force_ctrl;
+
+    LRF_VEHICLE_STRUCT mstruct_lrf_vehicle;
+    QMutex mxt_lrf_vehicle;
     //-------------------------------------------------
     // ElementTech Class
     //-------------------------------------------------
@@ -120,6 +124,9 @@ public:
     void SetManipulationOption(GRIPPER_FORCE_CTRL_STRUCT _manipulation_option);
     GRIPPER_FORCE_CTRL_STRUCT GetGripperForceCtrlOption();
 
+    void SetManipulationOption(LRF_VEHICLE_STRUCT _manipulation_option);
+    LRF_VEHICLE_STRUCT GetLRFVehicleOption();
+
 private:
     //-------------------------------------------------
     // Main Function
@@ -127,10 +134,13 @@ private:
     bool LRFKinovaDepthControl();
     bool KinovaForceCtrl();
     bool GripperForceCtrl();
+    bool LRFVehicleControl();
 
 signals:
     void SignalKinovaPosition(CartesianPosition);
     void SignalKinovaForceVector(CartesianPosition);
+
+    void SignalLRFHorizentDistance(LRF_VEHICLE_STRUCT);
 
     void SignalLRFImage(cv::Mat);
     void SignalCameraImage(cv::Mat);

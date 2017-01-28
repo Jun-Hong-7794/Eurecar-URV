@@ -35,4 +35,16 @@ typedef struct _Gripper_Force_Ctrl_Struct{
 
 }GRIPPER_FORCE_CTRL_STRUCT;
 
+typedef struct _LRF_Vehicle_Struct{
+
+    bool lrf_vehicle_mission;
+
+    double inlier_distance;
+    double horizen_distance;
+
+    double s_inlier_deg;
+    double e_inlier_deg;
+
+}LRF_VEHICLE_STRUCT;
+
 #endif // DEF_MANIPULATION_H

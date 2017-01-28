@@ -278,6 +278,12 @@ bool CManipulation::SelectMainFunction(int _fnc_index_){
 
         return true;
     }
+    else if(_fnc_index_ == MANIPUL_INX_LRF_VEHICLE){
+        m_main_fnc_index = MANIPUL_INX_LRF_VEHICLE;
+        this->start();
+
+        return true;
+    }
     else
         return false;
 }
@@ -346,6 +352,28 @@ GRIPPER_FORCE_CTRL_STRUCT CManipulation::GetGripperForceCtrlOption(){
     mxt_gripper_force_ctrl.unlock();
 
     return gripper_force_ctrl;
+}
+
+void CManipulation::SetManipulationOption(LRF_VEHICLE_STRUCT _manipulation_option){
+
+    mxt_lrf_vehicle.lock();
+    {
+        mstruct_lrf_vehicle = _manipulation_option;
+    }
+    mxt_lrf_vehicle.unlock();
+}
+
+LRF_VEHICLE_STRUCT CManipulation::GetLRFVehicleOption(){
+
+    LRF_VEHICLE_STRUCT lrf_vehicle;
+
+    mxt_lrf_vehicle.lock();
+    {
+        lrf_vehicle = mstruct_lrf_vehicle;
+    }
+    mxt_lrf_vehicle.unlock();
+
+    return lrf_vehicle;
 }
 
 //----------------------------------------------------------------
@@ -446,6 +474,33 @@ bool CManipulation::GripperForceCtrl(){
     return true;
 }
 
+bool CManipulation::LRFVehicleControl(){
+
+    if(!mpc_lrf->IsLRFOn())
+        return false;
+
+    double inlier_distance = 0;
+    double horizen_distance = 0;
+    double s_inlier_deg = 0;
+    double e_inlier_deg = 0;
+
+    LRF_VEHICLE_STRUCT lrf_vehicle = GetLRFVehicleOption();
+    inlier_distance = lrf_vehicle.inlier_distance;
+
+    do{
+        mpc_rgb_d->GetHorizenDistance(inlier_distance, horizen_distance, s_inlier_deg, e_inlier_deg);
+
+        lrf_vehicle.horizen_distance = horizen_distance;
+
+        lrf_vehicle.s_inlier_deg = s_inlier_deg;
+        lrf_vehicle.e_inlier_deg = e_inlier_deg;
+
+        emit SignalLRFHorizentDistance(lrf_vehicle);
+    }while(true);
+
+    return true;
+}
+
 //----------------------------------------------------------------
 //
 //                            Run Thread
@@ -465,6 +520,9 @@ void CManipulation::run(){
         break;
     case MANIPUL_INX_GRIPPER_FORCE_CLRL:
         GripperForceCtrl();
+        break;
+    case MANIPUL_INX_LRF_VEHICLE:
+        LRFVehicleControl();
         break;
     default:
         break;

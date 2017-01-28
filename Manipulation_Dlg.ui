@@ -663,7 +663,7 @@
      <string>System Message</string>
     </property>
    </widget>
-   <widget class="QPushButton" name="bt_inject_wrench">
+   <widget class="QPushButton" name="bt_lrf_horizent_distance">
     <property name="geometry">
      <rect>
       <x>300</x>
@@ -673,7 +673,7 @@
      </rect>
     </property>
     <property name="text">
-     <string>4. Inject Wrench</string>
+     <string>4. Horizen Dst</string>
     </property>
    </widget>
    <widget class="QPushButton" name="bt_rotate_valve">
@@ -813,7 +813,7 @@
      </rect>
     </property>
     <property name="currentIndex">
-     <number>2</number>
+     <number>3</number>
     </property>
     <widget class="QWidget" name="tab_lrf_kinova_distance_ctrl">
      <attribute name="title">
@@ -1330,10 +1330,105 @@
       </property>
      </widget>
     </widget>
-    <widget class="QWidget" name="tab_inject_wrench">
+    <widget class="QWidget" name="tab_horizen_dst">
      <attribute name="title">
-      <string>4.IW</string>
+      <string>4.HD</string>
      </attribute>
+     <widget class="QLineEdit" name="ed_lrf_horizen_inlier">
+      <property name="geometry">
+       <rect>
+        <x>8</x>
+        <y>18</y>
+        <width>61</width>
+        <height>22</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>500</string>
+      </property>
+     </widget>
+     <widget class="QLineEdit" name="ed_lrf_horizen_s_deg">
+      <property name="geometry">
+       <rect>
+        <x>9</x>
+        <y>58</y>
+        <width>81</width>
+        <height>22</height>
+       </rect>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label_37">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>3</y>
+        <width>101</width>
+        <height>16</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Inlier Dst(mm)</string>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label_38">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>43</y>
+        <width>81</width>
+        <height>16</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Iniler S_Deg</string>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label_39">
+      <property name="geometry">
+       <rect>
+        <x>11</x>
+        <y>81</y>
+        <width>81</width>
+        <height>16</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Iniler S_Deg</string>
+      </property>
+     </widget>
+     <widget class="QLineEdit" name="ed_lrf_horizen_e_deg">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>96</y>
+        <width>81</width>
+        <height>22</height>
+       </rect>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label_40">
+      <property name="geometry">
+       <rect>
+        <x>111</x>
+        <y>43</y>
+        <width>81</width>
+        <height>16</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Horizen Dst</string>
+      </property>
+     </widget>
+     <widget class="QLineEdit" name="ed_lrf_horizen_distance">
+      <property name="geometry">
+       <rect>
+        <x>110</x>
+        <y>58</y>
+        <width>81</width>
+        <height>22</height>
+       </rect>
+      </property>
+     </widget>
     </widget>
     <widget class="QWidget" name="tab_rotate_valve">
      <attribute name="title">
