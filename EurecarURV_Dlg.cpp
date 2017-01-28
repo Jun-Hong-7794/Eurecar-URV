@@ -18,11 +18,12 @@ EurecarURV_Dlg::EurecarURV_Dlg(QWidget *parent) :
     mpc_kinova = new CKinova;
     mpc_vehicle = new CVehicle;
     mpc_velodyne = new CVelodyne;
+    mpc_gripper = new CGripper;
 
     //-------------------------------------------------
     // Script Class Initialize
     //-------------------------------------------------
-    mpc_script = new CScript(mpc_gps, mpc_lrf, mpc_camera, mpc_kinova, mpc_vehicle, mpc_velodyne);
+    mpc_script = new CScript(mpc_gps, mpc_lrf, mpc_camera, mpc_kinova, mpc_vehicle, mpc_velodyne, mpc_gripper);
 
     //-------------------------------------------------
     // Mission Class Initialize
@@ -32,7 +33,7 @@ EurecarURV_Dlg::EurecarURV_Dlg(QWidget *parent) :
     mpc_drivig = new CDriving(mpc_gps, mpc_lrf, mpc_camera, mpc_kinova, mpc_vehicle, mpc_velodyne);
 
     //Manipulation Class Initialize
-    mpc_manipulation = new CManipulation(mpc_lrf, mpc_camera, mpc_kinova, mpc_vehicle, mpc_velodyne);
+    mpc_manipulation = new CManipulation(mpc_lrf, mpc_camera, mpc_kinova, mpc_vehicle, mpc_velodyne, mpc_gripper);
 
     //-------------------------------------------------
     // SubDialog Initialize

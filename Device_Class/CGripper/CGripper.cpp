@@ -6,32 +6,56 @@ CGripper::CGripper()
     fl_torque = false;
 }
 
-bool CGripper::InitDynamixel(){
+CGripper::~CGripper()
+{
+    CloseDynamixel();
+}
 
-    mp_portHandler = dynamixel::PortHandler::getPortHandler(DEVICENAME);
-    mp_packetHandler = dynamixel::PacketHandler::getPacketHandler(PROTOCOL_VERSION);
 
-    // Open port
-    if (mp_portHandler->openPort()){
-        printf("Succeeded to open the port!\n");
-    }
-    else{
-        printf("Failed to open the port!\n");
-        printf("Press any key to terminate...\n");
-        getchar();
-        return false;
-    }
+bool CGripper::InitDynamixel(char* _device_port){
 
-    // Set port baudrate
-    if (mp_portHandler->setBaudRate(BAUDRATE)){
-        printf("Succeeded to change the baudrate!\n");
+    if(fl_init_dynamixel)
+        return true;
+
+    mtx_dmx_handle.lock();
+    {
+        mp_portHandler = dynamixel::PortHandler::getPortHandler(_device_port);
+        mp_packetHandler = dynamixel::PacketHandler::getPacketHandler(PROTOCOL_VERSION);
+
+        // Open port
+        if (mp_portHandler->openPort()){
+            printf("Succeeded to open the port!\n");
+        }
+        else{
+            printf("Failed to open the port!\n");
+            //getchar();
+            mtx_dmx_handle.unlock();
+            return false;
+        }
+
+        // Set port baudrate
+        if (mp_portHandler->setBaudRate(BAUDRATE)){
+            printf("Succeeded to change the baudrate!\n");
+        }
+        else{
+            printf("Failed to change the baudrate!\n");
+            mtx_dmx_handle.unlock();
+            return false;
+        }
+        dxl_comm_result = mp_packetHandler->write2ByteTxRx(mp_portHandler, DXL_ID, ADDR_MX_GOAL_SPEED, DXL_GOAL_VELOCITY_VALUE, &dxl_error);
+
+        if (dxl_comm_result != COMM_SUCCESS){
+            mp_packetHandler->printTxRxResult(dxl_comm_result);
+            mtx_dmx_handle.unlock();
+            return false;
+        }
+        else if (dxl_error != 0){
+            mp_packetHandler->printRxPacketError(dxl_error);
+            mtx_dmx_handle.unlock();
+            return false;
+        }
     }
-    else{
-        printf("Failed to change the baudrate!\n");
-        printf("Press any key to terminate...\n");
-        getchar();
-        return false;
-    }
+    mtx_dmx_handle.unlock();
 
     fl_init_dynamixel = true;
 
@@ -46,21 +70,27 @@ void CGripper::CloseDynamixel(){
     uint8_t dxl_error = 0;                          // Dynamixel error
     int dxl_comm_result = COMM_TX_FAIL;             // Communication result
 
-    // Disable Dynamixel Torque
-    dxl_comm_result = mp_packetHandler->write1ByteTxRx(mp_portHandler, DXL_ID, ADDR_MX_TORQUE_ENABLE, TORQUE_DISABLE, &dxl_error);
-    if (dxl_comm_result != COMM_SUCCESS)
+    mtx_dmx_handle.lock();
     {
-        mp_packetHandler->printTxRxResult(dxl_comm_result);
-    }
-    else if (dxl_error != 0)
-    {
-        mp_packetHandler->printRxPacketError(dxl_error);
-    }
+        // Disable Dynamixel Torque
+        dxl_comm_result = mp_packetHandler->write1ByteTxRx(mp_portHandler, DXL_ID, ADDR_MX_TORQUE_ENABLE, TORQUE_DISABLE, &dxl_error);
+        if (dxl_comm_result != COMM_SUCCESS)
+        {
+            mp_packetHandler->printTxRxResult(dxl_comm_result);
+        }
+        else if (dxl_error != 0)
+        {
+            mp_packetHandler->printRxPacketError(dxl_error);
+        }
 
-    // Close port
-    mp_portHandler->closePort();
+        // Close port
+        mp_portHandler->closePort();
+    }
+    mtx_dmx_handle.unlock();
 
     fl_init_dynamixel = false;
+    printf("Close the Port!\n");
+
 }
 
 bool CGripper::DynamixelTorque(bool _onoff){
@@ -68,21 +98,27 @@ bool CGripper::DynamixelTorque(bool _onoff){
     uint8_t dxl_error = 0;                          // Dynamixel error
     int dxl_comm_result = COMM_TX_FAIL;             // Communication result
 
-    dxl_comm_result = mp_packetHandler->write1ByteTxRx(mp_portHandler, DXL_ID, ADDR_MX_TORQUE_ENABLE, _onoff, &dxl_error);
+    mtx_dmx_handle.lock();
+    {
+        dxl_comm_result = mp_packetHandler->write1ByteTxRx(mp_portHandler, DXL_ID, ADDR_MX_TORQUE_ENABLE, _onoff, &dxl_error);
 
-    if (dxl_comm_result != COMM_SUCCESS){
-        mp_packetHandler->printTxRxResult(dxl_comm_result);
-        printf("Enable Dynamixel Torque : Failed to COMM_SUCCESS\n");
-        return false;
+        if (dxl_comm_result != COMM_SUCCESS){
+            mp_packetHandler->printTxRxResult(dxl_comm_result);
+            printf("Enable Dynamixel Torque : Failed to COMM_SUCCESS\n");
+            mtx_dmx_handle.unlock();
+            return false;
+        }
+        else if (dxl_error != 0){
+            mp_packetHandler->printRxPacketError(dxl_error);
+            printf("Enable Dynamixel Torque : dxl_error\n");
+            mtx_dmx_handle.unlock();
+            return false;
+        }
+        else{
+            printf("Dynamixel has been successfully connected \n");
+        }
     }
-    else if (dxl_error != 0){
-        mp_packetHandler->printRxPacketError(dxl_error);
-        printf("Enable Dynamixel Torque : dxl_error\n");
-        return false;
-    }
-    else{
-        printf("Dynamixel has been successfully connected \n");
-    }
+    mtx_dmx_handle.unlock();
 
     if(_onoff)
         fl_torque = true;
@@ -100,37 +136,96 @@ bool CGripper::DynamixelGoToThePosition(int _degree){
     int dxl_goal_position = (int)(_degree * DXL_STEP_PER_DEGREE);  // Goal position
     uint16_t dxl_present_position = 0; // Present position
 
-    // Write goal position
-    dxl_comm_result = mp_packetHandler->write2ByteTxRx(mp_portHandler, DXL_ID, ADDR_MX_GOAL_POSITION, dxl_goal_position, &dxl_error);
-    if (dxl_comm_result != COMM_SUCCESS){
-        mp_packetHandler->printTxRxResult(dxl_comm_result);
-        printf("Write goal position : Failed to COMM_SUCCESS\n");
-        return false;
-    }
-    else if (dxl_error != 0){
-        mp_packetHandler->printRxPacketError(dxl_error);
-        printf("Write goal position : dxl_error\n");
-        return false;
-    }
-
-    do
+    mtx_dmx_handle.lock();
     {
-        // Read present position
-        dxl_comm_result = mp_packetHandler->read2ByteTxRx(mp_portHandler, DXL_ID, ADDR_MX_PRESENT_POSITION, &dxl_present_position, &dxl_error);
-
+        // Write goal position
+        dxl_comm_result = mp_packetHandler->write2ByteTxRx(mp_portHandler, DXL_ID, ADDR_MX_GOAL_POSITION, dxl_goal_position, &dxl_error);
         if (dxl_comm_result != COMM_SUCCESS){
             mp_packetHandler->printTxRxResult(dxl_comm_result);
-            printf("Read present position : Failed to COMM_SUCCESS\n");
+            printf("Write goal position : Failed to COMM_SUCCESS\n");
+            mtx_dmx_handle.unlock();
+            return false;
         }
         else if (dxl_error != 0){
             mp_packetHandler->printRxPacketError(dxl_error);
-            printf("Read present position : dxl_error\n");
+            printf("Write goal position : dxl_error\n");
+            mtx_dmx_handle.unlock();
+            return false;
         }
 
-        //        printf("[ID:%03d] GoalPos:%03d  PresPos:%03d\n", DXL_ID, dxl_goal_position, dxl_present_position);
+        do
+        {
+            // Read present position
+            dxl_comm_result = mp_packetHandler->read2ByteTxRx(mp_portHandler, DXL_ID, ADDR_MX_PRESENT_POSITION, &dxl_present_position, &dxl_error);
 
-    }while((abs(dxl_goal_position - dxl_present_position) > DXL_MOVING_STATUS_THRESHOLD));
+            if (dxl_comm_result != COMM_SUCCESS){
+                mp_packetHandler->printTxRxResult(dxl_comm_result);
+                printf("Read present position : Failed to COMM_SUCCESS\n");
+            }
+            else if (dxl_error != 0){
+                mp_packetHandler->printRxPacketError(dxl_error);
+                printf("Read present position : dxl_error\n");
+            }
 
+            //        printf("[ID:%03d] GoalPos:%03d  PresPos:%03d\n", DXL_ID, dxl_goal_position, dxl_present_position);
+
+        }while((abs(dxl_goal_position - dxl_present_position) > DXL_MOVING_STATUS_THRESHOLD));
+    }
+    mtx_dmx_handle.unlock();
+
+    return true;
+}
+
+bool CGripper::DynamixelGoToThePositionUsingLoad(int _degree, int _load_threshold){ // Go to The Position
+
+    uint8_t dxl_error = 0;                          // Dynamixel error
+    int dxl_comm_result = COMM_TX_FAIL;             // Communication result
+
+    int dxl_step = 1;
+    int dxl_goal_position = (int)(_degree * DXL_STEP_PER_DEGREE);  // Goal position
+    int dxl_next_position = 0;
+    uint16_t dxl_prev_position = 0;
+    uint16_t dxl_present_position = 0; // Present position
+    uint16_t dxl_present_load = 0; // Present position
+
+    mtx_dmx_handle.lock();
+    {
+        dxl_comm_result = mp_packetHandler->read2ByteTxRx(mp_portHandler, DXL_ID, ADDR_MX_PRESENT_POSITION, &dxl_present_position, &dxl_error);
+        dxl_prev_position = dxl_present_position;
+
+        if((dxl_goal_position - dxl_present_position) > 0)
+            dxl_step = 1;
+        else
+            dxl_step = -1;
+
+        do
+        {
+            // Read present position
+            dxl_comm_result = mp_packetHandler->read2ByteTxRx(mp_portHandler, DXL_ID, ADDR_MX_PRESENT_POSITION, &dxl_present_position, &dxl_error);
+            dxl_comm_result = mp_packetHandler->read2ByteTxRx(mp_portHandler, DXL_ID, ADDR_MX_PRESENT_LOAD, &dxl_present_load, &dxl_error);
+
+            if(dxl_present_load > _load_threshold){
+                mtx_dmx_handle.unlock();
+                return false;
+            }
+
+            dxl_next_position = dxl_prev_position + dxl_step;
+            dxl_comm_result = mp_packetHandler->write2ByteTxRx(mp_portHandler, DXL_ID, ADDR_MX_GOAL_POSITION, dxl_next_position, &dxl_error);
+
+
+            if (dxl_comm_result != COMM_SUCCESS){
+                mp_packetHandler->printTxRxResult(dxl_comm_result);
+                printf("Read present position : Failed to COMM_SUCCESS\n");
+            }
+            else if (dxl_error != 0){
+                mp_packetHandler->printRxPacketError(dxl_error);
+                printf("Read present position : dxl_error\n");
+            }
+
+            dxl_prev_position = dxl_next_position;
+        }while((abs(dxl_goal_position - dxl_present_position) > DXL_MOVING_STATUS_THRESHOLD));
+    }
+    mtx_dmx_handle.unlock();
 
     return true;
 }
@@ -143,57 +238,63 @@ bool CGripper::DynamixelGoToRelPosition(double _degree){
     int dxl_goal_position;  // Goal position
     uint16_t dxl_present_position = 0; // Present position
 
-
-    // Read present position
-    dxl_comm_result = mp_packetHandler->read2ByteTxRx(mp_portHandler, DXL_ID, ADDR_MX_PRESENT_POSITION, &dxl_present_position, &dxl_error);
-
-    if (dxl_comm_result != COMM_SUCCESS){
-        mp_packetHandler->printTxRxResult(dxl_comm_result);
-        printf("Read present position : Failed to COMM_SUCCESS\n");
-        return false;
-    }
-    else if (dxl_error != 0){
-        mp_packetHandler->printRxPacketError(dxl_error);
-        printf("Read present position : dxl_error\n");
-        return false;
-    }
-    else{
-        dxl_goal_position = (int)(_degree * DXL_STEP_PER_DEGREE) + dxl_present_position;
-    }
-
-    // Write goal position
-    dxl_comm_result = mp_packetHandler->write2ByteTxRx(mp_portHandler, DXL_ID, ADDR_MX_GOAL_POSITION, dxl_goal_position, &dxl_error);
-    if (dxl_comm_result != COMM_SUCCESS){
-        mp_packetHandler->printTxRxResult(dxl_comm_result);
-        printf("Write goal position : Failed to COMM_SUCCESS\n");
-        return false;
-    }
-    else if (dxl_error != 0){
-        mp_packetHandler->printRxPacketError(dxl_error);
-        printf("Write goal position : dxl_error\n");
-        return false;
-    }
-
-    do
+    mtx_dmx_handle.lock();
     {
         // Read present position
         dxl_comm_result = mp_packetHandler->read2ByteTxRx(mp_portHandler, DXL_ID, ADDR_MX_PRESENT_POSITION, &dxl_present_position, &dxl_error);
 
         if (dxl_comm_result != COMM_SUCCESS){
             mp_packetHandler->printTxRxResult(dxl_comm_result);
-            printf("Read present position : Failed to COMM_SUCCESS\n");
+            printf("Read present position : Failed\n");
+            mtx_dmx_handle.unlock();
             return false;
         }
         else if (dxl_error != 0){
             mp_packetHandler->printRxPacketError(dxl_error);
             printf("Read present position : dxl_error\n");
+            mtx_dmx_handle.unlock();
+            return false;
+        }
+        else{
+            dxl_goal_position = (int)(_degree * DXL_STEP_PER_DEGREE) + dxl_present_position;
+        }
+
+        // Write goal position
+        dxl_comm_result = mp_packetHandler->write2ByteTxRx(mp_portHandler, DXL_ID, ADDR_MX_GOAL_POSITION, dxl_goal_position, &dxl_error);
+        if (dxl_comm_result != COMM_SUCCESS){
+            mp_packetHandler->printTxRxResult(dxl_comm_result);
+            printf("Write goal position : Failed to COMM_SUCCESS\n");
+            mtx_dmx_handle.unlock();
+            return false;
+        }
+        else if (dxl_error != 0){
+            mp_packetHandler->printRxPacketError(dxl_error);
+            printf("Write goal position : dxl_error\n");
+            mtx_dmx_handle.unlock();
             return false;
         }
 
-        //printf("[ID:%03d] GoalPos:%03d  PresPos:%03d\n", DXL_ID, dxl_goal_position, dxl_present_position);
+        do
+        {
+            // Read present position
+            dxl_comm_result = mp_packetHandler->read2ByteTxRx(mp_portHandler, DXL_ID, ADDR_MX_PRESENT_POSITION, &dxl_present_position, &dxl_error);
 
-    }while((abs(dxl_goal_position - dxl_present_position) > DXL_MOVING_STATUS_THRESHOLD));
+            if (dxl_comm_result != COMM_SUCCESS){
+                mp_packetHandler->printTxRxResult(dxl_comm_result);
+                printf("Read present position : Failed to COMM_SUCCESS\n");
+                mtx_dmx_handle.unlock();
+                return false;
+            }
+            else if (dxl_error != 0){
+                mp_packetHandler->printRxPacketError(dxl_error);
+                printf("Read present position : dxl_error\n");
+                mtx_dmx_handle.unlock();
+                return false;
+            }
 
+        }while((abs(dxl_goal_position - dxl_present_position) > DXL_MOVING_STATUS_THRESHOLD));
+    }
+    mtx_dmx_handle.unlock();
 
     return true;
 }
@@ -207,28 +308,62 @@ bool CGripper::IsDmxTorqueOn(){
     return fl_torque;
 }
 
-uint16_t CGripper::Dmx_Current_Pos(){
+uint16_t CGripper::DynamixelPresentPosition(){
 
     uint8_t dxl_error = 0;                          // Dynamixel error
     int dxl_comm_result = COMM_TX_FAIL;             // Communication result
 
     uint16_t dxl_present_position = 0; // Present position
 
-    // Read present position
-    dxl_comm_result = mp_packetHandler->read2ByteTxRx(mp_portHandler, DXL_ID, ADDR_MX_PRESENT_POSITION, &dxl_present_position, &dxl_error);
+    mtx_dmx_handle.lock();
+    {
+        // Read present position
+        dxl_comm_result = mp_packetHandler->read2ByteTxRx(mp_portHandler, DXL_ID, ADDR_MX_PRESENT_POSITION, &dxl_present_position, &dxl_error);
 
-    if (dxl_comm_result != COMM_SUCCESS){
-        mp_packetHandler->printTxRxResult(dxl_comm_result);
-        printf("Read present position : Failed to COMM_SUCCESS\n");
-        return -1;
+        if (dxl_comm_result != COMM_SUCCESS){
+            mp_packetHandler->printTxRxResult(dxl_comm_result);
+            printf("Read present position : Failed to COMM_SUCCESS\n");
+            mtx_dmx_handle.unlock();
+            return -1;
+        }
+        else if (dxl_error != 0){
+            mp_packetHandler->printRxPacketError(dxl_error);
+            printf("Read present position : dxl_error\n");
+            mtx_dmx_handle.unlock();
+            return -1;
+        }
     }
-    else if (dxl_error != 0){
-        mp_packetHandler->printRxPacketError(dxl_error);
-        printf("Read present position : dxl_error\n");
-        return -1;
-    }
-
+    mtx_dmx_handle.unlock();
     return dxl_present_position;
+}
+
+uint16_t CGripper::DynamixelPresentLoad(){
+
+    uint8_t dxl_error = 0;                          // Dynamixel error
+    int dxl_comm_result = COMM_TX_FAIL;             // Communication result
+
+    uint16_t dxl_present_load = 0; // Present Load
+
+    mtx_dmx_handle.lock();
+    {
+        // Read present position
+        dxl_comm_result = mp_packetHandler->read2ByteTxRx(mp_portHandler, DXL_ID, ADDR_MX_PRESENT_LOAD, &dxl_present_load, &dxl_error);
+
+        if (dxl_comm_result != COMM_SUCCESS){
+            mp_packetHandler->printTxRxResult(dxl_comm_result);
+            printf("Read present load : Failed\n");
+            mtx_dmx_handle.unlock();
+            return -1;
+        }
+        else if (dxl_error != 0){
+            mp_packetHandler->printRxPacketError(dxl_error);
+            printf("Read present load : dxl_error\n");
+            mtx_dmx_handle.unlock();
+            return -1;
+        }
+    }
+    mtx_dmx_handle.unlock();
+    return dxl_present_load;
 }
 
 //----------------------------------------------------------------
@@ -383,7 +518,7 @@ bool CGripper::GripperGoToThePosition(int _degree){ // Go to The Position
     dxl1_present_position -= DXL1_OFFSET;
     dxl2_present_position = mp_groupBulkRead_pos->getData(DXL2_ID, ADDR_MX_PRESENT_POSITION, LEN_MX_PRESENT_POSITION);
     int i = 0;
-    int previous = 0;
+//    int previous = 0;
     int cnt = 0;
     if(_degree >= (dxl1_present_position+dxl2_present_position)/2){
         dxl_goal_position = _degree;
@@ -396,7 +531,7 @@ bool CGripper::GripperGoToThePosition(int _degree){ // Go to The Position
     }
     else{
         while(true){
-            previous = (dxl1_present_position + dxl2_present_position)/2;
+//            previous = (dxl1_present_position + dxl2_present_position)/2;
             sleep(0.5);
             if(dxl_goal_position > _degree){
                 i++;

@@ -10,13 +10,14 @@ CManipulation::~CManipulation(){
         this->terminate();
 }
 
-CManipulation::CManipulation(CLRF *_p_lrf, CCamera *_p_camera, CKinova *_p_kinova, CVehicle *_p_vehicle, CVelodyne *_p_velodyne){
+CManipulation::CManipulation(CLRF *_p_lrf, CCamera *_p_camera, CKinova *_p_kinova, CVehicle *_p_vehicle, CVelodyne *_p_velodyne, CGripper* _p_gripper){
 
     mpc_lrf = _p_lrf;
     mpc_camera = _p_camera;
     mpc_kinova = _p_kinova;
     mpc_vehicle = _p_vehicle;
     mpc_velodyne = _p_velodyne;
+    mpc_gripper = _p_gripper;
 
     mpc_rgb_d = new CRGBD(_p_camera, _p_lrf);
 
@@ -195,6 +196,61 @@ bool CManipulation::SetRGBDFunction(int _index){
     return true;
 }
 
+//End Effector
+
+bool CManipulation::InitGripper(char* _device_port){
+
+    if(!mpc_gripper->InitDynamixel(_device_port))
+        return false;
+
+    if(!mpc_gripper->IsDmxTorqueOn())
+        mpc_gripper->DynamixelTorque(true);
+
+    return true;
+}
+
+bool CManipulation::CloseGripper(){
+
+    mpc_gripper->CloseDynamixel();
+
+    return true;
+}
+
+bool CManipulation::GripperGoRelPose(double _deg){
+
+    if(!mpc_gripper->DynamixelGoToRelPosition(_deg))
+        return false;
+
+    return true;
+}
+
+bool CManipulation::GripperGoThePose(double _deg){
+
+    if(!mpc_gripper->DynamixelGoToThePosition(_deg))
+        return false;
+
+    return true;
+}
+
+bool CManipulation::GripperPresentPose(uint16_t& _pose){
+
+    if(!mpc_gripper->IsDmxInit())
+        return false;
+
+    _pose = mpc_gripper->DynamixelPresentPosition();
+
+    return true;
+}
+bool CManipulation::GripperPresentLoad(uint16_t& _load){
+
+    if(!mpc_gripper->IsDmxInit())
+        return false;
+
+    _load = mpc_gripper->DynamixelPresentLoad();
+
+    return true;
+}
+
 //----------------------------------------------------------------
 // Option Function
 //----------------------------------------------------------------
@@ -212,6 +268,12 @@ bool CManipulation::SelectMainFunction(int _fnc_index_){
     }
     else if(_fnc_index_ == MANIPUL_INX_KINOVA_FORCE_CLRL){
         m_main_fnc_index = MANIPUL_INX_KINOVA_FORCE_CLRL;
+        this->start();
+
+        return true;
+    }
+    else if(_fnc_index_ == MANIPUL_INX_GRIPPER_FORCE_CLRL){
+        m_main_fnc_index = MANIPUL_INX_GRIPPER_FORCE_CLRL;
         this->start();
 
         return true;
@@ -244,11 +306,11 @@ LRF_KINOVA_STRUCT CManipulation::GetLRFKinovaOption(){
 
 void CManipulation::SetManipulationOption(KINOVA_FORCE_CTRL_STRUCT _kinova_force_ctrl){
 
-    mxt_lrf_kinova.lock();
+    mxt_kinova_force_ctrl.lock();
     {
         mstruct_kinova_force_ctrl = _kinova_force_ctrl;
     }
-    mxt_lrf_kinova.unlock();
+    mxt_kinova_force_ctrl.unlock();
 }
 
 KINOVA_FORCE_CTRL_STRUCT CManipulation::GetKinovaForceCtrlOption(){
@@ -262,6 +324,28 @@ KINOVA_FORCE_CTRL_STRUCT CManipulation::GetKinovaForceCtrlOption(){
     mxt_kinova_force_ctrl.unlock();
 
     return kinova_force_ctrl;
+}
+
+void CManipulation::SetManipulationOption(GRIPPER_FORCE_CTRL_STRUCT _manipulation_option){
+
+    mxt_gripper_force_ctrl.lock();
+    {
+        mstruct_gripper_force_ctrl = _manipulation_option;
+    }
+    mxt_gripper_force_ctrl.unlock();
+}
+
+GRIPPER_FORCE_CTRL_STRUCT CManipulation::GetGripperForceCtrlOption(){
+
+    GRIPPER_FORCE_CTRL_STRUCT gripper_force_ctrl;
+
+    mxt_gripper_force_ctrl.lock();
+    {
+        gripper_force_ctrl = mstruct_gripper_force_ctrl;
+    }
+    mxt_gripper_force_ctrl.unlock();
+
+    return gripper_force_ctrl;
 }
 
 //----------------------------------------------------------------
@@ -336,6 +420,32 @@ bool CManipulation::KinovaForceCtrl(){
     return true;
 }
 
+bool CManipulation::GripperForceCtrl(){
+
+    if(!mpc_gripper->IsDmxInit())
+        return false;
+    if(!mpc_gripper->IsDmxTorqueOn())
+        return false;
+
+    GRIPPER_FORCE_CTRL_STRUCT gripper_force_ctrl;
+
+    gripper_force_ctrl = GetGripperForceCtrlOption();
+
+    do{
+        if(!mpc_gripper->DynamixelGoToThePositionUsingLoad(13, gripper_force_ctrl.forece_threshold))
+            break;
+
+        if(!mpc_gripper->DynamixelGoToThePositionUsingLoad(113, gripper_force_ctrl.forece_threshold))
+            break;
+    }
+    while(true);
+
+    gripper_force_ctrl.gripper_force_ctrl_mission = false;
+    SetManipulationOption(gripper_force_ctrl);
+
+    return true;
+}
+
 //----------------------------------------------------------------
 //
 //                            Run Thread
@@ -353,7 +463,9 @@ void CManipulation::run(){
     case MANIPUL_INX_KINOVA_FORCE_CLRL:
         KinovaForceCtrl();
         break;
-
+    case MANIPUL_INX_GRIPPER_FORCE_CLRL:
+        GripperForceCtrl();
+        break;
     default:
         break;
 

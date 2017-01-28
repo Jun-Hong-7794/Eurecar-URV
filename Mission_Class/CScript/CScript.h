@@ -17,7 +17,7 @@ protected:
 
 public:
     CScript();
-    CScript(CGPS* _p_gps, CLRF* _p_lrf, CCamera* _p_camera, CKinova* _p_kinova, CVehicle* _p_vehicle, CVelodyne* _p_velodyne);
+    CScript(CGPS* _p_gps, CLRF* _p_lrf, CCamera* _p_camera, CKinova* _p_kinova, CVehicle* _p_vehicle, CVelodyne* _p_velodyne, CGripper* _p_gripper);
 
 private:
     //-------------------------------------------------
@@ -29,6 +29,7 @@ private:
     CKinova* mpc_kinova;
     CVehicle* mpc_vehicle;
     CVelodyne* mpc_velodyne;
+    CGripper* mpc_gripper;
 
     //-------------------------------------------------
     // Mission Class

@@ -1,6 +1,7 @@
 #ifndef CGRIPPER_H
 #define CGRIPPER_H
 
+#include <QMutex>
 #include <unistd.h>
 #include <fcntl.h>
 #include <termios.h>
@@ -30,7 +31,7 @@
 //#define DXL_MINIMUM_POSITION_VALUE      3074//279
 //#define DXL_MAXIMUM_POSITION_VALUE      2150//189
 
-#define DXL_MOVING_STATUS_THRESHOLD     10
+#define DXL_MOVING_STATUS_THRESHOLD     5
 
 #define DXL_STEP_PER_DEGREE             11.363636364 //1 degree is 11.3777778 steps
 #define DXL_DEGREE_PER_STEP             0.088      //1 step is 0.088 steps
@@ -50,7 +51,7 @@
 
 #define DXL_MINIMUM_POSITION_VALUE      100
 #define DXL_MAXIMUM_POSITION_VALUE      4000
-#define DXL_GOAL_VELOCITY_VALUE         1100
+#define DXL_GOAL_VELOCITY_VALUE         300//1100
 #define DXL_INITIAL_POSITION_VALUE      2300 //2300
 #define DXL1_OFFSET                     160
 
@@ -61,6 +62,7 @@
 class CGripper{
 public:
     CGripper();
+    ~CGripper();
 
 private:
     dynamixel::PortHandler *mp_portHandler;
@@ -94,6 +96,9 @@ private:
     uint16_t dxl2_present_position;
     uint16_t dxl1_present_load;
     uint16_t dxl2_present_load;
+private://Mutex
+    QMutex mtx_dmx_handle;
+
 public:
     bool IsDmxInit();
     bool IsDmxTorqueOn();
@@ -101,14 +106,18 @@ public:
     bool IsGripperInit();
     bool IsGripperTorqueOn();
 
-    uint16_t Dmx_Current_Pos();
 public:
-    bool InitDynamixel();
+    bool InitDynamixel(char* _device_port = (char *)"/dev/ttyUSB0");
     void CloseDynamixel();
 
     bool DynamixelTorque(bool _onoff);
     bool DynamixelGoToThePosition(int _degree); // Go to The Position
     bool DynamixelGoToRelPosition(double _degree); // Go to Relative Position From Present Position
+
+    bool DynamixelGoToThePositionUsingLoad(int _degree, int _load_threshold); // Go to The Position
+
+    uint16_t DynamixelPresentPosition();
+    uint16_t DynamixelPresentLoad();
 
     //Gripper
     bool InitGripper();
@@ -120,15 +129,3 @@ public:
 };
 
 #endif // CGRIPPER_H
-
-
-
-
-
-
-
-
-
-
-
-

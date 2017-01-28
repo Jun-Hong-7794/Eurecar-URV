@@ -42,14 +42,19 @@ Manipulation_Dlg::Manipulation_Dlg(CManipulation* _pc_manipulation, QWidget *par
 
     connect(ui->bt_lrf_kinova_ctrl, SIGNAL(clicked()), this, SLOT(SlotButtonLRFKinovaCtrl()));
     connect(ui->bt_kinova_force_ctrl, SIGNAL(clicked()), this, SLOT(SlotButtonKinovaForceCtrl()));
+    connect(ui->bt_gripper_force_ctrl, SIGNAL(clicked()), this, SLOT(SlotButtonEEffectorLoadCheckIter()));
 
+    connect(ui->bt_end_effector_grasp, SIGNAL(clicked()), this, SLOT(SlotButtonEEffectorGrasp()));
+    connect(ui->bt_end_effector_present_pos_check, SIGNAL(clicked()), this, SLOT(SlotButtonEEffectorPoseCheck()));
+    connect(ui->bt_end_effector_org_pos, SIGNAL(clicked()), this, SLOT(SlotButtonEEffectorGoToOrg()));
 
     connect(ui->bt_lrf_on, SIGNAL(clicked()), this, SLOT(SlotButtonLRFOn()));
     connect(ui->bt_camera_on, SIGNAL(clicked()), this, SLOT(SlotButtonCameraOn()));
-    connect(mpc_manipulation, SIGNAL(SignalKinovaPosition(CartesianPosition)), this, SLOT(SlotEditeKinovaPosition(CartesianPosition)));
-    connect(mpc_manipulation, SIGNAL(SignalKinovaForceVector(CartesianPosition)), this, SLOT(SlotEditeKinovaForceVector(CartesianPosition)));
 
     connect(ui->bt_lrf_get_info, SIGNAL(clicked()), this, SLOT(SlotButtonGetLRFInfo()));
+
+    connect(mpc_manipulation, SIGNAL(SignalKinovaPosition(CartesianPosition)), this, SLOT(SlotEditeKinovaPosition(CartesianPosition)));
+    connect(mpc_manipulation, SIGNAL(SignalKinovaForceVector(CartesianPosition)), this, SLOT(SlotEditeKinovaForceVector(CartesianPosition)));
 
     //Check Button
     connect(ui->ck_segnet_switch, SIGNAL(clicked(bool)), this, SLOT(SlotButtonSegnetOn(bool)));
@@ -269,11 +274,73 @@ void Manipulation_Dlg::SlotButtonGetLRFInfo(){
     }
 }
 
-// Camera
-
-
 // End Effector
+void Manipulation_Dlg::SlotButtonEEffectorGrasp(){
 
+    if(!mpc_manipulation->InitGripper()){
+        QMessageBox::information(this, tr("Fail to Init Gripper"), tr("Check Gripper Status"));
+        return;
+    }
+
+    double rel_deg = ui->ed_end_effector_deg->text().toDouble();
+
+    if(!mpc_manipulation->GripperGoRelPose(rel_deg)){
+        QMessageBox::information(this, tr("Fail to Rel pose"), tr("Check Gripper Status"));
+        return;
+    }
+}
+
+void Manipulation_Dlg::SlotButtonEEffectorPoseCheck(){
+
+    uint16_t present_pos = 0;
+
+    if(!mpc_manipulation->GripperPresentPose(present_pos)){
+        QMessageBox::information(this, tr("Fail to Get pose"), tr("Check Gripper Status"));
+        return;
+    }
+
+    ui->ed_end_effector_present_pos->setText(QString::number(present_pos));
+}
+
+void Manipulation_Dlg::SlotButtonEEffectorGoToOrg(){
+
+    uint16_t org_pos = 13;
+
+    if(!mpc_manipulation->GripperGoThePose(org_pos)){
+        QMessageBox::information(this, tr("Fail to Get pose"), tr("Check Gripper Status"));
+        return;
+    }
+
+}
+
+void Manipulation_Dlg::SlotButtonEEffectorLoadCheckIter(){
+
+    GRIPPER_FORCE_CTRL_STRUCT gripper_force_ctrl;
+
+    gripper_force_ctrl = mpc_manipulation->GetGripperForceCtrlOption();
+
+    if(gripper_force_ctrl.gripper_force_ctrl_mission){
+        mpc_manipulation->SetManipulationOption(gripper_force_ctrl);
+    }
+
+    else{
+
+        gripper_force_ctrl.start_deg = 13;
+        gripper_force_ctrl.end___deg = 80;
+
+        gripper_force_ctrl.gripper_force_ctrl_mission = true;
+
+        gripper_force_ctrl.forece_threshold = ui->ed_end_effector_load_threshold->text().toInt();
+
+        mpc_manipulation->SetManipulationOption(gripper_force_ctrl);
+
+        if(!mpc_manipulation->SelectMainFunction(MANIPUL_INX_GRIPPER_FORCE_CLRL)){
+            QMessageBox::information(this, tr("Fail to Get pose"), tr("Check Gripper Status"));
+            return;
+        }
+    }
+
+}
 
 //-------------------------------------------------
 // View

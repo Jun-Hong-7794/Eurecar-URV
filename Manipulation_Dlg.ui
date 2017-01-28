@@ -732,9 +732,12 @@
       <rect>
        <x>8</x>
        <y>38</y>
-       <width>71</width>
+       <width>61</width>
        <height>22</height>
       </rect>
+     </property>
+     <property name="text">
+      <string>50</string>
      </property>
     </widget>
     <widget class="QLabel" name="label_17">
@@ -750,8 +753,31 @@
       <string>Bending Deg</string>
      </property>
     </widget>
+    <widget class="QLineEdit" name="ed_end_effector_load_threshold_3">
+     <property name="geometry">
+      <rect>
+       <x>106</x>
+       <y>37</y>
+       <width>61</width>
+       <height>22</height>
+      </rect>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_30">
+     <property name="geometry">
+      <rect>
+       <x>106</x>
+       <y>20</y>
+       <width>91</width>
+       <height>16</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Load Thresh</string>
+     </property>
+    </widget>
    </widget>
-   <widget class="QPushButton" name="bt_grasp_wrench">
+   <widget class="QPushButton" name="bt_gripper_force_ctrl">
     <property name="geometry">
      <rect>
       <x>300</x>
@@ -761,7 +787,7 @@
      </rect>
     </property>
     <property name="text">
-     <string>3. Grasp Wrench</string>
+     <string>3. Gripper Force Ctrl</string>
     </property>
    </widget>
    <widget class="QPushButton" name="bt_kinova_force_ctrl">
@@ -787,7 +813,7 @@
      </rect>
     </property>
     <property name="currentIndex">
-     <number>1</number>
+     <number>2</number>
     </property>
     <widget class="QWidget" name="tab_lrf_kinova_distance_ctrl">
      <attribute name="title">
@@ -1116,10 +1142,193 @@
       </property>
      </widget>
     </widget>
-    <widget class="QWidget" name="tab_grasp_wrench">
+    <widget class="QWidget" name="tab_gripper_force_ctrl">
      <attribute name="title">
-      <string>3.GW</string>
+      <string>3.GF</string>
      </attribute>
+     <widget class="QLabel" name="label_31">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>5</y>
+        <width>61</width>
+        <height>16</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Prst Pos</string>
+      </property>
+     </widget>
+     <widget class="QLineEdit" name="ed_end_effector_present_pos">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>21</y>
+        <width>61</width>
+        <height>22</height>
+       </rect>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="bt_end_effector_org_pos">
+      <property name="geometry">
+       <rect>
+        <x>150</x>
+        <y>10</y>
+        <width>51</width>
+        <height>31</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Org</string>
+      </property>
+     </widget>
+     <widget class="QLineEdit" name="ed_end_effector_load_threshold">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>98</y>
+        <width>61</width>
+        <height>22</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>1300</string>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label_32">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>82</y>
+        <width>61</width>
+        <height>16</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Load Ths</string>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label_33">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>44</y>
+        <width>61</width>
+        <height>16</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Go Rel P</string>
+      </property>
+     </widget>
+     <widget class="QLineEdit" name="ed_end_effector_go_rel_pos">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>60</y>
+        <width>61</width>
+        <height>22</height>
+       </rect>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label_34">
+      <property name="geometry">
+       <rect>
+        <x>80</x>
+        <y>4</y>
+        <width>61</width>
+        <height>16</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Go Po S</string>
+      </property>
+     </widget>
+     <widget class="QLineEdit" name="ed_end_effector_go_the_pos_s">
+      <property name="geometry">
+       <rect>
+        <x>80</x>
+        <y>20</y>
+        <width>61</width>
+        <height>22</height>
+       </rect>
+      </property>
+     </widget>
+     <widget class="QLineEdit" name="ed_end_effector_go_the_pos_e">
+      <property name="geometry">
+       <rect>
+        <x>80</x>
+        <y>59</y>
+        <width>61</width>
+        <height>22</height>
+       </rect>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label_35">
+      <property name="geometry">
+       <rect>
+        <x>80</x>
+        <y>43</y>
+        <width>61</width>
+        <height>16</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Go Po E</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="bt_end_effector_present_pos_check">
+      <property name="geometry">
+       <rect>
+        <x>150</x>
+        <y>50</y>
+        <width>51</width>
+        <height>31</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Po Che</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="bt_end_effector_iteration">
+      <property name="geometry">
+       <rect>
+        <x>150</x>
+        <y>89</y>
+        <width>51</width>
+        <height>31</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Itera</string>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label_36">
+      <property name="geometry">
+       <rect>
+        <x>80</x>
+        <y>82</y>
+        <width>61</width>
+        <height>16</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>PST Load</string>
+      </property>
+     </widget>
+     <widget class="QLineEdit" name="ed_end_effector_prst_load">
+      <property name="geometry">
+       <rect>
+        <x>80</x>
+        <y>98</y>
+        <width>61</width>
+        <height>22</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>0</string>
+      </property>
+     </widget>
     </widget>
     <widget class="QWidget" name="tab_inject_wrench">
      <attribute name="title">

@@ -44,6 +44,7 @@ private:
     CKinova* mpc_kinova;
     CVehicle* mpc_vehicle;
     CVelodyne* mpc_velodyne;
+    CGripper* mpc_gripper;
 
     //-------------------------------------------------
     // Mission Class

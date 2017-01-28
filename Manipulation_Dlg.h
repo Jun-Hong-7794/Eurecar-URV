@@ -11,6 +11,7 @@
 #include "Device_Class/CKinova/CKinova.h"
 #include "Device_Class/CVehicle/CVehicle.h"
 #include "Device_Class/CVelodyne/CVelodyne.h"
+#include "Device_Class/CGripper/CGripper.h"
 
 //-------------------------------------------------
 // Mission Class
@@ -73,9 +74,16 @@ public slots:
     void SlotButtonCameraOn();
     void SlotButtonSegnetOn(bool _check);
 
+    //End Effector
+    void SlotButtonEEffectorGrasp();
+    void SlotButtonEEffectorPoseCheck();
+    void SlotButtonEEffectorGoToOrg();
+
+
     //Step Function
     void SlotButtonLRFKinovaCtrl();
     void SlotButtonKinovaForceCtrl();
+    void SlotButtonEEffectorLoadCheckIter();
 
     //-------------------------------------------------
     // Edite Update

@@ -24,4 +24,15 @@ typedef struct _Kinova_Force_Ctrl_Struct{
 
 }KINOVA_FORCE_CTRL_STRUCT;
 
+typedef struct _Gripper_Force_Ctrl_Struct{
+
+    bool gripper_force_ctrl_mission;
+
+    int forece_threshold;
+
+    int start_deg;
+    int end___deg;
+
+}GRIPPER_FORCE_CTRL_STRUCT;
+
 #endif // DEF_MANIPULATION_H
