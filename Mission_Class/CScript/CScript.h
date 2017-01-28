@@ -18,6 +18,7 @@ protected:
 public:
     CScript();
     CScript(CGPS* _p_gps, CLRF* _p_lrf, CCamera* _p_camera, CKinova* _p_kinova, CVehicle* _p_vehicle, CVelodyne* _p_velodyne, CGripper* _p_gripper);
+    CScript(CDriving* _p_drivig, CManipulation* _p_manipulation);
 
 private:
     //-------------------------------------------------

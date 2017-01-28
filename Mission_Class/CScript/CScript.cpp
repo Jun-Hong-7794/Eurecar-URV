@@ -13,12 +13,13 @@ CScript::CScript(CGPS* _p_gps, CLRF* _p_lrf, CCamera* _p_camera, CKinova* _p_kin
     mpc_vehicle = _p_vehicle;
     mpc_velodyne = _p_velodyne;
     mpc_gripper = _p_gripper;
-
-    mpc_drivig = new CDriving(mpc_gps, mpc_lrf, mpc_camera, mpc_kinova, mpc_vehicle, mpc_velodyne);
-    mpc_manipulation = new CManipulation(mpc_lrf, mpc_camera, mpc_kinova, mpc_vehicle, mpc_velodyne, mpc_gripper);
 }
 
+CScript::CScript(CDriving* _p_drivig, CManipulation* _p_manipulation){
 
+    mpc_drivig = _p_drivig;
+    mpc_manipulation = _p_manipulation;
+}
 
 //----------------------------------------------------------------
 //
