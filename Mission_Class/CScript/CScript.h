@@ -50,18 +50,43 @@ private:
     CManipulation* mpc_manipulation;
 
 private:
+    //-------------------------------------------------
+    // Interpreter value
+    //-------------------------------------------------
     SCENARIO_SCRIPT mstruct_scenario;
     MISSION_SCRIPT* mpary_mission_script;
+
+private:
+    //-------------------------------------------------
+    // Player value
+    //-------------------------------------------------
+    SCRIPT_PLAYER_OPTION mstruct_player_option;
 
 private:
     void InitScenarioScript();
 
 public:
+    //-------------------------------------------------
+    // Interpreter Function
+    //-------------------------------------------------
     bool InterpreteScenarioScriptFile(QString _file_name);
     bool InterpreteScenarioScriptLine(QString _line);
 
-    bool InterpreteMissionScriptFile(QString _file_name);
-    bool InterpreteMissionScriptLine(QString _line);
+    bool InterpreteMissionScriptFile();
+    bool InterpreteMissionScriptLine(QString _line, MISSION_SCRIPT* _mission_script, STEP_INFO& _step_info);
+    //-------------------------------------------------
+    // Function
+    //-------------------------------------------------
+    bool InterpreteKinovaForceCtrl(QString _line, STEP_INFO& _step_info);
+    bool InterpreteKinovaManipulate(QString _line, STEP_INFO& _step_info);
+    bool InterpreteGripperForceCtrl(QString _line, STEP_INFO& _step_info);
+
+public:
+    //-------------------------------------------------
+    // Player Function
+    //-------------------------------------------------
+    bool SetPlayerOption(SCRIPT_PLAYER_OPTION _player_option);
+    bool MissionPlayer();
 
 public:
     void GetScenarioScript(SCENARIO_SCRIPT& _scenario_script);

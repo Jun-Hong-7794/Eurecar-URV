@@ -93,7 +93,7 @@ public: // Basic Motion
     void KinovaInitMotion();
     void KinovaAlignToPanel();
 
-    bool KinovaDoManipulate(CartesianPosition _desired_position,int _mode = 1);//mode = 1 : Joystic, mode = 2 : Trajectory
+    bool KinovaDoManipulate(CartesianPosition _desired_position,int _mode = 1, double _force_threshold = 0);//mode = 1 : Joystic, mode = 2 : Trajectory
     bool KinovaForceCtrl();
 
     CartesianPosition KinovaGetPosition();

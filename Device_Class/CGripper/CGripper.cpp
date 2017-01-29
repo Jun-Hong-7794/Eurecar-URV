@@ -301,11 +301,19 @@ bool CGripper::DynamixelGoToRelPosition(double _degree){
 
 
 bool CGripper::IsDmxInit(){
-    return fl_init_dynamixel;
+
+    if(!InitDynamixel())
+        return false;
+
+    return true;
 }
 
 bool CGripper::IsDmxTorqueOn(){
-    return fl_torque;
+
+    if(!DynamixelTorque(true))
+        return false;
+
+    return true;
 }
 
 uint16_t CGripper::DynamixelPresentPosition(){

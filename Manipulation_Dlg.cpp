@@ -54,9 +54,12 @@ Manipulation_Dlg::Manipulation_Dlg(CManipulation* _pc_manipulation, QWidget *par
     connect(ui->bt_camera_on, SIGNAL(clicked()), this, SLOT(SlotButtonCameraOn()));
 
     connect(ui->bt_lrf_get_info, SIGNAL(clicked()), this, SLOT(SlotButtonGetLRFInfo()));
+    connect(ui->bt_kinova_get_pose, SIGNAL(clicked()), this, SLOT(SlotButtonKinovaGetPosition()));
 
     connect(mpc_manipulation, SIGNAL(SignalKinovaPosition(CartesianPosition)), this, SLOT(SlotEditeKinovaPosition(CartesianPosition)));
     connect(mpc_manipulation, SIGNAL(SignalKinovaForceVector(CartesianPosition)), this, SLOT(SlotEditeKinovaForceVector(CartesianPosition)));
+    connect(mpc_manipulation, SIGNAL(SignalLRFHorizentDistance(LRF_VEHICLE_STRUCT)), this, SLOT(SlotLRFHorizentDistance(LRF_VEHICLE_STRUCT)));
+
     connect(mpc_manipulation, SIGNAL(SignalLRFHorizentDistance(LRF_VEHICLE_STRUCT)), this, SLOT(SlotLRFHorizentDistance(LRF_VEHICLE_STRUCT)));
 
     //Check Button
@@ -203,6 +206,15 @@ void Manipulation_Dlg::SlotButtonKinovaForceCtrl(){
 
 }
 
+void Manipulation_Dlg::SlotButtonKinovaGetPosition(){
+
+    CartesianPosition position;
+
+    mpc_manipulation->KinovaGetPosition(position);
+
+    SlotEditeKinovaPosition(position);
+}
+
 //LRF-Kinova
 void Manipulation_Dlg::SlotButtonLRFKinovaCtrl(){
 
@@ -337,8 +349,7 @@ void Manipulation_Dlg::SlotButtonEEffectorLoadCheckIter(){
 
     else{
 
-        gripper_force_ctrl.start_deg = 13;
-        gripper_force_ctrl.end___deg = 80;
+        gripper_force_ctrl.bend_deg = 113;
 
         gripper_force_ctrl.gripper_force_ctrl_mission = true;
 

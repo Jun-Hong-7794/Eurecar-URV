@@ -308,7 +308,7 @@
     </widget>
     <widget class="QPushButton" name="bt_mission_run">
      <property name="enabled">
-      <bool>false</bool>
+      <bool>true</bool>
      </property>
      <property name="geometry">
       <rect>
@@ -320,6 +320,9 @@
      </property>
      <property name="text">
       <string>Mission Run</string>
+     </property>
+     <property name="checkable">
+      <bool>false</bool>
      </property>
     </widget>
     <widget class="QPushButton" name="bt_script_update">
@@ -431,7 +434,7 @@
       <property name="title">
        <string>Mission</string>
       </property>
-      <widget class="QPushButton" name="bt_scenario_partial_run_2">
+      <widget class="QPushButton" name="bt_mission_partial_run">
        <property name="geometry">
         <rect>
          <x>118</x>

@@ -453,6 +453,19 @@
       <string>&amp;B</string>
      </property>
     </widget>
+    <widget class="QPushButton" name="bt_kinova_get_pose">
+     <property name="geometry">
+      <rect>
+       <x>90</x>
+       <y>145</y>
+       <width>41</width>
+       <height>41</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Get</string>
+     </property>
+    </widget>
    </widget>
    <widget class="QGroupBox" name="grbx_lrf">
     <property name="geometry">
@@ -813,7 +826,7 @@
      </rect>
     </property>
     <property name="currentIndex">
-     <number>3</number>
+     <number>2</number>
     </property>
     <widget class="QWidget" name="tab_lrf_kinova_distance_ctrl">
      <attribute name="title">

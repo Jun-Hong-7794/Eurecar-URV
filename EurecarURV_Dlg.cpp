@@ -58,6 +58,7 @@ EurecarURV_Dlg::EurecarURV_Dlg(QWidget *parent) :
     //Push Button Connect
     connect(ui->bt_velodyne,SIGNAL(clicked()), this, SLOT(SlotButtonVelodyne()));
     connect(ui->bt_kinova,SIGNAL(clicked()), this, SLOT(SlotButtonKinova()));
+    connect(ui->bt_mission_run,SIGNAL(clicked()), this, SLOT(SlotButtonMissionRun()));
 
     //-------------------------------------------------
     // Script Update
@@ -67,7 +68,7 @@ EurecarURV_Dlg::EurecarURV_Dlg(QWidget *parent) :
     if(!mpc_script->InterpreteScenarioScriptFile(file_path))
         QMessageBox::information(this, tr("Fail to Open Scenario"), tr("Check the Scenario File"));
 
-    ScenarioInfoDisplay();
+    ScriptInfoDisplay();
 }
 
 EurecarURV_Dlg::~EurecarURV_Dlg()
@@ -114,6 +115,12 @@ void EurecarURV_Dlg::SlotButtonKinova(){
         mpc_kinova->CloseKinova();
         ui->bt_kinova->setText("Kinova On");
     }
+}
+
+void EurecarURV_Dlg::SlotButtonMissionRun(){
+
+    SCRIPT_PLAYER_OPTION player_option;
+    mpc_script->SetPlayerOption(player_option);
 }
 
 // Menu Button
@@ -178,15 +185,17 @@ void EurecarURV_Dlg::SlotMenuButtonScenarioLoad(){
 
     if(dialog.exec())
         fileName = dialog.selectedFiles();
+    else
+        return;
 
     if(!mpc_script->InterpreteScenarioScriptFile(fileName[0]))
         QMessageBox::information(this, tr("Fail to Open Scenario"), tr("Check the Scenario File"));
 
     //Scenario Info Display
-    ScenarioInfoDisplay();
+    ScriptInfoDisplay();
 }
 
-void EurecarURV_Dlg::ScenarioInfoDisplay(){
+void EurecarURV_Dlg::ScriptInfoDisplay(){
 
     ui->lsview_mission_title->clear();
 
@@ -204,19 +213,6 @@ void EurecarURV_Dlg::ScenarioInfoDisplay(){
 
     return;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

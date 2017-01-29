@@ -16,4 +16,13 @@ typedef struct _Parking_struct{
 
 }PARKING_STRUCT;
 
+typedef struct _Driving_Option{
+
+    DRIVING_STRUCT driving_option;
+
+    PARKING_STRUCT parking_option;
+
+}DRIVING_OPTION;
+
+
 #endif // DEF_DRIVING_H

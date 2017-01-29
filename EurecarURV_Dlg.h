@@ -76,8 +76,10 @@ public slots:
     void SlotButtonVelodyne();
     void SlotButtonKinova();
 
+    void SlotButtonMissionRun();
+
 public:
-    void ScenarioInfoDisplay();
+    void ScriptInfoDisplay();
 
 
 };

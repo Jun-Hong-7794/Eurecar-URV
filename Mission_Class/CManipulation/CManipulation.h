@@ -29,7 +29,8 @@
 #define MANIPUL_INX_LRF_KINOVA           1
 #define MANIPUL_INX_KINOVA_FORCE_CLRL    2
 #define MANIPUL_INX_GRIPPER_FORCE_CLRL   3
-#define MANIPUL_INX_LRF_VEHICLE   4
+#define MANIPUL_INX_LRF_VEHICLE          4
+#define MANIPUL_INX_KINOVA_MANIPULATE    5
 
 class CManipulation:public QThread{
     Q_OBJECT
@@ -55,6 +56,9 @@ private:
 
     LRF_VEHICLE_STRUCT mstruct_lrf_vehicle;
     QMutex mxt_lrf_vehicle;
+
+    KINOVA_DO_MANIPULATE_STRUCT mstruct_kinova_manipulate;
+    QMutex mxt_kinova_manipulate;
     //-------------------------------------------------
     // ElementTech Class
     //-------------------------------------------------
@@ -127,12 +131,16 @@ public:
     void SetManipulationOption(LRF_VEHICLE_STRUCT _manipulation_option);
     LRF_VEHICLE_STRUCT GetLRFVehicleOption();
 
+    void SetManipulationOption(KINOVA_DO_MANIPULATE_STRUCT _manipulation_option);
+    KINOVA_DO_MANIPULATE_STRUCT GetKinovaManipulateOption();
+
 private:
     //-------------------------------------------------
     // Main Function
     //-------------------------------------------------
     bool LRFKinovaDepthControl();
     bool KinovaForceCtrl();
+    bool KinovaDoManipulate();
     bool GripperForceCtrl();
     bool LRFVehicleControl();
 

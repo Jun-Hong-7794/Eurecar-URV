@@ -284,6 +284,12 @@ bool CManipulation::SelectMainFunction(int _fnc_index_){
 
         return true;
     }
+    else if(_fnc_index_ == MANIPUL_INX_KINOVA_MANIPULATE){
+        m_main_fnc_index = MANIPUL_INX_KINOVA_MANIPULATE;
+        this->start();
+
+        return true;
+    }
     else
         return false;
 }
@@ -376,6 +382,28 @@ LRF_VEHICLE_STRUCT CManipulation::GetLRFVehicleOption(){
     return lrf_vehicle;
 }
 
+void CManipulation::SetManipulationOption(KINOVA_DO_MANIPULATE_STRUCT _manipulation_option){
+
+    mxt_kinova_manipulate.lock();
+    {
+        mstruct_kinova_manipulate = _manipulation_option;
+    }
+    mxt_kinova_manipulate.unlock();
+}
+
+KINOVA_DO_MANIPULATE_STRUCT CManipulation::GetKinovaManipulateOption(){
+
+    KINOVA_DO_MANIPULATE_STRUCT kinova_manipulate;
+
+    mxt_kinova_manipulate.lock();
+    {
+        kinova_manipulate = mstruct_kinova_manipulate;
+    }
+    mxt_kinova_manipulate.unlock();
+
+    return kinova_manipulate;
+}
+
 //----------------------------------------------------------------
 // Main Function
 //----------------------------------------------------------------
@@ -439,11 +467,29 @@ bool CManipulation::KinovaForceCtrl(){
             break;
         }
 
-        mpc_kinova->KinovaMoveUnitStep(0, 0.1, 0.1);
+        mpc_kinova->KinovaMoveUnitStep(kinova_force_ctrl.move_step_x, kinova_force_ctrl.move_step_y, kinova_force_ctrl.move_step_z);
 
         step_count++;
     }
     while(true);
+
+    return true;
+}
+
+bool CManipulation::KinovaDoManipulate(){
+
+    CartesianPosition kinova_pose;
+    KINOVA_DO_MANIPULATE_STRUCT kinova_manipulate = GetKinovaManipulateOption();
+
+    kinova_pose.Coordinates.X = kinova_manipulate.x;
+    kinova_pose.Coordinates.Y = kinova_manipulate.y;
+    kinova_pose.Coordinates.Z = kinova_manipulate.z;
+
+    kinova_pose.Coordinates.ThetaX = kinova_manipulate.roll;
+    kinova_pose.Coordinates.ThetaY = kinova_manipulate.pitch;
+    kinova_pose.Coordinates.ThetaZ = kinova_manipulate.yaw;
+
+    mpc_kinova->KinovaDoManipulate(kinova_pose, 2, kinova_manipulate.forece_threshold);
 
     return true;
 }
@@ -459,17 +505,7 @@ bool CManipulation::GripperForceCtrl(){
 
     gripper_force_ctrl = GetGripperForceCtrlOption();
 
-    do{
-        if(!mpc_gripper->DynamixelGoToThePositionUsingLoad(13, gripper_force_ctrl.forece_threshold))
-            break;
-
-        if(!mpc_gripper->DynamixelGoToThePositionUsingLoad(113, gripper_force_ctrl.forece_threshold))
-            break;
-    }
-    while(true);
-
-    gripper_force_ctrl.gripper_force_ctrl_mission = false;
-    SetManipulationOption(gripper_force_ctrl);
+    mpc_gripper->DynamixelGoToThePositionUsingLoad(gripper_force_ctrl.bend_deg, gripper_force_ctrl.forece_threshold);
 
     return true;
 }
@@ -514,7 +550,6 @@ void CManipulation::run(){
     case MANIPUL_INX_LRF_KINOVA:
         LRFKinovaDepthControl();
         break;
-
     case MANIPUL_INX_KINOVA_FORCE_CLRL:
         KinovaForceCtrl();
         break;
@@ -523,6 +558,9 @@ void CManipulation::run(){
         break;
     case MANIPUL_INX_LRF_VEHICLE:
         LRFVehicleControl();
+        break;
+    case MANIPUL_INX_KINOVA_MANIPULATE:
+        KinovaDoManipulate();
         break;
     default:
         break;

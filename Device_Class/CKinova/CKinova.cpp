@@ -680,16 +680,6 @@ void CKinova::Kinova_Ready_To_Grasp(){
     desired_point.InitStruct();
     desired_point.Position.Type = CARTESIAN_POSITION;
 
-//    desired_point.Position.CartesianPosition.X = 0.40; //0.38487;
-//    desired_point.Position.CartesianPosition.Y = -0.10; //0.22056;
-//    desired_point.Position.CartesianPosition.Z = 0.30; //0.28821 + _param2*0.01;
-//    desired_point.Position.CartesianPosition.ThetaZ = -0.5635;
-//    desired_point.Position.CartesianPosition.ThetaY = 1.57;
-//    desired_point.Position.CartesianPosition.ThetaX = 1.57;
-//    Kinova_Do_Manipulate(desired_point, 2);
-
-//    Kinova_EraseAllTrajectories();
-
     desired_point.Position.CartesianPosition.X = 0.565; //0.38487;
     desired_point.Position.CartesianPosition.Y = -0.217; //0.22056;
     desired_point.Position.CartesianPosition.Z = 0.41; //0.28821 + _param2*0.01;
@@ -750,7 +740,7 @@ bool CKinova::IsScanning(){
     return fl_kinova_manipulation;
 }
 
-bool CKinova::KinovaDoManipulate(CartesianPosition _desired_position,int _mode){
+bool CKinova::KinovaDoManipulate(CartesianPosition _desired_position,int _mode, double _force_threshold){
 
     if(!fl_kinova_init)
         return false;
@@ -802,6 +792,15 @@ bool CKinova::KinovaDoManipulate(CartesianPosition _desired_position,int _mode){
 
         while(error>thresh && count < 5)
         {
+            if(_force_threshold != 0){
+                if(KinovaGetCartesianForce().Coordinates.X > _force_threshold)
+                    break;
+                if(KinovaGetCartesianForce().Coordinates.Y > _force_threshold)
+                    break;
+                if(KinovaGetCartesianForce().Coordinates.Z > _force_threshold)
+                    break;
+            }
+
             if(fabs(error-error_old)<thresh2 && error0>error)
             {
                 count++;

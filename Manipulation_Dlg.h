@@ -59,6 +59,8 @@ public slots:
     void SlotButtonKinovaAlignPanel();
     void SlotButtonKinovaDoManipulate();
 
+    void SlotButtonKinovaGetPosition();
+
     void SlotButtonKinovaMoveStepUp();
     void SlotButtonKinovaMoveStepDw();
     void SlotButtonKinovaMoveStepRi();
@@ -78,7 +80,6 @@ public slots:
     void SlotButtonEEffectorGrasp();
     void SlotButtonEEffectorPoseCheck();
     void SlotButtonEEffectorGoToOrg();
-
 
     //Step Function
     void SlotButtonLRFKinovaCtrl();
