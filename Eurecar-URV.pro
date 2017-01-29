@@ -60,7 +60,8 @@ HEADERS  += EurecarURV_Dlg.h \
     Device_Class/CVelodyne/CPCL.h \
     ElementTech_Class/CRGBD/RGBD_Data.h \
     Mission_Class/CManipulation/Def_Manipulation.h \
-    Device_Class/CGripper/CGripper.h
+    Device_Class/CGripper/CGripper.h \
+    Mission_Class/CScript/Def_Script.h
 
 FORMS    += EurecarURV_Dlg.ui \
     Driving_Dlg.ui \

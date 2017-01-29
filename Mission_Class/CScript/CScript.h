@@ -1,7 +1,19 @@
 #ifndef CSCRIPT_H
 #define CSCRIPT_H
 
+//-------------------------------------------------
+// QT
+//-------------------------------------------------
 #include <QThread>
+#include <QDir>
+#include <QTime>
+#include <QDateTime>
+#include <QTextStream>
+
+//-------------------------------------------------
+// Script Define
+//-------------------------------------------------
+#include "Def_Script.h"
 
 //-------------------------------------------------
 // Mission Class
@@ -17,7 +29,6 @@ protected:
 
 public:
     CScript();
-    CScript(CGPS* _p_gps, CLRF* _p_lrf, CCamera* _p_camera, CKinova* _p_kinova, CVehicle* _p_vehicle, CVelodyne* _p_velodyne, CGripper* _p_gripper);
     CScript(CDriving* _p_drivig, CManipulation* _p_manipulation);
 
 private:
@@ -38,6 +49,26 @@ private:
     CDriving* mpc_drivig;
     CManipulation* mpc_manipulation;
 
+private:
+    SCENARIO_SCRIPT mstruct_scenario;
+    MISSION_SCRIPT* mpary_mission_script;
+
+private:
+    void InitScenarioScript();
+
+public:
+    bool InterpreteScenarioScriptFile(QString _file_name);
+    bool InterpreteScenarioScriptLine(QString _line);
+
+    bool InterpreteMissionScriptFile(QString _file_name);
+    bool InterpreteMissionScriptLine(QString _line);
+
+public:
+    void GetScenarioScript(SCENARIO_SCRIPT& _scenario_script);
+
 };
 
 #endif // CSCRIPT_H
+
+
+

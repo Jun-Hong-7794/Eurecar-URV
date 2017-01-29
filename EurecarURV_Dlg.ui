@@ -287,16 +287,6 @@
       <string>Scenario Run</string>
      </property>
     </widget>
-    <widget class="QListView" name="lsview_mission_title">
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>43</y>
-       <width>201</width>
-       <height>131</height>
-      </rect>
-     </property>
-    </widget>
     <widget class="QLabel" name="label_6">
      <property name="geometry">
       <rect>
@@ -531,6 +521,16 @@
       </property>
      </widget>
     </widget>
+    <widget class="QListWidget" name="lsview_mission_title">
+     <property name="geometry">
+      <rect>
+       <x>9</x>
+       <y>42</y>
+       <width>201</width>
+       <height>131</height>
+      </rect>
+     </property>
+    </widget>
    </widget>
    <widget class="QPushButton" name="bt_urg_start">
     <property name="geometry">
@@ -566,7 +566,6 @@
      <string>S&amp;cenario Script</string>
     </property>
     <addaction name="action_load_scenario_script"/>
-    <addaction name="action_load_mission_script"/>
    </widget>
    <widget class="QMenu" name="menu_Sub_Dialog_Box">
     <property name="title">

@@ -54,11 +54,20 @@ EurecarURV_Dlg::EurecarURV_Dlg(QWidget *parent) :
     //Menu Button Connect
     connect(ui->action_driving_dialog_box,SIGNAL(triggered()),this,SLOT(SlotMenuButtonDriving_Dlg()));
     connect(ui->action_manipulation_dialog_box,SIGNAL(triggered()),this,SLOT(SlotMenuButtonManipulation_Dlg()));
+    connect(ui->action_load_scenario_script,SIGNAL(triggered()),this,SLOT(SlotMenuButtonScenarioLoad()));
     //Push Button Connect
     connect(ui->bt_velodyne,SIGNAL(clicked()), this, SLOT(SlotButtonVelodyne()));
     connect(ui->bt_kinova,SIGNAL(clicked()), this, SLOT(SlotButtonKinova()));
 
+    //-------------------------------------------------
+    // Script Update
+    //-------------------------------------------------
+    QString file_path = "/home/winner/Workspace/2017MBZIRC_Code/Eurecar-URV/Eurecar-URV/Script/Scenario.md";
 
+    if(!mpc_script->InterpreteScenarioScriptFile(file_path))
+        QMessageBox::information(this, tr("Fail to Open Scenario"), tr("Check the Scenario File"));
+
+    ScenarioInfoDisplay();
 }
 
 EurecarURV_Dlg::~EurecarURV_Dlg()
@@ -157,3 +166,59 @@ void EurecarURV_Dlg::SlotMenuButtonManipulation_Dlg(){
     mpdlg_manipulation->activateWindow();
     mpdlg_manipulation->setFocus();
 }
+
+void EurecarURV_Dlg::SlotMenuButtonScenarioLoad(){
+
+    QFileDialog dialog(this);
+    QStringList fileName;
+
+    dialog.setDirectory("/home/winner/Workspace/2017MBZIRC_Code/Eurecar-URV/Eurecar-URV/Script");
+
+    dialog.setFileMode(QFileDialog::AnyFile);
+
+    if(dialog.exec())
+        fileName = dialog.selectedFiles();
+
+    if(!mpc_script->InterpreteScenarioScriptFile(fileName[0]))
+        QMessageBox::information(this, tr("Fail to Open Scenario"), tr("Check the Scenario File"));
+
+    //Scenario Info Display
+    ScenarioInfoDisplay();
+}
+
+void EurecarURV_Dlg::ScenarioInfoDisplay(){
+
+    ui->lsview_mission_title->clear();
+
+    SCENARIO_SCRIPT scenario_script;
+    QStringList mission_list;
+
+    mpc_script->GetScenarioScript(scenario_script);
+
+    for(unsigned int i = 0; i < scenario_script.mission_file_name.size(); i++){
+        mission_list << scenario_script.mission_file_name.at(i);
+    }
+
+    ui->lsview_mission_title->addItems(mission_list);
+    ui->lsview_mission_title->update();
+
+    return;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

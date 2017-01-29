@@ -70,9 +70,14 @@ public slots:
     void SlotMenuButtonDriving_Dlg();
     void SlotMenuButtonManipulation_Dlg();
 
+    void SlotMenuButtonScenarioLoad();
+
     // Push Button
     void SlotButtonVelodyne();
     void SlotButtonKinova();
+
+public:
+    void ScenarioInfoDisplay();
 
 
 };
