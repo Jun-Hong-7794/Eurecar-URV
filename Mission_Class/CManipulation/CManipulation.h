@@ -29,8 +29,9 @@
 #define MANIPUL_INX_LRF_KINOVA           1
 #define MANIPUL_INX_KINOVA_FORCE_CLRL    2
 #define MANIPUL_INX_GRIPPER_FORCE_CLRL   3
-#define MANIPUL_INX_LRF_VEHICLE          4
-#define MANIPUL_INX_KINOVA_MANIPULATE    5
+#define MANIPUL_INX_LRF_VEHICLE_HORIZEN  4
+#define MANIPUL_INX_LRF_VEHICLE_ANGLE    5
+#define MANIPUL_INX_KINOVA_MANIPULATE    6
 
 class CManipulation:public QThread{
     Q_OBJECT
@@ -54,8 +55,11 @@ private:
     GRIPPER_FORCE_CTRL_STRUCT mstruct_gripper_force_ctrl;
     QMutex mxt_gripper_force_ctrl;
 
-    LRF_VEHICLE_STRUCT mstruct_lrf_vehicle;
+    LRF_VEHICLE_HORIZEN_STRUCT mstruct_lrf_vehicle;
     QMutex mxt_lrf_vehicle;
+
+    LRF_VEHICLE_ANGLE_STRUCT mstruct_lrf_vehicle_angle;
+    QMutex mxt_lrf_vehicle_angle;
 
     KINOVA_DO_MANIPULATE_STRUCT mstruct_kinova_manipulate;
     QMutex mxt_kinova_manipulate;
@@ -130,8 +134,11 @@ public:
     void SetManipulationOption(GRIPPER_FORCE_CTRL_STRUCT _manipulation_option);
     GRIPPER_FORCE_CTRL_STRUCT GetGripperForceCtrlOption();
 
-    void SetManipulationOption(LRF_VEHICLE_STRUCT _manipulation_option);
-    LRF_VEHICLE_STRUCT GetLRFVehicleOption();
+    void SetManipulationOption(LRF_VEHICLE_HORIZEN_STRUCT _manipulation_option);
+    LRF_VEHICLE_HORIZEN_STRUCT GetLRFVehicleHorizenOption();
+
+    void SetManipulationOption(LRF_VEHICLE_ANGLE_STRUCT _manipulation_option);
+    LRF_VEHICLE_ANGLE_STRUCT GetLRFVehicleAngleOption();
 
     void SetManipulationOption(KINOVA_DO_MANIPULATE_STRUCT _manipulation_option);
     KINOVA_DO_MANIPULATE_STRUCT GetKinovaManipulateOption();
@@ -144,13 +151,14 @@ private:
     bool KinovaForceCtrl();
     bool KinovaDoManipulate();
     bool GripperForceCtrl();
-    bool LRFVehicleControl();
+    bool LRFVehicleHorizenControl();
+    bool LRFVehicleAngleControl();
 
 signals:
     void SignalKinovaPosition(CartesianPosition);
     void SignalKinovaForceVector(CartesianPosition);
 
-    void SignalLRFHorizentDistance(LRF_VEHICLE_STRUCT);
+    void SignalLRFHorizentDistance(LRF_VEHICLE_HORIZEN_STRUCT);
 
     void SignalLRFImage(cv::Mat);
     void SignalCameraImage(cv::Mat);

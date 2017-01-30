@@ -8,7 +8,7 @@ EurecarURV_Dlg::EurecarURV_Dlg(QWidget *parent) :
     ui->setupUi(this);
 
     qRegisterMetaType<CartesianPosition>("CartesianPosition");
-    qRegisterMetaType<LRF_VEHICLE_STRUCT>("LRF_VEHICLE_STRUCT");
+    qRegisterMetaType<LRF_VEHICLE_HORIZEN_STRUCT>("LRF_VEHICLE_HORIZEN_STRUCT");
 
     //-------------------------------------------------
     // Device Class Initialize

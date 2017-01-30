@@ -98,7 +98,7 @@ public slots:
 
     void SlotEditeKinovaPosition(CartesianPosition _position);
     void SlotEditeKinovaForceVector(CartesianPosition _force_vector);
-    void SlotLRFHorizentDistance(LRF_VEHICLE_STRUCT _lrf_horizen);
+    void SlotLRFHorizentDistance(LRF_VEHICLE_HORIZEN_STRUCT _lrf_horizen);
 
     //-------------------------------------------------
     // View Update

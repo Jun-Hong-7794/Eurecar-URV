@@ -18,13 +18,14 @@
 //-------------------------------------------------
 // Function Index Define
 //-------------------------------------------------
-#define DR_VELODYNE_VEHICLE_CONTROL  0x1000
+#define DR_VELODYNE_VEHICLE_CONTROL          0x1000
 
-#define MP_LRF_KINOVA_DEPTH_CONTROL  0x2001
-#define MP_KINOVA_FORCE_CONTROL      0x2002
-#define MP_GRIPPER_FORCE_CONTROL     0x2003
-#define MP_LRF_VEHICLE_CONTROL       0x2004
-#define MP_KINOVA_MANIPULATE         0x2005
+#define MP_LRF_KINOVA_DEPTH_CONTROL          0x2001
+#define MP_KINOVA_FORCE_CONTROL              0x2002
+#define MP_GRIPPER_FORCE_CONTROL             0x2003
+#define MP_LRF_VEHICLE_HORIZEN_CONTROL       0x2004
+#define MP_LRF_VEHICLE_ANGLE_CONTROL         0x2005
+#define MP_KINOVA_MANIPULATE                 0x2006
 
 typedef struct _Step_Information{
 

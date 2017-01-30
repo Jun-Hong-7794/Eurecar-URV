@@ -80,6 +80,8 @@ public:
     bool InterpreteKinovaForceCtrl(QString _line, STEP_INFO& _step_info);
     bool InterpreteKinovaManipulate(QString _line, STEP_INFO& _step_info);
     bool InterpreteGripperForceCtrl(QString _line, STEP_INFO& _step_info);
+    bool InterpreteLRFVehicleAngleCtrl(QString _line, STEP_INFO& _step_info);
+    bool InterpreteLRFVehicleHorizenCtrl(QString _line, STEP_INFO& _step_info);
 
 private:
     //-------------------------------------------------
