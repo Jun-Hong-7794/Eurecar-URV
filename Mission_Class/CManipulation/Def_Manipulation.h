@@ -1,5 +1,6 @@
 #ifndef DEF_MANIPULATION_H
 #define DEF_MANIPULATION_H
+#include <QString>
 
 typedef struct _LRF_Kinova_Struct{
 
@@ -31,6 +32,14 @@ typedef struct _Kinova_Force_Ctrl_Struct{
 typedef struct _Kinova_Do_Manipulate_Struct{
 
     bool kinova_do_manipulate_mission;
+
+    QString str_x;
+    QString str_y;
+    QString str_z;
+
+    QString str_roll;
+    QString str_pitch;
+    QString str_yaw;
 
     double x;
     double y;

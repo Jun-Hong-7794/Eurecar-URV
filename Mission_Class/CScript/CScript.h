@@ -81,6 +81,13 @@ public:
     bool InterpreteKinovaManipulate(QString _line, STEP_INFO& _step_info);
     bool InterpreteGripperForceCtrl(QString _line, STEP_INFO& _step_info);
 
+private:
+    //-------------------------------------------------
+    // Calculate
+    //-------------------------------------------------
+    double ReturnKinovaAxisValue(QString _axis, QString _char);
+    void SetKinovaAxisValue(KINOVA_DO_MANIPULATE_STRUCT &_manipulat_option);
+
 public:
     //-------------------------------------------------
     // Player Function

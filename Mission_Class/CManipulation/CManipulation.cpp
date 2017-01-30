@@ -82,6 +82,14 @@ bool CManipulation::KinovaDoManipulate(CartesianPosition _position){
     return true;
 }
 
+bool CManipulation::KinovaMoveUnitStep(double _x, double _y, double _z, double _th_x, double _th_y, double _th_z){
+
+    if(!mpc_kinova->KinovaMoveUnitStep(_x, _y, _z, _th_x, _th_y, _th_z))
+        return false;
+
+    return true;
+}
+
 bool CManipulation::KinovaMoveUnitStepUp(){
 
     if(!mpc_kinova->KinovaMoveUnitStepUp())
@@ -485,11 +493,12 @@ bool CManipulation::KinovaDoManipulate(){
     kinova_pose.Coordinates.Y = kinova_manipulate.y;
     kinova_pose.Coordinates.Z = kinova_manipulate.z;
 
-    kinova_pose.Coordinates.ThetaX = kinova_manipulate.roll;
+    kinova_pose.Coordinates.ThetaZ = kinova_manipulate.roll;
     kinova_pose.Coordinates.ThetaY = kinova_manipulate.pitch;
-    kinova_pose.Coordinates.ThetaZ = kinova_manipulate.yaw;
+    kinova_pose.Coordinates.ThetaX = kinova_manipulate.yaw;
 
-    mpc_kinova->KinovaDoManipulate(kinova_pose, 2, kinova_manipulate.forece_threshold);
+//    mpc_kinova->KinovaDoManipulate(kinova_pose, kinova_manipulate.forece_threshold);
+    mpc_kinova->KinovaDoManipulate(kinova_pose, 2);
 
     return true;
 }

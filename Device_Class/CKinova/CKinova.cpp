@@ -190,7 +190,7 @@ CartesianPosition CKinova::KinovaGetCartesianForce(){
     return force;
 }
 
-bool CKinova::KinovaMoveUnitStep(double _x, double _y, double _z){
+bool CKinova::KinovaMoveUnitStep(double _x, double _y, double _z, double _th_x, double _th_y, double _th_z){
 
     if(!(fl_kinova_init && fl_kinova_init_position))
         return false;
@@ -203,9 +203,9 @@ bool CKinova::KinovaMoveUnitStep(double _x, double _y, double _z){
     pointToSend.Position.CartesianPosition.X = _x;
     pointToSend.Position.CartesianPosition.Y = _y;
     pointToSend.Position.CartesianPosition.Z = _z;
-    pointToSend.Position.CartesianPosition.ThetaX = 0;
-    pointToSend.Position.CartesianPosition.ThetaY = 0;
-    pointToSend.Position.CartesianPosition.ThetaZ = 0;
+    pointToSend.Position.CartesianPosition.ThetaX = _th_x;
+    pointToSend.Position.CartesianPosition.ThetaY = _th_y;
+    pointToSend.Position.CartesianPosition.ThetaZ = _th_z;
 
     for(int i = 0; i<=STEP_NUM; i++)
     {
@@ -820,13 +820,108 @@ bool CKinova::KinovaDoManipulate(CartesianPosition _desired_position,int _mode, 
             error = sqrt(error);
 
             Kinova_SendAdvanceTrajectory(desired_position);
-
         }
 
         msleep(100);
     }
 
     emit SignalKinovaPosition(KinovaGetPosition());
+    return true;
+}
+
+bool CKinova::KinovaDoManipulate(CartesianPosition _desired_position, double _force_threshold){
+
+    if(!fl_kinova_init)
+        return false;
+
+    Kinova_EraseAllTrajectories();
+
+    CartesianPosition position;
+
+    TrajectoryPoint desired_position;
+
+    desired_position.InitStruct();
+    desired_position.Position.Type = CARTESIAN_POSITION;
+
+    desired_position.Position.CartesianPosition.X = _desired_position.Coordinates.X;
+    desired_position.Position.CartesianPosition.Y = _desired_position.Coordinates.Y;
+    desired_position.Position.CartesianPosition.Z = _desired_position.Coordinates.Z;
+
+    desired_position.Position.CartesianPosition.ThetaX = _desired_position.Coordinates.ThetaX;
+    desired_position.Position.CartesianPosition.ThetaY = _desired_position.Coordinates.ThetaY;
+    desired_position.Position.CartesianPosition.ThetaZ = _desired_position.Coordinates.ThetaZ;
+
+    double error_th = 0.03;
+    double error_th_th = 0.02;
+
+    double error_x;
+    double error_y;
+    double error_z;
+
+    double error_th_x;
+    double error_th_y;
+    double error_th_z;
+
+    do{
+        Kinova_GetCartesianPosition(position);
+
+        error_x = desired_position.Position.CartesianPosition.X - position.Coordinates.X;
+        error_y = desired_position.Position.CartesianPosition.Y - position.Coordinates.Y;
+        error_z = desired_position.Position.CartesianPosition.Z - position.Coordinates.Z;
+
+        error_th_x = desired_position.Position.CartesianPosition.ThetaX - position.Coordinates.ThetaX;
+        error_th_y = desired_position.Position.CartesianPosition.ThetaY - position.Coordinates.ThetaY;
+        error_th_z = desired_position.Position.CartesianPosition.ThetaZ - position.Coordinates.ThetaZ;
+
+        if(fabs(error_x) > error_th){
+             error_x = error_x > 0 ? VEL : (-1)*VEL;
+        }
+        else
+            error_x = 0;
+        if(fabs(error_y) > error_th){
+             error_y = error_y > 0 ? VEL : (-1)*VEL;
+        }
+        else
+            error_y = 0;
+        if(fabs(error_z) > error_th){
+             error_z = error_z > 0 ? VEL : (-1)*VEL;
+        }
+        else
+            error_z = 0;
+
+        if(fabs(error_th_x) > error_th_th){
+             error_th_x = error_th_x > 0 ? (-1)*ROT : ROT;
+        }
+        else
+            error_th_x = 0;
+        if(fabs(error_th_y) > error_th_th){
+             error_th_y = error_th_y > 0 ? (-1)*ROT : ROT;
+        }
+        else
+            error_th_y = 0;
+        if(fabs(error_th_z) > error_th_th){
+             error_th_z = error_th_z > 0 ? (-1)*ROT : ROT;
+        }
+        else
+            error_th_z = 0;
+
+        KinovaMoveUnitStep(error_x, error_y, error_z, error_th_x, error_th_y, error_th_z);
+
+        if(_force_threshold != 0){
+            if(KinovaGetCartesianForce().Coordinates.X > _force_threshold)
+                break;
+            if(KinovaGetCartesianForce().Coordinates.Y > _force_threshold)
+                break;
+            if(KinovaGetCartesianForce().Coordinates.Z > _force_threshold)
+                break;
+        }
+
+        msleep(10);
+    }while((error_x != 0) || (error_y != 0) || (error_z != 0) ||
+           (error_th_x != 0) || (error_th_y != 0) || (error_th_z != 0));
+
+    emit SignalKinovaPosition(KinovaGetPosition());
+
     return true;
 }
 

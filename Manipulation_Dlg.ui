@@ -355,7 +355,7 @@
     <widget class="QPushButton" name="bt_kinova_up">
      <property name="geometry">
       <rect>
-       <x>156</x>
+       <x>138</x>
        <y>47</y>
        <width>31</width>
        <height>22</height>
@@ -368,7 +368,7 @@
     <widget class="QPushButton" name="bt_kinova_down">
      <property name="geometry">
       <rect>
-       <x>156</x>
+       <x>138</x>
        <y>97</y>
        <width>31</width>
        <height>22</height>
@@ -404,7 +404,7 @@
       <string>&amp;R</string>
      </property>
     </widget>
-    <widget class="QLineEdit" name="lineEdit">
+    <widget class="QLineEdit" name="ed_kinova_unit_step">
      <property name="geometry">
       <rect>
        <x>10</x>
@@ -414,7 +414,7 @@
       </rect>
      </property>
     </widget>
-    <widget class="QLabel" name="ed_kinova_unit_step">
+    <widget class="QLabel" name="lb_kinova_unit_step">
      <property name="geometry">
       <rect>
        <x>10</x>
@@ -430,7 +430,7 @@
     <widget class="QPushButton" name="bt_kinova_forward">
      <property name="geometry">
       <rect>
-       <x>156</x>
+       <x>138</x>
        <y>23</y>
        <width>31</width>
        <height>22</height>
@@ -443,7 +443,7 @@
     <widget class="QPushButton" name="bt_kinova_backward">
      <property name="geometry">
       <rect>
-       <x>156</x>
+       <x>138</x>
        <y>121</y>
        <width>31</width>
        <height>22</height>
@@ -464,6 +464,58 @@
      </property>
      <property name="text">
       <string>Get</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="bt_kinova_roll">
+     <property name="geometry">
+      <rect>
+       <x>171</x>
+       <y>23</y>
+       <width>31</width>
+       <height>22</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>R&amp;O</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="bt_kinova_roll_dw">
+     <property name="geometry">
+      <rect>
+       <x>171</x>
+       <y>47</y>
+       <width>31</width>
+       <height>22</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>R&amp;D</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="bt_kinova_pitch_dw">
+     <property name="geometry">
+      <rect>
+       <x>171</x>
+       <y>121</y>
+       <width>31</width>
+       <height>22</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>PD</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="bt_kinova_pitch_up">
+     <property name="geometry">
+      <rect>
+       <x>171</x>
+       <y>97</y>
+       <width>31</width>
+       <height>22</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>&amp;PU</string>
      </property>
     </widget>
    </widget>
@@ -826,7 +878,7 @@
      </rect>
     </property>
     <property name="currentIndex">
-     <number>2</number>
+     <number>1</number>
     </property>
     <widget class="QWidget" name="tab_lrf_kinova_distance_ctrl">
      <attribute name="title">

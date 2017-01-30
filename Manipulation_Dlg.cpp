@@ -40,6 +40,11 @@ Manipulation_Dlg::Manipulation_Dlg(CManipulation* _pc_manipulation, QWidget *par
     connect(ui->bt_kinova_forward, SIGNAL(clicked()), this, SLOT(SlotButtonKinovaMoveStepFw()));
     connect(ui->bt_kinova_backward, SIGNAL(clicked()), this, SLOT(SlotButtonKinovaMoveStepBw()));
 
+    connect(ui->bt_kinova_roll, SIGNAL(clicked()), this, SLOT(SlotButtonKinovaMoveStepRollUp()));
+    connect(ui->bt_kinova_roll_dw, SIGNAL(clicked()), this, SLOT(SlotButtonKinovaMoveStepRollDw()));
+    connect(ui->bt_kinova_pitch_up, SIGNAL(clicked()), this, SLOT(SlotButtonKinovaMoveStepPitchUp()));
+    connect(ui->bt_kinova_pitch_dw, SIGNAL(clicked()), this, SLOT(SlotButtonKinovaMoveStepPitchDw()));
+
     connect(ui->bt_lrf_kinova_ctrl, SIGNAL(clicked()), this, SLOT(SlotButtonLRFKinovaCtrl()));
     connect(ui->bt_kinova_force_ctrl, SIGNAL(clicked()), this, SLOT(SlotButtonKinovaForceCtrl()));
     connect(ui->bt_gripper_force_ctrl, SIGNAL(clicked()), this, SLOT(SlotButtonEEffectorLoadCheckIter()));
@@ -114,9 +119,9 @@ void Manipulation_Dlg::SlotButtonKinovaDoManipulate(){
     position.Coordinates.Y = ui->ed_kinova_y->text().toFloat();
     position.Coordinates.Z = ui->ed_kinova_z->text().toFloat();
 
-    position.Coordinates.ThetaX = ui->ed_kinova_roll->text().toFloat();
+    position.Coordinates.ThetaZ = ui->ed_kinova_roll->text().toFloat();
     position.Coordinates.ThetaY = ui->ed_kinova_pitch->text().toFloat();
-    position.Coordinates.ThetaZ = ui->ed_kinova_yaw->text().toFloat();
+    position.Coordinates.ThetaX = ui->ed_kinova_yaw->text().toFloat();
 
     if(!mpc_manipulation->KinovaDoManipulate(position))
         QMessageBox::information(this, tr("Fail to Move Step"), tr("Check Kinova Status"));
@@ -156,15 +161,47 @@ void Manipulation_Dlg::SlotButtonKinovaMoveStepBw(){
         QMessageBox::information(this, tr("Fail to Move Step"), tr("Check Kinova Status"));
 }
 
+void Manipulation_Dlg::SlotButtonKinovaMoveStepRollUp(){
+
+    double unit_step = ui->ed_kinova_unit_step->text().toDouble();
+
+    if(!mpc_manipulation->KinovaMoveUnitStep(0, 0, 0, 0, 0, unit_step))
+        QMessageBox::information(this, tr("Fail to Move Step"), tr("Check Kinova Status"));
+}
+
+void Manipulation_Dlg::SlotButtonKinovaMoveStepRollDw(){
+
+    double unit_step = ui->ed_kinova_unit_step->text().toDouble();
+
+    if(!mpc_manipulation->KinovaMoveUnitStep(0, 0, 0, 0, 0, (-1)*unit_step))
+        QMessageBox::information(this, tr("Fail to Move Step"), tr("Check Kinova Status"));
+}
+
+void Manipulation_Dlg::SlotButtonKinovaMoveStepPitchUp(){
+
+    double unit_step = ui->ed_kinova_unit_step->text().toDouble();
+
+    if(!mpc_manipulation->KinovaMoveUnitStep(0, 0, 0, 0, unit_step, 0))
+        QMessageBox::information(this, tr("Fail to Move Step"), tr("Check Kinova Status"));
+}
+
+void Manipulation_Dlg::SlotButtonKinovaMoveStepPitchDw(){
+
+    double unit_step = ui->ed_kinova_unit_step->text().toDouble();
+
+    if(!mpc_manipulation->KinovaMoveUnitStep(0, 0, 0, 0, (-1)*unit_step, 0))
+        QMessageBox::information(this, tr("Fail to Move Step"), tr("Check Kinova Status"));
+}
+
 void Manipulation_Dlg::SlotEditeKinovaPosition(CartesianPosition _position){
 
     ui->ed_kinova_x->setText(QString::number(_position.Coordinates.X, 'f', 4));
     ui->ed_kinova_y->setText(QString::number(_position.Coordinates.Y, 'f', 4));
     ui->ed_kinova_z->setText(QString::number(_position.Coordinates.Z, 'f', 4));
 
-    ui->ed_kinova_roll->setText(QString::number(_position.Coordinates.ThetaX, 'f', 4));
+    ui->ed_kinova_roll->setText(QString::number(_position.Coordinates.ThetaZ, 'f', 4));
     ui->ed_kinova_pitch->setText(QString::number(_position.Coordinates.ThetaY, 'f', 4));
-    ui->ed_kinova_yaw->setText(QString::number(_position.Coordinates.ThetaZ, 'f', 4));
+    ui->ed_kinova_yaw->setText(QString::number(_position.Coordinates.ThetaX, 'f', 4));
 
     return;
 }
@@ -175,9 +212,9 @@ void Manipulation_Dlg::SlotEditeKinovaForceVector(CartesianPosition _force_vecto
     ui->ed_kinova_force_y->setText(QString::number(_force_vector.Coordinates.Y, 'f', 4));
     ui->ed_kinova_force_z->setText(QString::number(_force_vector.Coordinates.Z, 'f', 4));
 
-    ui->ed_kinova_force_roll->setText(QString::number(_force_vector.Coordinates.ThetaX, 'f', 4));
+    ui->ed_kinova_force_roll->setText(QString::number(_force_vector.Coordinates.ThetaZ, 'f', 4));
     ui->ed_kinova_force_pitch->setText(QString::number(_force_vector.Coordinates.ThetaY, 'f', 4));
-    ui->ed_kinova_force_yaw->setText(QString::number(_force_vector.Coordinates.ThetaZ, 'f', 4));
+    ui->ed_kinova_force_yaw->setText(QString::number(_force_vector.Coordinates.ThetaX, 'f', 4));
 
     return;
 }

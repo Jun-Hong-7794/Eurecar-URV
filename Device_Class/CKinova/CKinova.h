@@ -17,7 +17,8 @@
 #define KINOVA_D2R (3.141592/180)
 #define KINOVA_R2D (180/3.141592)
 
-#define VEL             0.10 //[cm/s]
+#define VEL             0.1 //[cm/s]
+#define ROT             0.5 //[cm/s]
 #define STEP_NUM        5 // unit
 #define SLEEP_TIME      5000
 
@@ -93,13 +94,14 @@ public: // Basic Motion
     void KinovaInitMotion();
     void KinovaAlignToPanel();
 
-    bool KinovaDoManipulate(CartesianPosition _desired_position,int _mode = 1, double _force_threshold = 0);//mode = 1 : Joystic, mode = 2 : Trajectory
+    bool KinovaDoManipulate(CartesianPosition _desired_position, int _mode = 1, double _force_threshold = 0);//mode = 1 : Joystic, mode = 2 : Trajectory
+    bool KinovaDoManipulate(CartesianPosition _desired_position, double _force_threshold);
     bool KinovaForceCtrl();
 
     CartesianPosition KinovaGetPosition();
     CartesianPosition KinovaGetCartesianForce();
 
-    bool KinovaMoveUnitStep(double _x, double _y, double _z);
+    bool KinovaMoveUnitStep(double _x, double _y, double _z, double _th_x = 0, double _th_y = 0, double _th_z = 0 );
 
     bool KinovaMoveUnitStepUp();
     bool KinovaMoveUnitStepDw();

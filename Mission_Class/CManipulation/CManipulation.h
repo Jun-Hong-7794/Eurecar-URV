@@ -87,6 +87,8 @@ public:
     bool KinovaGetPosition(CartesianPosition& _position);
     bool KinovaDoManipulate(CartesianPosition _position);
 
+    bool KinovaMoveUnitStep(double _x, double _y, double _z, double _th_x, double _th_y, double _th_z);
+
     bool KinovaMoveUnitStepUp();
     bool KinovaMoveUnitStepDw();
     bool KinovaMoveUnitStepRi();

@@ -13,6 +13,139 @@ CScript::CScript(CDriving* _p_drivig, CManipulation* _p_manipulation){
 }
 
 //-------------------------------------------------
+// Calculate
+//-------------------------------------------------
+void CScript::SetKinovaAxisValue(KINOVA_DO_MANIPULATE_STRUCT &_manipulat_option){
+
+
+    _manipulat_option.roll = ReturnKinovaAxisValue("roll", _manipulat_option.str_roll);
+    _manipulat_option.pitch = ReturnKinovaAxisValue("pitch", _manipulat_option.str_pitch);
+    _manipulat_option.yaw = ReturnKinovaAxisValue("yaw", _manipulat_option.str_yaw);
+
+    _manipulat_option.x = ReturnKinovaAxisValue("x", _manipulat_option.str_x);
+    _manipulat_option.y = ReturnKinovaAxisValue("y", _manipulat_option.str_y);
+    _manipulat_option.z = ReturnKinovaAxisValue("z", _manipulat_option.str_z);
+
+}
+
+double CScript::ReturnKinovaAxisValue(QString _axis, QString _char){
+    CartesianPosition kinova_present_pose;
+    mpc_manipulation->KinovaGetPosition(kinova_present_pose);
+
+    if(_axis.contains("roll")){
+        if(_char.contains("++")){
+            int equal_index = _char.indexOf("++");
+            kinova_present_pose.Coordinates.ThetaZ += _char.mid(equal_index + 2).trimmed().toDouble();
+            return kinova_present_pose.Coordinates.ThetaZ;
+        }
+        else if(_char.contains("--")){
+            int equal_index = _char.indexOf("--");
+            kinova_present_pose.Coordinates.ThetaZ -= _char.mid(equal_index + 2).trimmed().toDouble();
+            return kinova_present_pose.Coordinates.ThetaZ;
+        }
+        else if(_char.contains("==")){
+            return kinova_present_pose.Coordinates.ThetaZ;
+        }
+        else{
+            return _char.trimmed().toDouble();
+        }
+    }
+    if(_axis.contains("pitch")){
+        if(_char.contains("++")){
+            int equal_index = _char.indexOf("++");
+            kinova_present_pose.Coordinates.ThetaY += _char.mid(equal_index + 2).trimmed().toDouble();
+            return kinova_present_pose.Coordinates.ThetaY;
+        }
+        else if(_char.contains("--")){
+            int equal_index = _char.indexOf("--");
+            kinova_present_pose.Coordinates.ThetaY -= _char.mid(equal_index + 2).trimmed().toDouble();
+            return kinova_present_pose.Coordinates.ThetaY;
+        }
+        else if(_char.contains("==")){
+            return kinova_present_pose.Coordinates.ThetaY;
+        }
+        else{
+            return _char.trimmed().toDouble();
+        }
+    }
+    if(_axis.contains("yaw")){
+        if(_char.contains("++")){
+            int equal_index = _char.indexOf("++");
+            kinova_present_pose.Coordinates.ThetaX += _char.mid(equal_index + 2).trimmed().toDouble();
+            return kinova_present_pose.Coordinates.ThetaX;
+        }
+        else if(_char.contains("--")){
+            int equal_index = _char.indexOf("--");
+            kinova_present_pose.Coordinates.ThetaX -= _char.mid(equal_index + 2).trimmed().toDouble();
+            return kinova_present_pose.Coordinates.ThetaX;
+        }
+        else if(_char.contains("==")){
+            return kinova_present_pose.Coordinates.ThetaX;
+        }
+        else{
+            return _char.trimmed().toDouble();
+        }
+    }
+    if(_axis.contains("x")){
+        if(_char.contains("++")){
+            int equal_index = _char.indexOf("++");
+            kinova_present_pose.Coordinates.X += _char.mid(equal_index + 2).trimmed().toDouble();
+            return kinova_present_pose.Coordinates.X;
+        }
+        else if(_char.contains("--")){
+            int equal_index = _char.indexOf("--");
+            kinova_present_pose.Coordinates.X -= _char.mid(equal_index + 2).trimmed().toDouble();
+            return kinova_present_pose.Coordinates.X;
+        }
+        else if(_char.contains("==")){
+            return kinova_present_pose.Coordinates.X;
+        }
+        else{
+            return _char.trimmed().toDouble();
+        }
+    }
+    if(_axis.contains("y")){
+        if(_char.contains("++")){
+            int equal_index = _char.indexOf("++");
+            kinova_present_pose.Coordinates.Y += _char.mid(equal_index + 2).trimmed().toDouble();
+            return kinova_present_pose.Coordinates.Y;
+        }
+        else if(_char.contains("--")){
+            int equal_index = _char.indexOf("--");
+            kinova_present_pose.Coordinates.Y -= _char.mid(equal_index + 2).trimmed().toDouble();
+            return kinova_present_pose.Coordinates.Y;
+        }
+        else if(_char.contains("==")){
+            return kinova_present_pose.Coordinates.Y;
+        }
+        else{
+            return _char.trimmed().toDouble();
+        }
+    }
+    if(_axis.contains("z")){
+        if(_char.contains("++")){
+            int equal_index = _char.indexOf("++");
+            kinova_present_pose.Coordinates.Z += _char.mid(equal_index + 2).trimmed().toDouble();
+            return kinova_present_pose.Coordinates.Z;
+        }
+        else if(_char.contains("--")){
+            int equal_index = _char.indexOf("--");
+            kinova_present_pose.Coordinates.Z -= _char.mid(equal_index + 2).trimmed().toDouble();
+            return kinova_present_pose.Coordinates.Z;
+        }
+        else if(_char.contains("==")){
+            return kinova_present_pose.Coordinates.Z;
+        }
+        else{
+            return _char.trimmed().toDouble();
+        }
+    }
+
+
+    return 0;
+}
+
+//-------------------------------------------------
 //
 //                 Interprete Fuction
 //
@@ -260,17 +393,17 @@ bool CScript::InterpreteKinovaManipulate(QString _line, STEP_INFO& _step_info){
 
         if(_line.contains("roll")){
             int colone_index = _line.indexOf("=");
-            _step_info.manipulation_option.kinova_manipulate_option.roll = _line.mid(colone_index + 1).trimmed().toDouble();
+            _step_info.manipulation_option.kinova_manipulate_option.str_roll = _line.mid(colone_index + 1).trimmed();
             return true;
         }
         if(_line.contains("pitch")){
             int colone_index = _line.indexOf("=");
-            _step_info.manipulation_option.kinova_manipulate_option.pitch = _line.mid(colone_index + 1).trimmed().toDouble();
+            _step_info.manipulation_option.kinova_manipulate_option.str_pitch = _line.mid(colone_index + 1).trimmed();
             return true;
         }
         if(_line.contains("yaw")){
             int colone_index = _line.indexOf("=");
-            _step_info.manipulation_option.kinova_manipulate_option.yaw = _line.mid(colone_index + 1).trimmed().toDouble();
+            _step_info.manipulation_option.kinova_manipulate_option.str_yaw = _line.mid(colone_index + 1).trimmed();
             return true;
         }
 
@@ -282,17 +415,17 @@ bool CScript::InterpreteKinovaManipulate(QString _line, STEP_INFO& _step_info){
 
         if(_line.contains("x")){
             int colone_index = _line.indexOf("=");
-            _step_info.manipulation_option.kinova_manipulate_option.x = _line.mid(colone_index + 1).trimmed().toDouble();
+            _step_info.manipulation_option.kinova_manipulate_option.str_x = _line.mid(colone_index + 1).trimmed();
             return true;
         }
         if(_line.contains("y")){
             int colone_index = _line.indexOf("=");
-            _step_info.manipulation_option.kinova_manipulate_option.y = _line.mid(colone_index + 1).trimmed().toDouble();
+            _step_info.manipulation_option.kinova_manipulate_option.str_y = _line.mid(colone_index + 1).trimmed();
             return true;
         }
         if(_line.contains("z")){
             int colone_index = _line.indexOf("=");
-            _step_info.manipulation_option.kinova_manipulate_option.z = _line.mid(colone_index + 1).trimmed().toDouble();
+            _step_info.manipulation_option.kinova_manipulate_option.str_z = _line.mid(colone_index + 1).trimmed();
             return true;
         }
 
@@ -398,6 +531,7 @@ bool CScript::MissionPlayer(){
                 while(mpc_manipulation->isRunning());
             }
             if(mpary_mission_script[i].step_vecor.at(j).function_index == MP_KINOVA_MANIPULATE){
+                SetKinovaAxisValue(mpary_mission_script[i].step_vecor.at(j).manipulation_option.kinova_manipulate_option);
                 mpc_manipulation->SetManipulationOption(mpary_mission_script[i].step_vecor.at(j).manipulation_option.kinova_manipulate_option);
                 mpc_manipulation->SelectMainFunction(MANIPUL_INX_KINOVA_MANIPULATE);
 
