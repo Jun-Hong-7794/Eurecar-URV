@@ -258,6 +258,11 @@ void CRGBD::ClaculateHorizenDistance(std::vector<POINT_PARAM>& _point_vec, doubl
 
         if(_inlier_distance > _point_vec.at(i).y){
 
+            int c_pow2 = pow(_point_vec.at(i).x, 2) + pow(_point_vec.at(i).y, 2);
+
+            if(c_pow2 > pow(1500/*mm*/, 2))
+                continue;
+
             if(_point_vec.at(i).x > max_distance){
                 max_distance = _point_vec.at(i).x;
                 s_inlier_index = i;
