@@ -878,7 +878,7 @@
      </rect>
     </property>
     <property name="currentIndex">
-     <number>1</number>
+     <number>3</number>
     </property>
     <widget class="QWidget" name="tab_lrf_kinova_distance_ctrl">
      <attribute name="title">
@@ -1409,7 +1409,7 @@
        </rect>
       </property>
       <property name="text">
-       <string>500</string>
+       <string>100</string>
       </property>
      </widget>
      <widget class="QLineEdit" name="ed_lrf_horizen_s_deg">

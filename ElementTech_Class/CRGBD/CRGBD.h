@@ -73,6 +73,7 @@ private:
     LINE_PARAM EstimateLineEquation(std::vector<POINT_PARAM>& _point_vec);
 
     void ClaculateHorizenDistance(std::vector<POINT_PARAM>& _point_vec, double _inlier_distance,double& _horizen_distance, int& _s_inlier_inx, int& _e_inlier_inx);
+    cv::Mat LRFDataToMat(std::vector<POINT_PARAM> _point_vec, double _inlier_distance, double _max_distance = 1500/*mm*/);
 
 public:
     void SegnetFunction();

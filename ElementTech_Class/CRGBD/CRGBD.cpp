@@ -103,8 +103,8 @@ void CRGBD::GetHorizenDistance(double _inlier_distance,double& _horizen_distance
 
     //Convert to Original Coordinate
 
-    double s_deg = 30;
-    double e_deg = 150;
+    double s_deg = 10;
+    double e_deg = 170;
     int s_index = (int)((s_deg + 45) / ANGLE_RESOLUTION);
     int e_index = (int)((e_deg + 45) / ANGLE_RESOLUTION);
 
@@ -124,8 +124,12 @@ void CRGBD::GetHorizenDistance(double _inlier_distance,double& _horizen_distance
 
         ClaculateLRFHeightDistance(lrf_distance, s_deg, e_deg, point_vec);
         ClaculateHorizenDistance(point_vec, _inlier_distance, _horizen_distance, s_inlier_inx, e_inlier_inx);
+
+        emit SignalLRFMapImage(LRFDataToMat(point_vec, _inlier_distance, 1000));
+
         _s_inlier_deg = s_deg + s_inlier_inx * (ANGLE_RESOLUTION);
         _e_inlier_deg = s_deg + e_inlier_inx * (ANGLE_RESOLUTION); // s_deg is right
+
     }
 
     return;
@@ -246,16 +250,22 @@ LINE_PARAM CRGBD::EstimateLineEquation(std::vector<POINT_PARAM>& _point_vec){
 
 void CRGBD::ClaculateHorizenDistance(std::vector<POINT_PARAM>& _point_vec, double _inlier_distance,double& _horizen_distance, int& _s_inlier_inx, int& _e_inlier_inx){
 
-    unsigned int s_inlier_index = 1000;
+    unsigned int s_inlier_index = 0;
     unsigned int e_inlier_index = 0;
-
+    double max_distance = 0;
+    double min_distance = 9999;
     for(unsigned int i = 0; i < _point_vec.size(); i++){
 
         if(_inlier_distance > _point_vec.at(i).y){
-            if(s_inlier_index > i)
-                s_inlier_index = i;
 
-            e_inlier_index = i;
+            if(_point_vec.at(i).x > max_distance){
+                max_distance = _point_vec.at(i).x;
+                s_inlier_index = i;
+            }
+            if(_point_vec.at(i).x < min_distance){
+                min_distance = _point_vec.at(i).x;
+                e_inlier_index = i;
+            }
         }
     }
 
@@ -268,10 +278,36 @@ void CRGBD::ClaculateHorizenDistance(std::vector<POINT_PARAM>& _point_vec, doubl
         return;
     }
 
-    _horizen_distance = fabs(_point_vec.at(s_inlier_index).x) + fabs(_point_vec.at(e_inlier_index).x);
+    _horizen_distance = fabs(max_distance) + fabs(min_distance);
 
     _s_inlier_inx = s_inlier_index;
     _e_inlier_inx = e_inlier_index;
+}
+
+cv::Mat CRGBD::LRFDataToMat(std::vector<POINT_PARAM> _point_vec, double _inlier_distance, double _max_distance){
+
+    cv::Mat lrf_map = cv::Mat::zeros(480,640,CV_8UC3);
+    //Using [0~319(+)]{y},  [0~319(-), 320~639(+)]{x}
+
+    for(unsigned int i = 0; i < _point_vec.size(); i++){
+
+        if((fabs(_point_vec.at(i).x) > _max_distance))//Out of range
+            continue;
+        if(fabs(_point_vec.at(i).y) > _max_distance || (fabs(_point_vec.at(i).y) > _inlier_distance))//Out of range
+            continue;
+
+        int image_x = 320 + (int)((_point_vec.at(i).x * 320) / _max_distance);
+        int image_y = 320 - (int)((_point_vec.at(i).y * 320) / _max_distance);
+
+        cv::Point2d lrf_point;
+
+        lrf_point.x = image_x;
+        lrf_point.y = image_y;
+
+        cv::circle(lrf_map, lrf_point, 2, cv::Scalar(0, 0, 255));
+    }
+
+    return lrf_map;
 }
 
 //----------------------------------------------------------------

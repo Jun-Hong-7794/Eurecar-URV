@@ -408,22 +408,15 @@ void Manipulation_Dlg::SlotButtonHorizenDistance(){
 
     lrf_vehicle = mpc_manipulation->GetLRFVehicleOption();
 
-//    if(lrf_vehicle.lrf_vehicle_mission){
-//        mpc_manipulation->SetManipulationOption(lrf_vehicle);
-//    }
+    lrf_vehicle.inlier_distance = ui->ed_lrf_horizen_inlier->text().toDouble();
+    lrf_vehicle.lrf_vehicle_mission = true;
 
-//    else{
+    mpc_manipulation->SetManipulationOption(lrf_vehicle);
 
-        lrf_vehicle.inlier_distance = ui->ed_lrf_horizen_inlier->text().toDouble();
-        lrf_vehicle.lrf_vehicle_mission = true;
-
-        mpc_manipulation->SetManipulationOption(lrf_vehicle);
-
-        if(!mpc_manipulation->SelectMainFunction(MANIPUL_INX_LRF_VEHICLE)){
-            QMessageBox::information(this, tr("Fail to Get Horizen Dst"), tr("Check LRF Status"));
-            return;
-        }
-//    }
+    if(!mpc_manipulation->SelectMainFunction(MANIPUL_INX_LRF_VEHICLE)){
+        QMessageBox::information(this, tr("Fail to Get Horizen Dst"), tr("Check LRF Status"));
+        return;
+    }
 }
 
 //-------------------------------------------------
