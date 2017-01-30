@@ -60,6 +60,17 @@ EurecarURV_Dlg::EurecarURV_Dlg(QWidget *parent) :
     connect(ui->bt_kinova,SIGNAL(clicked()), this, SLOT(SlotButtonKinova()));
     connect(ui->bt_mission_run,SIGNAL(clicked()), this, SLOT(SlotButtonMissionRun()));
 
+    connect(ui->bt_mission_partial_run,SIGNAL(clicked()), this, SLOT(SlotButtonMissionPartialRun()));
+    connect(ui->bt_scenario_partial_run,SIGNAL(clicked()), this, SLOT(SlotButtonScenarioPartialRun()));
+
+    //Click List View
+    connect(ui->lsview_mission_title,SIGNAL(clicked(QModelIndex)), this, SLOT(SlotMissionListUpdate(QModelIndex)));
+    //Click Combo Box
+    connect(ui->cb_step_title,SIGNAL(activated(int)), this, SLOT(SlotStepListUpdate(int)));
+
+    //View System Message
+    connect(mpc_script,SIGNAL(SignalScriptMessage(QString)), this, SLOT(SlotViewSystemMessage(QString)));
+
     //-------------------------------------------------
     // Script Update
     //-------------------------------------------------
@@ -120,7 +131,90 @@ void EurecarURV_Dlg::SlotButtonKinova(){
 void EurecarURV_Dlg::SlotButtonMissionRun(){
 
     SCRIPT_PLAYER_OPTION player_option;
+
+    int mission_num = ui->ed_script_mission_s->text().toInt();
+
+    player_option.start_mission_num = mission_num;
+    player_option.end_mission_num = mission_num;
+
+    player_option.start_step_num = 0;
+    player_option.end_step_num = 100;//Dummy Value
+
     mpc_script->SetPlayerOption(player_option);
+    return;
+}
+
+void EurecarURV_Dlg::SlotButtonMissionPartialRun(){
+
+    SCRIPT_PLAYER_OPTION player_option;
+
+    int mission_num = ui->ed_script_mission_s->text().toInt();
+
+    player_option.start_mission_num = mission_num;
+    player_option.end_mission_num = mission_num;//Dummy Value
+
+    player_option.start_step_num = ui->ed_script_step_s->text().toInt();
+    player_option.end_step_num = ui->ed_script_step_f->text().toInt();//Dummy Value
+
+    if(player_option.start_step_num > player_option.end_step_num)
+        player_option.end_step_num = player_option.start_step_num;
+
+    mpc_script->SetPlayerOption(player_option);
+    return;
+
+}
+
+void EurecarURV_Dlg::SlotButtonScenarioPartialRun(){
+
+    SCRIPT_PLAYER_OPTION player_option;
+
+    int mission_num_s = ui->ed_script_mission_s->text().toInt();
+    int mission_num_f = ui->ed_script_mission_f->text().toInt();
+
+    if(mission_num_s > mission_num_f)
+        mission_num_f = mission_num_s;
+
+    player_option.start_mission_num = mission_num_s;
+    player_option.end_mission_num = mission_num_f;
+
+    player_option.start_step_num = 0;
+    player_option.end_step_num = 100;//Dummy Value
+
+    mpc_script->SetPlayerOption(player_option);
+    return;
+}
+
+//SystemMessage Update
+void EurecarURV_Dlg::SlotViewSystemMessage(QString _message){
+
+    ui->msg_urv_status->append(_message);
+}
+
+//ListView Update
+void EurecarURV_Dlg::SlotMissionListUpdate(QModelIndex _q_mode_index){
+
+    int r = _q_mode_index.row();
+    QStringList step_title_list;
+
+    ui->ed_script_mission_s->setText(QString::number(r));
+    ui->ed_script_mission_f->setText(QString::number(r+1));
+
+    ui->ed_script_step_s->setText(QString::number(0));
+    ui->ed_script_step_f->setText(QString::number(0));
+
+    mpc_script->GetStepTitle(r, step_title_list);
+
+    ui->cb_step_title->clear();
+    ui->cb_step_title->addItems(step_title_list);
+
+    return;
+}
+
+void EurecarURV_Dlg::SlotStepListUpdate(int _index){
+
+    ui->ed_script_step_s->setText(QString::number(_index));
+
+    return;
 }
 
 // Menu Button

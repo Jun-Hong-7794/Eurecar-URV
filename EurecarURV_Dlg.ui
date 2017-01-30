@@ -388,7 +388,7 @@
         <string>Scenario Step</string>
        </property>
       </widget>
-      <widget class="QLineEdit" name="ed_scenario_step_f">
+      <widget class="QLineEdit" name="ed_script_mission_f">
        <property name="geometry">
         <rect>
          <x>70</x>
@@ -398,7 +398,7 @@
         </rect>
        </property>
       </widget>
-      <widget class="QLineEdit" name="ed_scenario_step_s">
+      <widget class="QLineEdit" name="ed_script_mission_s">
        <property name="geometry">
         <rect>
          <x>10</x>
@@ -460,7 +460,7 @@
         <string>Mission Step</string>
        </property>
       </widget>
-      <widget class="QLineEdit" name="ed_scenario_step_f_2">
+      <widget class="QLineEdit" name="ed_script_step_f">
        <property name="geometry">
         <rect>
          <x>70</x>
@@ -470,7 +470,7 @@
         </rect>
        </property>
       </widget>
-      <widget class="QLineEdit" name="ed_scenario_step_s_2">
+      <widget class="QLineEdit" name="ed_script_step_s">
        <property name="geometry">
         <rect>
          <x>10</x>

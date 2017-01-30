@@ -12,6 +12,14 @@ CScript::CScript(CDriving* _p_drivig, CManipulation* _p_manipulation){
     mpary_mission_script = NULL;
 }
 
+void CScript::GetStepTitle(int _mission_index, QStringList& _step_title_list){
+
+    _step_title_list.clear();
+
+    for(unsigned int j = 0; j < mpary_mission_script[_mission_index].step_vecor.size(); j++){
+        _step_title_list.append(mpary_mission_script[_mission_index].step_vecor.at(j).step_title);
+    }
+}
 //-------------------------------------------------
 // Calculate
 //-------------------------------------------------
@@ -484,14 +492,46 @@ bool CScript::SetPlayerOption(SCRIPT_PLAYER_OPTION _player_option){
 
 bool CScript::MissionPlayer(){
 
-//    int mission_start_inx = mstruct_player_option.start_mission_num;
-//    int mission_end___inx = mstruct_player_option.end_mission_num;
+    unsigned int step_start_inx = mstruct_player_option.start_step_num;
+    unsigned int step_end___inx = mstruct_player_option.end_step_num;
 
-    int scenario_start_inx = 6;
-    int scenario_end___inx = 7;
+    unsigned int mission_start_inx = mstruct_player_option.start_mission_num;
+    unsigned int mission_end___inx = mstruct_player_option.end_mission_num;
 
-    for(int i = scenario_start_inx; i < scenario_end___inx; i++){
-        for(int j = 0; j < mpary_mission_script[i].step_vecor.size(); j++){
+    if(mission_start_inx < 0)
+        mission_start_inx = 0;
+
+    if(step_start_inx < 0)
+        step_start_inx = 0;
+
+    if(mission_end___inx > (mstruct_scenario.mission_file_name.size() -1))
+            mission_end___inx = (mstruct_scenario.mission_file_name.size() -1);
+
+    QString msessage;
+
+    QString mission_font_option_head = "<font color=red>";
+    QString mission_font_option_tail = "</font>";
+
+    QString step_font_option_head = "<font color=blue>";
+    QString step_font_option_tail = "</font>";
+
+    for(unsigned int i = mission_start_inx; i <= mission_end___inx; i++){
+        if(step_end___inx > (mpary_mission_script[i].step_vecor.size() -1))
+                step_end___inx = (mpary_mission_script[i].step_vecor.size() -1);
+
+        msessage = mission_font_option_head;
+        msessage += "Start Mission: " + mpary_mission_script[i].mission_title;
+        msessage += mission_font_option_tail;
+
+        emit SignalScriptMessage(msessage);
+
+        for(unsigned int j = step_start_inx; j <= step_end___inx; j++){
+
+            msessage = step_font_option_head;
+            msessage += "Start Step: " + mpary_mission_script[i].step_vecor.at(j).step_title;
+            msessage += step_font_option_tail;
+
+            emit SignalScriptMessage(msessage);
 
             if(mpary_mission_script[i].step_vecor.at(j).before_sleep != 0)
                 msleep(mpary_mission_script[i].step_vecor.at(j).before_sleep);
@@ -540,7 +580,16 @@ bool CScript::MissionPlayer(){
 
             if(mpary_mission_script[i].step_vecor.at(j).after__sleep != 0)
                 msleep(mpary_mission_script[i].step_vecor.at(j).after__sleep);
+
+            msessage ="End Step: " + mpary_mission_script[i].step_vecor.at(j).step_title;
+            emit SignalScriptMessage(msessage);
         }
+
+        msessage = mission_font_option_head;
+        msessage += "End Mission: " + mpary_mission_script[i].mission_title;
+        msessage += mission_font_option_tail;
+
+        emit SignalScriptMessage(msessage);
     }
 
     return true;

@@ -78,6 +78,18 @@ public slots:
 
     void SlotButtonMissionRun();
 
+    void SlotButtonMissionPartialRun();
+    void SlotButtonScenarioPartialRun();
+
+    //ListView
+    void SlotMissionListUpdate(QModelIndex);
+    //Combo Box
+    void SlotStepListUpdate(int);
+
+    //System Message
+    void SlotViewSystemMessage(QString _message);
+
+
 public:
     void ScriptInfoDisplay();
 
