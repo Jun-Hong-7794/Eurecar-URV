@@ -592,6 +592,8 @@ bool CManipulation::LRFVehicleHorizenControl(){
         emit SignalLRFHorizentDistance(lrf_vehicle);
     }while(true);
 
+    mpc_vehicle->Move(UGV_move_forward, 0);
+
     return true;
 }
 
@@ -620,15 +622,17 @@ bool CManipulation::LRFVehicleAngleControl(){
         }
 
         if(slope_error < 0){
-            direction = UGV_move_right;
+            direction = UGV_move_left;
         }
         else{
-            direction = UGV_move_left;
+            direction = UGV_move_right;
         }
 
         mpc_vehicle->Move(direction, lrf_vehicle.velocity);
 
     }while(true);
+
+    mpc_vehicle->Move(UGV_move_forward, 0);
 
     return true;
 }

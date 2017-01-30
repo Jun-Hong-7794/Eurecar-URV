@@ -63,7 +63,7 @@ public:
     cv::Mat LRFDataToMat(int _s_index = 45, int _e_index = 225);
 
 public:
-    bool InitLRF(char* _dev_path = (char *)"/dev/ttyACM0",int _dev_type = UTM_30LX);
+    bool InitLRF(char* _dev_path = (char *)"/dev/ttyACM1",int _dev_type = UTM_30LX);
     bool LRFOpen(int _dev_type = UTM_30LX);
 
     void CloseLRF();
