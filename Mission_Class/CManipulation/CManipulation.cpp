@@ -10,16 +10,16 @@ CManipulation::~CManipulation(){
         this->terminate();
 }
 
-CManipulation::CManipulation(CLRF *_p_lrf, CCamera *_p_camera, CKinova *_p_kinova, CVehicle *_p_vehicle, CVelodyne *_p_velodyne, CGripper* _p_gripper){
+CManipulation::CManipulation(CLRF *_p_mani_lrf, CCamera *_p_camera, CKinova *_p_kinova, CVehicle *_p_vehicle, CVelodyne *_p_velodyne, CGripper* _p_gripper){
 
-    mpc_lrf = _p_lrf;
+    mpc_lrf = _p_mani_lrf;
     mpc_camera = _p_camera;
     mpc_kinova = _p_kinova;
     mpc_vehicle = _p_vehicle;
     mpc_velodyne = _p_velodyne;
     mpc_gripper = _p_gripper;
 
-    mpc_rgb_d = new CRGBD(_p_camera, _p_lrf);
+    mpc_rgb_d = new CRGBD(_p_camera, _p_mani_lrf);
 
     connect(mpc_kinova, SIGNAL(SignalKinovaPosition(CartesianPosition)), this, SIGNAL(SignalKinovaPosition(CartesianPosition)));
     connect(mpc_rgb_d, SIGNAL(SignalLRFMapImage(cv::Mat)), this, SIGNAL(SignalLRFImage(cv::Mat)));
@@ -149,9 +149,9 @@ bool CManipulation::KinovaGetPosition(CartesianPosition& _position){
 }
 
 //LRF
-bool CManipulation::InitLRF(){
+bool CManipulation::InitLRF(char* _dev_path, int _dev_type){
 
-    if(!mpc_lrf->InitLRF())
+    if(!mpc_lrf->InitLRF(_dev_path, _dev_type))
         return false;
 
     return true;
@@ -286,18 +286,6 @@ bool CManipulation::SelectMainFunction(int _fnc_index_){
 
         return true;
     }
-    else if(_fnc_index_ == MANIPUL_INX_LRF_VEHICLE_HORIZEN){
-        m_main_fnc_index = MANIPUL_INX_LRF_VEHICLE_HORIZEN;
-        this->start();
-
-        return true;
-    }
-    else if(_fnc_index_ == MANIPUL_INX_LRF_VEHICLE_ANGLE){
-        m_main_fnc_index = MANIPUL_INX_LRF_VEHICLE_ANGLE;
-        this->start();
-
-        return true;
-    }
     else if(_fnc_index_ == MANIPUL_INX_KINOVA_MANIPULATE){
         m_main_fnc_index = MANIPUL_INX_KINOVA_MANIPULATE;
         this->start();
@@ -373,51 +361,6 @@ GRIPPER_FORCE_CTRL_STRUCT CManipulation::GetGripperForceCtrlOption(){
 
     return gripper_force_ctrl;
 }
-
-void CManipulation::SetManipulationOption(LRF_VEHICLE_HORIZEN_STRUCT _manipulation_option){
-
-    mxt_lrf_vehicle.lock();
-    {
-        mstruct_lrf_vehicle = _manipulation_option;
-    }
-    mxt_lrf_vehicle.unlock();
-}
-
-LRF_VEHICLE_HORIZEN_STRUCT CManipulation::GetLRFVehicleHorizenOption(){
-
-    LRF_VEHICLE_HORIZEN_STRUCT lrf_vehicle;
-
-    mxt_lrf_vehicle.lock();
-    {
-        lrf_vehicle = mstruct_lrf_vehicle;
-    }
-    mxt_lrf_vehicle.unlock();
-
-    return lrf_vehicle;
-}
-
-void CManipulation::SetManipulationOption(LRF_VEHICLE_ANGLE_STRUCT _manipulation_option){
-
-    mxt_lrf_vehicle_angle.lock();
-    {
-        mstruct_lrf_vehicle_angle = _manipulation_option;
-    }
-    mxt_lrf_vehicle_angle.unlock();
-}
-
-LRF_VEHICLE_ANGLE_STRUCT CManipulation::GetLRFVehicleAngleOption(){
-
-    LRF_VEHICLE_ANGLE_STRUCT lrf_vehicle;
-
-    mxt_lrf_vehicle_angle.lock();
-    {
-        lrf_vehicle = mstruct_lrf_vehicle_angle;
-    }
-    mxt_lrf_vehicle_angle.unlock();
-
-    return lrf_vehicle;
-}
-
 
 void CManipulation::SetManipulationOption(KINOVA_DO_MANIPULATE_STRUCT _manipulation_option){
 
@@ -548,94 +491,6 @@ bool CManipulation::GripperForceCtrl(){
     return true;
 }
 
-bool CManipulation::LRFVehicleHorizenControl(){
-
-    if(!mpc_lrf->IsLRFOn())
-        return false;
-
-    double inlier_distance = 0;
-    double horizen_distance = 0;
-    double s_inlier_deg = 0;
-    double e_inlier_deg = 0;
-
-    LRF_VEHICLE_HORIZEN_STRUCT lrf_vehicle = GetLRFVehicleHorizenOption();
-    inlier_distance = lrf_vehicle.inlier_distance;
-
-    do{
-        int direction = 0;
-        double current_a_inlier_deg = 0;
-        double a_deg_boundary = 0;
-
-        mpc_rgb_d->GetHorizenDistance(inlier_distance, horizen_distance, s_inlier_deg, e_inlier_deg);
-
-        current_a_inlier_deg = (s_inlier_deg + e_inlier_deg) / 2;
-        a_deg_boundary = lrf_vehicle.desired_avr_inlier_deg - current_a_inlier_deg;
-
-        if(lrf_vehicle.error_deg_boundary > fabs(a_deg_boundary)){
-            break;
-        }
-
-        if(a_deg_boundary < 0){
-            direction = UGV_move_forward;
-        }
-        else{
-            direction = UGV_move_backward;
-        }
-
-        mpc_vehicle->Move(direction, lrf_vehicle.velocity);
-
-        lrf_vehicle.horizen_distance = horizen_distance;
-
-        lrf_vehicle.s_inlier_deg = s_inlier_deg;
-        lrf_vehicle.e_inlier_deg = e_inlier_deg;
-
-        emit SignalLRFHorizentDistance(lrf_vehicle);
-    }while(true);
-
-    mpc_vehicle->Move(UGV_move_forward, 0);
-
-    return true;
-}
-
-bool CManipulation::LRFVehicleAngleControl(){
-
-    if(!mpc_lrf->IsLRFOn())
-        return false;
-
-
-    LRF_VEHICLE_ANGLE_STRUCT lrf_vehicle = GetLRFVehicleAngleOption();
-
-    do{
-        int direction = 0;
-
-        double slope = 0;
-        double distance = 0;
-
-        double slope_error = 0;
-
-        mpc_rgb_d->GetLRFInfo(slope, distance, lrf_vehicle.s_deg, lrf_vehicle.e_deg);
-
-        slope_error = lrf_vehicle.desired_angle - slope;
-
-        if(lrf_vehicle.error_boundary > fabs(slope_error)){
-            break;
-        }
-
-        if(slope_error < 0){
-            direction = UGV_move_left;
-        }
-        else{
-            direction = UGV_move_right;
-        }
-
-        mpc_vehicle->Move(direction, lrf_vehicle.velocity);
-
-    }while(true);
-
-    mpc_vehicle->Move(UGV_move_forward, 0);
-
-    return true;
-}
 //----------------------------------------------------------------
 //
 //                            Run Thread
@@ -654,12 +509,6 @@ void CManipulation::run(){
         break;
     case MANIPUL_INX_GRIPPER_FORCE_CLRL:
         GripperForceCtrl();
-        break;
-    case MANIPUL_INX_LRF_VEHICLE_HORIZEN:
-        LRFVehicleHorizenControl();
-        break;
-    case MANIPUL_INX_LRF_VEHICLE_ANGLE:
-        LRFVehicleAngleControl();
         break;
     case MANIPUL_INX_KINOVA_MANIPULATE:
         KinovaDoManipulate();

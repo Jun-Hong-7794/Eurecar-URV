@@ -281,7 +281,7 @@ bool CLRF::GetLRFData(long *_distance_data, unsigned short *_intensity_data){
     {
         memcpy(_distance_data,mp_distance_data,sizeof(long) * urg_max_data_size(&m_urg));
 
-        if(m_device_type == UST_20LX)
+        if(m_device_type == 0/*Org : UST_20LX*/)
             memcpy(_intensity_data,mp_intensity_data,sizeof(unsigned short) * urg_max_data_size(&m_urg));
 
     }

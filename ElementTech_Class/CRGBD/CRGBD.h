@@ -25,6 +25,7 @@ protected:
 
 public:
     CRGBD();
+    CRGBD(CLRF* _pc_lrf);
     CRGBD(CCamera* _pc_camera, CLRF* _pc_lrf);
 
     ~CRGBD();

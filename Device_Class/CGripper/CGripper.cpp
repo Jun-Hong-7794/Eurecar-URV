@@ -176,7 +176,7 @@ bool CGripper::DynamixelGoToThePosition(int _degree){
     return true;
 }
 
-bool CGripper::DynamixelGoToThePositionUsingLoad(int _degree, int _load_threshold){ // Go to The Position
+bool CGripper::DynamixelGoToThePositionUsingLoad(int _degree, int _load_threshold_up, int _load_threshold_dw){ // Go to The Position
 
     uint8_t dxl_error = 0;                          // Dynamixel error
     int dxl_comm_result = COMM_TX_FAIL;             // Communication result
@@ -204,9 +204,14 @@ bool CGripper::DynamixelGoToThePositionUsingLoad(int _degree, int _load_threshol
             dxl_comm_result = mp_packetHandler->read2ByteTxRx(mp_portHandler, DXL_ID, ADDR_MX_PRESENT_POSITION, &dxl_present_position, &dxl_error);
             dxl_comm_result = mp_packetHandler->read2ByteTxRx(mp_portHandler, DXL_ID, ADDR_MX_PRESENT_LOAD, &dxl_present_load, &dxl_error);
 
-            if(dxl_present_load > _load_threshold){
-                mtx_dmx_handle.unlock();
-                return false;
+            if(_load_threshold_up != 0){// if 0, do not use force ctrl_load_threshold_up
+                if((dxl_present_load > _load_threshold_up) && (dxl_present_load < _load_threshold_dw)){
+                    std::cout << "Force Occured!" << std::endl;
+                    std::cout << "Present Gripper Load :" << dxl_present_load << std::endl;
+                    std::cout << "Present Goal Position :" << dxl_present_position << std::endl;
+                    mtx_dmx_handle.unlock();
+                    return false;
+                }
             }
 
             dxl_next_position = dxl_prev_position + dxl_step;
@@ -225,6 +230,7 @@ bool CGripper::DynamixelGoToThePositionUsingLoad(int _degree, int _load_threshol
             dxl_prev_position = dxl_next_position;
         }while((abs(dxl_goal_position - dxl_present_position) > DXL_MOVING_STATUS_THRESHOLD));
     }
+
     mtx_dmx_handle.unlock();
 
     return true;

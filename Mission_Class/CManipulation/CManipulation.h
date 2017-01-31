@@ -29,9 +29,7 @@
 #define MANIPUL_INX_LRF_KINOVA           1
 #define MANIPUL_INX_KINOVA_FORCE_CLRL    2
 #define MANIPUL_INX_GRIPPER_FORCE_CLRL   3
-#define MANIPUL_INX_LRF_VEHICLE_HORIZEN  4
-#define MANIPUL_INX_LRF_VEHICLE_ANGLE    5
-#define MANIPUL_INX_KINOVA_MANIPULATE    6
+#define MANIPUL_INX_KINOVA_MANIPULATE    4
 
 class CManipulation:public QThread{
     Q_OBJECT
@@ -41,7 +39,7 @@ protected:
 
 public:
     CManipulation();
-    CManipulation(CLRF* _p_lrf, CCamera* _p_camera, CKinova* _p_kinova, CVehicle* _p_vehicle, CVelodyne* _p_velodyne, CGripper* _p_gripper);
+    CManipulation(CLRF* _p_mani_lrf, CCamera* _p_camera, CKinova* _p_kinova, CVehicle* _p_vehicle, CVelodyne* _p_velodyne, CGripper* _p_gripper);
     ~CManipulation();
 private:
     int m_main_fnc_index;
@@ -54,12 +52,6 @@ private:
 
     GRIPPER_FORCE_CTRL_STRUCT mstruct_gripper_force_ctrl;
     QMutex mxt_gripper_force_ctrl;
-
-    LRF_VEHICLE_HORIZEN_STRUCT mstruct_lrf_vehicle;
-    QMutex mxt_lrf_vehicle;
-
-    LRF_VEHICLE_ANGLE_STRUCT mstruct_lrf_vehicle_angle;
-    QMutex mxt_lrf_vehicle_angle;
 
     KINOVA_DO_MANIPULATE_STRUCT mstruct_kinova_manipulate;
     QMutex mxt_kinova_manipulate;
@@ -101,7 +93,7 @@ public:
     bool KinovaMoveUnitStepBw();
 
     //LRF
-    bool InitLRF();
+    bool InitLRF(char* _dev_path = (char *)"/dev/ttyACM0", int _dev_type = UST_20LX);
     bool CloseLRF();
     bool IsLRFConnected();
     bool GetLRFInfo(double &_slope, double &_distance, double _s_deg, double _e_deg);
@@ -134,12 +126,6 @@ public:
     void SetManipulationOption(GRIPPER_FORCE_CTRL_STRUCT _manipulation_option);
     GRIPPER_FORCE_CTRL_STRUCT GetGripperForceCtrlOption();
 
-    void SetManipulationOption(LRF_VEHICLE_HORIZEN_STRUCT _manipulation_option);
-    LRF_VEHICLE_HORIZEN_STRUCT GetLRFVehicleHorizenOption();
-
-    void SetManipulationOption(LRF_VEHICLE_ANGLE_STRUCT _manipulation_option);
-    LRF_VEHICLE_ANGLE_STRUCT GetLRFVehicleAngleOption();
-
     void SetManipulationOption(KINOVA_DO_MANIPULATE_STRUCT _manipulation_option);
     KINOVA_DO_MANIPULATE_STRUCT GetKinovaManipulateOption();
 
@@ -151,14 +137,10 @@ private:
     bool KinovaForceCtrl();
     bool KinovaDoManipulate();
     bool GripperForceCtrl();
-    bool LRFVehicleHorizenControl();
-    bool LRFVehicleAngleControl();
 
 signals:
     void SignalKinovaPosition(CartesianPosition);
     void SignalKinovaForceVector(CartesianPosition);
-
-    void SignalLRFHorizentDistance(LRF_VEHICLE_HORIZEN_STRUCT);
 
     void SignalLRFImage(cv::Mat);
     void SignalCameraImage(cv::Mat);

@@ -90,7 +90,6 @@ public slots:
     void SlotButtonLRFKinovaCtrl();
     void SlotButtonKinovaForceCtrl();
     void SlotButtonEEffectorLoadCheckIter();
-    void SlotButtonHorizenDistance();
 
     //-------------------------------------------------
     // Edite Update
@@ -98,7 +97,6 @@ public slots:
 
     void SlotEditeKinovaPosition(CartesianPosition _position);
     void SlotEditeKinovaForceVector(CartesianPosition _force_vector);
-    void SlotLRFHorizentDistance(LRF_VEHICLE_HORIZEN_STRUCT _lrf_horizen);
 
     //-------------------------------------------------
     // View Update

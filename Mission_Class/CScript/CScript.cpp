@@ -494,34 +494,34 @@ bool CScript::InterpreteLRFVehicleAngleCtrl(QString _line, STEP_INFO& _step_info
 
         if(_line.contains("desired_angle")){
             int colone_index = _line.indexOf("=");
-            _step_info.manipulation_option.lrf_vehicle_angle_option.desired_angle = _line.mid(colone_index + 1).trimmed().toDouble();
+            _step_info.driving_option.lrf_vehicle_angle_option.desired_angle = _line.mid(colone_index + 1).trimmed().toDouble();
             return true;
         }
         if(_line.contains("error_boundary")){
             int colone_index = _line.indexOf("=");
-            _step_info.manipulation_option.lrf_vehicle_angle_option.error_boundary = _line.mid(colone_index + 1).trimmed().toDouble();
+            _step_info.driving_option.lrf_vehicle_angle_option.error_boundary = _line.mid(colone_index + 1).trimmed().toDouble();
             return true;
         }
         if(_line.contains("s_deg")){
             int colone_index = _line.indexOf("=");
-            _step_info.manipulation_option.lrf_vehicle_angle_option.s_deg = _line.mid(colone_index + 1).trimmed().toDouble();
+            _step_info.driving_option.lrf_vehicle_angle_option.s_deg = _line.mid(colone_index + 1).trimmed().toDouble();
             return true;
         }
         if(_line.contains("e_deg")){
             int colone_index = _line.indexOf("=");
-            _step_info.manipulation_option.lrf_vehicle_angle_option.e_deg = _line.mid(colone_index + 1).trimmed().toDouble();
+            _step_info.driving_option.lrf_vehicle_angle_option.e_deg = _line.mid(colone_index + 1).trimmed().toDouble();
             return true;
         }
 
         if(_line.contains("velocity")){
             int colone_index = _line.indexOf("=");
-            _step_info.manipulation_option.lrf_vehicle_angle_option.velocity = _line.mid(colone_index + 1).trimmed().toDouble();
+            _step_info.driving_option.lrf_vehicle_angle_option.velocity = _line.mid(colone_index + 1).trimmed().toDouble();
             return true;
         }
 
     }
     else if(_line.contains("LRF_VEHICLE_ANGLE_CTRL_FUNCTION")){
-        _step_info.function_index = MP_LRF_VEHICLE_ANGLE_CONTROL;
+        _step_info.function_index = DR_LRF_VEHICLE_ANGLE_CONTROL;
     }
     else
         return false;
@@ -535,28 +535,28 @@ bool CScript::InterpreteLRFVehicleHorizenCtrl(QString _line, STEP_INFO& _step_in
 
         if(_line.contains("inlier_distance")){
             int colone_index = _line.indexOf("=");
-            _step_info.manipulation_option.lrf_vehicle_horizen_option.inlier_distance = _line.mid(colone_index + 1).trimmed().toDouble();
+            _step_info.driving_option.lrf_vehicle_horizen_option.inlier_distance = _line.mid(colone_index + 1).trimmed().toDouble();
             return true;
         }
         if(_line.contains("desired_avr_inlier_deg")){
             int colone_index = _line.indexOf("=");
-            _step_info.manipulation_option.lrf_vehicle_horizen_option.desired_avr_inlier_deg = _line.mid(colone_index + 1).trimmed().toDouble();
+            _step_info.driving_option.lrf_vehicle_horizen_option.desired_avr_inlier_deg = _line.mid(colone_index + 1).trimmed().toDouble();
             return true;
         }
         if(_line.contains("error_deg_boundary")){
             int colone_index = _line.indexOf("=");
-            _step_info.manipulation_option.lrf_vehicle_horizen_option.error_deg_boundary = _line.mid(colone_index + 1).trimmed().toDouble();
+            _step_info.driving_option.lrf_vehicle_horizen_option.error_deg_boundary = _line.mid(colone_index + 1).trimmed().toDouble();
             return true;
         }
         if(_line.contains("velocity")){
             int colone_index = _line.indexOf("=");
-            _step_info.manipulation_option.lrf_vehicle_horizen_option.velocity = _line.mid(colone_index + 1).trimmed().toDouble();
+            _step_info.driving_option.lrf_vehicle_horizen_option.velocity = _line.mid(colone_index + 1).trimmed().toDouble();
             return true;
         }
 
     }
     else if(_line.contains("LRF_VEHICLE_HORIZEN_CTRL_FUNCTION")){
-        _step_info.function_index = MP_LRF_VEHICLE_HORIZEN_CONTROL;
+        _step_info.function_index = DR_LRF_VEHICLE_HORIZEN_CONTROL;
     }
     else
         return false;
@@ -587,14 +587,8 @@ bool CScript::MissionPlayer(){
     unsigned int step_start_inx = mstruct_player_option.start_step_num;
     unsigned int step_end___inx = mstruct_player_option.end_step_num;
 
-    unsigned int mission_start_inx = mstruct_player_option.start_mission_num;
-    unsigned int mission_end___inx = mstruct_player_option.end_mission_num;
-
-    if(mission_start_inx < 0)
-        mission_start_inx = 0;
-
-    if(step_start_inx < 0)
-        step_start_inx = 0;
+    unsigned int mission_start_inx = mstruct_player_option.start_mission_num < 0 ? 0 : mstruct_player_option.start_mission_num;
+    unsigned int mission_end___inx = mstruct_player_option.end_mission_num < 0 ? 0 : mstruct_player_option.end_mission_num;
 
     if(mission_end___inx > (mstruct_scenario.mission_file_name.size() -1))
             mission_end___inx = (mstruct_scenario.mission_file_name.size() -1);
@@ -635,6 +629,20 @@ bool CScript::MissionPlayer(){
                 while(mpc_drivig->isRunning());
             }
 
+            if(mpary_mission_script[i].step_vecor.at(j).function_index == DR_LRF_VEHICLE_ANGLE_CONTROL){
+                mpc_drivig->SetManipulationOption(mpary_mission_script[i].step_vecor.at(j).driving_option.lrf_vehicle_angle_option);
+                mpc_drivig->SelectMainFunction(DRIVE_INX_LRF_VEHICLE_ANGLE);
+
+                while(mpc_drivig->isRunning());
+            }
+
+            if(mpary_mission_script[i].step_vecor.at(j).function_index == DR_LRF_VEHICLE_HORIZEN_CONTROL){
+                mpc_drivig->SetManipulationOption(mpary_mission_script[i].step_vecor.at(j).driving_option.lrf_vehicle_horizen_option);
+                mpc_drivig->SelectMainFunction(DRIVE_INX_LRF_VEHICLE_HORIZEN);
+
+                while(mpc_drivig->isRunning());
+            }
+
             if(mpary_mission_script[i].step_vecor.at(j).function_index == MP_LRF_KINOVA_DEPTH_CONTROL){
                 mpc_manipulation->SetManipulationOption(mpary_mission_script[i].step_vecor.at(j).manipulation_option.lrf_kinova_option);
                 mpc_manipulation->SelectMainFunction(MANIPUL_INX_LRF_KINOVA);
@@ -652,20 +660,6 @@ bool CScript::MissionPlayer(){
             if(mpary_mission_script[i].step_vecor.at(j).function_index == MP_GRIPPER_FORCE_CONTROL){
                 mpc_manipulation->SetManipulationOption(mpary_mission_script[i].step_vecor.at(j).manipulation_option.gripper_force_option);
                 mpc_manipulation->SelectMainFunction(MANIPUL_INX_GRIPPER_FORCE_CLRL);
-
-                while(mpc_manipulation->isRunning());
-            }
-
-            if(mpary_mission_script[i].step_vecor.at(j).function_index == MP_LRF_VEHICLE_HORIZEN_CONTROL){
-                mpc_manipulation->SetManipulationOption(mpary_mission_script[i].step_vecor.at(j).manipulation_option.lrf_vehicle_horizen_option);
-                mpc_manipulation->SelectMainFunction(MANIPUL_INX_LRF_VEHICLE_HORIZEN);
-
-                while(mpc_manipulation->isRunning());
-            }
-
-            if(mpary_mission_script[i].step_vecor.at(j).function_index == MP_LRF_VEHICLE_ANGLE_CONTROL){
-                mpc_manipulation->SetManipulationOption(mpary_mission_script[i].step_vecor.at(j).manipulation_option.lrf_vehicle_angle_option);
-                mpc_manipulation->SelectMainFunction(MANIPUL_INX_LRF_VEHICLE_ANGLE);
 
                 while(mpc_manipulation->isRunning());
             }

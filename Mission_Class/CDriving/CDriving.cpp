@@ -7,11 +7,13 @@ CDriving::CDriving(){
 CDriving::CDriving(CGPS* _p_gps, CLRF* _p_lrf, CCamera* _p_camera, CKinova* _p_kinova, CVehicle* _p_vehicle, CVelodyne* _p_velodyne){
 
     mpc_gps = _p_gps;
-    mpc_lrf = _p_lrf;
+    mpc_drive_lrf = _p_lrf;
     mpc_camera = _p_camera;
     mpc_kinova = _p_kinova;
     mpc_vehicle = _p_vehicle;
     mpc_velodyne = _p_velodyne;
+
+    mpc_rgb_d = new CRGBD(_p_lrf);
 
     connect(mpc_velodyne,SIGNAL(SignalVelodyneParser(bool)),this,SIGNAL(SignalVelodyneParser(bool)));
 }
@@ -140,6 +142,18 @@ bool CDriving::SelectMainFunction(int _fnc_index_){
 
         return true;
     }
+    else if(_fnc_index_ == DRIVE_INX_LRF_VEHICLE_ANGLE){
+        m_main_fnc_index = DRIVE_INX_LRF_VEHICLE_ANGLE;
+        this->start();
+
+        return true;
+    }
+    else if(_fnc_index_ == DRIVE_INX_LRF_VEHICLE_HORIZEN){
+        m_main_fnc_index = DRIVE_INX_LRF_VEHICLE_HORIZEN;
+        this->start();
+
+        return true;
+    }
     else
         return false;
 }
@@ -186,6 +200,50 @@ PARKING_STRUCT CDriving::GetParkingOption(){
     mtx_parking_struct.unlock();
 
     return parking_struct;
+}
+
+void CDriving::SetManipulationOption(LRF_VEHICLE_HORIZEN_STRUCT _manipulation_option){
+
+    mxt_lrf_vehicle.lock();
+    {
+        mstruct_lrf_vehicle = _manipulation_option;
+    }
+    mxt_lrf_vehicle.unlock();
+}
+
+LRF_VEHICLE_HORIZEN_STRUCT CDriving::GetLRFVehicleHorizenOption(){
+
+    LRF_VEHICLE_HORIZEN_STRUCT lrf_vehicle;
+
+    mxt_lrf_vehicle.lock();
+    {
+        lrf_vehicle = mstruct_lrf_vehicle;
+    }
+    mxt_lrf_vehicle.unlock();
+
+    return lrf_vehicle;
+}
+
+void CDriving::SetManipulationOption(LRF_VEHICLE_ANGLE_STRUCT _manipulation_option){
+
+    mxt_lrf_vehicle_angle.lock();
+    {
+        mstruct_lrf_vehicle_angle = _manipulation_option;
+    }
+    mxt_lrf_vehicle_angle.unlock();
+}
+
+LRF_VEHICLE_ANGLE_STRUCT CDriving::GetLRFVehicleAngleOption(){
+
+    LRF_VEHICLE_ANGLE_STRUCT lrf_vehicle;
+
+    mxt_lrf_vehicle_angle.lock();
+    {
+        lrf_vehicle = mstruct_lrf_vehicle_angle;
+    }
+    mxt_lrf_vehicle_angle.unlock();
+
+    return lrf_vehicle;
 }
 
 
@@ -254,6 +312,94 @@ bool CDriving::ParkingFrontPanel(){
     return true;
 }
 
+bool CDriving::LRFVehicleHorizenControl(){
+
+    if(!mpc_drive_lrf->IsLRFOn())
+        return false;
+
+    double inlier_distance = 0;
+    double horizen_distance = 0;
+    double s_inlier_deg = 0;
+    double e_inlier_deg = 0;
+
+    LRF_VEHICLE_HORIZEN_STRUCT lrf_vehicle = GetLRFVehicleHorizenOption();
+    inlier_distance = lrf_vehicle.inlier_distance;
+
+    do{
+        int direction = 0;
+        double current_a_inlier_deg = 0;
+        double a_deg_boundary = 0;
+
+        mpc_rgb_d->GetHorizenDistance(inlier_distance, horizen_distance, s_inlier_deg, e_inlier_deg);
+
+        current_a_inlier_deg = (s_inlier_deg + e_inlier_deg) / 2;
+        a_deg_boundary = lrf_vehicle.desired_avr_inlier_deg - current_a_inlier_deg;
+
+        if(lrf_vehicle.error_deg_boundary > fabs(a_deg_boundary)){
+            break;
+        }
+
+        if(a_deg_boundary < 0){
+            direction = UGV_move_forward;
+        }
+        else{
+            direction = UGV_move_backward;
+        }
+
+        mpc_vehicle->Move(direction, lrf_vehicle.velocity);
+
+        lrf_vehicle.horizen_distance = horizen_distance;
+
+        lrf_vehicle.s_inlier_deg = s_inlier_deg;
+        lrf_vehicle.e_inlier_deg = e_inlier_deg;
+
+//        emit SignalLRFHorizentDistance(lrf_vehicle);
+    }while(true);
+
+    mpc_vehicle->Move(UGV_move_forward, 0);
+
+    return true;
+}
+
+bool CDriving::LRFVehicleAngleControl(){
+
+    if(!mpc_drive_lrf->IsLRFOn())
+        return false;
+
+
+    LRF_VEHICLE_ANGLE_STRUCT lrf_vehicle = GetLRFVehicleAngleOption();
+
+    do{
+        int direction = 0;
+
+        double slope = 0;
+        double distance = 0;
+
+        double slope_error = 0;
+
+        mpc_rgb_d->GetLRFInfo(slope, distance, lrf_vehicle.s_deg, lrf_vehicle.e_deg);
+
+        slope_error = lrf_vehicle.desired_angle - slope;
+
+        if(lrf_vehicle.error_boundary > fabs(slope_error)){
+            break;
+        }
+
+        if(slope_error < 0){
+            direction = UGV_move_left;
+        }
+        else{
+            direction = UGV_move_right;
+        }
+
+        mpc_vehicle->Move(direction, lrf_vehicle.velocity);
+
+    }while(true);
+
+    mpc_vehicle->Move(UGV_move_forward, 0);
+
+    return true;
+}
 
 //----------------------------------------------------------------
 //
@@ -271,6 +417,12 @@ void CDriving::run(){
 
     case DRIVE_INX_PARKING__PANEL:
         ParkingFrontPanel();
+        break;
+    case DRIVE_INX_LRF_VEHICLE_ANGLE:
+        LRFVehicleAngleControl();
+        break;
+    case DRIVE_INX_LRF_VEHICLE_HORIZEN:
+        LRFVehicleHorizenControl();
         break;
 
     default:

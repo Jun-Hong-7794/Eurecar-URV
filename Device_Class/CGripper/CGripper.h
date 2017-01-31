@@ -114,7 +114,7 @@ public:
     bool DynamixelGoToThePosition(int _degree); // Go to The Position
     bool DynamixelGoToRelPosition(double _degree); // Go to Relative Position From Present Position
 
-    bool DynamixelGoToThePositionUsingLoad(int _degree, int _load_threshold); // Go to The Position
+    bool DynamixelGoToThePositionUsingLoad(int _degree, int _load_threshold, int _load_threshold_dw = 800); // Go to The Position
 
     uint16_t DynamixelPresentPosition();
     uint16_t DynamixelPresentLoad();

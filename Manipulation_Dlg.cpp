@@ -63,9 +63,9 @@ Manipulation_Dlg::Manipulation_Dlg(CManipulation* _pc_manipulation, QWidget *par
 
     connect(mpc_manipulation, SIGNAL(SignalKinovaPosition(CartesianPosition)), this, SLOT(SlotEditeKinovaPosition(CartesianPosition)));
     connect(mpc_manipulation, SIGNAL(SignalKinovaForceVector(CartesianPosition)), this, SLOT(SlotEditeKinovaForceVector(CartesianPosition)));
-    connect(mpc_manipulation, SIGNAL(SignalLRFHorizentDistance(LRF_VEHICLE_STRUCT)), this, SLOT(SlotLRFHorizentDistance(LRF_VEHICLE_STRUCT)));
+    connect(mpc_manipulation, SIGNAL(SignalLRFHorizentDistance(LRF_VEHICLE_HORIZEN_STRUCT)), this, SLOT(SlotLRFHorizentDistance(LRF_VEHICLE_HORIZEN_STRUCT)));
 
-    connect(mpc_manipulation, SIGNAL(SignalLRFHorizentDistance(LRF_VEHICLE_STRUCT)), this, SLOT(SlotLRFHorizentDistance(LRF_VEHICLE_STRUCT)));
+//    connect(mpc_manipulation, SIGNAL(SignalLRFHorizentDistance(LRF_VEHICLE_ANGLE_STRUCT)), this, SLOT(SlotLRFHorizentDistance(LRF_VEHICLE_ANGLE_STRUCT)));
 
     //Check Button
     connect(ui->ck_segnet_switch, SIGNAL(clicked(bool)), this, SLOT(SlotButtonSegnetOn(bool)));
@@ -215,15 +215,6 @@ void Manipulation_Dlg::SlotEditeKinovaForceVector(CartesianPosition _force_vecto
     ui->ed_kinova_force_roll->setText(QString::number(_force_vector.Coordinates.ThetaZ, 'f', 4));
     ui->ed_kinova_force_pitch->setText(QString::number(_force_vector.Coordinates.ThetaY, 'f', 4));
     ui->ed_kinova_force_yaw->setText(QString::number(_force_vector.Coordinates.ThetaX, 'f', 4));
-
-    return;
-}
-
-void Manipulation_Dlg::SlotLRFHorizentDistance(LRF_VEHICLE_HORIZEN_STRUCT _lrf_horizen){
-
-    ui->ed_lrf_horizen_s_deg->setText(QString::number(_lrf_horizen.s_inlier_deg, 'f', 4));
-    ui->ed_lrf_horizen_e_deg->setText(QString::number(_lrf_horizen.e_inlier_deg, 'f', 4));
-    ui->ed_lrf_horizen_distance->setText(QString::number(_lrf_horizen.horizen_distance, 'f', 4));
 
     return;
 }
@@ -400,23 +391,6 @@ void Manipulation_Dlg::SlotButtonEEffectorLoadCheckIter(){
         }
     }
 
-}
-
-void Manipulation_Dlg::SlotButtonHorizenDistance(){
-
-    LRF_VEHICLE_HORIZEN_STRUCT lrf_vehicle;
-
-    lrf_vehicle = mpc_manipulation->GetLRFVehicleHorizenOption();
-
-    lrf_vehicle.inlier_distance = ui->ed_lrf_horizen_inlier->text().toDouble();
-    lrf_vehicle.lrf_vehicle_mission = true;
-
-    mpc_manipulation->SetManipulationOption(lrf_vehicle);
-
-    if(!mpc_manipulation->SelectMainFunction(MANIPUL_INX_LRF_VEHICLE_HORIZEN)){
-        QMessageBox::information(this, tr("Fail to Get Horizen Dst"), tr("Check LRF Status"));
-        return;
-    }
 }
 
 //-------------------------------------------------

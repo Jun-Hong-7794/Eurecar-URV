@@ -63,55 +63,13 @@ typedef struct _Gripper_Force_Ctrl_Struct{
 
 }GRIPPER_FORCE_CTRL_STRUCT;
 
-typedef struct _LRF_Vehicle_Horizen_Struct{
-
-    bool lrf_vehicle_mission;
-
-    //Get From LRF
-    double horizen_distance;
-
-    double s_inlier_deg;
-    double e_inlier_deg;
-    /////////////////////
-
-    //User Setting
-    double inlier_distance;
-    double desired_avr_inlier_deg;//average of inlier degree
-    double error_deg_boundary;//average of inlier degree
-
-    double velocity;
-    /////////////////////
-
-}LRF_VEHICLE_HORIZEN_STRUCT;
-
-typedef struct _LRF_Vehicle_Angle_Struct{
-
-    bool lrf_vehicle_mission;
-
-    //Get From LRF
-    double angle;
-    double vertical_distance;
-    /////////////////////
-
-    //User Setting
-    double desired_angle;
-    double error_boundary;//error boundary
-
-    double s_deg;
-    double e_deg;
-
-    double velocity;
-    /////////////////////
-
-}LRF_VEHICLE_ANGLE_STRUCT;
-
 typedef struct _Manipulation_Option{
 
     LRF_KINOVA_STRUCT lrf_kinova_option;
 
-    LRF_VEHICLE_HORIZEN_STRUCT lrf_vehicle_horizen_option;
+//    LRF_VEHICLE_HORIZEN_STRUCT lrf_vehicle_horizen_option;
 
-    LRF_VEHICLE_ANGLE_STRUCT lrf_vehicle_angle_option;
+//    LRF_VEHICLE_ANGLE_STRUCT lrf_vehicle_angle_option;
 
     KINOVA_FORCE_CTRL_STRUCT kinova_force_option;
 

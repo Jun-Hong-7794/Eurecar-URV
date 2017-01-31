@@ -10,6 +10,10 @@ CRGBD::CRGBD(CCamera* _pc_camera, CLRF* _pc_lrf){
     mpc_camera = _pc_camera;
 }
 
+CRGBD::CRGBD(CLRF* _pc_lrf){
+    mpc_lrf = _pc_lrf;
+}
+
 CRGBD::~CRGBD(){
     while(this->isRunning());
 }

@@ -39,7 +39,8 @@ private:
     // Device Class
     //-------------------------------------------------
     CGPS* mpc_gps;
-    CLRF* mpc_lrf;
+    CLRF* mpc_drive_lrf;
+    CLRF* mpc_mani__lrf;
     CCamera* mpc_camera;
     CKinova* mpc_kinova;
     CVehicle* mpc_vehicle;

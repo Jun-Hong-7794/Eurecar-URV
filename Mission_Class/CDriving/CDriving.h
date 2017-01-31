@@ -31,8 +31,10 @@
 //-------------------------------------------------
 // Definetion
 //-------------------------------------------------
-#define DRIVE_INX_DRIVE_TO_PANEL 1
-#define DRIVE_INX_PARKING__PANEL 2
+#define DRIVE_INX_DRIVE_TO_PANEL       1
+#define DRIVE_INX_PARKING__PANEL       2
+#define DRIVE_INX_LRF_VEHICLE_ANGLE    3
+#define DRIVE_INX_LRF_VEHICLE_HORIZEN  4
 
 class CDriving:public QThread{
     Q_OBJECT
@@ -50,21 +52,27 @@ private:
 
     DRIVING_STRUCT mstruct_driving;
     PARKING_STRUCT mstruct_parking;
+    LRF_VEHICLE_ANGLE_STRUCT mstruct_lrf_vehicle_angle;
+    LRF_VEHICLE_HORIZEN_STRUCT mstruct_lrf_vehicle;
 
     //Mutex
     QMutex mtx_driving_struct;
     QMutex mtx_parking_struct;
+    QMutex mxt_lrf_vehicle;
+    QMutex mxt_lrf_vehicle_angle;
 
 private:
     //-------------------------------------------------
     // Device Class
     //-------------------------------------------------
     CGPS* mpc_gps;
-    CLRF* mpc_lrf;
+    CLRF* mpc_drive_lrf;
     CCamera* mpc_camera;
     CKinova* mpc_kinova;
     CVehicle* mpc_vehicle;
     CVelodyne* mpc_velodyne;
+
+    CRGBD* mpc_rgb_d;
 
 public:
 
@@ -87,14 +95,21 @@ public:
 
     void SetDrivingOption(DRIVING_STRUCT _driving_option);
     void SetParkingOption(PARKING_STRUCT _driving_option);
+    void SetManipulationOption(LRF_VEHICLE_ANGLE_STRUCT _driving_option);
+    void SetManipulationOption(LRF_VEHICLE_HORIZEN_STRUCT _driving_option);
 
     DRIVING_STRUCT GetDrivingOption();
     PARKING_STRUCT GetParkingOption();
+    LRF_VEHICLE_ANGLE_STRUCT GetLRFVehicleAngleOption();
+    LRF_VEHICLE_HORIZEN_STRUCT GetLRFVehicleHorizenOption();
+
     //-------------------------------------------------
     // Drive Class Main Function
     //-------------------------------------------------
     bool DriveToPanel();
     bool ParkingFrontPanel();
+    bool LRFVehicleHorizenControl();
+    bool LRFVehicleAngleControl();
 
     int GetPanelHeadingError();
 

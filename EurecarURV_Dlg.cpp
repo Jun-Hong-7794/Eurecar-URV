@@ -14,7 +14,8 @@ EurecarURV_Dlg::EurecarURV_Dlg(QWidget *parent) :
     // Device Class Initialize
     //-------------------------------------------------
     mpc_gps = new CGPS;
-    mpc_lrf = new CLRF;
+    mpc_drive_lrf = new CLRF;
+    mpc_mani__lrf = new CLRF;
     mpc_camera = new CCamera;
     mpc_kinova = new CKinova;
     mpc_vehicle = new CVehicle;
@@ -27,10 +28,10 @@ EurecarURV_Dlg::EurecarURV_Dlg(QWidget *parent) :
     //-------------------------------------------------
 
     //Driving Class Initialize
-    mpc_drivig = new CDriving(mpc_gps, mpc_lrf, mpc_camera, mpc_kinova, mpc_vehicle, mpc_velodyne);
+    mpc_drivig = new CDriving(mpc_gps, mpc_drive_lrf, mpc_camera, mpc_kinova, mpc_vehicle, mpc_velodyne);
 
     //Manipulation Class Initialize
-    mpc_manipulation = new CManipulation(mpc_lrf, mpc_camera, mpc_kinova, mpc_vehicle, mpc_velodyne, mpc_gripper);
+    mpc_manipulation = new CManipulation(mpc_mani__lrf, mpc_camera, mpc_kinova, mpc_vehicle, mpc_velodyne, mpc_gripper);
 
     //-------------------------------------------------
     // Script Class Initialize
@@ -85,7 +86,8 @@ EurecarURV_Dlg::EurecarURV_Dlg(QWidget *parent) :
 EurecarURV_Dlg::~EurecarURV_Dlg()
 {
     delete mpc_gps;
-    delete mpc_lrf;
+    delete mpc_drive_lrf;
+    delete mpc_mani__lrf;
     delete mpc_camera;
     delete mpc_kinova;
     delete mpc_vehicle;
