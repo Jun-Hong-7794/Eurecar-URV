@@ -163,15 +163,6 @@ void Driving_Dlg::SlotVeloyneParser(bool _parser_complete){
     }
 }
 
-
-
-
-
-
-
-
-
-
 void Driving_Dlg::on_rd_vehicle_dir_forward_clicked()
 {
 

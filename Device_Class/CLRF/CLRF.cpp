@@ -31,23 +31,22 @@ bool CLRF::LRFOpen(int _dev_type){
         {
             ret = urg_open(&m_urg, URG_ETHERNET, mp_connect_address, m_connect_port);
 
-            //_data  = new long[urg_max_data_size(&m_urg)];
+            // Check error code
+            if(ret < 0){
+                std::cout << "Fail to Open Device"<< std::endl;
+                std::cout << "Device IP : "<< mp_connect_address << std::endl;
+                std::cout << "Device Port : "<< m_connect_port << std::endl;
+                mtx_LRF_data.unlock();
+                return false;
+            }
+            else{
+                std::cout << "Success to Open Device"<< std::endl;
+            }
 
             mp_distance_data = new long[urg_max_data_size(&m_urg)];
             mp_intensity_data = new unsigned short[urg_max_data_size(&m_urg)];
         }
         mtx_LRF_data.unlock();
-
-        // Check error code
-        if(ret < 0){
-            std::cout << "Fail to Open Device"<< std::endl;
-            std::cout << "Device IP : "<< mp_connect_address << std::endl;
-            std::cout << "Device Port : "<< m_connect_port << std::endl;
-            return false;
-        }
-        else{
-            std::cout << "Success to Open Device"<< std::endl;
-        }
 
         mtx_LRF_data.lock();
         {
@@ -68,6 +67,7 @@ bool CLRF::LRFOpen(int _dev_type){
                 std::cout << "Fail to Open Device"<< std::endl;
                 std::cout << "Device : "<< mp_connect_device << std::endl;
                 std::cout << "Device Baudrate: "<< m_baudrate << std::endl;
+                mtx_LRF_data.unlock();
                 return false;
             }
             else{
@@ -118,6 +118,9 @@ bool CLRF::InitLRF(char* _dev_path, int _dev_type){
 }
 
 void CLRF::CloseLRF(){
+
+    if(!fl_lrf_init)
+        return;
 
     fl_stream = false;
     fl_lrf_init = false;

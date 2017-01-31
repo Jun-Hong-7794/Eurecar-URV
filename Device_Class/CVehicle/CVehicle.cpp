@@ -16,18 +16,30 @@ CVehicle::CVehicle(){
 
 CVehicle::~CVehicle(){
 
+    if(fl_connection)
+        mc_device.Disconnect();
 }
 
-int CVehicle::Connect(){
+bool CVehicle::IsConnected(){
+    return fl_connection;
+}
+
+int CVehicle::Connect(char* _dev_path){
 
     if(!fl_connection){
-        if(mc_device.Connect("/dev/ttyACM0") == RQ_SUCCESS)
+        if(mc_device.Connect(_dev_path) == RQ_SUCCESS)
             fl_connection = true;
         else
             fl_connection = false;
     }
 
     return fl_connection;
+}
+
+void CVehicle::Disconnect(){
+
+    mc_device.Disconnect();
+    fl_connection = false;
 }
 
 bool CVehicle::Move(int _dir, int _vel){

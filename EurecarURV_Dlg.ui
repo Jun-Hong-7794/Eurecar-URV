@@ -34,113 +34,6 @@
      </rect>
     </property>
    </widget>
-   <widget class="QGraphicsView" name="view_velodyne">
-    <property name="geometry">
-     <rect>
-      <x>13</x>
-      <y>284</y>
-      <width>651</width>
-      <height>291</height>
-     </rect>
-    </property>
-   </widget>
-   <widget class="QGroupBox" name="grbx_sensorbt">
-    <property name="geometry">
-     <rect>
-      <x>980</x>
-      <y>310</y>
-      <width>231</width>
-      <height>171</height>
-     </rect>
-    </property>
-    <property name="font">
-     <font>
-      <weight>75</weight>
-      <bold>true</bold>
-     </font>
-    </property>
-    <property name="title">
-     <string>Sensor Button</string>
-    </property>
-    <widget class="QPushButton" name="bt_camera">
-     <property name="geometry">
-      <rect>
-       <x>8</x>
-       <y>30</y>
-       <width>101</width>
-       <height>41</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Camera On</string>
-     </property>
-    </widget>
-    <widget class="QPushButton" name="bt_lrf">
-     <property name="geometry">
-      <rect>
-       <x>8</x>
-       <y>77</y>
-       <width>101</width>
-       <height>41</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>LRF On</string>
-     </property>
-    </widget>
-    <widget class="QPushButton" name="bt_ugv">
-     <property name="geometry">
-      <rect>
-       <x>123</x>
-       <y>30</y>
-       <width>101</width>
-       <height>41</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>UGV Init</string>
-     </property>
-    </widget>
-    <widget class="QPushButton" name="bt_kinova">
-     <property name="geometry">
-      <rect>
-       <x>123</x>
-       <y>77</y>
-       <width>101</width>
-       <height>41</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Kinova Init</string>
-     </property>
-    </widget>
-    <widget class="QPushButton" name="bt_velodyne">
-     <property name="geometry">
-      <rect>
-       <x>123</x>
-       <y>124</y>
-       <width>101</width>
-       <height>41</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Velodyne On</string>
-     </property>
-    </widget>
-    <widget class="QPushButton" name="bt_gps">
-     <property name="geometry">
-      <rect>
-       <x>8</x>
-       <y>124</y>
-       <width>101</width>
-       <height>41</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>GPS On</string>
-     </property>
-    </widget>
-   </widget>
    <widget class="QTextEdit" name="msg_urv_status">
     <property name="geometry">
      <rect>
@@ -278,13 +171,13 @@
      <property name="geometry">
       <rect>
        <x>10</x>
-       <y>227</y>
-       <width>111</width>
-       <height>41</height>
+       <y>226</y>
+       <width>241</width>
+       <height>51</height>
       </rect>
      </property>
      <property name="text">
-      <string>Scenario Run</string>
+      <string>Scenario &amp;Run</string>
      </property>
     </widget>
     <widget class="QLabel" name="label_6">
@@ -312,8 +205,8 @@
      </property>
      <property name="geometry">
       <rect>
-       <x>130</x>
-       <y>227</y>
+       <x>260</x>
+       <y>232</y>
        <width>101</width>
        <height>41</height>
       </rect>
@@ -328,14 +221,14 @@
     <widget class="QPushButton" name="bt_script_update">
      <property name="geometry">
       <rect>
-       <x>240</x>
-       <y>227</y>
+       <x>370</x>
+       <y>232</y>
        <width>131</width>
        <height>41</height>
       </rect>
      </property>
      <property name="text">
-      <string>Script Update</string>
+      <string>Script &amp;Update</string>
      </property>
     </widget>
     <widget class="QGroupBox" name="grbx_patial_operate">
@@ -535,13 +428,23 @@
      </property>
     </widget>
    </widget>
-   <widget class="QPushButton" name="bt_urg_start">
+   <widget class="QVTKWidget" name="qvtk_velodyne_main_dlg">
+    <property name="geometry">
+     <rect>
+      <x>13</x>
+      <y>288</y>
+      <width>651</width>
+      <height>291</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QTabWidget" name="tab_sensor_setting">
     <property name="geometry">
      <rect>
       <x>980</x>
-      <y>490</y>
+      <y>310</y>
       <width>231</width>
-      <height>91</height>
+      <height>271</height>
      </rect>
     </property>
     <property name="font">
@@ -550,9 +453,240 @@
       <bold>true</bold>
      </font>
     </property>
-    <property name="text">
-     <string>URG Run</string>
+    <property name="currentIndex">
+     <number>0</number>
     </property>
+    <widget class="QWidget" name="tab_sensor_switch">
+     <attribute name="title">
+      <string>Switch</string>
+     </attribute>
+     <widget class="QPushButton" name="bt_camera">
+      <property name="geometry">
+       <rect>
+        <x>4</x>
+        <y>10</y>
+        <width>101</width>
+        <height>41</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Camera On</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="bt_mani_lrf">
+      <property name="geometry">
+       <rect>
+        <x>4</x>
+        <y>57</y>
+        <width>101</width>
+        <height>41</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Kinova LRF</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="bt_gps">
+      <property name="geometry">
+       <rect>
+        <x>4</x>
+        <y>151</y>
+        <width>101</width>
+        <height>41</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>GPS On</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="bt_ugv">
+      <property name="geometry">
+       <rect>
+        <x>119</x>
+        <y>10</y>
+        <width>101</width>
+        <height>41</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>UGV Init</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="bt_kinova">
+      <property name="geometry">
+       <rect>
+        <x>4</x>
+        <y>104</y>
+        <width>101</width>
+        <height>41</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Kinova Init</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="bt_velodyne">
+      <property name="geometry">
+       <rect>
+        <x>120</x>
+        <y>104</y>
+        <width>101</width>
+        <height>41</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Velodyne On</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="bt_drive_lrf">
+      <property name="geometry">
+       <rect>
+        <x>120</x>
+        <y>56</y>
+        <width>101</width>
+        <height>41</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>UGV LRF</string>
+      </property>
+     </widget>
+    </widget>
+    <widget class="QWidget" name="tab_path">
+     <attribute name="title">
+      <string>Path Setting</string>
+     </attribute>
+     <widget class="QPushButton" name="bt_mani_lrf_path_set">
+      <property name="geometry">
+       <rect>
+        <x>120</x>
+        <y>10</y>
+        <width>101</width>
+        <height>31</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Kinova LRF</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="bt_drive_lrf_path_set">
+      <property name="geometry">
+       <rect>
+        <x>120</x>
+        <y>50</y>
+        <width>101</width>
+        <height>31</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>UGV LRF</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="bt_kinova_path_set">
+      <property name="geometry">
+       <rect>
+        <x>120</x>
+        <y>130</y>
+        <width>101</width>
+        <height>31</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Kinova Init</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="bt_ugv_path_set">
+      <property name="geometry">
+       <rect>
+        <x>120</x>
+        <y>90</y>
+        <width>101</width>
+        <height>31</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>UGV Init</string>
+      </property>
+     </widget>
+     <widget class="QLineEdit" name="ed_mani_lrf_ip">
+      <property name="geometry">
+       <rect>
+        <x>3</x>
+        <y>19</y>
+        <width>113</width>
+        <height>22</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>192.168.0.10</string>
+      </property>
+     </widget>
+     <widget class="QLineEdit" name="ed_drive_lrf_path">
+      <property name="geometry">
+       <rect>
+        <x>2</x>
+        <y>59</y>
+        <width>113</width>
+        <height>22</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>/dev/ttyACM0</string>
+      </property>
+     </widget>
+     <widget class="QLineEdit" name="ed_kinova_path">
+      <property name="geometry">
+       <rect>
+        <x>2</x>
+        <y>139</y>
+        <width>113</width>
+        <height>22</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>/dev/ttyACM0</string>
+      </property>
+     </widget>
+     <widget class="QLineEdit" name="ed_vehicle_path">
+      <property name="geometry">
+       <rect>
+        <x>2</x>
+        <y>99</y>
+        <width>113</width>
+        <height>22</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>/dev/ttyACM0</string>
+      </property>
+     </widget>
+     <widget class="QLineEdit" name="ed_gripper_path">
+      <property name="geometry">
+       <rect>
+        <x>2</x>
+        <y>179</y>
+        <width>113</width>
+        <height>22</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>/dev/ttyUSB0</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="bt_ugv_path_set_2">
+      <property name="geometry">
+       <rect>
+        <x>120</x>
+        <y>170</y>
+        <width>101</width>
+        <height>31</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Gripper Init</string>
+      </property>
+     </widget>
+    </widget>
    </widget>
   </widget>
   <widget class="QMenuBar" name="menuBar">
@@ -603,6 +737,13 @@
   </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
+ <customwidgets>
+  <customwidget>
+   <class>QVTKWidget</class>
+   <extends>QWidget</extends>
+   <header>QVTKWidget.h</header>
+  </customwidget>
+ </customwidgets>
  <resources/>
  <connections/>
 </ui>

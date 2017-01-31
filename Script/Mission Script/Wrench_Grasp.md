@@ -5,7 +5,7 @@
 
 # Title: Valve Recognition
 
-## Step0: Grasp 50
+## Step0: Grasp 100
 
 GRIPPER_FORCE_CTRL_STRUCT.bend_deg = 180
 GRIPPER_FORCE_CTRL_STRUCT.forece_threshold = 0

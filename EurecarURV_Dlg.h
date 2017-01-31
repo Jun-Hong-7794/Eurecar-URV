@@ -73,22 +73,35 @@ public slots:
 
     void SlotMenuButtonScenarioLoad();
 
-    // Push Button
-    void SlotButtonVelodyne();
-    void SlotButtonKinova();
-
     void SlotButtonMissionRun();
 
     void SlotButtonMissionPartialRun();
     void SlotButtonScenarioPartialRun();
 
+    void SlotButtonScenarioLoad();
+
+    //Device Init
+    void SlotButtonLRFManiSwitch();
+    void SlotButtonLRFDriveSwitch();
+    void SlotButtonGPSSwitch();
+    void SlotButtonVehicleSwitch();
+    void SlotButtonCameraSwitch();
+    void SlotButtonVelodyneSwitch();
+    void SlotButtonKinovaSwitch();
+
+
+
     //ListView
     void SlotMissionListUpdate(QModelIndex);
+
     //Combo Box
     void SlotStepListUpdate(int);
 
     //System Message
     void SlotViewSystemMessage(QString _message);
+
+    //PCL Slot
+    void SlotVeloyneParser(bool _parser_complete);
 
 
 public:

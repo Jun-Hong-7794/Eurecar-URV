@@ -41,7 +41,9 @@ private:
     RoboteqDevice mc_device;
 
 public:
-    int Connect();
+    bool IsConnected();
+    int Connect(char* _dev_path = (char *)"/dev/ttyACM0");
+    void Disconnect();
     int SetControl();
     bool Move(int _dir,int _vel);
     void CheckVolt();
