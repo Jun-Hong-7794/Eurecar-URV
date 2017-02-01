@@ -51,7 +51,7 @@ void CRGBD::SegnetFunction(){
 // Element Tech Function
 //-------------------------------------------------
 
-void CRGBD::GetLRFInfo(double &_slope, double &_distance, double _s_deg, double _e_deg){
+void CRGBD::GetLRFInfo(double &_slope, double &_distance, double _s_deg, double _e_deg, int _inlier_lrf_dst){
 
     if((_s_deg < 0 || _e_deg > 180) || (_s_deg >= _e_deg)){//Out Of Range . . .
 
@@ -84,7 +84,7 @@ void CRGBD::GetLRFInfo(double &_slope, double &_distance, double _s_deg, double 
 
             memcpy(lrf_distance, &mary_lrf_distance[s_index], sizeof(long)*(number_of_point));
 
-            ClaculateLRFHeightDistance(lrf_distance, _s_deg, _e_deg, point_vec);
+            ClaculateLRFHeightDistance(lrf_distance, _s_deg, _e_deg, point_vec, _inlier_lrf_dst);
 
             optimal_line_eq_vec.push_back(EstimateLineEquation(point_vec));
         }
@@ -126,7 +126,7 @@ void CRGBD::GetHorizenDistance(double _inlier_distance,double& _horizen_distance
         int e_inlier_inx = 0;
         memcpy(lrf_distance, &mary_lrf_distance[s_index], sizeof(long)*(number_of_point));
 
-        ClaculateLRFHeightDistance(lrf_distance, s_deg, e_deg, point_vec);
+        ClaculateLRFHeightDistance(lrf_distance, s_deg, e_deg, point_vec, (int)_inlier_distance);
         ClaculateHorizenDistance(point_vec, _inlier_distance, _horizen_distance, s_inlier_inx, e_inlier_inx);
 
         emit SignalLRFMapImage(LRFDataToMat(point_vec, _inlier_distance, 1000));
@@ -151,7 +151,7 @@ cv::Mat CRGBD::GetSegnetImage(cv::Mat _org_img){
 // Calculation Function
 //-------------------------------------------------
 
-void CRGBD::ClaculateLRFHeightDistance(long* _lrf_org_data, double _s_deg, double _e_deg, std::vector<POINT_PARAM>& _point_vec){
+void CRGBD::ClaculateLRFHeightDistance(long* _lrf_org_data, double _s_deg, double _e_deg, std::vector<POINT_PARAM>& _point_vec, int _inlier_lrf_dst){
 
     int number_of_point = int((_e_deg -_s_deg) / ANGLE_RESOLUTION) + 1;
 
@@ -159,6 +159,9 @@ void CRGBD::ClaculateLRFHeightDistance(long* _lrf_org_data, double _s_deg, doubl
         POINT_PARAM point_parameter;
 
         double deg = i*ANGLE_RESOLUTION + _s_deg;
+
+        if(_lrf_org_data[i] > _inlier_lrf_dst)
+            continue;
 
         point_parameter.x = _lrf_org_data[i] * cos((deg)*RGBD_D2R);
         point_parameter.y = _lrf_org_data[i] * sin((deg)*RGBD_D2R);
@@ -196,8 +199,8 @@ LINE_PARAM CRGBD::EstimateLineEquation(std::vector<POINT_PARAM>& _point_vec){
 
         line_parameter.b = _point_vec.at(random_num_2).y - (_point_vec.at(random_num_2).x * line_parameter.a);
 
-        if(line_parameter.b < 0)
-            std::cout << "What!!?" << std::endl;
+//        if(line_parameter.b < 0)
+//            std::cout << "What!!?" << std::endl;
 
         line_parameter.num_inlier = 0;
 

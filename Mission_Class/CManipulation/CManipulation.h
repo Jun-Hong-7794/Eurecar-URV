@@ -26,10 +26,12 @@
 //-------------------------------------------------
 // Definetion
 //-------------------------------------------------
-#define MANIPUL_INX_LRF_KINOVA           1
-#define MANIPUL_INX_KINOVA_FORCE_CLRL    2
-#define MANIPUL_INX_GRIPPER_FORCE_CLRL   3
-#define MANIPUL_INX_KINOVA_MANIPULATE    4
+#define MANIPUL_INX_LRF_KINOVA_VERTIVAL_CTRL    1
+#define MANIPUL_INX_LRF_KINOVA_HORIZEN_CTRL     2
+#define MANIPUL_INX_LRF_KINOVA_ANGLE_CTRL       3
+#define MANIPUL_INX_KINOVA_FORCE_CLRL           4
+#define MANIPUL_INX_GRIPPER_FORCE_CLRL          5
+#define MANIPUL_INX_KINOVA_MANIPULATE           6
 
 class CManipulation:public QThread{
     Q_OBJECT
@@ -44,8 +46,11 @@ public:
 private:
     int m_main_fnc_index;
 
-    LRF_KINOVA_STRUCT mstruct_lrf_kinova;
-    QMutex mxt_lrf_kinova;
+    LRF_KINOVA_VERTICAL_CTRL_STRUCT mstruct_lrf_kinova_vertical;
+    QMutex mxt_lrf_kinova_vertical;
+
+    LRF_KINOVA_HORIZEN_CTRL_STRUCT mstruct_lrf_kinova_horizen;
+    QMutex mxt_lrf_kinova_horizen;
 
     KINOVA_FORCE_CTRL_STRUCT mstruct_kinova_force_ctrl;
     QMutex mxt_kinova_force_ctrl;
@@ -117,8 +122,11 @@ public:
 public:
     bool SelectMainFunction(int _fnc_index_);
 
-    void SetManipulationOption(LRF_KINOVA_STRUCT _manipulation_option);
-    LRF_KINOVA_STRUCT GetLRFKinovaOption();
+    void SetManipulationOption(LRF_KINOVA_VERTICAL_CTRL_STRUCT _manipulation_option);
+    LRF_KINOVA_VERTICAL_CTRL_STRUCT GetLRFKinovaVerticalOption();
+
+    void SetManipulationOption(LRF_KINOVA_HORIZEN_CTRL_STRUCT _manipulation_option);
+    LRF_KINOVA_HORIZEN_CTRL_STRUCT GetLRFKinovaHorizenOption();
 
     void SetManipulationOption(KINOVA_FORCE_CTRL_STRUCT _manipulation_option);
     KINOVA_FORCE_CTRL_STRUCT GetKinovaForceCtrlOption();
@@ -133,7 +141,8 @@ private:
     //-------------------------------------------------
     // Main Function
     //-------------------------------------------------
-    bool LRFKinovaDepthControl();
+    bool LRFKinovaVerticalControl();
+    bool LRFKinovaHorizenControl();
     bool KinovaForceCtrl();
     bool KinovaDoManipulate();
     bool GripperForceCtrl();

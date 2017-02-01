@@ -246,7 +246,7 @@ void Manipulation_Dlg::SlotButtonKinovaGetPosition(){
 //LRF-Kinova
 void Manipulation_Dlg::SlotButtonLRFKinovaCtrl(){
 
-    LRF_KINOVA_STRUCT lrf_kinova_option;
+    LRF_KINOVA_VERTICAL_CTRL_STRUCT lrf_kinova_option;
 
     lrf_kinova_option.desired_distance = ui->ed_lrf_kinova_desired_dst->text().toDouble();
     lrf_kinova_option.error = ui->ed_lrf_kinova_error->text().toDouble();
@@ -255,7 +255,7 @@ void Manipulation_Dlg::SlotButtonLRFKinovaCtrl(){
 
     mpc_manipulation->SetManipulationOption(lrf_kinova_option);
 
-    if(!mpc_manipulation->SelectMainFunction(MANIPUL_INX_LRF_KINOVA))
+    if(!mpc_manipulation->SelectMainFunction(MANIPUL_INX_LRF_KINOVA_VERTIVAL_CTRL))
         QMessageBox::information(this, tr("Fail to Operate LRF Kinova"), tr("Check LRF Or Kinova"));
 }
 

@@ -2,7 +2,7 @@
 #define DEF_MANIPULATION_H
 #include <QString>
 
-typedef struct _LRF_Kinova_Struct{
+typedef struct _LRF_Kinova_Angle_Ctrl_Struct{
 
     bool lrf_kinova_mission;
 
@@ -13,7 +13,41 @@ typedef struct _LRF_Kinova_Struct{
     double s_deg;
     double e_deg;
 
-}LRF_KINOVA_STRUCT;
+}LRF_KINOVA_ANGLE_CTRL_STRUCT;
+
+typedef struct _LRF_Kinova_Horizen_Ctrl_Struct{
+
+    bool lrf_kinova_mission;
+
+    double desired_inlier_deg_avr/*deg*/;
+
+    double error;
+
+    double s_deg;
+    double e_deg;
+
+    int inlier_lrf_dst;
+
+    int loop_sleep;
+
+}LRF_KINOVA_HORIZEN_CTRL_STRUCT;
+
+typedef struct _LRF_Kinova_Vertical_Ctrl_Struct{
+
+    bool lrf_kinova_mission;
+
+    double desired_distance;
+
+    double error;
+
+    double s_deg;
+    double e_deg;
+
+    int inlier_lrf_dst;
+
+    int loop_sleep;
+
+}LRF_KINOVA_VERTICAL_CTRL_STRUCT;
 
 typedef struct _Kinova_Force_Ctrl_Struct{
 
@@ -65,11 +99,11 @@ typedef struct _Gripper_Force_Ctrl_Struct{
 
 typedef struct _Manipulation_Option{
 
-    LRF_KINOVA_STRUCT lrf_kinova_option;
+    LRF_KINOVA_VERTICAL_CTRL_STRUCT lrf_kinova_vertical_option;
 
-//    LRF_VEHICLE_HORIZEN_STRUCT lrf_vehicle_horizen_option;
+    LRF_KINOVA_ANGLE_CTRL_STRUCT lrf_kinova_angle_option;
 
-//    LRF_VEHICLE_ANGLE_STRUCT lrf_vehicle_angle_option;
+    LRF_KINOVA_HORIZEN_CTRL_STRUCT lrf_kinova_horizen_option;
 
     KINOVA_FORCE_CTRL_STRUCT kinova_force_option;
 

@@ -346,6 +346,22 @@ bool CScript::InterpreteMissionScriptLine(QString _line, MISSION_SCRIPT* _missio
             return false;
     }
 
+    if(_line.contains("LRF_KINOVA_VERTICAL_CTRL")){
+
+        if(InterpreteLRFKinovaVerticalCtrl(_line, _step_info))
+            return true;
+        else
+            return false;
+    }
+
+    if(_line.contains("LRF_KINOVA_HORIZEN_CTRL")){
+
+        if(InterpreteLRFKinovaHorizenCtrl(_line, _step_info))
+            return true;
+        else
+            return false;
+    }
+
     if(_line.contains("LRF_VEHICLE_HORIZEN_CTRL")){
 
         if(InterpreteLRFVehicleHorizenCtrl(_line, _step_info))
@@ -564,6 +580,96 @@ bool CScript::InterpreteLRFVehicleHorizenCtrl(QString _line, STEP_INFO& _step_in
     return true;
 }
 
+bool CScript::InterpreteLRFKinovaVerticalCtrl(QString _line, STEP_INFO& _step_info){
+
+    if(_line.contains("LRF_KINOVA_VERTICAL_CTRL_STRUCT")){
+
+        if(_line.contains("desired_distance")){
+            int colone_index = _line.indexOf("=");
+            _step_info.manipulation_option.lrf_kinova_vertical_option.desired_distance = _line.mid(colone_index + 1).trimmed().toDouble();
+            return true;
+        }
+        if(_line.contains("error")){
+            int colone_index = _line.indexOf("=");
+            _step_info.manipulation_option.lrf_kinova_vertical_option.error = _line.mid(colone_index + 1).trimmed().toDouble();
+            return true;
+        }
+        if(_line.contains("s_deg")){
+            int colone_index = _line.indexOf("=");
+            _step_info.manipulation_option.lrf_kinova_vertical_option.s_deg = _line.mid(colone_index + 1).trimmed().toDouble();
+            return true;
+        }
+        if(_line.contains("e_deg")){
+            int colone_index = _line.indexOf("=");
+            _step_info.manipulation_option.lrf_kinova_vertical_option.e_deg = _line.mid(colone_index + 1).trimmed().toDouble();
+            return true;
+        }
+        if(_line.contains("inlier_lrf_dst")){
+            int colone_index = _line.indexOf("=");
+            _step_info.manipulation_option.lrf_kinova_vertical_option.inlier_lrf_dst = _line.mid(colone_index + 1).trimmed().toDouble();
+            return true;
+        }
+        if(_line.contains("loop_sleep")){
+            int colone_index = _line.indexOf("=");
+            _step_info.manipulation_option.lrf_kinova_vertical_option.loop_sleep = _line.mid(colone_index + 1).trimmed().toDouble();
+            return true;
+        }
+
+    }
+    else if(_line.contains("LRF_KINOVA_VERTICAL_CTRL_FUNCTION")){
+        _step_info.function_index = MP_LRF_KINOVA_VERTIVAL_CONTROL;
+    }
+    else
+        return false;
+
+    return true;
+}
+
+bool CScript::InterpreteLRFKinovaHorizenCtrl(QString _line, STEP_INFO& _step_info){
+
+    if(_line.contains("LRF_KINOVA_HORIZEN_CTRL_STRUCT")){
+
+        if(_line.contains("desired_inlier_deg_avr")){
+            int colone_index = _line.indexOf("=");
+            _step_info.manipulation_option.lrf_kinova_horizen_option.desired_inlier_deg_avr = _line.mid(colone_index + 1).trimmed().toDouble();
+            return true;
+        }
+        if(_line.contains("error")){
+            int colone_index = _line.indexOf("=");
+            _step_info.manipulation_option.lrf_kinova_horizen_option.error = _line.mid(colone_index + 1).trimmed().toDouble();
+            return true;
+        }
+        if(_line.contains("s_deg")){
+            int colone_index = _line.indexOf("=");
+            _step_info.manipulation_option.lrf_kinova_horizen_option.s_deg = _line.mid(colone_index + 1).trimmed().toDouble();
+            return true;
+        }
+        if(_line.contains("e_deg")){
+            int colone_index = _line.indexOf("=");
+            _step_info.manipulation_option.lrf_kinova_horizen_option.e_deg = _line.mid(colone_index + 1).trimmed().toDouble();
+            return true;
+        }
+        if(_line.contains("inlier_lrf_dst")){
+            int colone_index = _line.indexOf("=");
+            _step_info.manipulation_option.lrf_kinova_horizen_option.inlier_lrf_dst = _line.mid(colone_index + 1).trimmed().toDouble();
+            return true;
+        }
+        if(_line.contains("loop_sleep")){
+            int colone_index = _line.indexOf("=");
+            _step_info.manipulation_option.lrf_kinova_horizen_option.loop_sleep = _line.mid(colone_index + 1).trimmed().toDouble();
+            return true;
+        }
+
+    }
+    else if(_line.contains("LRF_KINOVA_HORIZEN_CTRL_FUNCTION")){
+        _step_info.function_index = MP_LRF_KINOVA_HORIZEN_CONTROL;
+    }
+    else
+        return false;
+
+    return true;
+}
+
 //----------------------------------------------------------------
 //
 //                          Player Function
@@ -643,9 +749,16 @@ bool CScript::MissionPlayer(){
                 while(mpc_drivig->isRunning());
             }
 
-            if(mpary_mission_script[i].step_vecor.at(j).function_index == MP_LRF_KINOVA_DEPTH_CONTROL){
-                mpc_manipulation->SetManipulationOption(mpary_mission_script[i].step_vecor.at(j).manipulation_option.lrf_kinova_option);
-                mpc_manipulation->SelectMainFunction(MANIPUL_INX_LRF_KINOVA);
+            if(mpary_mission_script[i].step_vecor.at(j).function_index == MP_LRF_KINOVA_VERTIVAL_CONTROL){
+                mpc_manipulation->SetManipulationOption(mpary_mission_script[i].step_vecor.at(j).manipulation_option.lrf_kinova_vertical_option);
+                mpc_manipulation->SelectMainFunction(MANIPUL_INX_LRF_KINOVA_VERTIVAL_CTRL);
+
+                while(mpc_manipulation->isRunning());
+            }
+
+            if(mpary_mission_script[i].step_vecor.at(j).function_index == MP_LRF_KINOVA_HORIZEN_CONTROL){
+                mpc_manipulation->SetManipulationOption(mpary_mission_script[i].step_vecor.at(j).manipulation_option.lrf_kinova_horizen_option);
+                mpc_manipulation->SelectMainFunction(MANIPUL_INX_LRF_KINOVA_HORIZEN_CTRL);
 
                 while(mpc_manipulation->isRunning());
             }
@@ -671,6 +784,7 @@ bool CScript::MissionPlayer(){
 
                 while(mpc_manipulation->isRunning());
             }
+
 
             if(mpary_mission_script[i].step_vecor.at(j).after__sleep != 0)
                 msleep(mpary_mission_script[i].step_vecor.at(j).after__sleep);

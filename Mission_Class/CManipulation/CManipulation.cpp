@@ -268,8 +268,14 @@ bool CManipulation::SelectMainFunction(int _fnc_index_){
         return false;
     }
 
-    if(_fnc_index_ == MANIPUL_INX_LRF_KINOVA){
-        m_main_fnc_index = MANIPUL_INX_LRF_KINOVA;
+    if(_fnc_index_ == MANIPUL_INX_LRF_KINOVA_VERTIVAL_CTRL){
+        m_main_fnc_index = MANIPUL_INX_LRF_KINOVA_VERTIVAL_CTRL;
+        this->start();
+
+        return true;
+    }
+    if(_fnc_index_ == MANIPUL_INX_LRF_KINOVA_HORIZEN_CTRL){
+        m_main_fnc_index = MANIPUL_INX_LRF_KINOVA_HORIZEN_CTRL;
         this->start();
 
         return true;
@@ -296,24 +302,46 @@ bool CManipulation::SelectMainFunction(int _fnc_index_){
         return false;
 }
 
-void CManipulation::SetManipulationOption(LRF_KINOVA_STRUCT _lrf_kinova_option){
+void CManipulation::SetManipulationOption(LRF_KINOVA_VERTICAL_CTRL_STRUCT _lrf_kinova_option){
 
-    mxt_lrf_kinova.lock();
+    mxt_lrf_kinova_vertical.lock();
     {
-        mstruct_lrf_kinova = _lrf_kinova_option;
+        mstruct_lrf_kinova_vertical = _lrf_kinova_option;
     }
-    mxt_lrf_kinova.unlock();
+    mxt_lrf_kinova_vertical.unlock();
 }
 
-LRF_KINOVA_STRUCT CManipulation::GetLRFKinovaOption(){
+LRF_KINOVA_VERTICAL_CTRL_STRUCT CManipulation::GetLRFKinovaVerticalOption(){
 
-    LRF_KINOVA_STRUCT lrf_kinova_struct;
+    LRF_KINOVA_VERTICAL_CTRL_STRUCT lrf_kinova_struct;
 
-    mxt_lrf_kinova .lock();
+    mxt_lrf_kinova_vertical .lock();
     {
-        lrf_kinova_struct = mstruct_lrf_kinova;
+        lrf_kinova_struct = mstruct_lrf_kinova_vertical;
     }
-    mxt_lrf_kinova.unlock();
+    mxt_lrf_kinova_vertical.unlock();
+
+    return lrf_kinova_struct;
+}
+
+void CManipulation::SetManipulationOption(LRF_KINOVA_HORIZEN_CTRL_STRUCT _lrf_kinova_option){
+
+    mxt_lrf_kinova_horizen.lock();
+    {
+        mstruct_lrf_kinova_horizen = _lrf_kinova_option;
+    }
+    mxt_lrf_kinova_horizen.unlock();
+}
+
+LRF_KINOVA_HORIZEN_CTRL_STRUCT CManipulation::GetLRFKinovaHorizenOption(){
+
+    LRF_KINOVA_HORIZEN_CTRL_STRUCT lrf_kinova_struct;
+
+    mxt_lrf_kinova_horizen .lock();
+    {
+        lrf_kinova_struct = mstruct_lrf_kinova_horizen;
+    }
+    mxt_lrf_kinova_horizen.unlock();
 
     return lrf_kinova_struct;
 }
@@ -387,22 +415,26 @@ KINOVA_DO_MANIPULATE_STRUCT CManipulation::GetKinovaManipulateOption(){
 //----------------------------------------------------------------
 // Main Function
 //----------------------------------------------------------------
-bool CManipulation::LRFKinovaDepthControl(){
+bool CManipulation::LRFKinovaVerticalControl(){
 
     if(!mpc_lrf->IsLRFOn())
         return false;
     if(!mpc_kinova->IsKinovaInitialized())
         return false;
 
-    double slope = 0;
-    double current_distance = 0;
 
-    LRF_KINOVA_STRUCT lrf_kinova_struct = GetLRFKinovaOption();
+    LRF_KINOVA_VERTICAL_CTRL_STRUCT lrf_kinova_struct = GetLRFKinovaVerticalOption();
 
     do{
-        mpc_rgb_d->GetLRFInfo(slope, current_distance, lrf_kinova_struct.s_deg, lrf_kinova_struct.e_deg);
+        double slope = 0;
+        double current_distance = 0;
 
-        double current_error = lrf_kinova_struct.desired_distance - current_distance;
+        mpc_rgb_d->GetLRFInfo(slope, current_distance, lrf_kinova_struct.s_deg, lrf_kinova_struct.e_deg, lrf_kinova_struct.inlier_lrf_dst);
+
+        double current_error = lrf_kinova_struct.desired_distance - current_distance;/*mm*/
+
+        std::cout << "C-LRF Data : " << current_distance<<std::endl;
+        std::cout << "D-LRF Data : " << lrf_kinova_struct.desired_distance<<std::endl;
 
         if(fabs(current_error) < lrf_kinova_struct.error){
             break;
@@ -414,6 +446,50 @@ bool CManipulation::LRFKinovaDepthControl(){
         else if(current_error > 0){
             mpc_kinova->KinovaMoveUnitStepBw();
         }
+
+        if(lrf_kinova_struct.loop_sleep != 0)
+            msleep(lrf_kinova_struct.loop_sleep/*msec*/);
+    }
+    while(true);
+
+    return true;
+}
+
+bool CManipulation::LRFKinovaHorizenControl(){
+
+    if(!mpc_lrf->IsLRFOn())
+        return false;
+    if(!mpc_kinova->IsKinovaInitialized())
+        return false;
+
+
+    LRF_KINOVA_HORIZEN_CTRL_STRUCT lrf_kinova_struct = GetLRFKinovaHorizenOption();
+
+    do{
+        double s_inlier_deg = 0;
+        double e_inlier_deg = 0;
+        double current_h_distance = 0;
+        double inlier_deg_avr = 0;
+        double inlier_deg_error = 0;
+
+        mpc_rgb_d->GetHorizenDistance(lrf_kinova_struct.inlier_lrf_dst, current_h_distance, s_inlier_deg, e_inlier_deg);
+
+        inlier_deg_avr = (s_inlier_deg + e_inlier_deg) / 2;
+        inlier_deg_error = inlier_deg_avr - lrf_kinova_struct.desired_inlier_deg_avr;
+
+        if(fabs(inlier_deg_error) < lrf_kinova_struct.error){
+            break;
+        }
+
+        if(inlier_deg_error < 0){
+            mpc_kinova->KinovaMoveUnitStepLe();
+        }
+        else if(inlier_deg_error > 0){
+            mpc_kinova->KinovaMoveUnitStepRi();
+        }
+
+        if(lrf_kinova_struct.loop_sleep != 0)
+            msleep(lrf_kinova_struct.loop_sleep/*msec*/);
 
     }
     while(true);
@@ -501,8 +577,11 @@ void CManipulation::run(){
 
     switch (m_main_fnc_index){
 
-    case MANIPUL_INX_LRF_KINOVA:
-        LRFKinovaDepthControl();
+    case MANIPUL_INX_LRF_KINOVA_VERTIVAL_CTRL:
+        LRFKinovaVerticalControl();
+        break;
+    case MANIPUL_INX_LRF_KINOVA_HORIZEN_CTRL:
+        LRFKinovaHorizenControl();
         break;
     case MANIPUL_INX_KINOVA_FORCE_CLRL:
         KinovaForceCtrl();

@@ -82,6 +82,8 @@ public:
     bool InterpreteGripperForceCtrl(QString _line, STEP_INFO& _step_info);
     bool InterpreteLRFVehicleAngleCtrl(QString _line, STEP_INFO& _step_info);
     bool InterpreteLRFVehicleHorizenCtrl(QString _line, STEP_INFO& _step_info);
+    bool InterpreteLRFKinovaVerticalCtrl(QString _line, STEP_INFO& _step_info);
+    bool InterpreteLRFKinovaHorizenCtrl(QString _line, STEP_INFO& _step_info);
 
 private:
     //-------------------------------------------------
