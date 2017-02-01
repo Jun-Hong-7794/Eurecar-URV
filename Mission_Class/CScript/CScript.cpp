@@ -345,6 +345,13 @@ bool CScript::InterpreteMissionScriptLine(QString _line, MISSION_SCRIPT* _missio
         else
             return false;
     }
+    if(_line.contains("GRIPPER_MAGNET_CTRL")){
+
+        if(InterpreteGripperMagnetCtrl(_line, _step_info))
+            return true;
+        else
+            return false;
+    }
 
     if(_line.contains("LRF_KINOVA_VERTICAL_CTRL")){
 
@@ -504,6 +511,32 @@ bool CScript::InterpreteGripperForceCtrl(QString _line, STEP_INFO& _step_info){
     return true;
 }
 
+bool CScript::InterpreteGripperMagnetCtrl(QString _line, STEP_INFO& _step_info){
+
+    if(_line.contains("GRIPPER_MAGNET_CTRL_STRUCT")){
+
+        if(_line.contains("fl_magnet")){
+            int colone_index = _line.indexOf("=");
+            QString str_option;
+            str_option = _line.mid(colone_index + 1).trimmed();
+
+            if(str_option.contains("true"))
+                _step_info.manipulation_option.gripper_magnet_option.fl_magnet = true;
+            else
+                _step_info.manipulation_option.gripper_magnet_option.fl_magnet = false;
+
+            return true;
+        }
+    }
+    else if(_line.contains("GRIPPER_MAGNET_CTRL_FUNCTION")){
+        _step_info.function_index = MP_GRIPPER_MAGNET_CONTROL;
+    }
+    else
+        return false;
+
+    return true;
+}
+
 bool CScript::InterpreteLRFVehicleAngleCtrl(QString _line, STEP_INFO& _step_info){
 
     if(_line.contains("LRF_VEHICLE_ANGLE_CTRL_STRUCT")){
@@ -615,6 +648,19 @@ bool CScript::InterpreteLRFKinovaVerticalCtrl(QString _line, STEP_INFO& _step_in
             return true;
         }
 
+        if(_line.contains("sensor_option")){
+            int colone_index = _line.indexOf("=");
+
+            QString str_option;
+            str_option = _line.mid(colone_index + 1).trimmed();
+
+            if(str_option.contains("true"))
+                _step_info.manipulation_option.lrf_kinova_vertical_option.sensor_option = true;
+            else
+                _step_info.manipulation_option.lrf_kinova_vertical_option.sensor_option = false;
+
+            return true;
+        }
     }
     else if(_line.contains("LRF_KINOVA_VERTICAL_CTRL_FUNCTION")){
         _step_info.function_index = MP_LRF_KINOVA_VERTIVAL_CONTROL;
@@ -657,6 +703,20 @@ bool CScript::InterpreteLRFKinovaHorizenCtrl(QString _line, STEP_INFO& _step_inf
         if(_line.contains("loop_sleep")){
             int colone_index = _line.indexOf("=");
             _step_info.manipulation_option.lrf_kinova_horizen_option.loop_sleep = _line.mid(colone_index + 1).trimmed().toDouble();
+            return true;
+        }
+
+        if(_line.contains("sensor_option")){
+            int colone_index = _line.indexOf("=");
+
+            QString str_option;
+            str_option = _line.mid(colone_index + 1).trimmed();
+
+            if(str_option.contains("true"))
+                _step_info.manipulation_option.lrf_kinova_horizen_option.sensor_option = true;
+            else
+                _step_info.manipulation_option.lrf_kinova_horizen_option.sensor_option = false;
+
             return true;
         }
 
@@ -773,6 +833,13 @@ bool CScript::MissionPlayer(){
             if(mpary_mission_script[i].step_vecor.at(j).function_index == MP_GRIPPER_FORCE_CONTROL){
                 mpc_manipulation->SetManipulationOption(mpary_mission_script[i].step_vecor.at(j).manipulation_option.gripper_force_option);
                 mpc_manipulation->SelectMainFunction(MANIPUL_INX_GRIPPER_FORCE_CLRL);
+
+                while(mpc_manipulation->isRunning());
+            }
+
+            if(mpary_mission_script[i].step_vecor.at(j).function_index == MP_GRIPPER_MAGNET_CONTROL){
+                mpc_manipulation->SetManipulationOption(mpary_mission_script[i].step_vecor.at(j).manipulation_option.gripper_magnet_option);
+                mpc_manipulation->SelectMainFunction(MANIPUL_INX_GRIPPER_MAGNET_CLRL);
 
                 while(mpc_manipulation->isRunning());
             }

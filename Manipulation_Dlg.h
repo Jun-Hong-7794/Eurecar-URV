@@ -94,9 +94,12 @@ public slots:
     //-------------------------------------------------
     // Edite Update
     //-------------------------------------------------
-
     void SlotEditeKinovaPosition(CartesianPosition _position);
     void SlotEditeKinovaForceVector(CartesianPosition _force_vector);
+
+    void SlotEditeLRFKinovaAngleStruct(LRF_KINOVA_ANGLE_CTRL_STRUCT _lrf_kinova_option);
+    void SlotEditeLRFKinovaHorizenStruct(LRF_KINOVA_HORIZEN_CTRL_STRUCT _lrf_kinova_option);
+    void SlotEditeLRFKinovaVertivalStruct(LRF_KINOVA_VERTICAL_CTRL_STRUCT _lrf_kinova_option);
 
     //-------------------------------------------------
     // View Update

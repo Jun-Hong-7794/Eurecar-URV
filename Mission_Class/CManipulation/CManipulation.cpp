@@ -292,6 +292,13 @@ bool CManipulation::SelectMainFunction(int _fnc_index_){
 
         return true;
     }
+    else if(_fnc_index_ == MANIPUL_INX_GRIPPER_MAGNET_CLRL){
+        m_main_fnc_index = MANIPUL_INX_GRIPPER_MAGNET_CLRL;
+        this->start();
+
+        return true;
+    }
+
     else if(_fnc_index_ == MANIPUL_INX_KINOVA_MANIPULATE){
         m_main_fnc_index = MANIPUL_INX_KINOVA_MANIPULATE;
         this->start();
@@ -390,6 +397,28 @@ GRIPPER_FORCE_CTRL_STRUCT CManipulation::GetGripperForceCtrlOption(){
     return gripper_force_ctrl;
 }
 
+void CManipulation::SetManipulationOption(GRIPPER_MAGNET_CTRL_STRUCT _manipulation_option){
+
+    mxt_gripper_magnet_ctrl.lock();
+    {
+        mstruct_gripper_magnet_ctrl = _manipulation_option;
+    }
+    mxt_gripper_magnet_ctrl.unlock();
+}
+
+GRIPPER_MAGNET_CTRL_STRUCT CManipulation::GetGripperMagnetCtrlOption(){
+
+    GRIPPER_MAGNET_CTRL_STRUCT gripper_magnet_ctrl;
+
+    mxt_gripper_magnet_ctrl.lock();
+    {
+        gripper_magnet_ctrl = mstruct_gripper_magnet_ctrl;
+    }
+    mxt_gripper_magnet_ctrl.unlock();
+
+    return gripper_magnet_ctrl;
+}
+
 void CManipulation::SetManipulationOption(KINOVA_DO_MANIPULATE_STRUCT _manipulation_option){
 
     mxt_kinova_manipulate.lock();
@@ -422,7 +451,6 @@ bool CManipulation::LRFKinovaVerticalControl(){
     if(!mpc_kinova->IsKinovaInitialized())
         return false;
 
-
     LRF_KINOVA_VERTICAL_CTRL_STRUCT lrf_kinova_struct = GetLRFKinovaVerticalOption();
 
     do{
@@ -433,6 +461,9 @@ bool CManipulation::LRFKinovaVerticalControl(){
 
         double current_error = lrf_kinova_struct.desired_distance - current_distance;/*mm*/
 
+        lrf_kinova_struct.slope = slope;
+        lrf_kinova_struct.current_distance = current_distance;
+
         std::cout << "C-LRF Data : " << current_distance<<std::endl;
         std::cout << "D-LRF Data : " << lrf_kinova_struct.desired_distance<<std::endl;
 
@@ -440,15 +471,19 @@ bool CManipulation::LRFKinovaVerticalControl(){
             break;
         }
 
-        if(current_error < 0){
-            mpc_kinova->KinovaMoveUnitStepFw();
-        }
-        else if(current_error > 0){
-            mpc_kinova->KinovaMoveUnitStepBw();
+        if(!lrf_kinova_struct.sensor_option){
+            if(current_error < 0){
+                mpc_kinova->KinovaMoveUnitStepFw();
+            }
+            else if(current_error > 0){
+                mpc_kinova->KinovaMoveUnitStepBw();
+            }
+
+            if(lrf_kinova_struct.loop_sleep != 0)
+                msleep(lrf_kinova_struct.loop_sleep/*msec*/);
         }
 
-        if(lrf_kinova_struct.loop_sleep != 0)
-            msleep(lrf_kinova_struct.loop_sleep/*msec*/);
+        emit SignalLRFKinovaVerticalStruct(lrf_kinova_struct);
     }
     while(true);
 
@@ -466,31 +501,40 @@ bool CManipulation::LRFKinovaHorizenControl(){
     LRF_KINOVA_HORIZEN_CTRL_STRUCT lrf_kinova_struct = GetLRFKinovaHorizenOption();
 
     do{
-        double s_inlier_deg = 0;
-        double e_inlier_deg = 0;
+        double inlier_s_deg = 0;
+        double inlier_e_deg = 0;
         double current_h_distance = 0;
         double inlier_deg_avr = 0;
         double inlier_deg_error = 0;
 
-        mpc_rgb_d->GetHorizenDistance(lrf_kinova_struct.inlier_lrf_dst, current_h_distance, s_inlier_deg, e_inlier_deg);
+        lrf_kinova_struct.inlier_deg_s_output = 0;
+        lrf_kinova_struct.inlier_deg_e_output = 0;
 
-        inlier_deg_avr = (s_inlier_deg + e_inlier_deg) / 2;
+        mpc_rgb_d->GetHorizenDistance(lrf_kinova_struct.inlier_lrf_dst, current_h_distance, inlier_s_deg, inlier_e_deg);
+
+        inlier_deg_avr = (lrf_kinova_struct.inlier_deg_s_output + lrf_kinova_struct.inlier_deg_e_output) / 2;
         inlier_deg_error = inlier_deg_avr - lrf_kinova_struct.desired_inlier_deg_avr;
+
+        lrf_kinova_struct.inlier_deg_s_output = inlier_s_deg;
+        lrf_kinova_struct.inlier_deg_e_output = inlier_e_deg;
+        lrf_kinova_struct.current_h_distance = current_h_distance;
 
         if(fabs(inlier_deg_error) < lrf_kinova_struct.error){
             break;
         }
 
-        if(inlier_deg_error < 0){
-            mpc_kinova->KinovaMoveUnitStepLe();
-        }
-        else if(inlier_deg_error > 0){
-            mpc_kinova->KinovaMoveUnitStepRi();
-        }
+        if(!lrf_kinova_struct.sensor_option){
+            if(inlier_deg_error < 0){
+                mpc_kinova->KinovaMoveUnitStepLe();
+            }
+            else if(inlier_deg_error > 0){
+                mpc_kinova->KinovaMoveUnitStepRi();
+            }
 
-        if(lrf_kinova_struct.loop_sleep != 0)
-            msleep(lrf_kinova_struct.loop_sleep/*msec*/);
-
+            if(lrf_kinova_struct.loop_sleep != 0)
+                msleep(lrf_kinova_struct.loop_sleep/*msec*/);
+        }
+        emit SignalLRFKinovaHorizenStruct(lrf_kinova_struct);
     }
     while(true);
 
@@ -567,6 +611,20 @@ bool CManipulation::GripperForceCtrl(){
     return true;
 }
 
+bool CManipulation::GripperMagnetCtrl(){
+
+    if(!mpc_vehicle->IsConnected())
+        return false;
+
+    GRIPPER_MAGNET_CTRL_STRUCT gripper_magnet_ctrl;
+
+    gripper_magnet_ctrl = GetGripperMagnetCtrlOption();
+
+    mpc_vehicle->ActiveMagnet(gripper_magnet_ctrl.fl_magnet);
+
+    return true;
+}
+
 //----------------------------------------------------------------
 //
 //                            Run Thread
@@ -588,6 +646,9 @@ void CManipulation::run(){
         break;
     case MANIPUL_INX_GRIPPER_FORCE_CLRL:
         GripperForceCtrl();
+        break;
+    case MANIPUL_INX_GRIPPER_MAGNET_CLRL:
+        GripperMagnetCtrl();
         break;
     case MANIPUL_INX_KINOVA_MANIPULATE:
         KinovaDoManipulate();

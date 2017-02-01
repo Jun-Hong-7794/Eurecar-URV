@@ -31,7 +31,8 @@
 #define MANIPUL_INX_LRF_KINOVA_ANGLE_CTRL       3
 #define MANIPUL_INX_KINOVA_FORCE_CLRL           4
 #define MANIPUL_INX_GRIPPER_FORCE_CLRL          5
-#define MANIPUL_INX_KINOVA_MANIPULATE           6
+#define MANIPUL_INX_GRIPPER_MAGNET_CLRL         6
+#define MANIPUL_INX_KINOVA_MANIPULATE           7
 
 class CManipulation:public QThread{
     Q_OBJECT
@@ -57,6 +58,9 @@ private:
 
     GRIPPER_FORCE_CTRL_STRUCT mstruct_gripper_force_ctrl;
     QMutex mxt_gripper_force_ctrl;
+
+    GRIPPER_MAGNET_CTRL_STRUCT mstruct_gripper_magnet_ctrl;
+    QMutex mxt_gripper_magnet_ctrl;
 
     KINOVA_DO_MANIPULATE_STRUCT mstruct_kinova_manipulate;
     QMutex mxt_kinova_manipulate;
@@ -134,6 +138,9 @@ public:
     void SetManipulationOption(GRIPPER_FORCE_CTRL_STRUCT _manipulation_option);
     GRIPPER_FORCE_CTRL_STRUCT GetGripperForceCtrlOption();
 
+    void SetManipulationOption(GRIPPER_MAGNET_CTRL_STRUCT _manipulation_option);
+    GRIPPER_MAGNET_CTRL_STRUCT GetGripperMagnetCtrlOption();
+
     void SetManipulationOption(KINOVA_DO_MANIPULATE_STRUCT _manipulation_option);
     KINOVA_DO_MANIPULATE_STRUCT GetKinovaManipulateOption();
 
@@ -146,10 +153,15 @@ private:
     bool KinovaForceCtrl();
     bool KinovaDoManipulate();
     bool GripperForceCtrl();
+    bool GripperMagnetCtrl();
 
 signals:
     void SignalKinovaPosition(CartesianPosition);
     void SignalKinovaForceVector(CartesianPosition);
+
+    void SignalLRFKinovaAngleStruct(LRF_KINOVA_ANGLE_CTRL_STRUCT);
+    void SignalLRFKinovaHorizenStruct(LRF_KINOVA_HORIZEN_CTRL_STRUCT);
+    void SignalLRFKinovaVerticalStruct(LRF_KINOVA_VERTICAL_CTRL_STRUCT);
 
     void SignalLRFImage(cv::Mat);
     void SignalCameraImage(cv::Mat);

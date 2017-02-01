@@ -620,9 +620,9 @@ void CKinova::KinovaAlignToPanel(){
     desired_point.Position.CartesianPosition.X = 0.25; //0.38487;
     desired_point.Position.CartesianPosition.Y = -0.3; //0.22056;
     desired_point.Position.CartesianPosition.Z = 0.35; //0.28821 + _param2*0.01;
-    desired_point.Position.CartesianPosition.ThetaZ = -0.5635;
+    desired_point.Position.CartesianPosition.ThetaZ = -0.8976;
     desired_point.Position.CartesianPosition.ThetaY = 1.57;
-    desired_point.Position.CartesianPosition.ThetaX = 1.57;
+    desired_point.Position.CartesianPosition.ThetaX = 1.39;
 
     Kinova_SendBasicTrajectory(desired_point);
 

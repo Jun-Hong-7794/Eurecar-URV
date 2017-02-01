@@ -48,6 +48,7 @@ public:
     bool Move(int _dir,int _vel);
     void CheckVolt();
 
+    bool ActiveMagnet(bool _on_off);
 
 };
 

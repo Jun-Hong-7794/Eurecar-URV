@@ -83,6 +83,25 @@ bool CVehicle::Move(int _dir, int _vel){
     return true;
 }
 
+bool CVehicle::ActiveMagnet(bool _on_off){
+
+    int command_rst = 0;
+
+    if(_on_off){
+        command_rst = mc_device.SetCommand(UGV_DEF_DRES, 6);
+    }
+    else{
+        command_rst = mc_device.SetCommand(UGV_DEF_DSET, 6);
+    }
+
+    if(command_rst != RQ_SUCCESS){
+        std::cout << "Fail to Set Command Active Magnet" << std::endl;
+        return false;
+    }
+
+    return true;
+}
+
 
 void CVehicle::CheckVolt(){
     int main_bat = 2;

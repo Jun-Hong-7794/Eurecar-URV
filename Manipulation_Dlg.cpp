@@ -65,7 +65,13 @@ Manipulation_Dlg::Manipulation_Dlg(CManipulation* _pc_manipulation, QWidget *par
     connect(mpc_manipulation, SIGNAL(SignalKinovaForceVector(CartesianPosition)), this, SLOT(SlotEditeKinovaForceVector(CartesianPosition)));
     connect(mpc_manipulation, SIGNAL(SignalLRFHorizentDistance(LRF_VEHICLE_HORIZEN_STRUCT)), this, SLOT(SlotLRFHorizentDistance(LRF_VEHICLE_HORIZEN_STRUCT)));
 
-//    connect(mpc_manipulation, SIGNAL(SignalLRFHorizentDistance(LRF_VEHICLE_ANGLE_STRUCT)), this, SLOT(SlotLRFHorizentDistance(LRF_VEHICLE_ANGLE_STRUCT)));
+    //Edit Update
+    connect(mpc_manipulation, SIGNAL(SignalLRFKinovaAngleStruct(LRF_KINOVA_ANGLE_CTRL_STRUCT)),
+            this, SLOT(SlotEditeLRFKinovaAngleStruct(LRF_KINOVA_ANGLE_CTRL_STRUCT)));
+    connect(mpc_manipulation, SIGNAL(SignalLRFKinovaHorizenStruct(LRF_KINOVA_HORIZEN_CTRL_STRUCT)),
+            this, SLOT(SlotEditeLRFKinovaHorizenStruct(LRF_KINOVA_HORIZEN_CTRL_STRUCT)));
+    connect(mpc_manipulation, SIGNAL(SignalLRFKinovaVerticalStruct(LRF_KINOVA_VERTICAL_CTRL_STRUCT)),
+            this, SLOT(SlotEditeLRFKinovaVertivalStruct(LRF_KINOVA_VERTICAL_CTRL_STRUCT)));
 
     //Check Button
     connect(ui->ck_segnet_switch, SIGNAL(clicked(bool)), this, SLOT(SlotButtonSegnetOn(bool)));
@@ -218,6 +224,34 @@ void Manipulation_Dlg::SlotEditeKinovaForceVector(CartesianPosition _force_vecto
 
     return;
 }
+
+void Manipulation_Dlg::SlotEditeLRFKinovaAngleStruct(LRF_KINOVA_ANGLE_CTRL_STRUCT _lrf_kinova_option){
+
+    ui->ed_lrf_slope->setText(QString::number(_lrf_kinova_option.slope));
+    ui->ed_lrf_distance->setText(QString::number(_lrf_kinova_option.current_distance));
+}
+
+void Manipulation_Dlg::SlotEditeLRFKinovaHorizenStruct(LRF_KINOVA_HORIZEN_CTRL_STRUCT _lrf_kinova_option){
+
+    ui->ed_lrf_horizen_s_deg->setText(QString::number(_lrf_kinova_option.inlier_deg_s_output));
+    ui->ed_lrf_horizen_e_deg->setText(QString::number(_lrf_kinova_option.inlier_deg_e_output));
+
+    double deg_avr = (_lrf_kinova_option.inlier_deg_s_output + _lrf_kinova_option.inlier_deg_e_output) / 2;
+    ui->ed_lrf_horizen_deg_avr->setText(QString::number(deg_avr));
+
+    ui->ed_lrf_horizen_distance->setText(QString::number(_lrf_kinova_option.current_h_distance));
+    ui->ed_lrf_horizen_inlier->setText(QString::number(_lrf_kinova_option.inlier_lrf_dst));
+
+
+}
+
+void Manipulation_Dlg::SlotEditeLRFKinovaVertivalStruct(LRF_KINOVA_VERTICAL_CTRL_STRUCT _lrf_kinova_option){
+
+    ui->ed_lrf_slope->setText(QString::number(_lrf_kinova_option.slope));
+    ui->ed_lrf_distance->setText(QString::number(_lrf_kinova_option.current_distance));
+
+}
+
 
 void Manipulation_Dlg::SlotButtonKinovaForceCtrl(){
 
