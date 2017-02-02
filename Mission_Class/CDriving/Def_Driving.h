@@ -1,8 +1,9 @@
 #ifndef DEF_DRIVING_H
 #define DEF_DRIVING_H
 
-#define DR_LRF_VEHICLE_ANGLE_CONTROL         0x1000
-#define DR_LRF_VEHICLE_HORIZEN_CONTROL       0x1001
+#define DR_VELODYNE_VEHICLE_CONTROL          0x1000
+#define DR_LRF_VEHICLE_ANGLE_CONTROL         0x1001
+#define DR_LRF_VEHICLE_HORIZEN_CONTROL       0x1002
 
 typedef struct _Driving_struct{
 
@@ -36,6 +37,8 @@ typedef struct _LRF_Vehicle_Horizen_Struct{
     double error_deg_boundary;//average of inlier degree
 
     double velocity;
+
+    bool sensor_option;
     /////////////////////
 
 }LRF_VEHICLE_HORIZEN_STRUCT;
@@ -57,6 +60,8 @@ typedef struct _LRF_Vehicle_Angle_Struct{
     double e_deg;
 
     double velocity;
+
+    bool sensor_option;
     /////////////////////
 
 }LRF_VEHICLE_ANGLE_STRUCT;

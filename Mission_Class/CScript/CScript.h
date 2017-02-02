@@ -85,6 +85,7 @@ public:
     bool InterpreteLRFVehicleHorizenCtrl(QString _line, STEP_INFO& _step_info);
     bool InterpreteLRFKinovaVerticalCtrl(QString _line, STEP_INFO& _step_info);
     bool InterpreteLRFKinovaHorizenCtrl(QString _line, STEP_INFO& _step_info);
+    bool InterpreteKinovaRotateValveCtrl(QString _line, STEP_INFO& _step_info);
 
 private:
     //-------------------------------------------------

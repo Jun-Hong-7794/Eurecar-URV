@@ -22,6 +22,8 @@
 #define STEP_NUM        5 // unit
 #define SLEEP_TIME      5000
 
+typedef enum Direction {CW, CCW} VALVE_ROTATE_DIR;
+
 class CKinova: public QThread{
     Q_OBJECT
 protected:
@@ -80,6 +82,8 @@ public://Function pointers to the functions we need
 
     int (*Kinova_GetQuickStatus)(QuickStatus &);
     int (*Kinova_GetCartesianForce)(CartesianPosition &);
+
+
 private:
     double m_scan_unit_step;
     double m_scan_current_step;
@@ -89,6 +93,15 @@ private:
     double m_scan_next_z;
 
     CartesianPosition m_cartisian_ref_position;
+
+    /*---------------------------------------------*/
+    double theta; // [deg]
+    double x_coord;
+    double y_coord;
+    double z_coord;
+    double initialAngle; // [deg]
+    bool fl_center_init;
+    /*---------------------------------------------*/
 
 public: // Basic Motion
     void KinovaInitMotion();
@@ -110,8 +123,8 @@ public: // Basic Motion
     bool KinovaMoveUnitStepFw();
     bool KinovaMoveUnitStepBw();
 
-
-
+    void SetKinovaRotateValve(bool _using_current_coord, double _x, double _y, double _z);
+    void KinovaRotateValveMotion(VALVE_ROTATE_DIR _dir, int _radius, int _theta);
 
     bool Kinova_Do_Manipulate(JoystickCommand _desired_command);
 
@@ -130,9 +143,6 @@ public: // Basic Motion
     void Kinova_Do_Wrench_Scan(double _kinova_rel_pos);
 
 public:// Complex Motion
-
-    void Kinova_Ratate_Valve_Motion(double _param1,double _param2,double _param3,double _param4,double _param5,double _parm6);
-
 
 
     void Kinova_GoTo_Wrench();

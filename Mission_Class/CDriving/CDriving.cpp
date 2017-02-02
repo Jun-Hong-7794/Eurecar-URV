@@ -16,6 +16,7 @@ CDriving::CDriving(CGPS* _p_gps, CLRF* _p_lrf, CCamera* _p_camera, CKinova* _p_k
     mpc_rgb_d = new CRGBD(_p_lrf);
 
     connect(mpc_velodyne,SIGNAL(SignalVelodyneParser(bool)),this,SIGNAL(SignalVelodyneParser(bool)));
+    connect(mpc_rgb_d,SIGNAL(SignalLRFMapImage(cv::Mat)),this,SIGNAL(SignalLRFMapImage(cv::Mat)));
 }
 
 CDriving::~CDriving(){
@@ -261,10 +262,6 @@ bool CDriving::DriveToPanel(){
     }
 
     do{
-//        driving_struct = GetDrivingOption();
-
-//        mpc_vehicle->Move(driving_struct.direction, driving_struct.velocity);
-
         int heading_control_flag = GetPanelHeadingError();
         vector<double> panel_loc_info = mpc_velodyne->GetPanelCenterLoc();
 
@@ -314,46 +311,55 @@ bool CDriving::ParkingFrontPanel(){
 
 bool CDriving::LRFVehicleHorizenControl(){
 
-    if(!mpc_drive_lrf->IsLRFOn())
-        return false;
-
     double inlier_distance = 0;
-    double horizen_distance = 0;
-    double s_inlier_deg = 0;
-    double e_inlier_deg = 0;
 
     LRF_VEHICLE_HORIZEN_STRUCT lrf_vehicle = GetLRFVehicleHorizenOption();
     inlier_distance = lrf_vehicle.inlier_distance;
+
+    if(!mpc_drive_lrf->IsLRFOn())
+        return false;
+
+    if(!lrf_vehicle.sensor_option){
+        if(!mpc_vehicle->IsConnected())
+            return false;
+    }
 
     do{
         int direction = 0;
         double current_a_inlier_deg = 0;
         double a_deg_boundary = 0;
 
+        double horizen_distance = 0;
+        double s_inlier_deg = 0;
+        double e_inlier_deg = 0;
+
         mpc_rgb_d->GetHorizenDistance(inlier_distance, horizen_distance, s_inlier_deg, e_inlier_deg);
 
         current_a_inlier_deg = (s_inlier_deg + e_inlier_deg) / 2;
         a_deg_boundary = lrf_vehicle.desired_avr_inlier_deg - current_a_inlier_deg;
-
-        if(lrf_vehicle.error_deg_boundary > fabs(a_deg_boundary)){
-            break;
-        }
-
-        if(a_deg_boundary < 0){
-            direction = UGV_move_forward;
-        }
-        else{
-            direction = UGV_move_backward;
-        }
-
-        mpc_vehicle->Move(direction, lrf_vehicle.velocity);
 
         lrf_vehicle.horizen_distance = horizen_distance;
 
         lrf_vehicle.s_inlier_deg = s_inlier_deg;
         lrf_vehicle.e_inlier_deg = e_inlier_deg;
 
-//        emit SignalLRFHorizentDistance(lrf_vehicle);
+        emit SignalLRFVehicleHorizenStruct(lrf_vehicle);
+
+        if(lrf_vehicle.error_deg_boundary > fabs(a_deg_boundary)){
+            break;
+        }
+
+        if(!lrf_vehicle.sensor_option){
+            if(a_deg_boundary < 0){
+                direction = UGV_move_forward;
+            }
+            else{
+                direction = UGV_move_backward;
+            }
+            mpc_vehicle->Move(direction, lrf_vehicle.velocity);
+        }
+
+
     }while(true);
 
     mpc_vehicle->Move(UGV_move_forward, 0);
@@ -363,11 +369,15 @@ bool CDriving::LRFVehicleHorizenControl(){
 
 bool CDriving::LRFVehicleAngleControl(){
 
+    LRF_VEHICLE_ANGLE_STRUCT lrf_vehicle = GetLRFVehicleAngleOption();
+
+    if(!lrf_vehicle.sensor_option){
+        if(!mpc_vehicle->IsConnected())
+            return false;
+    }
+
     if(!mpc_drive_lrf->IsLRFOn())
         return false;
-
-
-    LRF_VEHICLE_ANGLE_STRUCT lrf_vehicle = GetLRFVehicleAngleOption();
 
     do{
         int direction = 0;
@@ -379,20 +389,27 @@ bool CDriving::LRFVehicleAngleControl(){
 
         mpc_rgb_d->GetLRFInfo(slope, distance, lrf_vehicle.s_deg, lrf_vehicle.e_deg);
 
-        slope_error = lrf_vehicle.desired_angle - slope;
+        lrf_vehicle.angle = slope;
+        lrf_vehicle.vertical_distance = distance;
+
+        slope_error = lrf_vehicle.desired_angle - lrf_vehicle.angle;
+
+        emit SignalLRFVehicleAngleStruct(lrf_vehicle);
 
         if(lrf_vehicle.error_boundary > fabs(slope_error)){
             break;
         }
 
-        if(slope_error < 0){
-            direction = UGV_move_left;
-        }
-        else{
-            direction = UGV_move_right;
-        }
+        if(!lrf_vehicle.sensor_option){
+            if(slope_error < 0){
+                direction = UGV_move_left;
+            }
+            else{
+                direction = UGV_move_right;
+            }
 
-        mpc_vehicle->Move(direction, lrf_vehicle.velocity);
+            mpc_vehicle->Move(direction, lrf_vehicle.velocity);
+        }
 
     }while(true);
 

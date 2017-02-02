@@ -105,6 +105,23 @@ typedef struct _Kinova_Do_Manipulate_Struct{
 
 }KINOVA_DO_MANIPULATE_STRUCT;
 
+typedef struct _Kinova_Rotate_Valve_Struct{
+
+    bool kinova_rotate_valve_mission;
+
+    bool using_current_coord;
+
+    double center_x;
+    double center_y;
+    double center_z;
+
+    double theta;
+    double radius;
+
+    double forece_threshold;
+
+}KINOVA_ROTATE_VALVE_STRUCT;
+
 typedef struct _Gripper_Force_Ctrl_Struct{
 
     bool gripper_force_ctrl_mission;
@@ -132,6 +149,8 @@ typedef struct _Manipulation_Option{
     LRF_KINOVA_HORIZEN_CTRL_STRUCT lrf_kinova_horizen_option;
 
     KINOVA_FORCE_CTRL_STRUCT kinova_force_option;
+
+    KINOVA_ROTATE_VALVE_STRUCT kinova_rotate_valve_option;
 
     KINOVA_DO_MANIPULATE_STRUCT kinova_manipulate_option;
 

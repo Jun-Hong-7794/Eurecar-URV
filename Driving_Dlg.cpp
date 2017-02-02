@@ -12,6 +12,14 @@ Driving_Dlg::Driving_Dlg(CDriving* _pc_driving,QWidget *parent):
     qRegisterMetaType<cv::Mat>("cv::Mat");
 
     //-------------------------------------------------
+    // Graphic Scene Initialize
+    //-------------------------------------------------
+    int lrf_view_width  = ui->view_driving_lrf->geometry().width();
+    int lrf_view_height = ui->view_driving_lrf->geometry().height();
+
+    mp_lrf_image_grahicscene = new QGraphicsScene(QRectF(0, 0, lrf_view_width, lrf_view_height), 0);
+
+    //-------------------------------------------------
     // Connection
     //-------------------------------------------------
 
@@ -36,7 +44,14 @@ Driving_Dlg::Driving_Dlg(CDriving* _pc_driving,QWidget *parent):
 
     // Velodyne View Connect
     connect(mpc_drivig,SIGNAL(SignalVelodyneParser(bool)),this,SLOT(SlotVeloyneParser(bool)));
+    // LRF View Connect
+    connect(mpc_drivig,SIGNAL(SignalLRFMapImage(cv::Mat)),this,SLOT(SlotLRFMapImage(cv::Mat)));
 
+    //Edit Update
+    connect(mpc_drivig,SIGNAL(SignalLRFVehicleAngleStruct(LRF_VEHICLE_ANGLE_STRUCT)),
+            this,SLOT(SlotLRFVehicleAngleStructUpdate(LRF_VEHICLE_ANGLE_STRUCT)));
+    connect(mpc_drivig,SIGNAL(SignalLRFVehicleHorizenStruct(LRF_VEHICLE_HORIZEN_STRUCT)),
+            this,SLOT(SlotLRFVehicleHorizenStructUpdate(LRF_VEHICLE_HORIZEN_STRUCT)));
 }
 
 
@@ -163,7 +178,85 @@ void Driving_Dlg::SlotVeloyneParser(bool _parser_complete){
     }
 }
 
+void Driving_Dlg::SlotLRFMapImage(cv::Mat _image){
+
+    Display_Image(_image,mp_lrf_image_grahicscene,ui->view_driving_lrf);
+}
+
 void Driving_Dlg::on_rd_vehicle_dir_forward_clicked()
 {
 
 }
+
+QImage Driving_Dlg::Mat2QImage(cv::Mat src){
+
+    cv::Mat temp; // make the same cv::Mat
+    cvtColor(src, temp,CV_BGR2RGB); // cvtColor Makes a copt, that what i need
+    QImage dest((const uchar *) temp.data, temp.cols, temp.rows, temp.step, QImage::Format_RGB888);
+    dest.bits(); // enforce deep copy, see documentation
+    // of QImage::QImage ( const uchar * data, int width, int height, Format format )
+    return dest;
+}
+
+void Driving_Dlg::Display_Image(cv::Mat _img, QGraphicsScene* _graphics_scene,QGraphicsView* _graphics_view,bool _fl_clear){
+
+    if(_fl_clear){
+        _graphics_scene->clear();
+        _graphics_view->viewport()->update();
+        return;
+    }
+    if(_img.rows <= 1 || _img.cols <= 1)
+        return;
+
+    cv::resize(_img,_img,cv::Size(),0.5,0.5);
+
+    QImage tmp_qimg;
+    QPixmap tmp_qpix;
+
+    tmp_qimg = this->Mat2QImage(_img);
+    tmp_qpix.convertFromImage(tmp_qimg);
+
+    _graphics_scene->clear();
+    //_graphics_scene = new QGraphicsScene(QRectF(0, 0, width, height), 0);
+    _graphics_scene->addPixmap(tmp_qpix.scaled(QSize(
+                        (int)_graphics_scene->width(), (int)_graphics_scene->height()),
+                        Qt::KeepAspectRatio, Qt::SmoothTransformation));
+
+    _graphics_view->fitInView(
+                QRectF(0, 0, _graphics_view->geometry().width(), _graphics_view->geometry().height()),
+                    Qt::KeepAspectRatio);
+
+    _graphics_view->setScene(_graphics_scene);
+    _graphics_view->show();
+}
+
+//-------------------------------------------------
+// Edit View
+//-------------------------------------------------
+
+void Driving_Dlg::SlotLRFVehicleAngleStructUpdate(LRF_VEHICLE_ANGLE_STRUCT _lrf_struct){
+
+    ui->ed_driving_lrf_v_distance->setText(QString::number(_lrf_struct.vertical_distance));
+    ui->ed_driving_lrf_slope->setText(QString::number(_lrf_struct.angle));
+}
+
+void Driving_Dlg::SlotLRFVehicleHorizenStructUpdate(LRF_VEHICLE_HORIZEN_STRUCT _lrf_struct){
+
+    ui->ed_driving_lrf_h_distance->setText(QString::number(_lrf_struct.horizen_distance));
+
+    ui->ed_driving_lrf_s_deg->setText(QString::number(_lrf_struct.s_inlier_deg));
+    ui->ed_driving_lrf_e_deg->setText(QString::number(_lrf_struct.e_inlier_deg));
+
+    double avr_deg = (_lrf_struct.s_inlier_deg + _lrf_struct.e_inlier_deg) / 2;
+    ui->ed_driving_lrf_avr_deg->setText(QString::number(avr_deg));
+}
+
+
+
+
+
+
+
+
+
+

@@ -305,6 +305,12 @@ bool CManipulation::SelectMainFunction(int _fnc_index_){
 
         return true;
     }
+    else if(_fnc_index_ == MANIPUL_INX_KINOVA_ROTATE_VALVE){
+        m_main_fnc_index = MANIPUL_INX_KINOVA_ROTATE_VALVE;
+        this->start();
+
+        return true;
+    }
     else
         return false;
 }
@@ -439,6 +445,28 @@ KINOVA_DO_MANIPULATE_STRUCT CManipulation::GetKinovaManipulateOption(){
     mxt_kinova_manipulate.unlock();
 
     return kinova_manipulate;
+}
+
+void CManipulation::SetManipulationOption(KINOVA_ROTATE_VALVE_STRUCT _manipulation_option){
+
+    mxt_kinova_rotate_valve.lock();
+    {
+        mstruct_kinova_rotate_valve= _manipulation_option;
+    }
+    mxt_kinova_rotate_valve.unlock();
+}
+
+KINOVA_ROTATE_VALVE_STRUCT CManipulation::GetKinovaRotateValveOption(){
+
+    KINOVA_ROTATE_VALVE_STRUCT kinova_rotate_valve;
+
+    mxt_kinova_rotate_valve.lock();
+    {
+        kinova_rotate_valve = mstruct_kinova_rotate_valve;
+    }
+    mxt_kinova_rotate_valve.unlock();
+
+    return kinova_rotate_valve;
 }
 
 //----------------------------------------------------------------
@@ -595,6 +623,16 @@ bool CManipulation::KinovaDoManipulate(){
     return true;
 }
 
+bool CManipulation::KinovaRotateValveMotion(){
+
+    KINOVA_ROTATE_VALVE_STRUCT kinova_rotate_valve = GetKinovaRotateValveOption();
+
+    mpc_kinova->SetKinovaRotateValve(kinova_rotate_valve.using_current_coord, kinova_rotate_valve.center_x, kinova_rotate_valve.center_y, kinova_rotate_valve.center_z);
+    mpc_kinova->KinovaRotateValveMotion(VALVE_ROTATE_DIR(CCW), kinova_rotate_valve.radius, kinova_rotate_valve.theta);
+
+    return true;
+}
+
 bool CManipulation::GripperForceCtrl(){
 
     if(!mpc_gripper->IsDmxInit())
@@ -652,6 +690,9 @@ void CManipulation::run(){
         break;
     case MANIPUL_INX_KINOVA_MANIPULATE:
         KinovaDoManipulate();
+        break;
+    case MANIPUL_INX_KINOVA_ROTATE_VALVE:
+        KinovaRotateValveMotion();
         break;
     default:
         break;

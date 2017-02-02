@@ -87,6 +87,7 @@ public slots:
 
 signals:
     void SignalVelodyneParser(bool);
+
 };
 
 #endif // CVELODYNE_H

@@ -337,6 +337,13 @@ bool CScript::InterpreteMissionScriptLine(QString _line, MISSION_SCRIPT* _missio
         else
             return false;
     }
+    if(_line.contains("KINOVA_ROTATE_VALVE")){
+
+        if(InterpreteKinovaRotateValveCtrl(_line, _step_info))
+            return true;
+        else
+            return false;
+    }
 
     if(_line.contains("GRIPPER_FORCE_CTRL")){
 
@@ -568,6 +575,20 @@ bool CScript::InterpreteLRFVehicleAngleCtrl(QString _line, STEP_INFO& _step_info
             return true;
         }
 
+        if(_line.contains("sensor_option")){
+            int colone_index = _line.indexOf("=");
+
+            QString str_option;
+            str_option = _line.mid(colone_index + 1).trimmed();
+
+            if(str_option.contains("true"))
+                _step_info.driving_option.lrf_vehicle_angle_option.sensor_option = true;
+            else
+                _step_info.driving_option.lrf_vehicle_angle_option.sensor_option = false;
+
+            return true;
+        }
+
     }
     else if(_line.contains("LRF_VEHICLE_ANGLE_CTRL_FUNCTION")){
         _step_info.function_index = DR_LRF_VEHICLE_ANGLE_CONTROL;
@@ -600,6 +621,20 @@ bool CScript::InterpreteLRFVehicleHorizenCtrl(QString _line, STEP_INFO& _step_in
         if(_line.contains("velocity")){
             int colone_index = _line.indexOf("=");
             _step_info.driving_option.lrf_vehicle_horizen_option.velocity = _line.mid(colone_index + 1).trimmed().toDouble();
+            return true;
+        }
+
+        if(_line.contains("sensor_option")){
+            int colone_index = _line.indexOf("=");
+
+            QString str_option;
+            str_option = _line.mid(colone_index + 1).trimmed();
+
+            if(str_option.contains("true"))
+                _step_info.driving_option.lrf_vehicle_horizen_option.sensor_option = true;
+            else
+                _step_info.driving_option.lrf_vehicle_horizen_option.sensor_option = false;
+
             return true;
         }
 
@@ -730,6 +765,60 @@ bool CScript::InterpreteLRFKinovaHorizenCtrl(QString _line, STEP_INFO& _step_inf
     return true;
 }
 
+bool CScript::InterpreteKinovaRotateValveCtrl(QString _line, STEP_INFO& _step_info){
+
+    if(_line.contains("KINOVA_ROTATE_VALVE_STRUCT")){
+
+        if(_line.contains("center_x")){
+            int colone_index = _line.indexOf("=");
+            _step_info.manipulation_option.kinova_rotate_valve_option.center_x = _line.mid(colone_index + 1).trimmed().toDouble();
+            return true;
+        }
+        if(_line.contains("center_y")){
+            int colone_index = _line.indexOf("=");
+            _step_info.manipulation_option.kinova_rotate_valve_option.center_y = _line.mid(colone_index + 1).trimmed().toDouble();
+            return true;
+        }
+        if(_line.contains("center_z")){
+            int colone_index = _line.indexOf("=");
+            _step_info.manipulation_option.kinova_rotate_valve_option.center_z = _line.mid(colone_index + 1).trimmed().toDouble();
+            return true;
+        }
+        if(_line.contains("theta")){
+            int colone_index = _line.indexOf("=");
+            _step_info.manipulation_option.kinova_rotate_valve_option.theta = _line.mid(colone_index + 1).trimmed().toDouble();
+            return true;
+        }
+        if(_line.contains("radius")){
+            int colone_index = _line.indexOf("=");
+            _step_info.manipulation_option.kinova_rotate_valve_option.radius = _line.mid(colone_index + 1).trimmed().toDouble();
+            return true;
+        }
+
+        if(_line.contains("using_current_coord")){
+            int colone_index = _line.indexOf("=");
+
+            QString str_option;
+            str_option = _line.mid(colone_index + 1).trimmed();
+
+            if(str_option.contains("true"))
+                _step_info.manipulation_option.kinova_rotate_valve_option.using_current_coord = true;
+            else
+                _step_info.manipulation_option.kinova_rotate_valve_option.using_current_coord = false;
+
+            return true;
+        }
+
+    }
+    else if(_line.contains("KINOVA_ROTATE_VALVE_FUNCTION")){
+        _step_info.function_index = MP_KINOVA_ROTATE_VALVE;
+    }
+    else
+        return false;
+
+    return true;
+}
+
 //----------------------------------------------------------------
 //
 //                          Player Function
@@ -852,6 +941,12 @@ bool CScript::MissionPlayer(){
                 while(mpc_manipulation->isRunning());
             }
 
+            if(mpary_mission_script[i].step_vecor.at(j).function_index == MP_KINOVA_ROTATE_VALVE){
+                mpc_manipulation->SetManipulationOption(mpary_mission_script[i].step_vecor.at(j).manipulation_option.kinova_rotate_valve_option);
+                mpc_manipulation->SelectMainFunction(MANIPUL_INX_KINOVA_ROTATE_VALVE);
+
+                while(mpc_manipulation->isRunning());
+            }
 
             if(mpary_mission_script[i].step_vecor.at(j).after__sleep != 0)
                 msleep(mpary_mission_script[i].step_vecor.at(j).after__sleep);

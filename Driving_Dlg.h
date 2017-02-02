@@ -41,7 +41,11 @@ public:
 
 private:
     Ui::Driving_Dlg *ui;
-
+private:
+    //-------------------------------------------------
+    // View
+    //-------------------------------------------------
+    QGraphicsScene *mp_lrf_image_grahicscene;
 private:
     //-------------------------------------------------
     // Mission Class
@@ -50,6 +54,10 @@ private:
 
 public:
     void InitDlg(CDriving* _p_driving);
+
+public://Display Image to Qt Graphicview
+    QImage Mat2QImage(cv::Mat src);
+    void Display_Image(cv::Mat,QGraphicsScene*,QGraphicsView*,bool _fl_clear = false);
 
 public slots:
     //-------------------------------------------------
@@ -63,9 +71,17 @@ public slots:
 
     void SlotButtonVelodyneConnet();
 
-    // Velodyne View
+    //-------------------------------------------------
+    // View
+    //-------------------------------------------------
     void SlotVeloyneParser(bool _parser_complete);
+    void SlotLRFMapImage(cv::Mat _lrf_image);
 
+    //-------------------------------------------------
+    // Edit Update
+    //-------------------------------------------------
+    void SlotLRFVehicleAngleStructUpdate(LRF_VEHICLE_ANGLE_STRUCT);
+    void SlotLRFVehicleHorizenStructUpdate(LRF_VEHICLE_HORIZEN_STRUCT);
 
 private slots:
     void on_rd_vehicle_dir_forward_clicked();

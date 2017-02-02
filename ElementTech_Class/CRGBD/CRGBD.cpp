@@ -87,6 +87,8 @@ void CRGBD::GetLRFInfo(double &_slope, double &_distance, double _s_deg, double 
             ClaculateLRFHeightDistance(lrf_distance, _s_deg, _e_deg, point_vec, _inlier_lrf_dst);
 
             optimal_line_eq_vec.push_back(EstimateLineEquation(point_vec));
+
+            emit SignalLRFMapImage(LRFDataToMat(point_vec, 1000, 1000));
         }
     }
 
@@ -107,8 +109,8 @@ void CRGBD::GetHorizenDistance(double _inlier_distance,double& _horizen_distance
 
     //Convert to Original Coordinate
 
-    double s_deg = 10;
-    double e_deg = 170;
+    double s_deg = 20;
+    double e_deg = 160;
     int s_index = (int)((s_deg + 45) / ANGLE_RESOLUTION);
     int e_index = (int)((e_deg + 45) / ANGLE_RESOLUTION);
 
@@ -182,6 +184,12 @@ LINE_PARAM CRGBD::EstimateLineEquation(std::vector<POINT_PARAM>& _point_vec){
     LINE_PARAM optimal_line_eq;
     LINE_PARAM line_parameter;
 
+    if(random_max_num <= 0){
+        optimal_line_eq.a = 999;
+        optimal_line_eq.b = -999;
+        optimal_line_eq.yaw = 999;
+        return optimal_line_eq;
+    }
     std::vector<LINE_PARAM> line_eq_vector;
 
     std::srand((unsigned int)time(NULL));

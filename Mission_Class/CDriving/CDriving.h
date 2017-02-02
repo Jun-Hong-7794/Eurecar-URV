@@ -116,6 +116,11 @@ public:
 signals:
     void SignalVelodyneParser(bool _parser_complete);
 
+    //View
+    void SignalLRFMapImage(cv::Mat);
+    //Display
+    void SignalLRFVehicleAngleStruct(LRF_VEHICLE_ANGLE_STRUCT);
+    void SignalLRFVehicleHorizenStruct(LRF_VEHICLE_HORIZEN_STRUCT);
 };
 
 #endif // CDRIVING_H

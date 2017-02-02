@@ -33,6 +33,7 @@
 #define MANIPUL_INX_GRIPPER_FORCE_CLRL          5
 #define MANIPUL_INX_GRIPPER_MAGNET_CLRL         6
 #define MANIPUL_INX_KINOVA_MANIPULATE           7
+#define MANIPUL_INX_KINOVA_ROTATE_VALVE         8
 
 class CManipulation:public QThread{
     Q_OBJECT
@@ -64,6 +65,9 @@ private:
 
     KINOVA_DO_MANIPULATE_STRUCT mstruct_kinova_manipulate;
     QMutex mxt_kinova_manipulate;
+
+    KINOVA_ROTATE_VALVE_STRUCT mstruct_kinova_rotate_valve;
+    QMutex mxt_kinova_rotate_valve;
     //-------------------------------------------------
     // ElementTech Class
     //-------------------------------------------------
@@ -100,6 +104,7 @@ public:
     bool KinovaMoveUnitStepLe();
     bool KinovaMoveUnitStepFw();
     bool KinovaMoveUnitStepBw();
+
 
     //LRF
     bool InitLRF(char* _dev_path = (char *)"/dev/ttyACM0", int _dev_type = UST_20LX);
@@ -144,14 +149,20 @@ public:
     void SetManipulationOption(KINOVA_DO_MANIPULATE_STRUCT _manipulation_option);
     KINOVA_DO_MANIPULATE_STRUCT GetKinovaManipulateOption();
 
+    void SetManipulationOption(KINOVA_ROTATE_VALVE_STRUCT _manipulation_option);
+    KINOVA_ROTATE_VALVE_STRUCT GetKinovaRotateValveOption();
+
 private:
     //-------------------------------------------------
     // Main Function
     //-------------------------------------------------
     bool LRFKinovaVerticalControl();
     bool LRFKinovaHorizenControl();
+
     bool KinovaForceCtrl();
     bool KinovaDoManipulate();
+    bool KinovaRotateValveMotion();
+
     bool GripperForceCtrl();
     bool GripperMagnetCtrl();
 

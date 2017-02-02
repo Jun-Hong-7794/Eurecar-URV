@@ -8,6 +8,7 @@ EurecarURV_Dlg::EurecarURV_Dlg(QWidget *parent) :
     ui->setupUi(this);
 
     qRegisterMetaType<CartesianPosition>("CartesianPosition");
+    qRegisterMetaType<LRF_VEHICLE_ANGLE_STRUCT>("LRF_VEHICLE_ANGLE_STRUCT");
     qRegisterMetaType<LRF_VEHICLE_HORIZEN_STRUCT>("LRF_VEHICLE_HORIZEN_STRUCT");
     qRegisterMetaType<LRF_KINOVA_ANGLE_CTRL_STRUCT>("LRF_KINOVA_ANGLE_CTRL_STRUCT");
     qRegisterMetaType<LRF_KINOVA_HORIZEN_CTRL_STRUCT>("LRF_KINOVA_HORIZEN_CTRL_STRUCT");
