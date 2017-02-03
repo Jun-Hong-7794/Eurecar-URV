@@ -333,7 +333,7 @@ bool CDriving::LRFVehicleHorizenControl(){
         double s_inlier_deg = 0;
         double e_inlier_deg = 0;
 
-        mpc_rgb_d->GetHorizenDistance(inlier_distance, horizen_distance, s_inlier_deg, e_inlier_deg);
+        mpc_rgb_d->GetHorizenDistance(inlier_distance, horizen_distance, s_inlier_deg, e_inlier_deg, lrf_vehicle.s_inlier_deg, lrf_vehicle.e_inlier_deg);
 
         current_a_inlier_deg = (s_inlier_deg + e_inlier_deg) / 2;
         a_deg_boundary = lrf_vehicle.desired_avr_inlier_deg - current_a_inlier_deg;

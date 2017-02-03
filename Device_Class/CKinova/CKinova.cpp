@@ -418,7 +418,7 @@ void CKinova::KinovaRotateValveMotion(VALVE_ROTATE_DIR _dir, int _radius, int _t
 
         fl_center_init = true;
     }
-
+    theta = 0.0;
     for(double i = 1; i <= _theta/5; i++){
         if(_dir == CW){
             theta += 5*3.14159265359/180;
@@ -427,9 +427,9 @@ void CKinova::KinovaRotateValveMotion(VALVE_ROTATE_DIR _dir, int _radius, int _t
             theta -= 5*3.14159265359/180;
         }
         position.Coordinates.X = x_coord; //0.38487;
-        position.Coordinates.Y = y_coord - _radius*0.01*sin(initialAngle+theta); //0.22056 - _param2*0.01*sin(theta);
-        position.Coordinates.Z = z_coord + _radius*0.01*cos(initialAngle+theta); //0.28821 + _param2*0.01*cos(theta);
-        position.Coordinates.ThetaZ = initialAngle + theta;
+        position.Coordinates.Y = y_coord - _radius*0.01*sin(initialAngle*3.14159265359/180+theta); //0.22056 - _param2*0.01*sin(theta);
+        position.Coordinates.Z = z_coord + _radius*0.01*cos(initialAngle*3.14159265359/180+theta); //0.28821 + _param2*0.01*cos(theta);
+        position.Coordinates.ThetaZ = -1.1+initialAngle*3.14159265359/180 + theta;
         position.Coordinates.ThetaY = 1.57;
         position.Coordinates.ThetaX = 1.57;
         KinovaDoManipulate(position, 2);
@@ -626,14 +626,16 @@ void CKinova::KinovaAlignToPanel(){
     TrajectoryPoint desired_point;
     desired_point.InitStruct();
 
-    desired_point.Position.CartesianPosition.X = 0.25; //0.38487;
-    desired_point.Position.CartesianPosition.Y = -0.3; //0.22056;
-    desired_point.Position.CartesianPosition.Z = 0.35; //0.28821 + _param2*0.01;
-    desired_point.Position.CartesianPosition.ThetaZ = -0.8976;
+    desired_point.Position.CartesianPosition.X = 0.1797; //0.38487;
+    desired_point.Position.CartesianPosition.Y = -0.2992; //0.22056;
+    desired_point.Position.CartesianPosition.Z = 0.3900; //0.28821 + _param2*0.01;
+    desired_point.Position.CartesianPosition.ThetaZ = -1.1;//0.2535;
     desired_point.Position.CartesianPosition.ThetaY = 1.57;
-    desired_point.Position.CartesianPosition.ThetaX = 1.39;
+    desired_point.Position.CartesianPosition.ThetaX = 1.57; //1.39 0.2535
 
     Kinova_SendBasicTrajectory(desired_point);
+
+    initialAngle = 0;
 
     emit SignalKinovaPosition(KinovaGetPosition());
 }
@@ -797,7 +799,7 @@ bool CKinova::KinovaDoManipulate(CartesianPosition _desired_position,int _mode, 
         double error = error0;
         double error_old = error0;
         double thresh = 0.003;
-        double thresh2 = 1e-4;
+        double thresh2 = 1e-3;
 
         while(error>thresh && count < 5)
         {

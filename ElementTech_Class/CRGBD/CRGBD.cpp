@@ -64,10 +64,10 @@ void CRGBD::GetLRFInfo(double &_slope, double &_distance, double _s_deg, double 
 
     //Convert to Original Coordinate
 
-    int s_index = (int)((_s_deg + 45) / ANGLE_RESOLUTION);
-    int e_index = (int)((_e_deg + 45) / ANGLE_RESOLUTION);
+    int s_lrf_index = (int)((_s_deg + 45) / ANGLE_RESOLUTION);
+    int e_lrf_index = (int)((_e_deg + 45) / ANGLE_RESOLUTION);
 
-    int number_of_point = e_index -s_index + 1;
+    int number_of_point = e_lrf_index -s_lrf_index + 1;
 
     long* lrf_distance = new long[number_of_point];
 
@@ -80,15 +80,17 @@ void CRGBD::GetLRFInfo(double &_slope, double &_distance, double _s_deg, double 
             return;
         }
         else{
+            int s_index = -1;
+            int inlier_v_distance = (int)(_inlier_lrf_dst / sin(_s_deg * RGBD_D2R)) + 200/*mm*/;
             std::vector<POINT_PARAM> point_vec;
 
-            memcpy(lrf_distance, &mary_lrf_distance[s_index], sizeof(long)*(number_of_point));
+            memcpy(lrf_distance, &mary_lrf_distance[s_lrf_index], sizeof(long)*(number_of_point));
 
-            ClaculateLRFHeightDistance(lrf_distance, _s_deg, _e_deg, point_vec, _inlier_lrf_dst);
+            ClaculateLRFHeightDistance(lrf_distance, _s_deg, _e_deg, s_index, point_vec, inlier_v_distance);
 
             optimal_line_eq_vec.push_back(EstimateLineEquation(point_vec));
 
-            emit SignalLRFMapImage(LRFDataToMat(point_vec, 1000, 1000));
+            emit SignalLRFMapImage(LRFDataToMat(point_vec, _inlier_lrf_dst, 1000));
         }
     }
 
@@ -105,16 +107,13 @@ void CRGBD::GetLRFInfo(double &_slope, double &_distance, double _s_deg, double 
     return;
 }
 
-void CRGBD::GetHorizenDistance(double _inlier_distance,double& _horizen_distance, double& _s_inlier_deg, double& _e_inlier_deg){
+void CRGBD::GetHorizenDistance(double _inlier_distance,double& _horizen_distance, double& _s_inlier_deg, double& _e_inlier_deg, double _s_deg, double _e_deg){
 
     //Convert to Original Coordinate
+    int s_lrf_index = (int)((_s_deg + 45) / ANGLE_RESOLUTION);
+    int e_lrf_index = (int)((_e_deg + 45) / ANGLE_RESOLUTION);
 
-    double s_deg = 20;
-    double e_deg = 160;
-    int s_index = (int)((s_deg + 45) / ANGLE_RESOLUTION);
-    int e_index = (int)((e_deg + 45) / ANGLE_RESOLUTION);
-
-    int number_of_point = e_index -s_index + 1;
+    int number_of_point = e_lrf_index - s_lrf_index + 1;
 
     long* lrf_distance = new long[number_of_point];
 
@@ -124,17 +123,20 @@ void CRGBD::GetHorizenDistance(double _inlier_distance,double& _horizen_distance
         return;
     }
     else{
+        int s_index = -1;
         int s_inlier_inx = 0;
         int e_inlier_inx = 0;
-        memcpy(lrf_distance, &mary_lrf_distance[s_index], sizeof(long)*(number_of_point));
+        int inlier_v_distance = (int)(_inlier_distance / sin(_s_deg * RGBD_D2R)) + 200/*mm*/;
 
-        ClaculateLRFHeightDistance(lrf_distance, s_deg, e_deg, point_vec, (int)_inlier_distance);
+        memcpy(lrf_distance, &mary_lrf_distance[s_lrf_index], sizeof(long)*(number_of_point));
+
+        ClaculateLRFHeightDistance(lrf_distance, _s_deg, _e_deg, s_index, point_vec, inlier_v_distance);
         ClaculateHorizenDistance(point_vec, _inlier_distance, _horizen_distance, s_inlier_inx, e_inlier_inx);
 
         emit SignalLRFMapImage(LRFDataToMat(point_vec, _inlier_distance, 1000));
 
-        _s_inlier_deg = s_deg + s_inlier_inx * (ANGLE_RESOLUTION);
-        _e_inlier_deg = s_deg + e_inlier_inx * (ANGLE_RESOLUTION); // s_deg is right
+        _s_inlier_deg = _s_deg + (s_inlier_inx + s_index) * (ANGLE_RESOLUTION);
+        _e_inlier_deg = _s_deg + (e_inlier_inx + s_index) * (ANGLE_RESOLUTION); // s_deg is right
 
     }
 
@@ -153,7 +155,7 @@ cv::Mat CRGBD::GetSegnetImage(cv::Mat _org_img){
 // Calculation Function
 //-------------------------------------------------
 
-void CRGBD::ClaculateLRFHeightDistance(long* _lrf_org_data, double _s_deg, double _e_deg, std::vector<POINT_PARAM>& _point_vec, int _inlier_lrf_dst){
+void CRGBD::ClaculateLRFHeightDistance(long* _lrf_org_data, double _s_deg, double _e_deg, int& _s_index, std::vector<POINT_PARAM>& _point_vec, int _inlier_lrf_dst){
 
     int number_of_point = int((_e_deg -_s_deg) / ANGLE_RESOLUTION) + 1;
 
@@ -164,6 +166,9 @@ void CRGBD::ClaculateLRFHeightDistance(long* _lrf_org_data, double _s_deg, doubl
 
         if(_lrf_org_data[i] > _inlier_lrf_dst)
             continue;
+
+        if(_s_index < 0)
+            _s_index = i;
 
         point_parameter.x = _lrf_org_data[i] * cos((deg)*RGBD_D2R);
         point_parameter.y = _lrf_org_data[i] * sin((deg)*RGBD_D2R);
