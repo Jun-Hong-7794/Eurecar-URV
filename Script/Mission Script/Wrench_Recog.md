@@ -44,7 +44,7 @@ A_Sleep(500)
 
 ## Step3: LRF-Kinova Horizen CTRL(Wrench Num4)
 
-LRF_KINOVA_HORIZEN_CTRL_STRUCT.desired_inlier_deg_avr = 96
+LRF_KINOVA_HORIZEN_CTRL_STRUCT.desired_inlier_deg_avr = 107
 LRF_KINOVA_HORIZEN_CTRL_STRUCT.error = 0.25
 
 LRF_KINOVA_HORIZEN_CTRL_STRUCT.s_deg = 30
@@ -75,9 +75,16 @@ KINOVA_MANIPULATE_FUNCTION()
 
 A_Sleep(1000)
 
+## Step5: Magnet On
+
+GRIPPER_MAGNET_CTRL_STRUCT.fl_magnet = true
+
+GRIPPER_MAGNET_CTRL_FUNCTION()
+A_Sleep(1000)
+
 ## Step4: Kinova Arm Forward
 
-KINOVA_MANIPULATE_STRUCT.x = ++0.0851
+KINOVA_MANIPULATE_STRUCT.x = ++0.12
 KINOVA_MANIPULATE_STRUCT.y = ==
 KINOVA_MANIPULATE_STRUCT.z = ==
 
@@ -90,9 +97,11 @@ KINOVA_MANIPULATE_STRUCT.force_threshold = 10
 KINOVA_MANIPULATE_FUNCTION()
 
 A_Sleep(2000)
-## Step5: Kinova Arm Backward
 
-KINOVA_MANIPULATE_STRUCT.x = --0.0851
+
+## Step6: Kinova Arm Backward
+
+KINOVA_MANIPULATE_STRUCT.x = --0.12
 KINOVA_MANIPULATE_STRUCT.y = ==
 KINOVA_MANIPULATE_STRUCT.z = ==
 
@@ -104,5 +113,7 @@ KINOVA_MANIPULATE_STRUCT.force_threshold = 10
 
 KINOVA_MANIPULATE_FUNCTION()
 
-A_Sleep(500)
+A_Sleep(2000)
+
+
 ##########################################_MISSION_END_##########################################

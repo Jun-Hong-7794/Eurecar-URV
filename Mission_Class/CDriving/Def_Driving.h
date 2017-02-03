@@ -26,7 +26,6 @@ typedef struct _LRF_Vehicle_Horizen_Struct{
 
     //Get From LRF
     double horizen_distance;
-
     double s_inlier_deg;
     double e_inlier_deg;
     /////////////////////
@@ -37,6 +36,9 @@ typedef struct _LRF_Vehicle_Horizen_Struct{
     double error_deg_boundary;//average of inlier degree
 
     double velocity;
+
+    double s_deg;
+    double e_deg;
 
     bool sensor_option;
     /////////////////////
