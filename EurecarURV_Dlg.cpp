@@ -146,7 +146,7 @@ void EurecarURV_Dlg::SlotButtonKinovaSwitch(){
             QMessageBox::information(this, tr("Fail to Connect KINOVA"), tr("Check KINOVA"));
         else{
             ui->bt_kinova->setText("Kinova Close");
-            mpc_kinova->KinovaInitMotion();
+            mpc_kinova->KinovaAlignToPanel();
         }
     }
     else{

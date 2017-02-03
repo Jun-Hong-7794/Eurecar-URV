@@ -623,6 +623,16 @@ bool CScript::InterpreteLRFVehicleHorizenCtrl(QString _line, STEP_INFO& _step_in
             _step_info.driving_option.lrf_vehicle_horizen_option.velocity = _line.mid(colone_index + 1).trimmed().toDouble();
             return true;
         }
+        if(_line.contains("s_deg")){
+            int colone_index = _line.indexOf("=");
+            _step_info.driving_option.lrf_vehicle_horizen_option.s_deg = _line.mid(colone_index + 1).trimmed().toDouble();
+            return true;
+        }
+        if(_line.contains("e_deg")){
+            int colone_index = _line.indexOf("=");
+            _step_info.driving_option.lrf_vehicle_horizen_option.e_deg = _line.mid(colone_index + 1).trimmed().toDouble();
+            return true;
+        }
 
         if(_line.contains("sensor_option")){
             int colone_index = _line.indexOf("=");
@@ -805,6 +815,20 @@ bool CScript::InterpreteKinovaRotateValveCtrl(QString _line, STEP_INFO& _step_in
                 _step_info.manipulation_option.kinova_rotate_valve_option.using_current_coord = true;
             else
                 _step_info.manipulation_option.kinova_rotate_valve_option.using_current_coord = false;
+
+            return true;
+        }
+
+        if(_line.contains("init_angle")){
+            int colone_index = _line.indexOf("=");
+
+            QString str_option;
+            str_option = _line.mid(colone_index + 1).trimmed();
+
+            if(str_option.contains("true"))
+                _step_info.manipulation_option.kinova_rotate_valve_option.init_angle = true;
+            else
+                _step_info.manipulation_option.kinova_rotate_valve_option.init_angle = false;
 
             return true;
         }

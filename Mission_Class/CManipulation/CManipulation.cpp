@@ -474,12 +474,15 @@ KINOVA_ROTATE_VALVE_STRUCT CManipulation::GetKinovaRotateValveOption(){
 //----------------------------------------------------------------
 bool CManipulation::LRFKinovaVerticalControl(){
 
+    LRF_KINOVA_VERTICAL_CTRL_STRUCT lrf_kinova_struct = GetLRFKinovaVerticalOption();
+
     if(!mpc_lrf->IsLRFOn())
         return false;
-    if(!mpc_kinova->IsKinovaInitialized())
-        return false;
+    if(!lrf_kinova_struct.sensor_option){
+        if(!mpc_kinova->IsKinovaInitialized())
+            return false;
+    }
 
-    LRF_KINOVA_VERTICAL_CTRL_STRUCT lrf_kinova_struct = GetLRFKinovaVerticalOption();
 
     do{
         double slope = 0;
@@ -492,8 +495,8 @@ bool CManipulation::LRFKinovaVerticalControl(){
         lrf_kinova_struct.slope = slope;
         lrf_kinova_struct.current_distance = current_distance;
 
-        std::cout << "C-LRF Data : " << current_distance<<std::endl;
-        std::cout << "D-LRF Data : " << lrf_kinova_struct.desired_distance<<std::endl;
+//        std::cout << "C-LRF Data : " << current_distance<<std::endl;
+//        std::cout << "D-LRF Data : " << lrf_kinova_struct.desired_distance<<std::endl;
 
         if(fabs(current_error) < lrf_kinova_struct.error){
             break;
@@ -520,13 +523,14 @@ bool CManipulation::LRFKinovaVerticalControl(){
 
 bool CManipulation::LRFKinovaHorizenControl(){
 
+    LRF_KINOVA_HORIZEN_CTRL_STRUCT lrf_kinova_struct = GetLRFKinovaHorizenOption();
+
     if(!mpc_lrf->IsLRFOn())
         return false;
-    if(!mpc_kinova->IsKinovaInitialized())
-        return false;
-
-
-    LRF_KINOVA_HORIZEN_CTRL_STRUCT lrf_kinova_struct = GetLRFKinovaHorizenOption();
+    if(!lrf_kinova_struct.sensor_option){
+        if(!mpc_kinova->IsKinovaInitialized())
+            return false;
+    }
 
     do{
         double inlier_s_deg = 0;
@@ -535,17 +539,20 @@ bool CManipulation::LRFKinovaHorizenControl(){
         double inlier_deg_avr = 0;
         double inlier_deg_error = 0;
 
+        double lnlier_deg_sum = 0;
+
         lrf_kinova_struct.inlier_deg_s_output = 0;
         lrf_kinova_struct.inlier_deg_e_output = 0;
 
-        mpc_rgb_d->GetHorizenDistance(lrf_kinova_struct.inlier_lrf_dst, current_h_distance, inlier_s_deg, inlier_e_deg);
-
-        inlier_deg_avr = (lrf_kinova_struct.inlier_deg_s_output + lrf_kinova_struct.inlier_deg_e_output) / 2;
-        inlier_deg_error = inlier_deg_avr - lrf_kinova_struct.desired_inlier_deg_avr;
+        mpc_rgb_d->GetHorizenDistance(lrf_kinova_struct.inlier_lrf_dst, current_h_distance, inlier_s_deg, inlier_e_deg, lrf_kinova_struct.s_deg, lrf_kinova_struct.e_deg);
 
         lrf_kinova_struct.inlier_deg_s_output = inlier_s_deg;
         lrf_kinova_struct.inlier_deg_e_output = inlier_e_deg;
         lrf_kinova_struct.current_h_distance = current_h_distance;
+
+        lnlier_deg_sum = lrf_kinova_struct.inlier_deg_s_output + lrf_kinova_struct.inlier_deg_e_output;
+        inlier_deg_avr = (double)(lnlier_deg_sum / 2.0);
+        inlier_deg_error = inlier_deg_avr - lrf_kinova_struct.desired_inlier_deg_avr;
 
         if(fabs(inlier_deg_error) < lrf_kinova_struct.error){
             break;
@@ -553,10 +560,10 @@ bool CManipulation::LRFKinovaHorizenControl(){
 
         if(!lrf_kinova_struct.sensor_option){
             if(inlier_deg_error < 0){
-                mpc_kinova->KinovaMoveUnitStepLe();
+                mpc_kinova->KinovaMoveUnitStepRi();
             }
             else if(inlier_deg_error > 0){
-                mpc_kinova->KinovaMoveUnitStepRi();
+                mpc_kinova->KinovaMoveUnitStepLe();
             }
 
             if(lrf_kinova_struct.loop_sleep != 0)
@@ -627,8 +634,15 @@ bool CManipulation::KinovaRotateValveMotion(){
 
     KINOVA_ROTATE_VALVE_STRUCT kinova_rotate_valve = GetKinovaRotateValveOption();
 
-    mpc_kinova->SetKinovaRotateValve(kinova_rotate_valve.using_current_coord, kinova_rotate_valve.center_x, kinova_rotate_valve.center_y, kinova_rotate_valve.center_z);
-    mpc_kinova->KinovaRotateValveMotion(VALVE_ROTATE_DIR(CCW), kinova_rotate_valve.radius, kinova_rotate_valve.theta);
+    mpc_kinova->SetKinovaRotateValve(kinova_rotate_valve.using_current_coord, kinova_rotate_valve.init_angle, kinova_rotate_valve.center_x, kinova_rotate_valve.center_y, kinova_rotate_valve.center_z);
+
+    if(kinova_rotate_valve.theta > 0)
+        mpc_kinova->KinovaRotateValveMotion(VALVE_ROTATE_DIR(CW), kinova_rotate_valve.radius, kinova_rotate_valve.theta);
+
+    else{
+        kinova_rotate_valve.theta = (-1)* kinova_rotate_valve.theta;
+        mpc_kinova->KinovaRotateValveMotion(VALVE_ROTATE_DIR(CCW), kinova_rotate_valve.radius, kinova_rotate_valve.theta);
+    }
 
     return true;
 }
