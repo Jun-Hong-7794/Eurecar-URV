@@ -52,6 +52,8 @@ Driving_Dlg::Driving_Dlg(CDriving* _pc_driving,QWidget *parent):
             this,SLOT(SlotLRFVehicleAngleStructUpdate(LRF_VEHICLE_ANGLE_STRUCT)));
     connect(mpc_drivig,SIGNAL(SignalLRFVehicleHorizenStruct(LRF_VEHICLE_HORIZEN_STRUCT)),
             this,SLOT(SlotLRFVehicleHorizenStructUpdate(LRF_VEHICLE_HORIZEN_STRUCT)));
+
+
 }
 
 
@@ -74,8 +76,8 @@ void Driving_Dlg::InitDlg(CDriving* _p_driving){
     (mpc_drivig->GetPCL())->viewer->addPointCloud( (mpc_drivig->GetPCL())->cloud);
     (mpc_drivig->GetPCL())->viewer->setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_FONT_SIZE,1,"cloud");
 
-    // Velodyne View Connect
-    connect(mpc_drivig,SIGNAL(SignalVelodyneParser(bool)),this,SLOT(SlotVeloyneParser(bool)));
+//    // Velodyne View Connect
+//    connect(mpc_drivig,SIGNAL(SignalVelodyneParser(bool)),this,SLOT(SlotVeloyneParser(bool)));
 
 }
 

@@ -109,8 +109,6 @@ bool CVelodyne::RunVelodyne(){
 
     UINT count = 0;
     WORD rotation = 0;
-//    WORD block_id = 0;
-
     double prev_deg = 0.0;
     double deg = 0.0;
 
@@ -121,6 +119,25 @@ bool CVelodyne::RunVelodyne(){
     size_t point_index = 0;
     size_t panel_point_index = 0;
 
+
+
+    // Create the segmentation object for the planar model and set all the parameters
+    pcl::SACSegmentation<pcl::PointXYZRGBA> seg;
+    pcl::PointIndices::Ptr inliers(new pcl::PointIndices);
+    pcl::PointIndices::Ptr inliers2(new pcl::PointIndices);
+    pcl::ModelCoefficients::Ptr coefficients (new pcl::ModelCoefficients);
+    pcl::PointCloud<pcl::PointXYZRGBA>::Ptr cloud_plane(new pcl::PointCloud<pcl::PointXYZRGBA> ());
+    pcl::PointCloud<pcl::PointXYZRGBA>::Ptr cloud_f(new pcl::PointCloud<pcl::PointXYZRGBA>);
+
+    seg.setOptimizeCoefficients(true);
+    seg.setModelType(pcl::SACMODEL_PLANE);
+    seg.setMethodType(pcl::SAC_RANSAC);
+    seg.setMaxIterations(100);
+    seg.setDistanceThreshold(0.01);
+
+
+
+
     while(fl_velodyne_thread){
 
         if(!mc_udp.Data_Receive((char *)&buffer[count],VELODYNE_DATA_SIZE)){
@@ -129,8 +146,6 @@ bool CVelodyne::RunVelodyne(){
         }
 
         rotation = (buffer[count].firing_data[0].rotation);
-
-//        block_id = (buffer[count].firing_data[0].block_id);
 
         deg = (double)(rotation / 100.0);
 
@@ -156,12 +171,23 @@ bool CVelodyne::RunVelodyne(){
                 point_index = 0;
                 panel_point_index = 0;
 
+
+                double minimum_z = -1.22;
+                double tolerence = 0.5;
+
+                pcl::ExtractIndices<pcl::PointXYZRGBA> eifilter(true);
+                pcl::PointCloud<pcl::PointXYZRGBA>::Ptr ei_result (new pcl::PointCloud<pcl::PointXYZRGBA>);
+
+
+
+
                 for(int k = 0;k < VELODYNE_LASERS_NUM;k++){
                     for(int i=0; i< VELODYNE_TOTAL_PACKET_NUMBER;i++){
                         for(int j=0; j < VELODYNE_BOLCKS_NUM;j++){
                             mpc_pcl->cloud->points[point_index].x = mpc_pcl->m_x_data[k][(j + i*VELODYNE_BOLCKS_NUM)]*0.001;
                             mpc_pcl->cloud->points[point_index].y = mpc_pcl->m_y_data[k][(j + i*VELODYNE_BOLCKS_NUM)]*0.001;
                             mpc_pcl->cloud->points[point_index].z = mpc_pcl->m_z_data[k][(j + i*VELODYNE_BOLCKS_NUM)]*0.001;
+
 
                             if((firing_vertical_angle[k] == 0)
                                     && (mpc_pcl->m_dist_data[k][(j + i*VELODYNE_BOLCKS_NUM)] > 700)
@@ -184,6 +210,15 @@ bool CVelodyne::RunVelodyne(){
                                 mpc_pcl->cloud->points[point_index].b = 255;// *(1024 * rand () / (RAND_MAX + 1.0f));
                             }
 
+                            if(std::abs((mpc_pcl->cloud->points[point_index].z - minimum_z)) > tolerence)
+                            {
+                                (*inliers).indices.push_back(point_index);
+                                /*
+                                mpc_pcl->cloud->points[point_index].r = 0;// *(1024 * rand () / (RAND_MAX + 1.0f));
+                                mpc_pcl->cloud->points[point_index].g = 255;// *(1024 * rand () / (RAND_MAX + 1.0f));
+                                mpc_pcl->cloud->points[point_index].b = 0;// *(1024 * rand () / (RAND_MAX + 1.0f));*/
+                            }
+
                             point_index++;
                         }
                     }
@@ -193,7 +228,20 @@ bool CVelodyne::RunVelodyne(){
                 mean_panel_y = sum_panel_y/(double)(panel_point_index+1.0);
                 mean_dist = sum_dist/(double)(panel_point_index+1.0);
 
-                mpc_pcl->viewer->updatePointCloud(mpc_pcl->cloud,"cloud");
+
+
+                eifilter.setInputCloud(mpc_pcl->cloud);
+                eifilter.setIndices(inliers);
+                eifilter.filter(*ei_result);
+
+                (*inliers).indices.clear();
+
+//                mpc_pcl->viewer->updatePointCloud(mpc_pcl->cloud,"cloud");
+                mpc_pcl->viewer->updatePointCloud(ei_result,"cloud");
+
+
+
+
             }
             mtx_pcl_class.unlock();
 
