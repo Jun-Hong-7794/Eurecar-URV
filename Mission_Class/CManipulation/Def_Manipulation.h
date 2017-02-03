@@ -109,6 +109,8 @@ typedef struct _Kinova_Rotate_Valve_Struct{
 
     bool kinova_rotate_valve_mission;
 
+    bool init_angle;
+
     bool using_current_coord;
 
     double center_x;

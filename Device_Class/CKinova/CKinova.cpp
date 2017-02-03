@@ -388,7 +388,7 @@ bool CKinova::KinovaMoveUnitStepBw(){
     return true;
 }
 
-void CKinova::SetKinovaRotateValve(bool _using_current_coord, double _x, double _y, double _z){
+void CKinova::SetKinovaRotateValve(bool _using_current_coord, bool _init_angle, double _x, double _y, double _z){
 
     if(_using_current_coord){
         fl_center_init = false;
@@ -399,6 +399,10 @@ void CKinova::SetKinovaRotateValve(bool _using_current_coord, double _x, double 
         z_coord = _z;
 
         fl_center_init = true;
+    }
+
+    if(_init_angle){
+        initialAngle = 0;
     }
 }
 

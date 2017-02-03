@@ -809,6 +809,20 @@ bool CScript::InterpreteKinovaRotateValveCtrl(QString _line, STEP_INFO& _step_in
             return true;
         }
 
+        if(_line.contains("init_angle")){
+            int colone_index = _line.indexOf("=");
+
+            QString str_option;
+            str_option = _line.mid(colone_index + 1).trimmed();
+
+            if(str_option.contains("true"))
+                _step_info.manipulation_option.kinova_rotate_valve_option.init_angle = true;
+            else
+                _step_info.manipulation_option.kinova_rotate_valve_option.init_angle = false;
+
+            return true;
+        }
+
     }
     else if(_line.contains("KINOVA_ROTATE_VALVE_FUNCTION")){
         _step_info.function_index = MP_KINOVA_ROTATE_VALVE;

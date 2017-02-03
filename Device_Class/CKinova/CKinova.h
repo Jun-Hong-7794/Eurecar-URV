@@ -123,7 +123,7 @@ public: // Basic Motion
     bool KinovaMoveUnitStepFw();
     bool KinovaMoveUnitStepBw();
 
-    void SetKinovaRotateValve(bool _using_current_coord, double _x, double _y, double _z);
+    void SetKinovaRotateValve(bool _using_current_coord, bool _init_angle,double _x, double _y, double _z);
     void KinovaRotateValveMotion(VALVE_ROTATE_DIR _dir, int _radius, int _theta);
 
     bool Kinova_Do_Manipulate(JoystickCommand _desired_command);

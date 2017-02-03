@@ -495,8 +495,8 @@ bool CManipulation::LRFKinovaVerticalControl(){
         lrf_kinova_struct.slope = slope;
         lrf_kinova_struct.current_distance = current_distance;
 
-        std::cout << "C-LRF Data : " << current_distance<<std::endl;
-        std::cout << "D-LRF Data : " << lrf_kinova_struct.desired_distance<<std::endl;
+//        std::cout << "C-LRF Data : " << current_distance<<std::endl;
+//        std::cout << "D-LRF Data : " << lrf_kinova_struct.desired_distance<<std::endl;
 
         if(fabs(current_error) < lrf_kinova_struct.error){
             break;
@@ -634,8 +634,15 @@ bool CManipulation::KinovaRotateValveMotion(){
 
     KINOVA_ROTATE_VALVE_STRUCT kinova_rotate_valve = GetKinovaRotateValveOption();
 
-    mpc_kinova->SetKinovaRotateValve(kinova_rotate_valve.using_current_coord, kinova_rotate_valve.center_x, kinova_rotate_valve.center_y, kinova_rotate_valve.center_z);
-    mpc_kinova->KinovaRotateValveMotion(VALVE_ROTATE_DIR(CCW), kinova_rotate_valve.radius, kinova_rotate_valve.theta);
+    mpc_kinova->SetKinovaRotateValve(kinova_rotate_valve.using_current_coord, kinova_rotate_valve.init_angle, kinova_rotate_valve.center_x, kinova_rotate_valve.center_y, kinova_rotate_valve.center_z);
+
+    if(kinova_rotate_valve.theta > 0)
+        mpc_kinova->KinovaRotateValveMotion(VALVE_ROTATE_DIR(CW), kinova_rotate_valve.radius, kinova_rotate_valve.theta);
+
+    else{
+        kinova_rotate_valve.theta = (-1)* kinova_rotate_valve.theta;
+        mpc_kinova->KinovaRotateValveMotion(VALVE_ROTATE_DIR(CCW), kinova_rotate_valve.radius, kinova_rotate_valve.theta);
+    }
 
     return true;
 }
