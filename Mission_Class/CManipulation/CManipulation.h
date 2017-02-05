@@ -123,7 +123,9 @@ public:
     bool InitGripper(char* _device_port = (char *)"/dev/ttyUSB0");
     bool CloseGripper();
     bool GripperGoRelPose(double _deg);
-    bool GripperGoThePose(double _deg);
+
+    bool GripperGoThePose(int _pose_1, int _pose_2, int _load_thresh);
+
     bool GripperPresentPose(uint16_t& _pose);
     bool GripperPresentLoad(uint16_t& _load);
 
@@ -177,6 +179,7 @@ signals:
     void SignalLRFImage(cv::Mat);
     void SignalCameraImage(cv::Mat);
     void SignalSegnetImage(cv::Mat);
+
 };
 
 #endif // CMANIPULATION_H

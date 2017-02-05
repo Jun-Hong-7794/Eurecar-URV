@@ -551,6 +551,19 @@
        <string>UGV LRF</string>
       </property>
      </widget>
+     <widget class="QPushButton" name="bt_gripper">
+      <property name="geometry">
+       <rect>
+        <x>120</x>
+        <y>151</y>
+        <width>101</width>
+        <height>41</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Gripper On</string>
+      </property>
+     </widget>
     </widget>
     <widget class="QWidget" name="tab_path">
      <attribute name="title">

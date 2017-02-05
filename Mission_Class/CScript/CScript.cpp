@@ -502,6 +502,18 @@ bool CScript::InterpreteGripperForceCtrl(QString _line, STEP_INFO& _step_info){
             _step_info.manipulation_option.gripper_force_option.bend_deg = _line.mid(colone_index + 1).trimmed().toDouble();
             return true;
         }
+
+        if(_line.contains("pose_1")){
+            int colone_index = _line.indexOf("=");
+            _step_info.manipulation_option.gripper_force_option.pose_1 = _line.mid(colone_index + 1).trimmed().toDouble();
+            return true;
+        }
+        if(_line.contains("pose_2")){
+            int colone_index = _line.indexOf("=");
+            _step_info.manipulation_option.gripper_force_option.pose_2 = _line.mid(colone_index + 1).trimmed().toDouble();
+            return true;
+        }
+
         if(_line.contains("forece_threshold")){
             int colone_index = _line.indexOf("=");
             _step_info.manipulation_option.gripper_force_option.forece_threshold = _line.mid(colone_index + 1).trimmed().toDouble();

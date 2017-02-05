@@ -86,6 +86,10 @@ public slots:
     void SlotButtonEEffectorPoseCheck();
     void SlotButtonEEffectorGoToOrg();
 
+    //Gripper
+    void SlotButtonGripperGrasp();
+    void SlotButtonGripperTorqueOn();
+
     //Step Function
     void SlotButtonLRFKinovaCtrl();
     void SlotButtonKinovaForceCtrl();
@@ -100,6 +104,8 @@ public slots:
     void SlotEditeLRFKinovaAngleStruct(LRF_KINOVA_ANGLE_CTRL_STRUCT _lrf_kinova_option);
     void SlotEditeLRFKinovaHorizenStruct(LRF_KINOVA_HORIZEN_CTRL_STRUCT _lrf_kinova_option);
     void SlotEditeLRFKinovaVertivalStruct(LRF_KINOVA_VERTICAL_CTRL_STRUCT _lrf_kinova_option);
+
+    void SlotEditeGripperStatus(int _pose_1, int _pose_2, int _load_1, int _load_2);
 
     //-------------------------------------------------
     // View Update

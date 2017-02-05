@@ -132,6 +132,9 @@ typedef struct _Gripper_Force_Ctrl_Struct{
 
     int bend_deg;
 
+    int pose_1;
+    int pose_2;
+
 }GRIPPER_FORCE_CTRL_STRUCT;
 
 typedef struct _Gripper_Magnet_Ctrl_Struct{

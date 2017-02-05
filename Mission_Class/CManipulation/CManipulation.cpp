@@ -27,6 +27,7 @@ CManipulation::CManipulation(CLRF *_p_mani_lrf, CCamera *_p_camera, CKinova *_p_
 
     connect(mpc_camera, SIGNAL(SignalCameraImage(cv::Mat)), this, SIGNAL(SignalCameraImage(cv::Mat)));
     connect(mpc_rgb_d, SIGNAL(SignalSegnetImage(cv::Mat)), this, SIGNAL(SignalSegnetImage(cv::Mat)));
+
 }
 
 
@@ -208,33 +209,34 @@ bool CManipulation::SetRGBDFunction(int _index){
 
 bool CManipulation::InitGripper(char* _device_port){
 
-    if(!mpc_gripper->InitDynamixel(_device_port))
+    if(!mpc_gripper->InitGripper(_device_port))
         return false;
 
-    if(!mpc_gripper->IsDmxTorqueOn())
-        mpc_gripper->DynamixelTorque(true);
+    if(!mpc_gripper->IsGripperTorqueOn())
+        mpc_gripper->GripperTorque(true);
 
     return true;
 }
 
 bool CManipulation::CloseGripper(){
 
-    mpc_gripper->CloseDynamixel();
+    if(mpc_gripper->IsGripperInit())
+        mpc_gripper->CloseGripper();
 
     return true;
 }
 
 bool CManipulation::GripperGoRelPose(double _deg){
 
-    if(!mpc_gripper->DynamixelGoToRelPosition(_deg))
+    if(!mpc_gripper->GripperGoToThePositionLoadCheck_1(_deg, 200))
         return false;
 
     return true;
 }
 
-bool CManipulation::GripperGoThePose(double _deg){
+bool CManipulation::GripperGoThePose(int _pose_1, int _pose_2, int _load_thresh){
 
-    if(!mpc_gripper->DynamixelGoToThePosition(_deg))
+    if(!mpc_gripper->GripperGoToThePositionLoadCheck(_pose_1, _pose_2, _load_thresh))
         return false;
 
     return true;
@@ -649,16 +651,16 @@ bool CManipulation::KinovaRotateValveMotion(){
 
 bool CManipulation::GripperForceCtrl(){
 
-    if(!mpc_gripper->IsDmxInit())
+    if(!mpc_gripper->IsGripperInit())
         return false;
-    if(!mpc_gripper->IsDmxTorqueOn())
+    if(!mpc_gripper->IsGripperTorqueOn())
         return false;
 
     GRIPPER_FORCE_CTRL_STRUCT gripper_force_ctrl;
 
     gripper_force_ctrl = GetGripperForceCtrlOption();
 
-    mpc_gripper->DynamixelGoToThePositionUsingLoad(gripper_force_ctrl.bend_deg, gripper_force_ctrl.forece_threshold);
+    mpc_gripper->GripperGoToThePositionLoadCheck(gripper_force_ctrl.pose_1, gripper_force_ctrl.pose_2, gripper_force_ctrl.forece_threshold);
 
     return true;
 }

@@ -10,6 +10,14 @@
 /* 117
 # Title: Valve Recognition
 
+## Step0: Gripper Release
+
+GRIPPER_FORCE_CTRL_STRUCT.pose_1 = 2800
+GRIPPER_FORCE_CTRL_STRUCT.pose_2 = 2800
+GRIPPER_FORCE_CTRL_STRUCT.forece_threshold = 200
+
+GRIPPER_FORCE_CTRL_FUNCTION()
+
 ## Step0: Kinova Arm Up
 
 KINOVA_MANIPULATE_STRUCT.x = ==
@@ -44,7 +52,7 @@ A_Sleep(500)
 
 ## Step3: LRF-Kinova Horizen CTRL(Wrench Num4)
 
-LRF_KINOVA_HORIZEN_CTRL_STRUCT.desired_inlier_deg_avr = 107
+LRF_KINOVA_HORIZEN_CTRL_STRUCT.desired_inlier_deg_avr = 102
 LRF_KINOVA_HORIZEN_CTRL_STRUCT.error = 0.25
 
 LRF_KINOVA_HORIZEN_CTRL_STRUCT.s_deg = 30
@@ -115,5 +123,12 @@ KINOVA_MANIPULATE_FUNCTION()
 
 A_Sleep(2000)
 
+## Step0: Grasp
+
+GRIPPER_FORCE_CTRL_STRUCT.pose_1 = 1700
+GRIPPER_FORCE_CTRL_STRUCT.pose_2 = 1700
+GRIPPER_FORCE_CTRL_STRUCT.forece_threshold = 200
+
+GRIPPER_FORCE_CTRL_FUNCTION()
 
 ##########################################_MISSION_END_##########################################

@@ -7,6 +7,8 @@ EurecarURV_Dlg::EurecarURV_Dlg(QWidget *parent) :
 {
     ui->setupUi(this);
 
+
+    qRegisterMetaType<GRIPPER_STATUS>("GRIPPER_STATUS");
     qRegisterMetaType<CartesianPosition>("CartesianPosition");
     qRegisterMetaType<LRF_VEHICLE_ANGLE_STRUCT>("LRF_VEHICLE_ANGLE_STRUCT");
     qRegisterMetaType<LRF_VEHICLE_HORIZEN_STRUCT>("LRF_VEHICLE_HORIZEN_STRUCT");
@@ -74,6 +76,7 @@ EurecarURV_Dlg::EurecarURV_Dlg(QWidget *parent) :
     connect(ui->bt_mani_lrf,SIGNAL(clicked()), this, SLOT(SlotButtonLRFManiSwitch()));
     connect(ui->bt_drive_lrf,SIGNAL(clicked()), this, SLOT(SlotButtonLRFDriveSwitch()));
     connect(ui->bt_ugv,SIGNAL(clicked()), this, SLOT(SlotButtonVehicleSwitch()));
+    connect(ui->bt_gripper,SIGNAL(clicked()), this, SLOT(SlotButtonGripperSwitch()));
 
     //Click List View
     connect(ui->lsview_mission_title,SIGNAL(clicked(QModelIndex)), this, SLOT(SlotMissionListUpdate(QModelIndex)));
@@ -124,6 +127,24 @@ EurecarURV_Dlg::~EurecarURV_Dlg()
 //-------------------------------------------------
 // Button
 //-------------------------------------------------
+
+void EurecarURV_Dlg::SlotButtonGripperSwitch(){
+
+    if(!mpc_gripper->IsGripperInit()){
+        if(!mpc_gripper->InitGripper()){
+            QMessageBox::information(this, tr("Fail to Connect Gripper"), tr("Check Gripper"));
+        }
+        else{
+            ui->bt_gripper->setText("Gripper Off");
+        }
+    }
+    else{
+        mpc_gripper->CloseGripper();
+        ui->bt_gripper->setText("Gripper On");
+    }
+
+
+}
 
 void EurecarURV_Dlg::SlotButtonVelodyneSwitch(){
 

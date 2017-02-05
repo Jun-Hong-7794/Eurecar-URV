@@ -88,6 +88,7 @@ public slots:
     void SlotButtonCameraSwitch();
     void SlotButtonVelodyneSwitch();
     void SlotButtonKinovaSwitch();
+    void SlotButtonGripperSwitch();
 
 
 

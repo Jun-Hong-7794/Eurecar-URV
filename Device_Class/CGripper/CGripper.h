@@ -1,7 +1,10 @@
 #ifndef CGRIPPER_H
 #define CGRIPPER_H
 
+#include <QtWidgets>
 #include <QMutex>
+#include <QThread>
+
 #include <unistd.h>
 #include <fcntl.h>
 #include <termios.h>
@@ -58,6 +61,16 @@
 
 #define ESC_ASCII_VALUE                 0x1b
 
+typedef struct _Gripper_Status{
+
+    int present_pose_1;
+    int present_pose_2;
+
+    int present_load_1;
+    int present_load_2;
+
+}GRIPPER_STATUS;
+
 
 class CGripper{
 public:
@@ -98,6 +111,7 @@ private:
     uint16_t dxl2_present_load;
 private://Mutex
     QMutex mtx_dmx_handle;
+    QMutex mtx_gripper_handle;
 
 public:
     bool IsDmxInit();
@@ -120,12 +134,44 @@ public:
     uint16_t DynamixelPresentLoad();
 
     //Gripper
-    bool InitGripper();
+    bool InitGripper(char* _device_port = (char *)"/dev/ttyUSB0");
     void CloseGripper();
 
     bool GripperTorque(bool _onoff);
     bool GripperGoToThePosition(int _degree); // Go to The Position
     bool GripperGoToRelPosition(int _degree); // Go to Relative Position From Present Position
-};
 
+    bool GripperGoToThePositionLoadCheck(int _goal_pos_1, int _goal_pos_2, int _load_threshold); // Go to The Position
+    bool GripperGoToThePositionLoadCheck_1(int _goal_pos_1, int _load_threshold); // Go to The Position
+    bool GripperGoToThePositionLoadCheck_2(int _goal_pos_2, int _load_threshold); // Go to The Position
+
+signals:
+    void SignalEditeGripperStatus(GRIPPER_STATUS _gripper);
+
+};
 #endif // CGRIPPER_H
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

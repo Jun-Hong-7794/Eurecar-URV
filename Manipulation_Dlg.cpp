@@ -51,7 +51,7 @@ Manipulation_Dlg::Manipulation_Dlg(CManipulation* _pc_manipulation, QWidget *par
     connect(ui->bt_lrf_horizent_distance, SIGNAL(clicked()), this, SLOT(SlotButtonHorizenDistance()));
 
 
-    connect(ui->bt_end_effector_grasp, SIGNAL(clicked()), this, SLOT(SlotButtonEEffectorGrasp()));
+    connect(ui->bt_end_effector_grasp_2, SIGNAL(clicked()), this, SLOT(SlotButtonEEffectorGrasp()));
     connect(ui->bt_end_effector_present_pos_check, SIGNAL(clicked()), this, SLOT(SlotButtonEEffectorPoseCheck()));
     connect(ui->bt_end_effector_org_pos, SIGNAL(clicked()), this, SLOT(SlotButtonEEffectorGoToOrg()));
 
@@ -60,6 +60,8 @@ Manipulation_Dlg::Manipulation_Dlg(CManipulation* _pc_manipulation, QWidget *par
 
     connect(ui->bt_lrf_get_info, SIGNAL(clicked()), this, SLOT(SlotButtonGetLRFInfo()));
     connect(ui->bt_kinova_get_pose, SIGNAL(clicked()), this, SLOT(SlotButtonKinovaGetPosition()));
+
+    connect(ui->bt_gripper_grasp, SIGNAL(clicked()), this, SLOT(SlotButtonGripperGrasp()));
 
     connect(mpc_manipulation, SIGNAL(SignalKinovaPosition(CartesianPosition)), this, SLOT(SlotEditeKinovaPosition(CartesianPosition)));
     connect(mpc_manipulation, SIGNAL(SignalKinovaForceVector(CartesianPosition)), this, SLOT(SlotEditeKinovaForceVector(CartesianPosition)));
@@ -72,6 +74,8 @@ Manipulation_Dlg::Manipulation_Dlg(CManipulation* _pc_manipulation, QWidget *par
             this, SLOT(SlotEditeLRFKinovaHorizenStruct(LRF_KINOVA_HORIZEN_CTRL_STRUCT)));
     connect(mpc_manipulation, SIGNAL(SignalLRFKinovaVerticalStruct(LRF_KINOVA_VERTICAL_CTRL_STRUCT)),
             this, SLOT(SlotEditeLRFKinovaVertivalStruct(LRF_KINOVA_VERTICAL_CTRL_STRUCT)));
+
+    connect(mpc_manipulation, SIGNAL(SignalEditeGripperStatus(int,int,int,int)), this, SLOT(SlotEditeGripperStatus(int,int,int,int)));
 
     //Check Button
     connect(ui->ck_segnet_switch, SIGNAL(clicked(bool)), this, SLOT(SlotButtonSegnetOn(bool)));
@@ -252,6 +256,14 @@ void Manipulation_Dlg::SlotEditeLRFKinovaVertivalStruct(LRF_KINOVA_VERTICAL_CTRL
 
 }
 
+void Manipulation_Dlg::SlotEditeGripperStatus(int _pose_1, int _pose_2, int _load_1, int _load_2){
+
+    ui->ed_gripper_1_current_pos->setText(QString::number(_pose_1));
+    ui->ed_gripper_2_current_pos->setText(QString::number(_pose_2));
+
+    ui->ed_gripper_1_current_load->setText(QString::number(_load_1));
+    ui->ed_gripper_2_current_load->setText(QString::number(_load_2));
+}
 
 void Manipulation_Dlg::SlotButtonKinovaForceCtrl(){
 
@@ -363,67 +375,72 @@ void Manipulation_Dlg::SlotButtonGetLRFInfo(){
 // End Effector
 void Manipulation_Dlg::SlotButtonEEffectorGrasp(){
 
-    if(!mpc_manipulation->InitGripper()){
-        QMessageBox::information(this, tr("Fail to Init Gripper"), tr("Check Gripper Status"));
-        return;
-    }
 
-    double rel_deg = ui->ed_end_effector_deg->text().toDouble();
-
-    if(!mpc_manipulation->GripperGoRelPose(rel_deg)){
-        QMessageBox::information(this, tr("Fail to Rel pose"), tr("Check Gripper Status"));
-        return;
-    }
 }
 
 void Manipulation_Dlg::SlotButtonEEffectorPoseCheck(){
 
-    uint16_t present_pos = 0;
+//    uint16_t present_pos = 0;
 
-    if(!mpc_manipulation->GripperPresentPose(present_pos)){
-        QMessageBox::information(this, tr("Fail to Get pose"), tr("Check Gripper Status"));
-        return;
-    }
+//    if(!mpc_manipulation->GripperPresentPose(present_pos)){
+//        QMessageBox::information(this, tr("Fail to Get pose"), tr("Check Gripper Status"));
+//        return;
+//    }
 
-    ui->ed_end_effector_present_pos->setText(QString::number(present_pos));
+//    ui->ed_end_effector_present_pos->setText(QString::number(present_pos));
 }
 
 void Manipulation_Dlg::SlotButtonEEffectorGoToOrg(){
 
-    uint16_t org_pos = 13;
+//    uint16_t org_pos = 13;
 
-    if(!mpc_manipulation->GripperGoThePose(org_pos)){
-        QMessageBox::information(this, tr("Fail to Get pose"), tr("Check Gripper Status"));
-        return;
-    }
+//    if(!mpc_manipulation->GripperGoThePose(org_pos)){
+//        QMessageBox::information(this, tr("Fail to Get pose"), tr("Check Gripper Status"));
+//        return;
+//    }
 
 }
 
 void Manipulation_Dlg::SlotButtonEEffectorLoadCheckIter(){
 
-    GRIPPER_FORCE_CTRL_STRUCT gripper_force_ctrl;
+//    GRIPPER_FORCE_CTRL_STRUCT gripper_force_ctrl;
 
-    gripper_force_ctrl = mpc_manipulation->GetGripperForceCtrlOption();
+//    gripper_force_ctrl = mpc_manipulation->GetGripperForceCtrlOption();
 
-    if(gripper_force_ctrl.gripper_force_ctrl_mission){
-        mpc_manipulation->SetManipulationOption(gripper_force_ctrl);
-    }
+//    if(gripper_force_ctrl.gripper_force_ctrl_mission){
+//        mpc_manipulation->SetManipulationOption(gripper_force_ctrl);
+//    }
 
-    else{
+//    else{
 
-        gripper_force_ctrl.bend_deg = 113;
+//        gripper_force_ctrl.bend_deg = 113;
 
-        gripper_force_ctrl.gripper_force_ctrl_mission = true;
+//        gripper_force_ctrl.gripper_force_ctrl_mission = true;
 
-        gripper_force_ctrl.forece_threshold = ui->ed_end_effector_load_threshold->text().toInt();
+//        gripper_force_ctrl.forece_threshold = ui->ed_end_effector_load_threshold->text().toInt();
 
-        mpc_manipulation->SetManipulationOption(gripper_force_ctrl);
+//        mpc_manipulation->SetManipulationOption(gripper_force_ctrl);
 
-        if(!mpc_manipulation->SelectMainFunction(MANIPUL_INX_GRIPPER_FORCE_CLRL)){
-            QMessageBox::information(this, tr("Fail to Get pose"), tr("Check Gripper Status"));
-            return;
-        }
-    }
+//        if(!mpc_manipulation->SelectMainFunction(MANIPUL_INX_GRIPPER_FORCE_CLRL)){
+//            QMessageBox::information(this, tr("Fail to Get pose"), tr("Check Gripper Status"));
+//            return;
+//        }
+//    }
+}
+
+void Manipulation_Dlg::SlotButtonGripperGrasp(){
+
+    int pose_1 = ui->ed_gripper_1_goal_pos->text().toInt();
+    int pose_2 = ui->ed_gripper_2_goal_pos->text().toInt();
+
+    int load_thresh = ui->ed_gripper_1_load_thresh->text().toInt();
+
+    if(!mpc_manipulation->GripperGoThePose(pose_1, pose_2, load_thresh))
+        QMessageBox::information(this, tr("Fail to Go to the pose"), tr("Check Gripper Status"));
+
+}
+
+void Manipulation_Dlg::SlotButtonGripperTorqueOn(){
 
 }
 
