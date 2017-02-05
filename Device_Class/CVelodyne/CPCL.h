@@ -17,7 +17,7 @@
 #include <pcl/io/obj_io.h>
 #include <pcl/io/vtk_lib_io.h>
 #include <pcl/ModelCoefficients.h>
-#include <pcl/point_types.h>
+//#include <pcl/point_types.h>
 #include <pcl/sample_consensus/method_types.h>
 #include <pcl/sample_consensus/model_types.h>
 #include <pcl/segmentation/sac_segmentation.h>
@@ -28,6 +28,8 @@
 #include <pcl/conversions.h>
 #include <pcl/kdtree/kdtree.h>
 #include <pcl/features/normal_3d.h>
+//for projection
+#include <pcl/filters/project_inliers.h>
 
 #include <vtkRenderWindow.h>
 #include <vtkAutoInit.h>
@@ -39,6 +41,8 @@
 #include <vtkRenderWindowInteractor.h>
 
 #include <opencv2/core/core.hpp>
+#include <opencv2/highgui.hpp>
+#include <opencv2/imgproc/imgproc.hpp>
 
 
 typedef pcl::PointXYZRGBA PointT;

@@ -14,9 +14,12 @@
 #include <arpa/inet.h>
 #include <sys/types.h>
 #include <sys/socket.h>
+#include <vector>
 
 #include "CPCL.h"
 #include "../CUDP/CUDP.h"
+
+#define PI 3.14159265358979
 
 class CVelodyne : public QThread
 {
@@ -65,7 +68,7 @@ private:
     double mean_panel_x = 0.0;
     double mean_panel_y = 0.0;
     double sum_dist = 0.0;
-    double mean_dist = 0.0;
+    double mean_dist = 0.0;    
 
     bool RunVelodyne();
 public:
