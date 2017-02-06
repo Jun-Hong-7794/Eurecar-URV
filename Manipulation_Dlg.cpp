@@ -271,7 +271,7 @@ void Manipulation_Dlg::SlotButtonKinovaForceCtrl(){
 
     kinova_force_ctrl_option.kinova_force_ctrl_mission = true;
     kinova_force_ctrl_option.step_count = ui->ed_kinova_force_step_count->text().toDouble();
-    kinova_force_ctrl_option.forece_threshold = ui->ed_kinova_force_threshold->text().toDouble();
+    kinova_force_ctrl_option.force_threshold = ui->ed_kinova_force_threshold->text().toDouble();
 
     mpc_manipulation->SetManipulationOption(kinova_force_ctrl_option);
 
@@ -417,7 +417,7 @@ void Manipulation_Dlg::SlotButtonEEffectorLoadCheckIter(){
 
 //        gripper_force_ctrl.gripper_force_ctrl_mission = true;
 
-//        gripper_force_ctrl.forece_threshold = ui->ed_end_effector_load_threshold->text().toInt();
+//        gripper_force_ctrl.force_threshold = ui->ed_end_effector_load_threshold->text().toInt();
 
 //        mpc_manipulation->SetManipulationOption(gripper_force_ctrl);
 

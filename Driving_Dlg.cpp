@@ -240,6 +240,7 @@ void Driving_Dlg::SlotLRFVehicleAngleStructUpdate(LRF_VEHICLE_ANGLE_STRUCT _lrf_
 
     ui->ed_driving_lrf_v_distance->setText(QString::number(_lrf_struct.vertical_distance));
     ui->ed_driving_lrf_slope->setText(QString::number(_lrf_struct.angle));
+
 }
 
 void Driving_Dlg::SlotLRFVehicleHorizenStructUpdate(LRF_VEHICLE_HORIZEN_STRUCT _lrf_struct){
@@ -251,6 +252,12 @@ void Driving_Dlg::SlotLRFVehicleHorizenStructUpdate(LRF_VEHICLE_HORIZEN_STRUCT _
 
     double avr_deg = (_lrf_struct.s_inlier_deg + _lrf_struct.e_inlier_deg) / 2;
     ui->ed_driving_lrf_avr_deg->setText(QString::number(avr_deg));
+
+    ui->ed_driving_lrf_s_vir_deg->setText(QString::number(_lrf_struct.s_virtual_deg));
+    ui->ed_driving_lrf_e_vir_deg->setText(QString::number(_lrf_struct.e_virtual_deg));
+
+    double avr_vir_deg = (_lrf_struct.s_virtual_deg + _lrf_struct.e_virtual_deg) / 2;
+    ui->ed_driving_lrf_avr_vir_deg->setText(QString::number(avr_vir_deg));
 }
 
 

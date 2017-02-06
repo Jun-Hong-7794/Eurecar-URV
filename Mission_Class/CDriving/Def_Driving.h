@@ -28,11 +28,15 @@ typedef struct _LRF_Vehicle_Horizen_Struct{
     double horizen_distance;
     double s_inlier_deg;
     double e_inlier_deg;
+
+    double s_virtual_deg;
+    double e_virtual_deg;
     /////////////////////
 
     //User Setting
     double inlier_distance;
     double desired_avr_inlier_deg;//average of inlier degree
+    double desired_avr_virtual_deg;//average of inlier degree
     double error_deg_boundary;//average of inlier degree
 
     double velocity;

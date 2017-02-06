@@ -322,9 +322,29 @@ bool CScript::InterpreteMissionScriptLine(QString _line, MISSION_SCRIPT* _missio
         _step_info.before_sleep = _line.mid(bracket_small_op_index + 1, bracket_small_ed_index - bracket_small_op_index - 1).toInt();
     }
 
+    if(_line.contains("global_")){
+
+        if(InterpreteGlobalValue(_line))
+            return true;
+    }
+
+    if(_line.contains("local_")){
+
+        if(InterpreteLocalValue(_line, _mission_script))
+            return true;
+    }
+
     if(_line.contains("KINOVA_FORCE_CTRL")){
 
         if(InterpreteKinovaForceCtrl(_line, _step_info))
+            return true;
+        else
+            return false;
+    }
+
+    if(_line.contains("KINOVA_FORCE_CHECK")){
+
+        if(InterpreteKinovaForceCheck(_line, _step_info))
             return true;
         else
             return false;
@@ -403,6 +423,189 @@ bool CScript::InterpreteMissionScriptLine(QString _line, MISSION_SCRIPT* _missio
     return true;
 }
 
+bool CScript::InterpreteGlobalValue(QString _line){
+
+    QString global_int = "global_int";
+    QString global_bool = "global_bool";
+    QString global_double = "global_double";
+
+    int int_index = _line.indexOf(global_int);
+    int bool_index = _line.indexOf(global_bool);
+    int double_index = _line.indexOf(global_double);
+
+    if(double_index >= 0){
+        QString str_value;
+        QString str_variable_name;
+        SCRIPT_DOUBLE double_value;
+
+        str_variable_name = _line.mid(double_index + global_double.size()).trimmed();
+
+        int equal_index = str_variable_name.indexOf("=");
+
+        if(equal_index >= 0){
+
+            str_value = str_variable_name.mid(equal_index + 1).trimmed();
+            str_variable_name = str_variable_name.mid(0, equal_index - 1).trimmed();
+
+            double_value.double_value = str_value.toDouble();
+            double_value.variable_name = str_variable_name;
+        }
+        else{
+            double_value.double_value = 0;
+            double_value.variable_name = str_variable_name;
+        }
+
+        mvec_global_double.push_back(double_value);
+    }
+    if(int_index >= 0){
+        QString str_value;
+        QString str_variable_name;
+        SCRIPT_INT int_value;
+
+        str_variable_name = _line.mid(int_index + global_int.size()).trimmed();
+
+        int equal_index = str_variable_name.indexOf("=");
+
+        if(equal_index >= 0){
+
+            str_value = str_variable_name.mid(equal_index + 1).trimmed();
+            str_variable_name = str_variable_name.mid(0, equal_index - 1).trimmed();
+
+            int_value.int_value = str_value.toInt();
+            int_value.variable_name = str_variable_name;
+        }
+        else{
+            int_value.int_value = 0;
+            int_value.variable_name = str_variable_name;
+        }
+        mvec_global_int.push_back(int_value);
+    }
+    if(bool_index >= 0){
+
+        QString str_value;
+        QString str_variable_name;
+        SCRIPT_BOOL bool_value;
+
+        str_variable_name = _line.mid(bool_index + global_bool.size()).trimmed();
+
+        int equal_index = str_variable_name.indexOf("=");
+
+        if(equal_index >= 0){
+
+            str_value = str_variable_name.mid(equal_index + 1).trimmed();
+            str_variable_name = str_variable_name.mid(0, equal_index - 1).trimmed();
+
+            if(str_value.contains("true")){
+                bool_value.bool_value = true;
+            }
+            else{
+                bool_value.bool_value = false;
+            }
+            bool_value.variable_name = str_variable_name;
+        }
+        else{
+            bool_value.bool_value = 0;
+            bool_value.variable_name = str_variable_name;
+        }
+        mvec_global_bool.push_back(bool_value);
+    }
+
+    else
+        return false;
+
+    return true;
+}
+
+bool CScript::InterpreteLocalValue(QString _line, MISSION_SCRIPT* _mission_script){
+
+    QString local_int = "local_int";
+    QString local_bool = "local_bool";
+    QString local_double = "local_double";
+
+    int int_index = _line.indexOf(local_int);
+    int bool_index = _line.indexOf(local_bool);
+    int double_index = _line.indexOf(local_double);
+
+    if(double_index >= 0){
+        QString str_value;
+        QString str_variable_name;
+        SCRIPT_DOUBLE double_value;
+
+        str_variable_name = _line.mid(double_index + local_double.size()).trimmed();
+
+        int equal_index = str_variable_name.indexOf("=");
+
+        if(equal_index >= 0){
+
+            str_value = str_variable_name.mid(equal_index + 1).trimmed();
+            str_variable_name = str_variable_name.mid(0, equal_index - 1).trimmed();
+
+            double_value.double_value = str_value.toDouble();
+            double_value.variable_name = str_variable_name;
+        }
+        else{
+            double_value.double_value = 0;
+            double_value.variable_name = str_variable_name;
+        }
+        _mission_script->vec_lc_double.push_back(double_value);
+    }
+    else if(int_index >= 0){
+        QString str_value;
+        QString str_variable_name;
+        SCRIPT_INT int_value;
+
+        str_variable_name = _line.mid(int_index + local_int.size()).trimmed();
+
+        int equal_index = str_variable_name.indexOf("=");
+
+        if(equal_index >= 0){
+
+            str_value = str_variable_name.mid(equal_index + 1).trimmed();
+            str_variable_name = str_variable_name.mid(0, equal_index - 1).trimmed();
+
+            int_value.int_value = str_value.toInt();
+            int_value.variable_name = str_variable_name;
+        }
+        else{
+            int_value.int_value = 0;
+            int_value.variable_name = str_variable_name;
+        }
+        _mission_script->vec_lc_int.push_back(int_value);
+    }
+    else if(bool_index >= 0){
+        QString str_value;
+        QString str_variable_name;
+        SCRIPT_BOOL bool_value;
+
+        str_variable_name = _line.mid(bool_index + local_bool.size()).trimmed();
+
+        int equal_index = str_variable_name.indexOf("=");
+
+        if(equal_index >= 0){
+
+            str_value = str_variable_name.mid(equal_index + 1).trimmed();
+            str_variable_name = str_variable_name.mid(0, equal_index - 1).trimmed();
+
+            if(str_value.contains("true")){
+                bool_value.bool_value = true;
+            }
+            else{
+                bool_value.bool_value = false;
+            }
+            bool_value.variable_name = str_variable_name;
+        }
+        else{
+            bool_value.bool_value = 0;
+            bool_value.variable_name = str_variable_name;
+        }
+        _mission_script->vec_lc_bool.push_back(bool_value);
+    }
+    else
+        return false;
+
+    return true;
+}
+
 bool CScript::InterpreteKinovaForceCtrl(QString _line, STEP_INFO& _step_info){
 
     if(_line.contains("KINOVA_FORCE_CTRL_STRUCT")){
@@ -413,7 +616,7 @@ bool CScript::InterpreteKinovaForceCtrl(QString _line, STEP_INFO& _step_info){
         }
         else if(_line.contains("force_threshold")){
             int colone_index = _line.indexOf("=");
-            _step_info.manipulation_option.kinova_force_option.forece_threshold = _line.mid(colone_index + 1).trimmed().toDouble();
+            _step_info.manipulation_option.kinova_force_option.force_threshold = _line.mid(colone_index + 1).trimmed().toDouble();
             return true;
         }
         else if(_line.contains("move_step_x")){
@@ -441,6 +644,40 @@ bool CScript::InterpreteKinovaForceCtrl(QString _line, STEP_INFO& _step_info){
     return true;
 }
 
+bool CScript::InterpreteKinovaForceCheck(QString _line, STEP_INFO& _step_info){
+
+    if(_line.contains("KINOVA_FORCE_CHECK_STRUCT")){
+
+        if(_line.contains("force_threshold_x")){
+            int colone_index = _line.indexOf("=");
+            _step_info.manipulation_option.kinova_force_check_option.force_threshold_x = _line.mid(colone_index + 1).trimmed().toDouble();
+            return true;
+        }
+        if(_line.contains("force_threshold_y")){
+            int colone_index = _line.indexOf("=");
+            _step_info.manipulation_option.kinova_force_check_option.force_threshold_y = _line.mid(colone_index + 1).trimmed().toDouble();
+            return true;
+        }
+        if(_line.contains("force_threshold_z")){
+            int colone_index = _line.indexOf("=");
+            _step_info.manipulation_option.kinova_force_check_option.force_threshold_z = _line.mid(colone_index + 1).trimmed().toDouble();
+            return true;
+        }
+
+        if(_line.contains("check_count")){
+            int colone_index = _line.indexOf("=");
+            _step_info.manipulation_option.kinova_force_check_option.check_count = _line.mid(colone_index + 1).trimmed().toInt();
+            return true;
+        }
+    }
+    else if(_line.contains("KINOVA_FORCE_CHECK_FUNCTION")){
+        _step_info.function_index = MP_KINOVA_FORCE_CHECK;
+    }
+    else
+        return false;
+    return true;
+}
+
 bool CScript::InterpreteKinovaManipulate(QString _line, STEP_INFO& _step_info){
 
     if(_line.contains("KINOVA_MANIPULATE_STRUCT")){
@@ -463,7 +700,7 @@ bool CScript::InterpreteKinovaManipulate(QString _line, STEP_INFO& _step_info){
 
         else if(_line.contains("force_threshold")){
             int colone_index = _line.indexOf("=");
-            _step_info.manipulation_option.kinova_manipulate_option.forece_threshold = _line.mid(colone_index + 1).trimmed().toDouble();
+            _step_info.manipulation_option.kinova_manipulate_option.force_threshold = _line.mid(colone_index + 1).trimmed().toDouble();
             return true;
         }
 
@@ -514,9 +751,9 @@ bool CScript::InterpreteGripperForceCtrl(QString _line, STEP_INFO& _step_info){
             return true;
         }
 
-        if(_line.contains("forece_threshold")){
+        if(_line.contains("force_threshold")){
             int colone_index = _line.indexOf("=");
-            _step_info.manipulation_option.gripper_force_option.forece_threshold = _line.mid(colone_index + 1).trimmed().toDouble();
+            _step_info.manipulation_option.gripper_force_option.force_threshold = _line.mid(colone_index + 1).trimmed().toDouble();
             return true;
         }
 
@@ -875,6 +1112,22 @@ bool CScript::SetPlayerOption(SCRIPT_PLAYER_OPTION _player_option){
 
 bool CScript::MissionPlayer(){
 
+    QString msessage;
+
+    QString mission_font_option_head = "<font color=red>";
+    QString mission_font_option_tail = "</font>";
+
+    QString step_font_option_head = "<font color=blue>";
+    QString step_font_option_tail = "</font>";
+
+    if(mpary_mission_script[0].step_vecor.empty()){
+        msessage = mission_font_option_head;
+        msessage += "Check Mission Status";
+        msessage += mission_font_option_tail;
+        emit SignalScriptMessage(msessage);
+        return false;
+    }
+
     unsigned int step_start_inx = mstruct_player_option.start_step_num;
     unsigned int step_end___inx = mstruct_player_option.end_step_num;
 
@@ -883,14 +1136,6 @@ bool CScript::MissionPlayer(){
 
     if(mission_end___inx > (mstruct_scenario.mission_file_name.size() -1))
             mission_end___inx = (mstruct_scenario.mission_file_name.size() -1);
-
-    QString msessage;
-
-    QString mission_font_option_head = "<font color=red>";
-    QString mission_font_option_tail = "</font>";
-
-    QString step_font_option_head = "<font color=blue>";
-    QString step_font_option_tail = "</font>";
 
     for(unsigned int i = mission_start_inx; i <= mission_end___inx; i++){
         if(step_end___inx > (mpary_mission_script[i].step_vecor.size() -1))
@@ -951,6 +1196,13 @@ bool CScript::MissionPlayer(){
             if(mpary_mission_script[i].step_vecor.at(j).function_index == MP_KINOVA_FORCE_CONTROL){
                 mpc_manipulation->SetManipulationOption(mpary_mission_script[i].step_vecor.at(j).manipulation_option.kinova_force_option);
                 mpc_manipulation->SelectMainFunction(MANIPUL_INX_KINOVA_FORCE_CLRL);
+
+                while(mpc_manipulation->isRunning());
+            }
+
+            if(mpary_mission_script[i].step_vecor.at(j).function_index == MP_KINOVA_FORCE_CHECK){
+                mpc_manipulation->SetManipulationOption(mpary_mission_script[i].step_vecor.at(j).manipulation_option.kinova_force_check_option);
+                mpc_manipulation->SelectMainFunction(MANIPUL_INX_KINOVA_FORCE_CHECK);
 
                 while(mpc_manipulation->isRunning());
             }

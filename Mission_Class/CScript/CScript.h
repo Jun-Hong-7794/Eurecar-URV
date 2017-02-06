@@ -62,6 +62,14 @@ private:
     //-------------------------------------------------
     SCRIPT_PLAYER_OPTION mstruct_player_option;
 
+    //-------------------------------------------------
+    // Variable Vector
+    //-------------------------------------------------
+    //Gloabal Variable
+    std::vector<SCRIPT_INT> mvec_global_int;
+    std::vector<SCRIPT_BOOL> mvec_global_bool;
+    std::vector<SCRIPT_DOUBLE> mvec_global_double;
+
 private:
     void InitScenarioScript();
 
@@ -72,12 +80,25 @@ public:
     bool InterpreteScenarioScriptFile(QString _file_name);
     bool InterpreteScenarioScriptLine(QString _line);
 
+private:
+    //-------------------------------------------------
+    // Interprete Global Value
+    //-------------------------------------------------
+    bool InterpreteGlobalValue(QString _line);
+
+    //-------------------------------------------------
+    // Interprete Local Value
+    //-------------------------------------------------
+    bool InterpreteLocalValue(QString _line, MISSION_SCRIPT* _mission_script);
+
+    //-------------------------------------------------
     bool InterpreteMissionScriptFile();
     bool InterpreteMissionScriptLine(QString _line, MISSION_SCRIPT* _mission_script, STEP_INFO& _step_info);
     //-------------------------------------------------
     // Function
     //-------------------------------------------------
     bool InterpreteKinovaForceCtrl(QString _line, STEP_INFO& _step_info);
+    bool InterpreteKinovaForceCheck(QString _line, STEP_INFO& _step_info);
     bool InterpreteKinovaManipulate(QString _line, STEP_INFO& _step_info);
     bool InterpreteGripperForceCtrl(QString _line, STEP_INFO& _step_info);
     bool InterpreteGripperMagnetCtrl(QString _line, STEP_INFO& _step_info);

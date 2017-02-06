@@ -60,7 +60,8 @@ public:
     // But 0 ~ 45 deg and 225 ~ 270 deg dose not necessary our robot.(Becuase, That range is backward.)
     // So, in our system, we redefind the range(45deg => 0deg deg, 225deg => 180deg)
     void GetLRFInfo(double &_slope, double &_distance, double _s_deg = 10, double _e_deg = 170, int _inlier_lrf_dst = 800/*mm*/);
-    void GetHorizenDistance(double _inlier_distance,double& _horizen_distance, double& _s_inlier_deg, double& _e_inlier_deg, double _s_deg = 20, double _e_deg = 160);
+    void GetHorizenDistance(double _inlier_distance,double& _horizen_distance, double& _s_inlier_deg, double& _e_inlier_deg,
+                            double& _virt_s_deg, double& _virt_e_deg, double _s_deg = 20, double _e_deg = 160);
 
     cv::Mat GetSegnetImage(cv::Mat _org_img);
 
@@ -75,6 +76,9 @@ private:
 
     void ClaculateHorizenDistance(std::vector<POINT_PARAM>& _point_vec, double _inlier_distance,double& _horizen_distance, int& _s_inlier_inx, int& _e_inlier_inx);
     cv::Mat LRFDataToMat(std::vector<POINT_PARAM> _point_vec, double _inlier_distance, double _max_distance = 1500/*mm*/);
+
+    void ClaculateVirtualHorizenInfo(double& _vir_s_deg, double& _vir_e_deg,
+                                     double _s_x_distance, double _e_x_distance, double _vir_v_distance = 1000/*mm*/);
 
 public:
     void SegnetFunction();

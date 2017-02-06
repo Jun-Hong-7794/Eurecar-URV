@@ -324,30 +324,50 @@ bool CDriving::LRFVehicleHorizenControl(){
             return false;
     }
 
+    int count = 0;
+
     do{
         int direction = 0;
         double current_a_inlier_deg = 0;
+        double current_a_virtual_deg = 0;
+
         double a_deg_boundary = 0;
+        double a_deg_virtual_boundary = 0;
 
         double horizen_distance = 0;
+
+        double s_virture_deg = 0;
+        double e_virture_deg = 0;
+
         double s_inlier_deg = 0;
         double e_inlier_deg = 0;
 
-        mpc_rgb_d->GetHorizenDistance(inlier_distance, horizen_distance, s_inlier_deg, e_inlier_deg, lrf_vehicle.s_deg, lrf_vehicle.e_deg);
+        mpc_rgb_d->GetHorizenDistance(inlier_distance, horizen_distance, s_inlier_deg, e_inlier_deg,
+                                      s_virture_deg, e_virture_deg, lrf_vehicle.s_deg, lrf_vehicle.e_deg);
 
         current_a_inlier_deg = (s_inlier_deg + e_inlier_deg) / 2;
+        current_a_virtual_deg = (s_virture_deg + e_virture_deg) / 2;;
 
         a_deg_boundary = lrf_vehicle.desired_avr_inlier_deg - current_a_inlier_deg;
+        a_deg_virtual_boundary = lrf_vehicle.desired_avr_virtual_deg - current_a_virtual_deg;
 
         lrf_vehicle.horizen_distance = horizen_distance;
 
         lrf_vehicle.s_inlier_deg = s_inlier_deg;
         lrf_vehicle.e_inlier_deg = e_inlier_deg;
 
+        lrf_vehicle.s_virtual_deg = s_virture_deg;
+        lrf_vehicle.e_virtual_deg = e_virture_deg;
+
         emit SignalLRFVehicleHorizenStruct(lrf_vehicle);
 
         if(lrf_vehicle.error_deg_boundary > fabs(a_deg_boundary)){
-            break;
+            if(count < 10){
+                count++;
+                continue;
+            }
+            else
+                break;
         }
 
         if(!lrf_vehicle.sensor_option){
@@ -360,6 +380,7 @@ bool CDriving::LRFVehicleHorizenControl(){
             mpc_vehicle->Move(direction, lrf_vehicle.velocity);
         }
 
+        count = 0;
 
     }while(true);
 

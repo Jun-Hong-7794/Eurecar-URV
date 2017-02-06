@@ -464,12 +464,20 @@ bool CGripper::InitGripper(char* _device_port){
     if(dxl_comm_result != COMM_SUCCESS) mp_gripper_packetHandler->printTxRxResult(dxl_comm_result);
     else if(dxl_error != 0) mp_gripper_packetHandler->printRxPacketError(dxl_error);
 
-    dxl_comm_result = mp_gripper_packetHandler->write2ByteTxRx(mp_gripper_portHandler, DXL1_ID, ADDR_MX_GOAL_POSITION, dxl_goal_position+DXL1_OFFSET, &dxl_error);
-    if(dxl_comm_result != COMM_SUCCESS) mp_gripper_packetHandler->printTxRxResult(dxl_comm_result);
-    else if(dxl_error != 0) mp_gripper_packetHandler->printRxPacketError(dxl_error);
+    dxl_comm_result = mp_gripper_packetHandler->write2ByteTxRx(mp_gripper_portHandler, DXL1_ID, ADDR_MX_GOAL_POSITION, dxl_goal_position/*+DXL1_OFFSET*/, &dxl_error);
+
+    if(dxl_comm_result != COMM_SUCCESS)
+        mp_gripper_packetHandler->printTxRxResult(dxl_comm_result);
+    else if(dxl_error != 0)
+        mp_gripper_packetHandler->printRxPacketError(dxl_error);
+
     dxl_comm_result = mp_gripper_packetHandler->write2ByteTxRx(mp_gripper_portHandler, DXL2_ID, ADDR_MX_GOAL_POSITION, dxl_goal_position, &dxl_error);
-    if(dxl_comm_result != COMM_SUCCESS) mp_gripper_packetHandler->printTxRxResult(dxl_comm_result);
-    else if(dxl_error != 0) mp_gripper_packetHandler->printRxPacketError(dxl_error);
+
+    if(dxl_comm_result != COMM_SUCCESS)
+        mp_gripper_packetHandler->printTxRxResult(dxl_comm_result);
+    else if(dxl_error != 0)
+        mp_gripper_packetHandler->printRxPacketError(dxl_error);
+
     fl_init_gripper = true;
 
     dxl_comm_result = mp_groupBulkRead_pos->txRxPacket();
@@ -665,6 +673,35 @@ bool CGripper::GripperGoToThePositionLoadCheck(int _goal_pos_1, int _goal_pos_2,
 
         dxl_comm_result = mp_gripper_packetHandler->read2ByteTxRx(mp_gripper_portHandler, DXL2_ID, ADDR_MX_PRESENT_POSITION, &dxl_present_position_2, &dxl_error);
         dxl_prev_position_2 = dxl_present_position_2;
+
+        if(_load_threshold == -2){// Go to the position no load and no unit step
+
+            if(_goal_pos_1 > 0){
+                dxl_comm_result = mp_gripper_packetHandler->write2ByteTxRx(mp_gripper_portHandler, DXL1_ID, ADDR_MX_GOAL_POSITION, _goal_pos_1, &dxl_error);
+
+                if(dxl_comm_result != COMM_SUCCESS){
+                    mp_gripper_packetHandler->printTxRxResult(dxl_comm_result);
+                    mtx_gripper_handle.unlock();
+                    return false;
+                }
+                else if(dxl_error != 0)
+                    mp_gripper_packetHandler->printRxPacketError(dxl_error);
+            }
+            if(_goal_pos_2 > 0){
+                dxl_comm_result = mp_gripper_packetHandler->write2ByteTxRx(mp_gripper_portHandler, DXL2_ID, ADDR_MX_GOAL_POSITION, _goal_pos_2, &dxl_error);
+
+                if(dxl_comm_result != COMM_SUCCESS){
+                    mp_gripper_packetHandler->printTxRxResult(dxl_comm_result);
+                    mtx_gripper_handle.unlock();
+                    return false;
+                }
+                else if(dxl_error != 0)
+                    mp_gripper_packetHandler->printRxPacketError(dxl_error);
+            }
+
+            mtx_gripper_handle.unlock();
+            return true;
+        }
 
         if((_goal_pos_1 - dxl_present_position_1) > 0)
             dxl_step_1 = 1;

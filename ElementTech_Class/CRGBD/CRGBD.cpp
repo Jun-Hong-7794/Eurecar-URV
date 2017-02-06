@@ -107,7 +107,8 @@ void CRGBD::GetLRFInfo(double &_slope, double &_distance, double _s_deg, double 
     return;
 }
 
-void CRGBD::GetHorizenDistance(double _inlier_distance,double& _horizen_distance, double& _s_inlier_deg, double& _e_inlier_deg, double _s_deg, double _e_deg){
+void CRGBD::GetHorizenDistance(double _inlier_distance,double& _horizen_distance, double& _s_inlier_deg, double& _e_inlier_deg,
+                               double& _virt_s_deg, double& _virt_e_deg, double _s_deg, double _e_deg){
 
     //Convert to Original Coordinate
     int s_lrf_index = (int)((_s_deg + 45) / ANGLE_RESOLUTION);
@@ -132,6 +133,8 @@ void CRGBD::GetHorizenDistance(double _inlier_distance,double& _horizen_distance
 
         ClaculateLRFHeightDistance(lrf_distance, _s_deg, _e_deg, s_index, point_vec, inlier_v_distance);
         ClaculateHorizenDistance(point_vec, _inlier_distance, _horizen_distance, s_inlier_inx, e_inlier_inx);
+
+        ClaculateVirtualHorizenInfo(_virt_s_deg, _virt_e_deg, point_vec.at(s_index).x, point_vec.at(s_index).y);
 
         emit SignalLRFMapImage(LRFDataToMat(point_vec, _inlier_distance, 1000));
 
@@ -333,6 +336,26 @@ cv::Mat CRGBD::LRFDataToMat(std::vector<POINT_PARAM> _point_vec, double _inlier_
     }
 
     return lrf_map;
+}
+
+void CRGBD::ClaculateVirtualHorizenInfo(double& _vir_s_deg, double& _vir_e_deg,
+                                 double _s_x_distance, double _e_x_distance, double _vir_v_distance){
+
+
+    double s_tan = _s_x_distance / _vir_v_distance;
+    double s_rad = 0;
+
+    double e_tan = _e_x_distance / _vir_v_distance;
+    double e_rad = 0;
+
+    s_tan = s_tan > 0 ? s_tan : (-1) * s_tan;
+    e_tan = e_tan > 0 ? e_tan : (-1) * e_tan;
+
+    s_rad = atan(s_tan);
+    e_rad = atan(e_tan);
+
+    _vir_s_deg = _s_x_distance > 0 ? (s_rad * RGBD_R2D) : (180 - (s_rad * RGBD_R2D));
+    _vir_e_deg = _e_x_distance > 0 ? (e_rad * RGBD_R2D) : (180 - (e_rad * RGBD_R2D));
 }
 
 //----------------------------------------------------------------

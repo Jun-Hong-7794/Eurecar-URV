@@ -77,9 +77,21 @@ typedef struct _Kinova_Force_Ctrl_Struct{
     double move_step_y;
     double move_step_z;
 
-    double forece_threshold;
+    double force_threshold;
 
 }KINOVA_FORCE_CTRL_STRUCT;
+
+typedef struct _Kinova_Force_Check_Struct{
+
+    bool kinova_force_ctrl_mission;
+
+    double force_threshold_x;
+    double force_threshold_y;
+    double force_threshold_z;
+
+    int check_count;
+
+}KINOVA_FORCE_CHECK_STRUCT;
 
 typedef struct _Kinova_Do_Manipulate_Struct{
 
@@ -101,7 +113,7 @@ typedef struct _Kinova_Do_Manipulate_Struct{
     double pitch;
     double yaw;
 
-    double forece_threshold;
+    double force_threshold;
 
 }KINOVA_DO_MANIPULATE_STRUCT;
 
@@ -120,7 +132,7 @@ typedef struct _Kinova_Rotate_Valve_Struct{
     double theta;
     double radius;
 
-    double forece_threshold;
+    double force_threshold;
 
 }KINOVA_ROTATE_VALVE_STRUCT;
 
@@ -128,7 +140,7 @@ typedef struct _Gripper_Force_Ctrl_Struct{
 
     bool gripper_force_ctrl_mission;
 
-    int forece_threshold;
+    int force_threshold;
 
     int bend_deg;
 
@@ -154,6 +166,8 @@ typedef struct _Manipulation_Option{
     LRF_KINOVA_HORIZEN_CTRL_STRUCT lrf_kinova_horizen_option;
 
     KINOVA_FORCE_CTRL_STRUCT kinova_force_option;
+
+    KINOVA_FORCE_CHECK_STRUCT kinova_force_check_option;
 
     KINOVA_ROTATE_VALVE_STRUCT kinova_rotate_valve_option;
 

@@ -288,6 +288,13 @@ bool CManipulation::SelectMainFunction(int _fnc_index_){
 
         return true;
     }
+    else if(_fnc_index_ == MANIPUL_INX_KINOVA_FORCE_CHECK){
+        m_main_fnc_index = MANIPUL_INX_KINOVA_FORCE_CHECK;
+        this->start();
+
+        return true;
+    }
+
     else if(_fnc_index_ == MANIPUL_INX_GRIPPER_FORCE_CLRL){
         m_main_fnc_index = MANIPUL_INX_GRIPPER_FORCE_CLRL;
         this->start();
@@ -381,6 +388,28 @@ KINOVA_FORCE_CTRL_STRUCT CManipulation::GetKinovaForceCtrlOption(){
     mxt_kinova_force_ctrl.unlock();
 
     return kinova_force_ctrl;
+}
+
+void CManipulation::SetManipulationOption(KINOVA_FORCE_CHECK_STRUCT _kinova_force_check){
+
+    mxt_kinova_force_check.lock();
+    {
+        mstruct_kinova_force_check = _kinova_force_check;
+    }
+    mxt_kinova_force_check.unlock();
+}
+
+KINOVA_FORCE_CHECK_STRUCT CManipulation::GetKinovaForceCheckOption(){
+
+    KINOVA_FORCE_CHECK_STRUCT kinova_force_check;
+
+    mxt_kinova_force_check .lock();
+    {
+        kinova_force_check = mstruct_kinova_force_check;
+    }
+    mxt_kinova_force_check.unlock();
+
+    return kinova_force_check;
 }
 
 void CManipulation::SetManipulationOption(GRIPPER_FORCE_CTRL_STRUCT _manipulation_option){
@@ -534,6 +563,8 @@ bool CManipulation::LRFKinovaHorizenControl(){
             return false;
     }
 
+    int count = 0;
+
     do{
         double inlier_s_deg = 0;
         double inlier_e_deg = 0;
@@ -543,10 +574,14 @@ bool CManipulation::LRFKinovaHorizenControl(){
 
         double lnlier_deg_sum = 0;
 
+        double s_virture_deg = 0;
+        double e_virture_deg = 0;
+
         lrf_kinova_struct.inlier_deg_s_output = 0;
         lrf_kinova_struct.inlier_deg_e_output = 0;
 
-        mpc_rgb_d->GetHorizenDistance(lrf_kinova_struct.inlier_lrf_dst, current_h_distance, inlier_s_deg, inlier_e_deg, lrf_kinova_struct.s_deg, lrf_kinova_struct.e_deg);
+        mpc_rgb_d->GetHorizenDistance(lrf_kinova_struct.inlier_lrf_dst, current_h_distance, inlier_s_deg, inlier_e_deg,
+                                      s_virture_deg, e_virture_deg, lrf_kinova_struct.s_deg, lrf_kinova_struct.e_deg);
 
         lrf_kinova_struct.inlier_deg_s_output = inlier_s_deg;
         lrf_kinova_struct.inlier_deg_e_output = inlier_e_deg;
@@ -556,8 +591,15 @@ bool CManipulation::LRFKinovaHorizenControl(){
         inlier_deg_avr = (double)(lnlier_deg_sum / 2.0);
         inlier_deg_error = inlier_deg_avr - lrf_kinova_struct.desired_inlier_deg_avr;
 
+        emit SignalLRFKinovaHorizenStruct(lrf_kinova_struct);
+
         if(fabs(inlier_deg_error) < lrf_kinova_struct.error){
-            break;
+            if(count < 5){
+                count++;
+                continue;
+            }
+            else
+                break;
         }
 
         if(!lrf_kinova_struct.sensor_option){
@@ -571,7 +613,8 @@ bool CManipulation::LRFKinovaHorizenControl(){
             if(lrf_kinova_struct.loop_sleep != 0)
                 msleep(lrf_kinova_struct.loop_sleep/*msec*/);
         }
-        emit SignalLRFKinovaHorizenStruct(lrf_kinova_struct);
+
+        count = 0;
     }
     while(true);
 
@@ -594,13 +637,13 @@ bool CManipulation::KinovaForceCtrl(){
         if(step_count > kinova_force_ctrl.step_count)
             break;
 
-        if(fabs(cartesian_pos.Coordinates.X) > kinova_force_ctrl.forece_threshold){//Over Threshold X axis force
+        if(fabs(cartesian_pos.Coordinates.X) > kinova_force_ctrl.force_threshold){//Over Threshold X axis force
             break;
         }
-        if(fabs(cartesian_pos.Coordinates.Y) > kinova_force_ctrl.forece_threshold){//Over Threshold Y axis force
+        if(fabs(cartesian_pos.Coordinates.Y) > kinova_force_ctrl.force_threshold){//Over Threshold Y axis force
             break;
         }
-        if(fabs(cartesian_pos.Coordinates.Z) > kinova_force_ctrl.forece_threshold){//Over Threshold Z axis force
+        if(fabs(cartesian_pos.Coordinates.Z) > kinova_force_ctrl.force_threshold){//Over Threshold Z axis force
             break;
         }
 
@@ -611,6 +654,47 @@ bool CManipulation::KinovaForceCtrl(){
     while(true);
 
     return true;
+}
+
+bool CManipulation::KinovaForceCheck(){
+
+    if(!mpc_kinova->IsKinovaInitialized())
+        return false;
+
+    int check_count = 0;
+
+    KINOVA_FORCE_CHECK_STRUCT kinova_force_check = GetKinovaForceCheckOption();
+
+    do{
+        CartesianPosition cartesian_pos = mpc_kinova->KinovaGetCartesianForce();
+        emit SignalKinovaForceVector(cartesian_pos);
+
+        if(check_count > kinova_force_check.check_count)
+            break;
+
+        if(kinova_force_check.force_threshold_x != 0){
+            if(fabs(cartesian_pos.Coordinates.X) > kinova_force_check.force_threshold_x){//Over Threshold X axis force
+                return true;
+            }
+        }
+
+        if(kinova_force_check.force_threshold_y != 0){
+            if(fabs(cartesian_pos.Coordinates.Y) > kinova_force_check.force_threshold_y){//Over Threshold Y axis force
+                return true;
+            }
+        }
+
+        if(kinova_force_check.force_threshold_z != 0){
+            if(fabs(cartesian_pos.Coordinates.Z) > kinova_force_check.force_threshold_z){//Over Threshold Z axis force
+                return true;
+            }
+        }
+
+        check_count++;
+    }
+    while(true);
+
+    return false;
 }
 
 bool CManipulation::KinovaDoManipulate(){
@@ -626,7 +710,7 @@ bool CManipulation::KinovaDoManipulate(){
     kinova_pose.Coordinates.ThetaY = kinova_manipulate.pitch;
     kinova_pose.Coordinates.ThetaX = kinova_manipulate.yaw;
 
-//    mpc_kinova->KinovaDoManipulate(kinova_pose, kinova_manipulate.forece_threshold);
+//    mpc_kinova->KinovaDoManipulate(kinova_pose, kinova_manipulate.force_threshold);
     mpc_kinova->KinovaDoManipulate(kinova_pose, 2);
 
     return true;
@@ -660,7 +744,7 @@ bool CManipulation::GripperForceCtrl(){
 
     gripper_force_ctrl = GetGripperForceCtrlOption();
 
-    mpc_gripper->GripperGoToThePositionLoadCheck(gripper_force_ctrl.pose_1, gripper_force_ctrl.pose_2, gripper_force_ctrl.forece_threshold);
+    mpc_gripper->GripperGoToThePositionLoadCheck(gripper_force_ctrl.pose_1, gripper_force_ctrl.pose_2, gripper_force_ctrl.force_threshold);
 
     return true;
 }
@@ -697,6 +781,9 @@ void CManipulation::run(){
         break;
     case MANIPUL_INX_KINOVA_FORCE_CLRL:
         KinovaForceCtrl();
+        break;
+    case MANIPUL_INX_KINOVA_FORCE_CHECK:
+        KinovaForceCheck();
         break;
     case MANIPUL_INX_GRIPPER_FORCE_CLRL:
         GripperForceCtrl();

@@ -101,6 +101,16 @@ EurecarURV_Dlg::EurecarURV_Dlg(QWidget *parent) :
     connect(mpc_drivig,SIGNAL(SignalVelodyneParser(bool)),this,SLOT(SlotVeloyneParser(bool)));
 
     //-------------------------------------------------
+    // Edite Init
+    //-------------------------------------------------
+
+    ui->ed_script_mission_s->setText("0");
+    ui->ed_script_mission_f->setText("0");
+
+    ui->ed_script_step_s->setText("0");
+    ui->ed_script_step_s->setText("0");
+
+    //-------------------------------------------------
     // Script Update
     //-------------------------------------------------
     QString file_path = "/home/winner/Workspace/2017MBZIRC_Code/Eurecar-URV/Eurecar-URV/Script/Scenario.md";
