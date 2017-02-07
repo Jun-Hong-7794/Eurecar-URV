@@ -454,7 +454,7 @@
      </font>
     </property>
     <property name="currentIndex">
-     <number>0</number>
+     <number>1</number>
     </property>
     <widget class="QWidget" name="tab_sensor_switch">
      <attribute name="title">
@@ -670,7 +670,7 @@
        </rect>
       </property>
       <property name="text">
-       <string>/dev/ttyACM0</string>
+       <string>/dev/ttyACM1</string>
       </property>
      </widget>
      <widget class="QLineEdit" name="ed_gripper_path">

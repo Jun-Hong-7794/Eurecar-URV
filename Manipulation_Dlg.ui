@@ -1429,6 +1429,32 @@
        <string>Inlier AVR</string>
       </property>
      </widget>
+     <widget class="QLineEdit" name="ed_lrf_horizen_input_s_deg">
+      <property name="geometry">
+       <rect>
+        <x>110</x>
+        <y>20</y>
+        <width>41</width>
+        <height>22</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>30</string>
+      </property>
+     </widget>
+     <widget class="QLineEdit" name="ed_lrf_horizen_input_e_deg">
+      <property name="geometry">
+       <rect>
+        <x>160</x>
+        <y>20</y>
+        <width>41</width>
+        <height>22</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>150</string>
+      </property>
+     </widget>
     </widget>
     <widget class="QWidget" name="tab_rotate_valve">
      <attribute name="title">

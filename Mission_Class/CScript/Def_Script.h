@@ -25,10 +25,9 @@
 #define MP_KINOVA_MANIPULATE                 0x2005
 #define MP_KINOVA_ROTATE_VALVE               0x2006
 
-
-#define MP_LRF_KINOVA_VERTIVAL_CONTROL       0x2006
-#define MP_LRF_KINOVA_HORIZEN_CONTROL        0x2007
-#define MP_LRF_KINOVA_ANGLE_CONTROL          0x2008
+#define MP_LRF_KINOVA_VERTIVAL_CONTROL       0x2007
+#define MP_LRF_KINOVA_HORIZEN_CONTROL        0x2008
+#define MP_LRF_KINOVA_ANGLE_CONTROL          0x2009
 
 //-------------------------------------------------
 // Script Variable Define

@@ -238,26 +238,26 @@ void Driving_Dlg::Display_Image(cv::Mat _img, QGraphicsScene* _graphics_scene,QG
 
 void Driving_Dlg::SlotLRFVehicleAngleStructUpdate(LRF_VEHICLE_ANGLE_STRUCT _lrf_struct){
 
-    ui->ed_driving_lrf_v_distance->setText(QString::number(_lrf_struct.vertical_distance));
-    ui->ed_driving_lrf_slope->setText(QString::number(_lrf_struct.angle));
+    ui->ed_driving_lrf_v_distance->setText(QString::number(_lrf_struct.vertical_distance, 'f', 2));
+    ui->ed_driving_lrf_slope->setText(QString::number(_lrf_struct.angle, 'f', 2));
 
 }
 
 void Driving_Dlg::SlotLRFVehicleHorizenStructUpdate(LRF_VEHICLE_HORIZEN_STRUCT _lrf_struct){
 
-    ui->ed_driving_lrf_h_distance->setText(QString::number(_lrf_struct.horizen_distance));
+    ui->ed_driving_lrf_h_distance->setText(QString::number(_lrf_struct.horizen_distance, 'f', 2));
 
-    ui->ed_driving_lrf_s_deg->setText(QString::number(_lrf_struct.s_inlier_deg));
-    ui->ed_driving_lrf_e_deg->setText(QString::number(_lrf_struct.e_inlier_deg));
+    ui->ed_driving_lrf_s_deg->setText(QString::number(_lrf_struct.s_inlier_deg, 'f', 2));
+    ui->ed_driving_lrf_e_deg->setText(QString::number(_lrf_struct.e_inlier_deg, 'f', 2));
 
     double avr_deg = (_lrf_struct.s_inlier_deg + _lrf_struct.e_inlier_deg) / 2;
-    ui->ed_driving_lrf_avr_deg->setText(QString::number(avr_deg));
+    ui->ed_driving_lrf_avr_deg->setText(QString::number(avr_deg, 'f', 2));
 
-    ui->ed_driving_lrf_s_vir_deg->setText(QString::number(_lrf_struct.s_virtual_deg));
-    ui->ed_driving_lrf_e_vir_deg->setText(QString::number(_lrf_struct.e_virtual_deg));
+    ui->ed_driving_lrf_s_vir_deg->setText(QString::number(_lrf_struct.s_virtual_deg, 'f', 2));
+    ui->ed_driving_lrf_e_vir_deg->setText(QString::number(_lrf_struct.e_virtual_deg, 'f', 2));
 
     double avr_vir_deg = (_lrf_struct.s_virtual_deg + _lrf_struct.e_virtual_deg) / 2;
-    ui->ed_driving_lrf_avr_vir_deg->setText(QString::number(avr_vir_deg));
+    ui->ed_driving_lrf_avr_vir_deg->setText(QString::number(avr_vir_deg, 'f', 2));
 }
 
 

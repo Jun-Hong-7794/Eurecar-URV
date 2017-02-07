@@ -614,6 +614,38 @@ bool CScript::InterpreteKinovaForceCtrl(QString _line, STEP_INFO& _step_info){
             _step_info.manipulation_option.kinova_force_option.step_count = _line.mid(colone_index + 1).trimmed().toDouble();
             return true;
         }
+        else if(_line.contains("force_threshold_x")){
+            int colone_index = _line.indexOf("=");
+            _step_info.manipulation_option.kinova_force_option.force_threshold_x = _line.mid(colone_index + 1).trimmed().toDouble();
+            return true;
+        }
+        else if(_line.contains("force_threshold_y")){
+            int colone_index = _line.indexOf("=");
+            _step_info.manipulation_option.kinova_force_option.force_threshold_y = _line.mid(colone_index + 1).trimmed().toDouble();
+            return true;
+        }
+        else if(_line.contains("force_threshold_z")){
+            int colone_index = _line.indexOf("=");
+            _step_info.manipulation_option.kinova_force_option.force_threshold_z = _line.mid(colone_index + 1).trimmed().toDouble();
+            return true;
+        }
+
+        else if(_line.contains("position_limit_x")){
+            int colone_index = _line.indexOf("=");
+            _step_info.manipulation_option.kinova_force_option.position_limit_x = _line.mid(colone_index + 1).trimmed().toDouble();
+            return true;
+        }
+        else if(_line.contains("position_limit_y")){
+            int colone_index = _line.indexOf("=");
+            _step_info.manipulation_option.kinova_force_option.position_limit_y = _line.mid(colone_index + 1).trimmed().toDouble();
+            return true;
+        }
+        else if(_line.contains("position_limit_z")){
+            int colone_index = _line.indexOf("=");
+            _step_info.manipulation_option.kinova_force_option.position_limit_z = _line.mid(colone_index + 1).trimmed().toDouble();
+            return true;
+        }
+
         else if(_line.contains("force_threshold")){
             int colone_index = _line.indexOf("=");
             _step_info.manipulation_option.kinova_force_option.force_threshold = _line.mid(colone_index + 1).trimmed().toDouble();
@@ -1179,6 +1211,13 @@ bool CScript::MissionPlayer(){
                 while(mpc_drivig->isRunning());
             }
 
+            if(mpary_mission_script[i].step_vecor.at(j).function_index == MP_KINOVA_ROTATE_VALVE){
+                mpc_manipulation->SetManipulationOption(mpary_mission_script[i].step_vecor.at(j).manipulation_option.kinova_rotate_valve_option);
+                mpc_manipulation->SelectMainFunction(MANIPUL_INX_KINOVA_ROTATE_VALVE);
+
+                while(mpc_manipulation->isRunning());
+            }
+
             if(mpary_mission_script[i].step_vecor.at(j).function_index == MP_LRF_KINOVA_VERTIVAL_CONTROL){
                 mpc_manipulation->SetManipulationOption(mpary_mission_script[i].step_vecor.at(j).manipulation_option.lrf_kinova_vertical_option);
                 mpc_manipulation->SelectMainFunction(MANIPUL_INX_LRF_KINOVA_VERTIVAL_CTRL);
@@ -1225,13 +1264,6 @@ bool CScript::MissionPlayer(){
                 SetKinovaAxisValue(mpary_mission_script[i].step_vecor.at(j).manipulation_option.kinova_manipulate_option);
                 mpc_manipulation->SetManipulationOption(mpary_mission_script[i].step_vecor.at(j).manipulation_option.kinova_manipulate_option);
                 mpc_manipulation->SelectMainFunction(MANIPUL_INX_KINOVA_MANIPULATE);
-
-                while(mpc_manipulation->isRunning());
-            }
-
-            if(mpary_mission_script[i].step_vecor.at(j).function_index == MP_KINOVA_ROTATE_VALVE){
-                mpc_manipulation->SetManipulationOption(mpary_mission_script[i].step_vecor.at(j).manipulation_option.kinova_rotate_valve_option);
-                mpc_manipulation->SelectMainFunction(MANIPUL_INX_KINOVA_ROTATE_VALVE);
 
                 while(mpc_manipulation->isRunning());
             }

@@ -372,6 +372,37 @@ void Manipulation_Dlg::SlotButtonGetLRFInfo(){
     }
 }
 
+void Manipulation_Dlg::SlotButtonHorizenDistance(){
+
+    double current_h_distance = 0;
+
+    double inlier_s_deg = 0;
+    double inlier_e_deg = 0;
+    double s_virture_deg = 0;
+    double e_virture_deg = 0;
+
+    int sampling_loop = 5;
+
+    double inlier_lrf_dst = ui->ed_lrf_horizen_inlier->text().toDouble();
+
+    double s_deg = ui->ed_lrf_horizen_input_s_deg->text().toDouble();
+    double e_deg = ui->ed_lrf_horizen_input_e_deg->text().toDouble();
+
+    if(!mpc_manipulation->GetHorizenDistance(inlier_lrf_dst, current_h_distance, inlier_s_deg, inlier_e_deg,
+                                  s_virture_deg, e_virture_deg, s_deg, e_deg, sampling_loop)){
+        QMessageBox::information(this, tr("Fail to Get LRF Info"), tr("Check LRF Status"));
+        return;
+    }
+    else{
+        ui->ed_lrf_horizen_s_deg->setText(QString::number(inlier_s_deg, 'f', 3));
+        ui->ed_lrf_horizen_e_deg->setText(QString::number(inlier_e_deg, 'f', 3));
+        ui->ed_lrf_horizen_distance->setText(QString::number(current_h_distance, 'f', 3));
+
+        double avr = (inlier_s_deg + inlier_e_deg) / 2;
+        ui->ed_lrf_horizen_deg_avr->setText(QString::number(avr, 'f', 3));
+    }
+}
+
 // End Effector
 void Manipulation_Dlg::SlotButtonEEffectorGrasp(){
 

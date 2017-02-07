@@ -79,6 +79,14 @@ typedef struct _Kinova_Force_Ctrl_Struct{
 
     double force_threshold;
 
+    double force_threshold_x;//Relative Force
+    double force_threshold_y;//Relative Force
+    double force_threshold_z;//Relative Force
+
+    double position_limit_x;
+    double position_limit_y;
+    double position_limit_z;
+
 }KINOVA_FORCE_CTRL_STRUCT;
 
 typedef struct _Kinova_Force_Check_Struct{

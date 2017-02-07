@@ -349,7 +349,7 @@ bool CDriving::LRFVehicleHorizenControl(){
         current_a_virtual_deg = (s_virture_deg + e_virture_deg) / 2;;
 
         a_deg_boundary = lrf_vehicle.desired_avr_inlier_deg - current_a_inlier_deg;
-        a_deg_virtual_boundary = lrf_vehicle.desired_avr_virtual_deg - current_a_virtual_deg;
+        a_deg_virtual_boundary = lrf_vehicle.desired_avr_inlier_deg - current_a_virtual_deg;
 
         lrf_vehicle.horizen_distance = horizen_distance;
 
@@ -362,11 +362,11 @@ bool CDriving::LRFVehicleHorizenControl(){
         emit SignalLRFVehicleHorizenStruct(lrf_vehicle);
 
         if(lrf_vehicle.error_deg_boundary > fabs(a_deg_boundary)){
-            if(count < 10){
-                count++;
-                continue;
-            }
-            else
+//            if(count < 10){
+//                count++;
+//                continue;
+//            }
+//            else
                 break;
         }
 

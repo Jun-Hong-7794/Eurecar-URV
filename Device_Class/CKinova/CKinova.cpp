@@ -391,14 +391,14 @@ bool CKinova::KinovaMoveUnitStepBw(){
 void CKinova::SetKinovaRotateValve(bool _using_current_coord, bool _init_angle, double _x, double _y, double _z){
 
     if(_using_current_coord){
-        fl_center_init = false;
+        fl_using_current_coor = true;
     }
     else{
         x_coord = _x;
         y_coord = _y;
         z_coord = _z;
 
-        fl_center_init = true;
+        fl_using_current_coor = false;
     }
 
     if(_init_angle){
@@ -415,12 +415,18 @@ void CKinova::KinovaRotateValveMotion(VALVE_ROTATE_DIR _dir, int _radius, int _t
 
     Kinova_GetCartesianPosition(current_position);
 
-    if(!fl_center_init){
+    if(fl_using_current_coor){
         x_coord = current_position.Coordinates.X;
         y_coord = current_position.Coordinates.Y + 0.01*_radius*sin(initialAngle*3.141592/180);
         z_coord = current_position.Coordinates.Z - 0.01*_radius*cos(initialAngle*3.141592/180);
-
-        fl_center_init = true;
+    }
+    else{
+        if(x_coord == 0)
+            x_coord = current_position.Coordinates.X;
+        if(y_coord == 0)
+            y_coord = current_position.Coordinates.Y + 0.01*_radius*sin(initialAngle*3.141592/180);
+        if(z_coord == 0)
+            z_coord = current_position.Coordinates.Z - 0.01*_radius*cos(initialAngle*3.141592/180);
     }
     theta = 0.0;
     for(double i = 1; i <= _theta/5; i++){

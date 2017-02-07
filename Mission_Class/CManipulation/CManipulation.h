@@ -115,7 +115,8 @@ public:
     bool CloseLRF();
     bool IsLRFConnected();
     bool GetLRFInfo(double &_slope, double &_distance, double _s_deg, double _e_deg);
-
+    bool GetHorizenDistance(double _inlier_distance,double& _horizen_distance, double& _s_inlier_deg, double& _e_inlier_deg,
+                                   double& _virt_s_deg, double& _virt_e_deg, double _s_deg, double _e_deg, int _sampling_loop);
     //Camera
     bool InitCamera();
     void CloseCamera();
@@ -133,7 +134,7 @@ public:
     bool GripperPresentPose(uint16_t& _pose);
     bool GripperPresentLoad(uint16_t& _load);
 
-
+public:
 public:
     bool SelectMainFunction(int _fnc_index_);
 

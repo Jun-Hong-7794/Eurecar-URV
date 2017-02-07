@@ -76,6 +76,7 @@ public slots:
     //LRF
     void SlotButtonLRFOn();
     void SlotButtonGetLRFInfo();
+    void SlotButtonHorizenDistance();
 
     //Camera
     void SlotButtonCameraOn();

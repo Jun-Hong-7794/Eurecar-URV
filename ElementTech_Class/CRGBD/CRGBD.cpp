@@ -108,7 +108,7 @@ void CRGBD::GetLRFInfo(double &_slope, double &_distance, double _s_deg, double 
 }
 
 void CRGBD::GetHorizenDistance(double _inlier_distance,double& _horizen_distance, double& _s_inlier_deg, double& _e_inlier_deg,
-                               double& _virt_s_deg, double& _virt_e_deg, double _s_deg, double _e_deg){
+                               double& _virt_s_deg, double& _virt_e_deg, double _s_deg, double _e_deg, int _sampling_loop){
 
     //Convert to Original Coordinate
     int s_lrf_index = (int)((_s_deg + 45) / ANGLE_RESOLUTION);
@@ -124,23 +124,34 @@ void CRGBD::GetHorizenDistance(double _inlier_distance,double& _horizen_distance
         return;
     }
     else{
-        int s_index = -1;
-        int s_inlier_inx = 0;
-        int e_inlier_inx = 0;
-        int inlier_v_distance = (int)(_inlier_distance / sin(_s_deg * RGBD_D2R)) + 200/*mm*/;
+        int s_inlier_deg = 0;
+        int e_inlier_deg = 0;
+        for(int i = 0; i < _sampling_loop; i++){
+            int s_index = -1;
+            int s_inlier_inx = 0;
+            int e_inlier_inx = 0;
+            int inlier_v_distance = (int)(_inlier_distance / sin(_s_deg * RGBD_D2R)) + 200/*mm*/;
 
-        memcpy(lrf_distance, &mary_lrf_distance[s_lrf_index], sizeof(long)*(number_of_point));
+            memcpy(lrf_distance, &mary_lrf_distance[s_lrf_index], sizeof(long)*(number_of_point));
 
-        ClaculateLRFHeightDistance(lrf_distance, _s_deg, _e_deg, s_index, point_vec, inlier_v_distance);
-        ClaculateHorizenDistance(point_vec, _inlier_distance, _horizen_distance, s_inlier_inx, e_inlier_inx);
+            ClaculateLRFHeightDistance(lrf_distance, _s_deg, _e_deg, s_index, point_vec, inlier_v_distance);
+            ClaculateHorizenDistance(point_vec, _inlier_distance, _horizen_distance, s_inlier_inx, e_inlier_inx);
 
-        ClaculateVirtualHorizenInfo(_virt_s_deg, _virt_e_deg, point_vec.at(s_index).x, point_vec.at(s_index).y);
+            ClaculateVirtualHorizenInfo(_virt_s_deg, _virt_e_deg, point_vec.at(s_inlier_inx).x, point_vec.at(e_inlier_inx).x);
 
-        emit SignalLRFMapImage(LRFDataToMat(point_vec, _inlier_distance, 1000));
+            emit SignalLRFMapImage(LRFDataToMat(point_vec, _inlier_distance, 1000));
 
-        _s_inlier_deg = _s_deg + (s_inlier_inx + s_index) * (ANGLE_RESOLUTION);
-        _e_inlier_deg = _s_deg + (e_inlier_inx + s_index) * (ANGLE_RESOLUTION); // s_deg is right
+            s_inlier_deg += _s_deg + (s_inlier_inx + s_index) * (ANGLE_RESOLUTION);
+            e_inlier_deg += _s_deg + (e_inlier_inx + s_index) * (ANGLE_RESOLUTION); // s_deg is right
+        }
 
+        if(_sampling_loop != 0){
+            s_inlier_deg /= _sampling_loop;
+            e_inlier_deg /= _sampling_loop;
+
+            _s_inlier_deg = s_inlier_deg;
+            _e_inlier_deg = e_inlier_deg;
+        }
     }
 
     return;

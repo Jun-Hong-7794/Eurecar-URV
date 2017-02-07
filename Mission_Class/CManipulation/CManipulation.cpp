@@ -180,6 +180,17 @@ bool CManipulation::GetLRFInfo(double &_slope, double &_distance, double _s_deg,
     return true;
 }
 
+bool CManipulation::GetHorizenDistance(double _inlier_distance,double& _horizen_distance, double& _s_inlier_deg, double& _e_inlier_deg,
+                               double& _virt_s_deg, double& _virt_e_deg, double _s_deg, double _e_deg, int _sampling_loop){
+    if(!InitLRF())
+        return false;
+
+    mpc_rgb_d->GetHorizenDistance(_inlier_distance, _horizen_distance, _s_inlier_deg, _e_inlier_deg,
+                                  _virt_s_deg, _virt_e_deg, _s_deg, _e_deg, _sampling_loop);
+
+    return true;
+}
+
 //Camera
 bool CManipulation::InitCamera(){
 
@@ -564,24 +575,36 @@ bool CManipulation::LRFKinovaHorizenControl(){
     }
 
     int count = 0;
+    int sampling_loop = 1;
+
+    double inlier_s_deg = 0;
+    double inlier_e_deg = 0;
+    double current_h_distance = 0;
+    double inlier_deg_avr = 0;
+    double inlier_deg_error = 0;
+
+    double lnlier_deg_sum = 0;
+
+    double s_virture_deg = 0;
+    double e_virture_deg = 0;
 
     do{
-        double inlier_s_deg = 0;
-        double inlier_e_deg = 0;
-        double current_h_distance = 0;
-        double inlier_deg_avr = 0;
-        double inlier_deg_error = 0;
+        inlier_s_deg = 0;
+        inlier_e_deg = 0;
+        current_h_distance = 0;
+        inlier_deg_avr = 0;
+        inlier_deg_error = 0;
 
-        double lnlier_deg_sum = 0;
+        lnlier_deg_sum = 0;
 
-        double s_virture_deg = 0;
-        double e_virture_deg = 0;
+        s_virture_deg = 0;
+        e_virture_deg = 0;
 
         lrf_kinova_struct.inlier_deg_s_output = 0;
         lrf_kinova_struct.inlier_deg_e_output = 0;
 
         mpc_rgb_d->GetHorizenDistance(lrf_kinova_struct.inlier_lrf_dst, current_h_distance, inlier_s_deg, inlier_e_deg,
-                                      s_virture_deg, e_virture_deg, lrf_kinova_struct.s_deg, lrf_kinova_struct.e_deg);
+                                      s_virture_deg, e_virture_deg, lrf_kinova_struct.s_deg, lrf_kinova_struct.e_deg, sampling_loop);
 
         lrf_kinova_struct.inlier_deg_s_output = inlier_s_deg;
         lrf_kinova_struct.inlier_deg_e_output = inlier_e_deg;
@@ -596,10 +619,16 @@ bool CManipulation::LRFKinovaHorizenControl(){
         if(fabs(inlier_deg_error) < lrf_kinova_struct.error){
             if(count < 5){
                 count++;
+                sampling_loop = 5;
+                usleep(500);
                 continue;
             }
             else
                 break;
+        }
+        else if(fabs(inlier_deg_error) < (lrf_kinova_struct.error*5)){
+            sampling_loop = 5;
+            usleep(500);
         }
 
         if(!lrf_kinova_struct.sensor_option){
@@ -627,24 +656,66 @@ bool CManipulation::KinovaForceCtrl(){
         return false;
 
     int step_count = 0;
+    double position_threshold = 0.03;
 
     KINOVA_FORCE_CTRL_STRUCT kinova_force_ctrl = GetKinovaForceCtrlOption();
 
     do{
+        CartesianPosition current_pos = mpc_kinova->KinovaGetPosition();
         CartesianPosition cartesian_pos = mpc_kinova->KinovaGetCartesianForce();
         emit SignalKinovaForceVector(cartesian_pos);
 
-        if(step_count > kinova_force_ctrl.step_count)
-            break;
+        if(step_count > kinova_force_ctrl.step_count){
+            return false;
+        }
 
-        if(fabs(cartesian_pos.Coordinates.X) > kinova_force_ctrl.force_threshold){//Over Threshold X axis force
-            break;
+        if(kinova_force_ctrl.force_threshold_x != 0){
+
+            if(kinova_force_ctrl.force_threshold_x > 0){
+                if(cartesian_pos.Coordinates.X > kinova_force_ctrl.force_threshold_x){//Over Threshold X axis force
+                    break;
+                }
+            }
+            if(kinova_force_ctrl.force_threshold_x < 0){
+                if(cartesian_pos.Coordinates.X < kinova_force_ctrl.force_threshold_x){//Over Threshold X axis force
+                    break;
+                }
+            }
+
+            if(position_threshold > fabs(kinova_force_ctrl.position_limit_x - current_pos.Coordinates.X))
+                return false;
         }
-        if(fabs(cartesian_pos.Coordinates.Y) > kinova_force_ctrl.force_threshold){//Over Threshold Y axis force
-            break;
+
+        if(kinova_force_ctrl.force_threshold_y != 0){
+
+            if(kinova_force_ctrl.force_threshold_y > 0){
+                if(cartesian_pos.Coordinates.Y > kinova_force_ctrl.force_threshold_y){//Over Threshold X axis force
+                    break;
+                }
+            }
+            if(kinova_force_ctrl.force_threshold_y < 0){
+                if(cartesian_pos.Coordinates.Y < kinova_force_ctrl.force_threshold_y){//Over Threshold X axis force
+                    break;
+                }
+            }
+            if(position_threshold > fabs(kinova_force_ctrl.position_limit_y - current_pos.Coordinates.Y))
+                return false;
         }
-        if(fabs(cartesian_pos.Coordinates.Z) > kinova_force_ctrl.force_threshold){//Over Threshold Z axis force
-            break;
+
+        if(kinova_force_ctrl.force_threshold_z != 0){
+
+            if(kinova_force_ctrl.force_threshold_z > 0){
+                if(cartesian_pos.Coordinates.Z > kinova_force_ctrl.force_threshold_z){//Over Threshold X axis force
+                    break;
+                }
+            }
+            if(kinova_force_ctrl.force_threshold_z < 0){
+                if(cartesian_pos.Coordinates.Z < kinova_force_ctrl.force_threshold_z){//Over Threshold X axis force
+                    break;
+                }
+            }
+            if(position_threshold > fabs(kinova_force_ctrl.position_limit_z - current_pos.Coordinates.Z))
+                return false;
         }
 
         mpc_kinova->KinovaMoveUnitStep(kinova_force_ctrl.move_step_x, kinova_force_ctrl.move_step_y, kinova_force_ctrl.move_step_z);
