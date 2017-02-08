@@ -71,6 +71,8 @@ EurecarURV_Dlg::EurecarURV_Dlg(QWidget *parent) :
     connect(ui->bt_mission_partial_run,SIGNAL(clicked()), this, SLOT(SlotButtonMissionPartialRun()));
     connect(ui->bt_scenario_partial_run,SIGNAL(clicked()), this, SLOT(SlotButtonScenarioPartialRun()));
     connect(ui->bt_script_update,SIGNAL(clicked()), this, SLOT(SlotButtonScenarioLoad()));
+    connect(ui->bt_mission_pause,SIGNAL(clicked()), this, SLOT(SlotButtonMissionPause()));
+    connect(ui->bt_mission_terminate,SIGNAL(clicked()), this, SLOT(SlotButtonMissionTerminate()));
 
     //Device Button
     connect(ui->bt_mani_lrf,SIGNAL(clicked()), this, SLOT(SlotButtonLRFManiSwitch()));
@@ -256,6 +258,11 @@ void EurecarURV_Dlg::SlotButtonCameraSwitch(){
 
 void EurecarURV_Dlg::SlotButtonMissionRun(){
 
+    if(mpc_script->IsMissionPaused()){
+        QMessageBox::information(this, tr("Fail to Start Mission"), tr("Mission Termiante First!!"));
+        return;
+    }
+
     SCRIPT_PLAYER_OPTION player_option;
 
     int mission_num = ui->ed_script_mission_s->text().toInt();
@@ -267,10 +274,20 @@ void EurecarURV_Dlg::SlotButtonMissionRun(){
     player_option.end_step_num = 100;//Dummy Value
 
     mpc_script->SetPlayerOption(player_option);
+
+    mpc_script->SetMissionPause(false);
+    mpc_script->SetMissionTerminate(false);
+
+    ui->bt_mission_pause->setText("Pause");
     return;
 }
 
 void EurecarURV_Dlg::SlotButtonMissionPartialRun(){
+
+    if(mpc_script->IsMissionPaused()){
+        QMessageBox::information(this, tr("Fail to Start Mission"), tr("Mission Termiante First!!"));
+        return;
+    }
 
     SCRIPT_PLAYER_OPTION player_option;
 
@@ -286,6 +303,11 @@ void EurecarURV_Dlg::SlotButtonMissionPartialRun(){
         player_option.end_step_num = player_option.start_step_num;
 
     mpc_script->SetPlayerOption(player_option);
+
+    mpc_script->SetMissionPause(false);
+    mpc_script->SetMissionTerminate(false);
+
+    ui->bt_mission_pause->setText("Pause");
     return;
 
 }
@@ -425,6 +447,26 @@ void EurecarURV_Dlg::SlotButtonScenarioLoad(){
         QMessageBox::information(this, tr("Fail to Open Scenario"), tr("Check the Scenario File"));
 
     ScriptInfoDisplay();
+}
+
+void EurecarURV_Dlg::SlotButtonMissionPause(){
+
+    if(!mpc_script->IsMissionPaused()){
+        mpc_script->SetMissionPause(true);
+        ui->bt_mission_pause->setText("Resume");
+    }
+    else{
+        mpc_script->SetMissionPause(false);
+        ui->bt_mission_pause->setText("Pause");
+    }
+
+}
+
+void EurecarURV_Dlg::SlotButtonMissionTerminate(){
+
+    mpc_script->SetMissionTerminate(true);
+    mpc_script->SetMissionPause(false);
+    ui->bt_mission_pause->setText("Pause");
 }
 
 void EurecarURV_Dlg::ScriptInfoDisplay(){

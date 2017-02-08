@@ -510,6 +510,18 @@ KINOVA_ROTATE_VALVE_STRUCT CManipulation::GetKinovaRotateValveOption(){
 
     return kinova_rotate_valve;
 }
+//----------------------------------------------------------------
+// Main Function Result
+//----------------------------------------------------------------
+void CManipulation::SetMainFunctionResult(bool _result){
+
+    fl_main_fnc_result = _result;
+}
+
+bool CManipulation::GetMainFunctionResult(){
+
+    return fl_main_fnc_result;
+}
 
 //----------------------------------------------------------------
 // Main Function
@@ -842,6 +854,8 @@ bool CManipulation::GripperMagnetCtrl(){
 
 void CManipulation::run(){
 
+    SetMainFunctionResult(false);
+
     switch (m_main_fnc_index){
 
     case MANIPUL_INX_LRF_KINOVA_VERTIVAL_CTRL:
@@ -851,10 +865,10 @@ void CManipulation::run(){
         LRFKinovaHorizenControl();
         break;
     case MANIPUL_INX_KINOVA_FORCE_CLRL:
-        KinovaForceCtrl();
+        SetMainFunctionResult(KinovaForceCtrl());
         break;
     case MANIPUL_INX_KINOVA_FORCE_CHECK:
-        KinovaForceCheck();
+        SetMainFunctionResult(KinovaForceCheck());
         break;
     case MANIPUL_INX_GRIPPER_FORCE_CLRL:
         GripperForceCtrl();

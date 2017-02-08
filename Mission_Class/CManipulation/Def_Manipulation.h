@@ -69,6 +69,8 @@ typedef struct _LRF_Kinova_Vertical_Ctrl_Struct{
 
 typedef struct _Kinova_Force_Ctrl_Struct{
 
+    QString str_result_variable;
+
     bool kinova_force_ctrl_mission;
 
     int step_count;

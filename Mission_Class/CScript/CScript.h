@@ -73,7 +73,21 @@ private:
 private:
     void InitScenarioScript();
 
+    QMutex mtx_mission_pause;
+    QMutex mtx_mission_terminate;
+
+    bool fl_mission_pause;
+    bool fl_mission_terminate;
 public:
+    //-------------------------------------------------
+    // Mission Pause/Terminate Flag Setting  Function
+    //-------------------------------------------------
+    void SetMissionPause(bool _pause);
+    void SetMissionTerminate(bool _terminate);
+
+    bool IsMissionPaused();
+    bool IsMissionTerminated();
+
     //-------------------------------------------------
     // Interpreter Function
     //-------------------------------------------------
@@ -100,13 +114,26 @@ private:
     bool InterpreteKinovaForceCtrl(QString _line, STEP_INFO& _step_info);
     bool InterpreteKinovaForceCheck(QString _line, STEP_INFO& _step_info);
     bool InterpreteKinovaManipulate(QString _line, STEP_INFO& _step_info);
+    bool InterpreteKinovaRotateValveCtrl(QString _line, STEP_INFO& _step_info);
+
     bool InterpreteGripperForceCtrl(QString _line, STEP_INFO& _step_info);
     bool InterpreteGripperMagnetCtrl(QString _line, STEP_INFO& _step_info);
-    bool InterpreteLRFVehicleAngleCtrl(QString _line, STEP_INFO& _step_info);
-    bool InterpreteLRFVehicleHorizenCtrl(QString _line, STEP_INFO& _step_info);
+
     bool InterpreteLRFKinovaVerticalCtrl(QString _line, STEP_INFO& _step_info);
     bool InterpreteLRFKinovaHorizenCtrl(QString _line, STEP_INFO& _step_info);
-    bool InterpreteKinovaRotateValveCtrl(QString _line, STEP_INFO& _step_info);
+
+    bool InterpreteLRFVehicleAngleCtrl(QString _line, STEP_INFO& _step_info);
+    bool InterpreteLRFVehicleHorizenCtrl(QString _line, STEP_INFO& _step_info);
+
+    //-------------------------------------------------
+    // Grammar
+    //-------------------------------------------------
+    bool SetBoolVariable(QString _str_variable, MISSION_SCRIPT& _mission_script, bool _result);
+    bool InterpreteConditionallyIterate(QString _line, STEP_INFO& _step_info);
+
+    int InterpreteIntVariable(QString _line, MISSION_SCRIPT _mission_script/*For Local Variable*/);
+    bool InterpreteBoolVariable(QString _line, MISSION_SCRIPT _mission_script/*For Local Variable*/);
+    double InterpreteDoubleVariable(QString _line, MISSION_SCRIPT _mission_script/*For Local Variable*/);
 
 private:
     //-------------------------------------------------

@@ -1,10 +1,6 @@
 #ifndef DEF_DRIVING_H
 #define DEF_DRIVING_H
 
-#define DR_VELODYNE_VEHICLE_CONTROL          0x1000
-#define DR_LRF_VEHICLE_ANGLE_CONTROL         0x1001
-#define DR_LRF_VEHICLE_HORIZEN_CONTROL       0x1002
-
 typedef struct _Driving_struct{
 
     bool driving_mission;
