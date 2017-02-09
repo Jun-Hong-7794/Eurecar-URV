@@ -75,7 +75,7 @@ Manipulation_Dlg::Manipulation_Dlg(CManipulation* _pc_manipulation, QWidget *par
     connect(mpc_manipulation, SIGNAL(SignalLRFKinovaVerticalStruct(LRF_KINOVA_VERTICAL_CTRL_STRUCT)),
             this, SLOT(SlotEditeLRFKinovaVertivalStruct(LRF_KINOVA_VERTICAL_CTRL_STRUCT)));
 
-    connect(mpc_manipulation, SIGNAL(SignalEditeGripperStatus(int,int,int,int)), this, SLOT(SlotEditeGripperStatus(int,int,int,int)));
+    connect(mpc_manipulation, SIGNAL(SignalEditeGripperStatus(GRIPPER_STATUS)), this, SLOT(SlotEditeGripperStatus(GRIPPER_STATUS)));
 
     //Check Button
     connect(ui->ck_segnet_switch, SIGNAL(clicked(bool)), this, SLOT(SlotButtonSegnetOn(bool)));
@@ -256,13 +256,19 @@ void Manipulation_Dlg::SlotEditeLRFKinovaVertivalStruct(LRF_KINOVA_VERTICAL_CTRL
 
 }
 
-void Manipulation_Dlg::SlotEditeGripperStatus(int _pose_1, int _pose_2, int _load_1, int _load_2){
+void Manipulation_Dlg::SlotEditeGripperStatus(GRIPPER_STATUS _gripper_status){
 
-    ui->ed_gripper_1_current_pos->setText(QString::number(_pose_1));
-    ui->ed_gripper_2_current_pos->setText(QString::number(_pose_2));
+    ui->ed_gripper_1_pose->setText(QString::number(_gripper_status.present_pose_1));
+    ui->ed_gripper_2_pose->setText(QString::number(_gripper_status.present_pose_2));
 
-    ui->ed_gripper_1_current_load->setText(QString::number(_load_1));
-    ui->ed_gripper_2_current_load->setText(QString::number(_load_2));
+    double diff_1 = _gripper_status.present_pose_1 - 1700;
+    double diff_2 = _gripper_status.present_pose_2 - 1700;
+
+    double diff_pose = fabs(diff_1 - diff_2);
+    ui->ed_gripper_diff_pose->setText(QString::number(diff_pose));
+
+    ui->ed_gripper_1_current_load->setText(QString::number(_gripper_status.present_load_1));
+    ui->ed_gripper_2_current_load->setText(QString::number(_gripper_status.present_load_2));
 }
 
 void Manipulation_Dlg::SlotButtonKinovaForceCtrl(){

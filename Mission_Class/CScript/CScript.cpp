@@ -10,6 +10,9 @@ CScript::CScript(CDriving* _p_drivig, CManipulation* _p_manipulation){
     mpc_manipulation = _p_manipulation;
 
     mpary_mission_script = NULL;
+
+    fl_mission_pause = false;
+    fl_mission_terminate = false;
 }
 
 void CScript::GetStepTitle(int _mission_index, QStringList& _step_title_list){
@@ -152,6 +155,51 @@ double CScript::ReturnKinovaAxisValue(QString _axis, QString _char){
 
     return 0;
 }
+
+void CScript::SetMissionPause(bool _pause){
+
+    mtx_mission_pause.lock();
+    {
+        fl_mission_pause = _pause;
+    }
+    mtx_mission_pause.unlock();
+}
+
+void CScript::SetMissionTerminate(bool _terminate){
+
+    mtx_mission_terminate.lock();
+    {
+        fl_mission_terminate = _terminate;
+    }
+    mtx_mission_terminate.unlock();
+}
+
+bool CScript::IsMissionPaused(){
+
+    bool pause;
+
+    mtx_mission_pause.lock();
+    {
+        pause = fl_mission_pause;
+    }
+    mtx_mission_pause.unlock();
+
+    return pause;
+}
+
+bool CScript::IsMissionTerminated(){
+
+    bool terminate;
+
+    mtx_mission_terminate.lock();
+    {
+        terminate = fl_mission_terminate;
+    }
+    mtx_mission_terminate.unlock();
+
+    return terminate;
+}
+
 
 //-------------------------------------------------
 //
@@ -332,6 +380,13 @@ bool CScript::InterpreteMissionScriptLine(QString _line, MISSION_SCRIPT* _missio
 
         if(InterpreteLocalValue(_line, _mission_script))
             return true;
+    }
+
+    if(_line.contains("CONDITIONALLY_ITERATION")){
+        if(InterpreteConditionallyIterate(_line, _step_info))
+            return true;
+        else
+            return false;
     }
 
     if(_line.contains("KINOVA_FORCE_CTRL")){
@@ -668,7 +723,13 @@ bool CScript::InterpreteKinovaForceCtrl(QString _line, STEP_INFO& _step_info){
         }
     }
     else if(_line.contains("KINOVA_FORCE_CTRL_FUNCTION")){
+        int equal_index = _line.indexOf("=");
         _step_info.function_index = MP_KINOVA_FORCE_CONTROL;
+
+        if(equal_index >= 0){
+            _step_info.manipulation_option.kinova_force_option.str_result_variable =
+                    _line.mid(0, equal_index - 1).trimmed();
+        }
     }
     else
         return false;
@@ -1124,6 +1185,120 @@ bool CScript::InterpreteKinovaRotateValveCtrl(QString _line, STEP_INFO& _step_in
     return true;
 }
 
+bool CScript::InterpreteConditionallyIterate(QString _line, STEP_INFO& _step_info){
+
+    if(_line.contains("CONDITIONALLY_ITERATION(")){
+
+        int o_bracket = _line.indexOf("(");//open  bracket
+        int c_bracket = _line.indexOf(")");//close bracket
+
+        if(o_bracket >=0){
+            _step_info.iterate_option.str_condition =
+                    _line.mid(o_bracket + 1, c_bracket - o_bracket - 1).trimmed();
+
+            _step_info.function_index = GR_CONDITIONALLY_ITERATION;
+            return true;
+        }
+        else
+            return false;
+    }
+
+    if(_line.contains("str_mission_name")){
+        int equal_index = _line.indexOf("=");
+
+        QString str_option;
+        str_option = _line.mid(equal_index + 1).trimmed();
+
+        _step_info.iterate_option.str_mission_name = str_option;
+    }
+
+    if(_line.contains("start_step_index")){
+        int equal_index = _line.indexOf("=");
+        _step_info.iterate_option.start_step_index = _line.mid(equal_index + 1).trimmed().toInt();
+    }
+
+    if(_line.contains("end_step_index")){
+        int equal_index = _line.indexOf("=");
+        _step_info.iterate_option.end_step_index = _line.mid(equal_index + 1).trimmed().toInt();
+    }
+
+
+    return true;
+}
+
+bool CScript::SetBoolVariable(QString _str_variable, MISSION_SCRIPT& _mission_script, bool _result){
+
+    //Check Local Bool Value
+    vector<SCRIPT_BOOL>::iterator iter;
+    for( iter = _mission_script.vec_lc_bool.begin();
+         iter != _mission_script.vec_lc_bool.end();
+         iter++){
+
+        if((*iter).variable_name == _str_variable){
+            (*iter).bool_value = _result;
+            return true;
+        }
+    }
+    //Check Global Bool Value
+    for( iter = mvec_global_bool.begin();
+         iter != mvec_global_bool.end();
+         iter++){
+
+        if((*iter).variable_name == _str_variable){
+            (*iter).bool_value = _result;
+            return true;
+        }
+    }
+
+    return false;
+}
+
+int CScript::InterpreteIntVariable(QString _line, MISSION_SCRIPT _mission_script/*For Local Variable*/){
+
+    return 0;
+}
+
+bool CScript::InterpreteBoolVariable(QString _line, MISSION_SCRIPT _mission_script/*For Local Variable*/){
+
+    int colone_index = _line.indexOf("=");
+
+    QString str_option;
+    str_option = _line.mid(colone_index + 1).trimmed();
+
+    if(str_option.contains("true") && (str_option.size() == 4))
+        return true;
+
+    else if(str_option.contains("false") && (str_option.size() == 5))
+        return false;
+
+    else{
+        //Check Local Bool Value
+        vector<SCRIPT_BOOL>::iterator iter;
+        for( iter = _mission_script.vec_lc_bool.begin();
+             iter != _mission_script.vec_lc_bool.end();
+             iter++){
+
+            if((*iter).variable_name == _line)
+                return (*iter).bool_value;
+        }
+        //Check Global Bool Value
+        for( iter = mvec_global_bool.begin();
+             iter != mvec_global_bool.end();
+             iter++){
+
+            if((*iter).variable_name == _line)
+                return (*iter).bool_value;
+        }
+    }
+
+    return false;
+}
+
+double CScript::InterpreteDoubleVariable(QString _line, MISSION_SCRIPT _mission_script/*For Local Variable*/){
+
+    return 0;
+}
+
 //----------------------------------------------------------------
 //
 //                          Player Function
@@ -1170,6 +1345,7 @@ bool CScript::MissionPlayer(){
             mission_end___inx = (mstruct_scenario.mission_file_name.size() -1);
 
     for(unsigned int i = mission_start_inx; i <= mission_end___inx; i++){
+
         if(step_end___inx > (mpary_mission_script[i].step_vecor.size() -1))
                 step_end___inx = (mpary_mission_script[i].step_vecor.size() -1);
 
@@ -1180,6 +1356,16 @@ bool CScript::MissionPlayer(){
         emit SignalScriptMessage(msessage);
 
         for(unsigned int j = step_start_inx; j <= step_end___inx; j++){
+
+            while(IsMissionPaused()){
+                usleep(500);
+            }
+
+            if(IsMissionTerminated()){
+                i = mission_end___inx + 1;
+                j = step_end___inx + 1;
+                continue;
+            }
 
             msessage = step_font_option_head;
             msessage += "Start Step: " + mpary_mission_script[i].step_vecor.at(j).step_title;
@@ -1237,6 +1423,12 @@ bool CScript::MissionPlayer(){
                 mpc_manipulation->SelectMainFunction(MANIPUL_INX_KINOVA_FORCE_CLRL);
 
                 while(mpc_manipulation->isRunning());
+
+                bool function_result = false;
+                QString variable_name = mpary_mission_script[i].step_vecor.at(j).manipulation_option.kinova_force_option.str_result_variable;
+
+                function_result = mpc_manipulation->GetMainFunctionResult();
+                SetBoolVariable(variable_name,mpary_mission_script[i],function_result);
             }
 
             if(mpary_mission_script[i].step_vecor.at(j).function_index == MP_KINOVA_FORCE_CHECK){
@@ -1266,6 +1458,18 @@ bool CScript::MissionPlayer(){
                 mpc_manipulation->SelectMainFunction(MANIPUL_INX_KINOVA_MANIPULATE);
 
                 while(mpc_manipulation->isRunning());
+            }
+
+            if(mpary_mission_script[i].step_vecor.at(j).function_index == GR_CONDITIONALLY_ITERATION){
+
+                bool fl_condition = false;
+
+                fl_condition = InterpreteBoolVariable(mpary_mission_script[i].step_vecor.at(j).iterate_option.str_condition, mpary_mission_script[i]);
+
+                if(fl_condition){
+                    j = mpary_mission_script[i].step_vecor.at(j).iterate_option.start_step_index;
+                    continue;
+                }
             }
 
             if(mpary_mission_script[i].step_vecor.at(j).after__sleep != 0)

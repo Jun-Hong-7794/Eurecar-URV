@@ -3,6 +3,9 @@
 /* This Script is for 2107 MBZIRC Challenge2
 /*
 
+# Define Variable
+global_bool gb_bool_kinova_force_ctrl_rst = true;
+
 # Title: Valve Recognition
 
 ## Step0: Go to Rotate Z-Position
@@ -39,7 +42,7 @@ LRF_KINOVA_VERTICAL_CTRL_FUNCTION()
 
 A_Sleep(500)
 
-## Step3: LRF-Kinova Horizen CTRL
+## Step2: LRF-Kinova Horizen CTRL
 
 LRF_KINOVA_HORIZEN_CTRL_STRUCT.desired_inlier_deg_avr = 131.5
 LRF_KINOVA_HORIZEN_CTRL_STRUCT.error = 0.25
@@ -57,7 +60,7 @@ LRF_KINOVA_HORIZEN_CTRL_FUNCTION()
 A_Sleep(1000)
 
 
-## Step0: KINOVA Force CTRL
+## Step3: KINOVA Force CTRL
 
 KINOVA_FORCE_CTRL_STRUCT.step_count = 100
 
@@ -74,10 +77,18 @@ KINOVA_FORCE_CTRL_STRUCT.move_step_x = 0
 KINOVA_FORCE_CTRL_STRUCT.move_step_y = 0
 KINOVA_FORCE_CTRL_STRUCT.move_step_z = -0.05
 
-KINOVA_FORCE_CTRL_FUNCTION()
+gb_bool_kinova_force_ctrl_rst = KINOVA_FORCE_CTRL_FUNCTION()
 A_Sleep(1000)
 
-## Step0: Gripper Release
+## Step4: Conditionally Iteration
+
+CONDITIONALLY_ITERATION.start_step_index = 0
+
+/* If condition is "true", Restart from "start_step_index"
+/* Else,  By Pass
+CONDITIONALLY_ITERATION(!gb_bool_kinova_force_ctrl_rst)
+
+## Step5: Gripper Release
 
 GRIPPER_FORCE_CTRL_STRUCT.pose_1 = 1780
 GRIPPER_FORCE_CTRL_STRUCT.pose_2 = 1700
@@ -85,15 +96,14 @@ GRIPPER_FORCE_CTRL_STRUCT.force_threshold = 80
 
 GRIPPER_FORCE_CTRL_FUNCTION()
 
-
-## Step5: Magnet OFF
+## Step6: Magnet OFF
 
 GRIPPER_MAGNET_CTRL_STRUCT.fl_magnet = false
 
 GRIPPER_MAGNET_CTRL_FUNCTION()
 A_Sleep(1000)
 
-## Step0: Go to Rotate Z-Position
+## Step7: Go to Rotate Z-Position
 
 KINOVA_MANIPULATE_STRUCT.x = ==
 KINOVA_MANIPULATE_STRUCT.y = ==
@@ -110,7 +120,7 @@ KINOVA_MANIPULATE_FUNCTION()
 A_Sleep(500)
 
 
-## Step1: Rotate Valve
+## Step8: Rotate Valve
 
 KINOVA_ROTATE_VALVE_STRUCT.using_current_coord = true
 
@@ -126,7 +136,7 @@ KINOVA_ROTATE_VALVE_STRUCT.init_angle = false
 KINOVA_ROTATE_VALVE_FUNCTION()
 
 
-## Step0: Grasp1
+## Step9: Grasp1
 
 GRIPPER_FORCE_CTRL_STRUCT.pose_1 = 1780
 GRIPPER_FORCE_CTRL_STRUCT.pose_2 = 1600
@@ -134,15 +144,15 @@ GRIPPER_FORCE_CTRL_STRUCT.force_threshold = 100
 
 GRIPPER_FORCE_CTRL_FUNCTION()
 
-## Step0: Grasp2
+## Step10: Grasp2
 
 GRIPPER_FORCE_CTRL_STRUCT.pose_1 = 1700
-GRIPPER_FORCE_CTRL_STRUCT.pose_2 = 1600
+GRIPPER_FORCE_CTRL_STRUCT.pose_2 = 1700
 GRIPPER_FORCE_CTRL_STRUCT.force_threshold = 130
 
 GRIPPER_FORCE_CTRL_FUNCTION()
 
-## Step5: Magnet ON
+## Step11: Magnet ON
 
 GRIPPER_MAGNET_CTRL_STRUCT.fl_magnet = true
 
@@ -150,7 +160,7 @@ GRIPPER_MAGNET_CTRL_FUNCTION()
 A_Sleep(1000)
 
 
-## Step1: Rotate Valve
+## Step12: Rotate Valve
 
 KINOVA_ROTATE_VALVE_STRUCT.using_current_coord = true
 

@@ -18,10 +18,19 @@
 //-------------------------------------------------
 // Function Index Define
 //-------------------------------------------------
+//Driving
+#define DR_VELODYNE_VEHICLE_CONTROL          0x1000
+#define DR_LRF_VEHICLE_ANGLE_CONTROL         0x1001
+#define DR_LRF_VEHICLE_HORIZEN_CONTROL       0x1002
+
+
+//Manipulation
 #define MP_KINOVA_FORCE_CONTROL              0x2001
 #define MP_KINOVA_FORCE_CHECK                0x2002
+
 #define MP_GRIPPER_FORCE_CONTROL             0x2003
 #define MP_GRIPPER_MAGNET_CONTROL            0x2004
+
 #define MP_KINOVA_MANIPULATE                 0x2005
 #define MP_KINOVA_ROTATE_VALVE               0x2006
 
@@ -29,6 +38,8 @@
 #define MP_LRF_KINOVA_HORIZEN_CONTROL        0x2008
 #define MP_LRF_KINOVA_ANGLE_CONTROL          0x2009
 
+//Grammar
+#define GR_CONDITIONALLY_ITERATION           0x3000
 //-------------------------------------------------
 // Script Variable Define
 //-------------------------------------------------
@@ -53,6 +64,19 @@ typedef struct _Script_BOOL{
 
 }SCRIPT_BOOL;
 
+typedef struct _Conditionally_Iterate_Option{
+
+    bool fl_condition;
+    QString str_condition;
+
+    int start_step_index;
+    int end_step_index;
+
+    QString str_mission_name; //Current Or File name( ex) Wrench Grasp, Inject Valve . . .
+
+}CONDITIONALLY_ITERATE_OPTION;
+
+
 typedef struct _Step_Information{
 
     QString step_title;
@@ -62,6 +86,8 @@ typedef struct _Step_Information{
     DRIVING_OPTION driving_option;
 
     MANIPULATION_OPTION manipulation_option;
+
+    CONDITIONALLY_ITERATE_OPTION iterate_option;
 
     int before_sleep; //Before Step Start
     int after__sleep; //After Step End

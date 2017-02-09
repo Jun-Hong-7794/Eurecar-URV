@@ -106,7 +106,7 @@ public slots:
     void SlotEditeLRFKinovaHorizenStruct(LRF_KINOVA_HORIZEN_CTRL_STRUCT _lrf_kinova_option);
     void SlotEditeLRFKinovaVertivalStruct(LRF_KINOVA_VERTICAL_CTRL_STRUCT _lrf_kinova_option);
 
-    void SlotEditeGripperStatus(int _pose_1, int _pose_2, int _load_1, int _load_2);
+    void SlotEditeGripperStatus(GRIPPER_STATUS _gripper_status);
 
     //-------------------------------------------------
     // View Update

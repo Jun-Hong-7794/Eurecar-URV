@@ -72,7 +72,9 @@ typedef struct _Gripper_Status{
 }GRIPPER_STATUS;
 
 
-class CGripper{
+class CGripper: public QThread{
+    Q_OBJECT
+
 public:
     CGripper();
     ~CGripper();

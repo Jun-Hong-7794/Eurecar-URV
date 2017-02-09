@@ -416,6 +416,32 @@
        <bool>true</bool>
       </property>
      </widget>
+     <widget class="QPushButton" name="bt_mission_pause">
+      <property name="geometry">
+       <rect>
+        <x>210</x>
+        <y>113</y>
+        <width>80</width>
+        <height>31</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Pause</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="bt_mission_terminate">
+      <property name="geometry">
+       <rect>
+        <x>210</x>
+        <y>153</y>
+        <width>80</width>
+        <height>31</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Terminate</string>
+      </property>
+     </widget>
     </widget>
     <widget class="QListWidget" name="lsview_mission_title">
      <property name="geometry">
@@ -454,7 +480,7 @@
      </font>
     </property>
     <property name="currentIndex">
-     <number>1</number>
+     <number>0</number>
     </property>
     <widget class="QWidget" name="tab_sensor_switch">
      <attribute name="title">

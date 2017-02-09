@@ -28,6 +28,7 @@ CManipulation::CManipulation(CLRF *_p_mani_lrf, CCamera *_p_camera, CKinova *_p_
     connect(mpc_camera, SIGNAL(SignalCameraImage(cv::Mat)), this, SIGNAL(SignalCameraImage(cv::Mat)));
     connect(mpc_rgb_d, SIGNAL(SignalSegnetImage(cv::Mat)), this, SIGNAL(SignalSegnetImage(cv::Mat)));
 
+    connect(mpc_gripper, SIGNAL(SignalEditeGripperStatus(GRIPPER_STATUS)), this, SIGNAL(SignalEditeGripperStatus(GRIPPER_STATUS)));
 }
 
 
@@ -510,6 +511,18 @@ KINOVA_ROTATE_VALVE_STRUCT CManipulation::GetKinovaRotateValveOption(){
 
     return kinova_rotate_valve;
 }
+//----------------------------------------------------------------
+// Main Function Result
+//----------------------------------------------------------------
+void CManipulation::SetMainFunctionResult(bool _result){
+
+    fl_main_fnc_result = _result;
+}
+
+bool CManipulation::GetMainFunctionResult(){
+
+    return fl_main_fnc_result;
+}
 
 //----------------------------------------------------------------
 // Main Function
@@ -842,6 +855,8 @@ bool CManipulation::GripperMagnetCtrl(){
 
 void CManipulation::run(){
 
+    SetMainFunctionResult(false);
+
     switch (m_main_fnc_index){
 
     case MANIPUL_INX_LRF_KINOVA_VERTIVAL_CTRL:
@@ -851,10 +866,10 @@ void CManipulation::run(){
         LRFKinovaHorizenControl();
         break;
     case MANIPUL_INX_KINOVA_FORCE_CLRL:
-        KinovaForceCtrl();
+        SetMainFunctionResult(KinovaForceCtrl());
         break;
     case MANIPUL_INX_KINOVA_FORCE_CHECK:
-        KinovaForceCheck();
+        SetMainFunctionResult(KinovaForceCheck());
         break;
     case MANIPUL_INX_GRIPPER_FORCE_CLRL:
         GripperForceCtrl();

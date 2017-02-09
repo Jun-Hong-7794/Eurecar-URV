@@ -73,12 +73,16 @@ public slots:
 
     void SlotMenuButtonScenarioLoad();
 
+    // Push Button
     void SlotButtonMissionRun();
 
     void SlotButtonMissionPartialRun();
     void SlotButtonScenarioPartialRun();
 
     void SlotButtonScenarioLoad();
+
+    void SlotButtonMissionPause();
+    void SlotButtonMissionTerminate();
 
     //Device Init
     void SlotButtonLRFManiSwitch();
@@ -89,8 +93,6 @@ public slots:
     void SlotButtonVelodyneSwitch();
     void SlotButtonKinovaSwitch();
     void SlotButtonGripperSwitch();
-
-
 
     //ListView
     void SlotMissionListUpdate(QModelIndex);

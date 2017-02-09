@@ -49,6 +49,9 @@ public:
 private:
     int m_main_fnc_index;
 
+    bool fl_main_fnc_result;
+    bool fl_kinova_force_ctrl_result;
+
     LRF_KINOVA_VERTICAL_CTRL_STRUCT mstruct_lrf_kinova_vertical;
     QMutex mxt_lrf_kinova_vertical;
 
@@ -135,6 +138,9 @@ public:
     bool GripperPresentLoad(uint16_t& _load);
 
 public:
+    bool GetMainFunctionResult();
+    void SetMainFunctionResult(bool _result);
+
 public:
     bool SelectMainFunction(int _fnc_index_);
 
@@ -189,6 +195,7 @@ signals:
     void SignalCameraImage(cv::Mat);
     void SignalSegnetImage(cv::Mat);
 
+    void SignalEditeGripperStatus(GRIPPER_STATUS);
 };
 
 #endif // CMANIPULATION_H
