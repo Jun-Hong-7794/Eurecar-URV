@@ -5,40 +5,133 @@
 
 # Title: Valve Recognition
 
-## Step0: Fined Valve Location(Using Segnet)
+## Step0: LRF-Kinova Vertical Control
 
-/* Init Postion
-/* Return Valve Rough Position 
-/* ex) -KP_kinova_position = SegnetServoing(/*Opetion*/)
-/*
-/* _if(!-BOOL_my_value) continue_this;
-## Step1: Approach Valve(Using Force FeedBack)
+LRF_KINOVA_VERTICAL_CTRL_STRUCT.desired_distance = 253
+LRF_KINOVA_VERTICAL_CTRL_STRUCT.error = 2
 
-/* ex) DoManipulate(-KP_kinova_position, `x_offset`, `y_offset`, `z_offset`)
-/* `x` is number
+LRF_KINOVA_VERTICAL_CTRL_STRUCT.s_deg = 80
+LRF_KINOVA_VERTICAL_CTRL_STRUCT.e_deg = 130
 
-## Step2: Fined Valve Location(Using Force Feedback) & Size Estimation
+LRF_KINOVA_VERTICAL_CTRL_STRUCT.inlier_lrf_dst = 800
 
-/* _glob_ -DOUBLE_valve_size =  ValveSizeEstimate()
+LRF_KINOVA_VERTICAL_CTRL_STRUCT.loop_sleep = 30
+LRF_KINOVA_VERTICAL_CTRL_STRUCT.sensor_option = false
 
-## Step0: Fined Valve Location(Using Segnet)
-B_Sleep(1000)
-KINOVA_FORCE_CTRL_STRUCT.step_count = 30
-KINOVA_FORCE_CTRL_STRUCT.force_threshold = 10
-KINOVA_FORCE_CTRL_STRUCT.move_step_x = 0
-KINOVA_FORCE_CTRL_STRUCT.move_step_y = 0.05
-KINOVA_FORCE_CTRL_STRUCT.move_step_z = 0.05
+LRF_KINOVA_VERTICAL_CTRL_FUNCTION()
 
-KINOVA_FORCE_CTRL_FUNCTION()
+A_Sleep(500)
+
+## Step2: LRF-Kinova Horizen CTRL
+
+LRF_KINOVA_HORIZEN_CTRL_STRUCT.desired_inlier_deg_avr = 86.5
+LRF_KINOVA_HORIZEN_CTRL_STRUCT.error = 0.25
+
+LRF_KINOVA_HORIZEN_CTRL_STRUCT.s_deg = 30
+LRF_KINOVA_HORIZEN_CTRL_STRUCT.e_deg = 150
+
+LRF_KINOVA_HORIZEN_CTRL_STRUCT.inlier_lrf_dst = 800
+
+LRF_KINOVA_HORIZEN_CTRL_STRUCT.loop_sleep = 30
+LRF_KINOVA_HORIZEN_CTRL_STRUCT.sensor_option = false
+
+LRF_KINOVA_HORIZEN_CTRL_FUNCTION()
+
 A_Sleep(1000)
-## Step1: Fined Valve Location(Using Segnet)
 
-KINOVA_FORCE_CTRL_STRUCT.step_count = 30
-KINOVA_FORCE_CTRL_STRUCT.force_threshold = 10
-KINOVA_FORCE_CTRL_STRUCT.move_step_x = 0
-KINOVA_FORCE_CTRL_STRUCT.move_step_y = -0.05
-KINOVA_FORCE_CTRL_STRUCT.move_step_z = -0.05
+
+## Step1: Kinova Arm Down
+
+KINOVA_MANIPULATE_STRUCT.x = ==
+KINOVA_MANIPULATE_STRUCT.y = ==
+KINOVA_MANIPULATE_STRUCT.z = 0.1381
+
+KINOVA_MANIPULATE_STRUCT.roll = ==
+KINOVA_MANIPULATE_STRUCT.pitch = ==
+KINOVA_MANIPULATE_STRUCT.yaw = ==
+
+KINOVA_MANIPULATE_STRUCT.force_threshold = 10
+
+KINOVA_MANIPULATE_FUNCTION()
+
+A_Sleep(500)
+
+## Step3: Kinova Force Control(Go Forward)
+
+KINOVA_FORCE_CTRL_STRUCT.step_count = 100
+
+KINOVA_FORCE_CTRL_STRUCT.force_threshold = 0
+KINOVA_FORCE_CTRL_STRUCT.force_threshold_x = 3.8
+KINOVA_FORCE_CTRL_STRUCT.force_threshold_y = 0
+KINOVA_FORCE_CTRL_STRUCT.force_threshold_z = 0
+
+KINOVA_FORCE_CTRL_STRUCT.position_limit_x = 0.4700
+KINOVA_FORCE_CTRL_STRUCT.position_limit_y = 0
+KINOVA_FORCE_CTRL_STRUCT.position_limit_z = 0
+
+KINOVA_FORCE_CTRL_STRUCT.move_step_x = 0.03
+KINOVA_FORCE_CTRL_STRUCT.move_step_y = 0
+KINOVA_FORCE_CTRL_STRUCT.move_step_z = 0
 
 KINOVA_FORCE_CTRL_FUNCTION()
+
+A_Sleep(1000)
+
+## Step4: Kinova Arm Backward
+
+KINOVA_MANIPULATE_STRUCT.x = --0.01
+KINOVA_MANIPULATE_STRUCT.y = ==
+KINOVA_MANIPULATE_STRUCT.z = ==
+
+KINOVA_MANIPULATE_STRUCT.roll = ==
+KINOVA_MANIPULATE_STRUCT.pitch = ==
+KINOVA_MANIPULATE_STRUCT.yaw = ==
+
+KINOVA_MANIPULATE_STRUCT.force_threshold = 10
+
+KINOVA_MANIPULATE_FUNCTION()
+
+A_Sleep(500)
+
+## Step10: Grasp2
+
+GRIPPER_FORCE_CTRL_STRUCT.pose_1 = 1700
+GRIPPER_FORCE_CTRL_STRUCT.pose_2 = 1700
+GRIPPER_FORCE_CTRL_STRUCT.force_threshold = 130
+
+GRIPPER_FORCE_CTRL_FUNCTION()
+
+A_Sleep(2000)
+
+## Step5: Gripper Release
+
+GRIPPER_FORCE_CTRL_STRUCT.pose_1 = 2300
+GRIPPER_FORCE_CTRL_STRUCT.pose_2 = 2300
+GRIPPER_FORCE_CTRL_STRUCT.force_threshold = -2
+
+GRIPPER_FORCE_CTRL_FUNCTION()
+
 
 ##########################################_MISSION_END_##########################################
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

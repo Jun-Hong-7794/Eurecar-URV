@@ -28,6 +28,7 @@ CManipulation::CManipulation(CLRF *_p_mani_lrf, CCamera *_p_camera, CKinova *_p_
     connect(mpc_camera, SIGNAL(SignalCameraImage(cv::Mat)), this, SIGNAL(SignalCameraImage(cv::Mat)));
     connect(mpc_rgb_d, SIGNAL(SignalSegnetImage(cv::Mat)), this, SIGNAL(SignalSegnetImage(cv::Mat)));
 
+    connect(mpc_gripper, SIGNAL(SignalEditeGripperStatus(GRIPPER_STATUS)), this, SIGNAL(SignalEditeGripperStatus(GRIPPER_STATUS)));
 }
 
 

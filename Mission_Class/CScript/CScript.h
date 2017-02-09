@@ -141,6 +141,7 @@ private:
     //-------------------------------------------------
     double ReturnKinovaAxisValue(QString _axis, QString _char);
     void SetKinovaAxisValue(KINOVA_DO_MANIPULATE_STRUCT &_manipulat_option);
+
 public:
     void GetStepTitle(int _mission_index, QStringList& _step_title_list);
 

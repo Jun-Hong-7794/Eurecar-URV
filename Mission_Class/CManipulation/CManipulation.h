@@ -195,6 +195,7 @@ signals:
     void SignalCameraImage(cv::Mat);
     void SignalSegnetImage(cv::Mat);
 
+    void SignalEditeGripperStatus(GRIPPER_STATUS);
 };
 
 #endif // CMANIPULATION_H

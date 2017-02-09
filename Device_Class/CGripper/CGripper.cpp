@@ -666,6 +666,8 @@ bool CGripper::GripperGoToThePositionLoadCheck(int _goal_pos_1, int _goal_pos_2,
     uint16_t dxl_present_position_2 = 0; // Present position
     uint16_t dxl_present_load_2 = 0; // Present position
 
+    GRIPPER_STATUS gripper_status;
+
     mtx_gripper_handle.lock();
     {
         dxl_comm_result = mp_gripper_packetHandler->read2ByteTxRx(mp_gripper_portHandler, DXL1_ID, ADDR_MX_PRESENT_POSITION, &dxl_present_position_1, &dxl_error);
@@ -725,6 +727,14 @@ bool CGripper::GripperGoToThePositionLoadCheck(int _goal_pos_1, int _goal_pos_2,
                 dxl_comm_result = mp_gripper_packetHandler->read2ByteTxRx(mp_gripper_portHandler, DXL2_ID, ADDR_MX_PRESENT_POSITION, &dxl_present_position_2, &dxl_error);
                 dxl_comm_result = mp_gripper_packetHandler->read2ByteTxRx(mp_gripper_portHandler, DXL2_ID, ADDR_MX_PRESENT_LOAD, &dxl_present_load_2, &dxl_error);
             }
+
+            gripper_status.present_pose_1 = dxl_present_position_1;
+            gripper_status.present_pose_2 = dxl_present_position_2;
+
+            gripper_status.present_load_1 = dxl_present_load_1;
+            gripper_status.present_load_2 = dxl_present_load_2;
+
+            emit SignalEditeGripperStatus(gripper_status);
 
             if(_load_threshold != 0){// if 0, do not use force ctrl_load_threshold
 
@@ -802,8 +812,16 @@ bool CGripper::GripperGoToThePositionLoadCheck(int _goal_pos_1, int _goal_pos_2,
             dxl_prev_position_2 = dxl_next_position_2;
 
         }while(true);
+
+        dxl_comm_result = mp_gripper_packetHandler->read2ByteTxRx(mp_gripper_portHandler, DXL1_ID, ADDR_MX_PRESENT_POSITION, &dxl_present_position_1, &dxl_error);
+        dxl_comm_result = mp_gripper_packetHandler->read2ByteTxRx(mp_gripper_portHandler, DXL2_ID, ADDR_MX_PRESENT_POSITION, &dxl_present_position_2, &dxl_error);
+
+        gripper_status.present_pose_1 = dxl_present_position_1;
+        gripper_status.present_pose_2 = dxl_present_position_2;
     }
     mtx_gripper_handle.unlock();
+
+    emit SignalEditeGripperStatus(gripper_status);
 
     return true;
 }
