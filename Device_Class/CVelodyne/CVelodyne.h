@@ -68,7 +68,19 @@ private:
     double mean_panel_x = 0.0;
     double mean_panel_y = 0.0;
     double sum_dist = 0.0;
-    double mean_dist = 0.0;    
+    double mean_dist = 0.0;
+
+    double waypoint_x = 0.0;
+    double waypoint_y = 0.0;
+
+    int matching_point1_index = -1;
+    int matching_point2_index = -1;
+
+    double matching_point1_x = 0.0;
+    double matching_point1_y = 0.0;
+
+    double matching_point2_x = 0.0;
+    double matching_point2_y = 0.0;
 
     bool RunVelodyne();
 public:
@@ -79,6 +91,9 @@ public:
 
     // Get panel center x and y location
     std::vector<double> GetPanelCenterLoc();
+
+    // Get UGV way point x and y
+    std::vector<double> GetWaypoint();
 
 public:
     //PCL

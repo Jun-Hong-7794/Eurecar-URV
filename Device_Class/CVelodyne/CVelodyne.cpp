@@ -124,10 +124,19 @@ bool CVelodyne::RunVelodyne(){
     pcl::PointIndices::Ptr inliers(new pcl::PointIndices);
     pcl::PointIndices::Ptr inliers2(new pcl::PointIndices);
 
+    pcl::PointIndices::Ptr tmp_inlier(new pcl::PointIndices);
+    pcl::PointIndices::Ptr max_points_clustering_indices(new pcl::PointIndices);
+
+    pcl::PointIndices::Ptr tmp_inlier1(new pcl::PointIndices);
+    pcl::PointIndices::Ptr max_points_clustering_indices1(new pcl::PointIndices);
+
+    pcl::PointIndices::Ptr disp_indices(new pcl::PointIndices);
+
     double clustering_tolerence = 0.1;
     double clustering_count_tolerence = 50;
-    double parking_distance = 1.0;
-
+    double clustering_max_count_tolerence = 50;
+    double parking_distance = 1;
+    double side_distance = 1;
 
     while(fl_velodyne_thread){
 
@@ -151,13 +160,19 @@ bool CVelodyne::RunVelodyne(){
             mean_panel_y = 0.0;
             mean_dist = 0.0;
 
-            {
+            (*inliers).indices.clear();
+            (*inliers2).indices.clear();
+
+
+//            {
                 memcpy(mpc_pcl->m_velodyne_data_ary, buffer,
                     sizeof(VELODYNE_DATA)*VELODYNE_TOTAL_PACKET_NUMBER);
 
                 mpc_pcl->Set_Velodyne_Data(mpc_pcl->m_x_data,mpc_pcl->m_y_data,mpc_pcl->m_z_data);
 
                 mpc_pcl->cloud->points.resize(VELODYNE_LASERS_NUM*VELODYNE_TOTAL_PACKET_NUMBER*VELODYNE_BOLCKS_NUM);
+                mpc_pcl->waypoint_cloud->points.resize(4);
+                mpc_pcl->panelpoint_cloud->points.resize(6);
 
                 point_index = 0;
                 panel_point_index = 0;
@@ -167,12 +182,29 @@ bool CVelodyne::RunVelodyne(){
                 double tolerence = 0.;
 
 
-
                 pcl::ExtractIndices<pcl::PointXYZRGBA> eifilter(true);
                 pcl::PointCloud<pcl::PointXYZRGBA>::Ptr ei_result (new pcl::PointCloud<pcl::PointXYZRGBA>);
 
                 pcl::ExtractIndices<pcl::PointXYZRGBA> eifilter2(true);
                 pcl::PointCloud<pcl::PointXYZRGBA>::Ptr ei_result2 (new pcl::PointCloud<pcl::PointXYZRGBA>);
+
+
+                pcl::ExtractIndices<pcl::PointXYZRGBA> max_clustering_filter(true);
+                pcl::PointCloud<pcl::PointXYZRGBA>::Ptr max_clustering_result (new pcl::PointCloud<pcl::PointXYZRGBA>);
+
+                pcl::ExtractIndices<pcl::PointXYZRGBA> max_clustering_filter1(true);
+                pcl::PointCloud<pcl::PointXYZRGBA>::Ptr max_clustering_result1 (new pcl::PointCloud<pcl::PointXYZRGBA>);
+
+                pcl::ExtractIndices<pcl::PointXYZRGBA> disp_filter(true);
+                pcl::PointCloud<pcl::PointXYZRGBA>::Ptr disp_result (new pcl::PointCloud<pcl::PointXYZRGBA>);
+
+                pcl::PointCloud<pcl::PointXYZRGBA>::Ptr final (new pcl::PointCloud<pcl::PointXYZRGBA>);
+                std::vector<int> inliers_tmp;
+                pcl::PointCloud<pcl::PointXYZRGBA>::Ptr final1 (new pcl::PointCloud<pcl::PointXYZRGBA>);
+                std::vector<int> inliers_tmp1;
+
+
+                (*disp_indices).indices.clear();
 
                 // Jung's projected img
                 cv::Mat xy_plane_image_0 = cv::Mat::zeros(600,600,CV_8UC1);
@@ -180,6 +212,7 @@ bool CVelodyne::RunVelodyne(){
 
                 cv::Mat xy_plane_color_image_0 = cv::Mat::zeros(600,600,CV_8UC3);
                 cv::Mat xy_plane_color_image_10 = cv::Mat::zeros(600,600,CV_8UC3);
+
 
 
                 for(int k = 0;k < VELODYNE_LASERS_NUM;k++){
@@ -223,6 +256,10 @@ bool CVelodyne::RunVelodyne(){
                 int clustering_member_count = 0;
                 int clustering_member_count2 = 0;
 
+                int max_clustering_member_count = 0;
+                int max_clustering_member_count1 = 0;
+
+
 
                 for(int k = 0;k < VELODYNE_LASERS_NUM;k++){
                     for(int i=0; i< VELODYNE_TOTAL_PACKET_NUMBER;i++){
@@ -231,7 +268,7 @@ bool CVelodyne::RunVelodyne(){
                             mpc_pcl->cloud->points[point_index].y = mpc_pcl->m_y_data[k][(j + i*VELODYNE_BOLCKS_NUM)]*0.001;
                             mpc_pcl->cloud->points[point_index].z = mpc_pcl->m_z_data[k][(j + i*VELODYNE_BOLCKS_NUM)]*0.001;
 
-                            if((std::abs((mpc_pcl->cloud->points[point_index].z - minimum_z)) > tolerence) && ((mpc_pcl->m_dist_data[k][(j + i*VELODYNE_BOLCKS_NUM)] < 2000)) && mpc_pcl->cloud->points[point_index].x < 0)
+                            if((std::abs((mpc_pcl->cloud->points[point_index].z - minimum_z)) > tolerence) && ((mpc_pcl->m_dist_data[k][(j + i*VELODYNE_BOLCKS_NUM)] < 3000)) && mpc_pcl->cloud->points[point_index].x < 0)
                             {
                                 if((firing_vertical_angle[k] == 0.0))
                                 {
@@ -254,10 +291,15 @@ bool CVelodyne::RunVelodyne(){
                                         if(adjacent_dist < clustering_tolerence)
                                         {
                                             (*inliers).indices.push_back(point_index);
+
+                                            (*tmp_inlier).indices.push_back(point_index);
                                             clustering_member_count++;
-//                                            mpc_pcl->cloud->points[point_index].r = cv::saturate_cast<uchar>(255 - clustering_index*10);
-//                                            mpc_pcl->cloud->points[point_index].g = cv::saturate_cast<uchar>(128 + clustering_index*10);
-//                                            mpc_pcl->cloud->points[point_index].b = cv::saturate_cast<uchar>(clustering_index*10);
+                                            if(max_clustering_member_count < clustering_member_count)
+                                            {
+                                                max_clustering_member_count = clustering_member_count;
+                                                (*max_points_clustering_indices).indices = (*tmp_inlier).indices;
+                                            }
+
                                             mpc_pcl->cloud->points[point_index].r = 255;
                                             mpc_pcl->cloud->points[point_index].g = 0;
                                             mpc_pcl->cloud->points[point_index].b = 0;
@@ -268,6 +310,8 @@ bool CVelodyne::RunVelodyne(){
                                             {
                                                 (*inliers).indices.erase((*inliers).indices.end()-clustering_member_count, (*inliers).indices.end());
                                             }
+
+                                            (*tmp_inlier).indices.clear();
 
                                             clustering_member_count = 0;
                                             clustering_index++;
@@ -284,12 +328,19 @@ bool CVelodyne::RunVelodyne(){
                                     past_point_y2 = mpc_pcl->cloud->points[point_index].y;
                                     past_point_z2 = mpc_pcl->cloud->points[point_index].z;
 
-                                    if(adjacent_dist2 >0)
+                                    if(adjacent_dist2 >0.)
                                     {
                                         if(adjacent_dist2 < clustering_tolerence)
                                         {
                                             (*inliers2).indices.push_back(point_index);
+                                            (*tmp_inlier1).indices.push_back(point_index);
                                             clustering_member_count2++;
+
+                                            if(max_clustering_member_count1 < clustering_member_count2)
+                                            {
+                                                max_clustering_member_count1 = clustering_member_count2;
+                                                (*max_points_clustering_indices1 ).indices = (*tmp_inlier1).indices;
+                                            }
                                             mpc_pcl->cloud->points[point_index].r = cv::saturate_cast<uchar>(255 - clustering_index2*10);
                                             mpc_pcl->cloud->points[point_index].g = cv::saturate_cast<uchar>(128 + clustering_index2*10);
                                             mpc_pcl->cloud->points[point_index].b = cv::saturate_cast<uchar>(clustering_index2*10);
@@ -300,6 +351,8 @@ bool CVelodyne::RunVelodyne(){
                                             {
                                                 (*inliers2).indices.erase((*inliers2).indices.end()-clustering_member_count2, (*inliers2).indices.end());
                                             }
+
+                                            (*tmp_inlier1).indices.clear();
 
                                             clustering_member_count2 = 0;
                                             clustering_index2++;
@@ -333,199 +386,310 @@ bool CVelodyne::RunVelodyne(){
                 eifilter2.setIndices(inliers2);
                 eifilter2.filter(*ei_result2);
 
-                for(int i = 0; i < ei_result->points.size();i++)
-                {
-                    int x = 300 + 100.0 * ei_result->points[i].y;
-                    int y = 300 + 100.0 * ei_result->points[i].x;
+                max_clustering_filter.setInputCloud(mpc_pcl->cloud);
+                max_clustering_filter.setIndices(max_points_clustering_indices);
+                max_clustering_filter.filter(*max_clustering_result);
 
-                    xy_plane_image_0.at<uchar>(y,x) = 255;
+                max_clustering_filter1.setInputCloud(mpc_pcl->cloud);
+                max_clustering_filter1.setIndices(max_points_clustering_indices1);
+                max_clustering_filter1.filter(*max_clustering_result1);
 
-                    xy_plane_image_0.at<uchar>(y+1,x) = 255;
-                    xy_plane_image_0.at<uchar>(y-1,x) = 255;
-                    xy_plane_image_0.at<uchar>(y,x+1) = 255;
-                    xy_plane_image_0.at<uchar>(y,x-1) = 255;
+                Eigen::VectorXf coeff;
+                pcl::SampleConsensusModelLine<pcl::PointXYZRGBA>::Ptr model(new pcl::SampleConsensusModelLine<pcl::PointXYZRGBA> (max_clustering_result));
+                pcl::RandomSampleConsensus<pcl::PointXYZRGBA> sac (model,0.03);
 
-                }
+                Eigen::VectorXf coeff1;
+                pcl::SampleConsensusModelLine<pcl::PointXYZRGBA>::Ptr model1(new pcl::SampleConsensusModelLine<pcl::PointXYZRGBA> (max_clustering_result1));
+                pcl::RandomSampleConsensus<pcl::PointXYZRGBA> sac1 (model1,0.03);
 
-                for(int i = 0; i < ei_result2->points.size();i++)
-                {
-                    int x2 = 300 + 100.0 * ei_result2->points[i].y;
-                    int y2 = 300 + 100.0 * ei_result2->points[i].x;
-
-                    xy_plane_image_10.at<uchar>(y2,x2) = 255;
-
-                    xy_plane_image_10.at<uchar>(y2+1,x2) = 255;
-                    xy_plane_image_10.at<uchar>(y2-1,x2) = 255;
-                    xy_plane_image_10.at<uchar>(y2,x2+1) = 255;
-                    xy_plane_image_10.at<uchar>(y2,x2-1) = 255;
-                }
-
-                cv::imwrite("xy_plane_image0.jpg",xy_plane_image_0);
-                cv::imwrite("xy_plane_image10.jpg",xy_plane_image_10);
-
-//                cv::erode(xy_plane_color_image_0,xy_plane_color_image_0);
-//                cv::erode(xy_plane_color_image_10,xy_plane_color_image_10);
-
-                cv::Canny(xy_plane_image_0,xy_plane_image_0,10,30);
-                cv::Canny(xy_plane_image_10,xy_plane_image_10,10,30);
-
-//                cv::imwrite("xy_plane_image0.jpg",xy_plane_image_0);
-//                cv::imwrite("xy_plane_image10.jpg",xy_plane_image_10);
-
-                vector<cv::Vec4i> lines;
-                vector<cv::Vec4i> lines2;
-
-                // NEED TO BE TUNED THRESHOLD LEVEL FOR PANAL
-                cv::HoughLinesP(xy_plane_image_0,lines,1,CV_PI/180,30,10,20);
-                cv::HoughLinesP(xy_plane_image_10,lines2,1,CV_PI/180,30,10,20);
-
-                double max_len =-1;
-                double len =0;
-                double max_len_slope =0;
-                int max_len_index =0;
-                cv::Vec4i l;
-
-                double max_len2 =-1;
-                double len2 =0;
-                double max_len_slope2 =0;
-                int max_len_index2 =0;
-                cv::Vec4i l2;
-
-                double parking_tr_x;
-                double parking_tr_y;
-
-                double line_dist =0;
-
-                if(lines.size() != 0)
-                {
-                    for(int i=0; i<lines.size(); i++)
-                    {
-                        l = lines[i];
-                        len = cv::norm(cv::Point(l[2],l[3]) - cv::Point(l[0],l[1]));
-                        if(len > max_len)
-                        {
-                            max_len_index = i;
-                            max_len = len;
-                            max_len_slope = ((cv::Point(l[2],l[3]).y - cv::Point(l[0],l[1]).y) / (double)(cv::Point(l[2],l[3]).x - cv::Point(l[0],l[1]).x)) ;
-
-                            parking_tr_x = 0.01*(((double)(cv::Point(l[2],l[3]).y + cv::Point(l[0],l[1]).y)/2.0) - 100.0*parking_distance*std::sin(max_len_slope - PI/2.0) - 300.0);
-                            parking_tr_y = 0.01*(((double)(cv::Point(l[2],l[3]).x + cv::Point(l[0],l[1]).x)/2.0) + 100.0*parking_distance*std::cos(max_len_slope - PI/2.0) - 300.0);
-                        }
-
-                    }
-                    cv::line(xy_plane_color_image_0,cv::Point(lines[max_len_index][0],(lines[max_len_index][1])),cv::Point((lines[max_len_index][2]),(lines[max_len_index][3])),cv::Scalar(0,0,255));
-                }
-                else
-                    cout << "no line detected in angle 0 channel" << endl;
+                sac.computeModel();
+                sac.getInliers(inliers_tmp);
+                sac.getModelCoefficients(coeff);
 
 
-                if(lines2.size() != 0)
-                {
-                    for(int i=0; i<lines2.size(); i++)
-                    {
-                        l2 = lines2[i];
-                        len2 = cv::norm(cv::Point(l2[2],l2[3]) - cv::Point(l2[0],l2[1]));
-                        if(len2 > max_len2)
-                        {
-                            max_len_index2 = i;
-                            max_len2 = len2;
-                            max_len_slope2 = ((cv::Point(l2[2],l2[3]).y - cv::Point(l2[0],l2[1]).y) / (double)(cv::Point(l2[2],l2[3]).x - cv::Point(l2[0],l2[1]).x)) ;
-                        }
-                    }
-                    cv::line(xy_plane_color_image_10,cv::Point(lines2[max_len_index2][0],(lines2[max_len_index2][1])),cv::Point((lines2[max_len_index2][2]),(lines2[max_len_index2][3])),cv::Scalar(0,255,0));
-                }
-                else
-                    cout << "no line detected in angle 10 channel" << endl;
-
-//                std::cout << "max len 0 : " << max_len << std::endl;
-//                std::cout << "max len 10 : " << max_len2 << std::endl;
-
-//                std::cout << "error : " << abs(max_len - max_len2) << endl;
-
-//                cv::imwrite("xy_plane_image0.jpg",xy_plane_color_image_0);
-//                cv::imwrite("xy_plane_image10.jpg",xy_plane_color_image_10);
+                sac1.computeModel();
+                sac1.getInliers(inliers_tmp1);
+                sac1.getModelCoefficients(coeff1);
 
 
-//                if(lines2.size() != 0 && lines.size() != 0)
+//                cout<<coeff.cols()<<endl;
+//                if((coeff.cols() < 4) || (coeff1.cols() < 4))
 //                {
-//                    cout << "angle 0's line rho and theta : " << lines[max_len_index][0] << "    " << lines[max_len_index][1] << endl;
-//                    cout << "angle 10's line rho and theta : " << lines2[max_len_index2][0] << "    " << lines2[max_len_index2][1] << endl;
-
-//                    line_dist = (cv::norm(cv::Point(lines2[max_len2][2],lines2[max_len2][3]) - cv::Point(lines[max_len][2],lines[max_len][3])) + cv::norm(cv::Point(lines2[max_len2][0],lines2[max_len2][1]) - cv::Point(lines[max_len][0],lines[max_len][1]))) / 2.0;
-
-//                    cout  << "line1 theta : " << lines[max_len_index][0] << endl;
-//                    cout  << "line2 theta : " << lines2[max_len_index2][0] << endl;
-
-
-//                    cout  << "line1 b1 : " << lines[max_len_index][2]-lines[max_len_index][3]*max_len_slope << endl;
-//                    cout  << "line2 b2 : " << lines2[max_len_index2][2]-lines2[max_len_index2][3]*max_len_slope2 << endl;
-
+//                    fl_parser_complete = true;
+//                    continue;
 //                }
-
-                const int WIDESIDE_MARGIN = 15;
-                const int NARROWSIDE_MARGIN = 10;
-                const int SLOPE_MARGIN = 1;
-
-                const int WIDE_LEN = 100;
-                const int SIDE_SHORT_LEN = 50;
-                const int SIDE_LONG = 75;
-
-//                cout << max_len << endl;
+                pcl::copyPointCloud(*max_clustering_result,inliers_tmp,*final);
+                pcl::copyPointCloud(*max_clustering_result1,inliers_tmp1,*final1);
 
 
-                if(max_len > WIDE_LEN - WIDESIDE_MARGIN && max_len < WIDE_LEN + WIDESIDE_MARGIN)
+                double ransac_line_mean_x = 0;
+                double ransac_line_mean_y = 0;
+                double ransac_line_sum_x = 0;
+                double ransac_line_sum_y = 0;
+
+                double ransac_line1_mean_x = 0;
+                double ransac_line1_mean_y = 0;
+                double ransac_line1_sum_x = 0;
+                double ransac_line1_sum_y = 0;
+
+
+
+                // Calculate ransac mean
+                for(int i = 0; i < final->points.size();i++)
                 {
-                    if( abs(lines[max_len_index][3]-lines[max_len_index][2]*max_len_slope - lines2[max_len_index2][3]-lines2[max_len_index2][2]*max_len_slope2 ) > 80)
+                    ransac_line_sum_x += final->points[i].x;
+                    ransac_line_sum_y += final->points[i].y;
+                }
+                ransac_line_mean_x = ransac_line_sum_x/(double)final->points.size();
+                ransac_line_mean_y = ransac_line_sum_y/(double)final->points.size();
+
+
+                // Calculate maximum distance
+
+                double maximum_dist_from_ransac_mean = 0;
+                for(int i = 0; i < final->points.size();i++)
+                {
+                    double dist_from_ransac_mean = sqrt((ransac_line_mean_x - final->points[i].x)*(ransac_line_mean_x - final->points[i].x) + (ransac_line_mean_y - final->points[i].y)*(ransac_line_mean_y - final->points[i].y));
+                    if (maximum_dist_from_ransac_mean < dist_from_ransac_mean)
                     {
-                        if( lines[max_len_index][3]-lines[max_len_index][2]*max_len_slope <= lines2[max_len_index2][3]-lines2[max_len_index2][2]*max_len_slope2 )
+                        maximum_dist_from_ransac_mean = dist_from_ransac_mean;
+                    }
+                }
+
+                for(int i = 0; i < final1->points.size();i++)
+                {
+                    ransac_line1_sum_x += final1->points[i].x;
+                    ransac_line1_sum_y += final1->points[i].y;
+                }
+                ransac_line1_mean_x = ransac_line1_sum_x/(double)final1->points.size();
+                ransac_line1_mean_y = ransac_line1_sum_y/(double)final1->points.size();
+
+
+
+                // Calculate maximum distance
+
+                double maximum_dist1_from_ransac_mean = 0;
+                for(int i = 0; i < final1->points.size();i++)
+                {
+                    double dist_from1_ransac_mean = sqrt((ransac_line1_mean_x - final1->points[i].x)*(ransac_line1_mean_x - final1->points[i].x) + (ransac_line1_mean_y - final1->points[i].y)*(ransac_line1_mean_y - final1->points[i].y));
+                    if (maximum_dist1_from_ransac_mean < dist_from1_ransac_mean)
+                    {
+                        maximum_dist1_from_ransac_mean = dist_from1_ransac_mean;
+                    }
+                }
+
+                if( coeff.rows() != 6 || coeff1.rows() != 6)
+                {
+                    continue;
+                }
+                double b = ransac_line_mean_y - (coeff[4]/coeff[3])*ransac_line_mean_x;
+                double b1 = ransac_line1_mean_y - (coeff1[4]/coeff1[3])*ransac_line1_mean_x;
+
+                if ((2.0*maximum_dist_from_ransac_mean) > 0.8) // front or back
+                {
+                    if( (coeff[3]*coeff1[3] + coeff[4]*coeff1[4]) > 0.5) // 0ch and 10.67 ch is parrell
+                    {
+
+                        double line_distance = abs(-(coeff[4]/coeff[3])*ransac_line1_mean_x + ransac_line1_mean_y - b)/sqrt((coeff[4]/coeff[3])*(coeff[4]/coeff[3]) + 1);
+
+                        if(line_distance > 0.2) // front side
                         {
-                            cout << "front side on the left" << endl;
+                            if (coeff[3] != 0)
+                            {
+                                if ( (coeff[4]/coeff[3]) < 0 )
+                                {
+                                    matching_point1_index = 2;
+                                    matching_point1_x = ransac_line_mean_x - maximum_dist_from_ransac_mean*abs(coeff[3]);
+                                    matching_point1_y = ransac_line_mean_y + maximum_dist_from_ransac_mean*abs(coeff[4]);
+                                    matching_point2_index = 5;
+                                    matching_point2_x = ransac_line_mean_x + maximum_dist_from_ransac_mean*abs(coeff[3]);
+                                    matching_point2_y = ransac_line_mean_y - maximum_dist_from_ransac_mean*abs(coeff[4]);
+
+                                    double matching_point_dir_x = matching_point2_x - matching_point1_x;
+                                    double matching_point_dir_y = matching_point2_y - matching_point1_y;
+
+                                    double matching_point_dir_norm_x = matching_point_dir_x/sqrt(matching_point_dir_x*matching_point_dir_x + matching_point_dir_y*matching_point_dir_y);
+                                    double matching_point_dir_norm_y = matching_point_dir_y/sqrt(matching_point_dir_x*matching_point_dir_x + matching_point_dir_y*matching_point_dir_y);
+
+                                    double matching_point_dir_angle = atan2(matching_point_dir_norm_y,matching_point_dir_norm_x);
+
+                                    double prior_point_dir_x = prior_panel_points[matching_point2_index][0] - prior_panel_points[matching_point1_index][0];
+                                    double prior_point_dir_y = prior_panel_points[matching_point2_index][1] - prior_panel_points[matching_point1_index][1];
+
+                                    double prior_point_dir_norm_x = prior_point_dir_x/sqrt(prior_point_dir_x*prior_point_dir_x + prior_point_dir_y*prior_point_dir_y);
+                                    double prior_point_dir_norm_y = prior_point_dir_y/sqrt(prior_point_dir_x*prior_point_dir_x + prior_point_dir_y*prior_point_dir_y);
+
+                                    double prior_point_dir_angle = atan2(prior_point_dir_norm_y,prior_point_dir_norm_x);
+
+                                    double transform_delta_angle = matching_point_dir_angle - prior_point_dir_angle;
+
+                                    double transform_delta_x_for_prior = -prior_panel_points[matching_point1_index][0];
+                                    double transform_delta_y_for_prior = -prior_panel_points[matching_point1_index][1];
+
+                                    double transform_delta_x_for_matching = matching_point1_x;
+                                    double transform_delta_y_for_matching = matching_point1_y;
+
+                                    vector<vector<double>> panel_points;
+
+                                    cout << "waypoint cloud size :" << mpc_pcl->waypoint_cloud->size()<<endl;
+                                    for(int i = 0;i<mpc_pcl->panelpoint_cloud->points.size();i++)
+                                    {
+                                        double transform_result_x = (prior_panel_points[i][0] + transform_delta_x_for_prior)*cos(transform_delta_angle) - (prior_panel_points[i][1] + transform_delta_y_for_prior)*sin(transform_delta_angle) + transform_delta_x_for_matching;
+                                        double transform_result_y = (prior_panel_points[i][0] + transform_delta_x_for_prior)*sin(transform_delta_angle) + (prior_panel_points[i][1] + transform_delta_y_for_prior)*cos(transform_delta_angle) + transform_delta_y_for_matching;
+
+                                        cout<<"result x : " << transform_result_x << " , " << "result y : " << transform_result_y << endl;
+
+                                        mpc_pcl->panelpoint_cloud->points[i].x = transform_result_x;
+                                        mpc_pcl->panelpoint_cloud->points[i].y = transform_result_y;
+                                        mpc_pcl->panelpoint_cloud->points[i].z = 0;
+                                        mpc_pcl->panelpoint_cloud->points[i].r = 255;
+                                        mpc_pcl->panelpoint_cloud->points[i].g = 255;
+                                        mpc_pcl->panelpoint_cloud->points[i].b = 255;
+                                    }
+
+                                    for(int i = 0;i<mpc_pcl->waypoint_cloud->points.size();i++)
+                                    {
+                                        double transform_result_x = (prior_way_points[i][0] + transform_delta_x_for_prior)*cos(transform_delta_angle) - (prior_way_points[i][1] + transform_delta_y_for_prior)*sin(transform_delta_angle) + transform_delta_x_for_matching;
+                                        double transform_result_y = (prior_way_points[i][0] + transform_delta_x_for_prior)*sin(transform_delta_angle) + (prior_way_points[i][1] + transform_delta_y_for_prior)*cos(transform_delta_angle) + transform_delta_y_for_matching;
+
+                                        cout<<"result x : " << transform_result_x << " , " << "result y : " << transform_result_y << endl;
+
+                                        mpc_pcl->waypoint_cloud->points[i].x = transform_result_x;
+                                        mpc_pcl->waypoint_cloud->points[i].y = transform_result_y;
+                                        mpc_pcl->waypoint_cloud->points[i].z = 0;
+                                        mpc_pcl->waypoint_cloud->points[i].r = 0;
+                                        mpc_pcl->waypoint_cloud->points[i].g = 255;
+                                        mpc_pcl->waypoint_cloud->points[i].b = 255;
+                                    }
+
+
+
+//                                    waypoint_x = ransac_line_mean_x - parking_distance*cos(PI*0.5 - atan(coeff[4]/coeff[3]));
+//                                    waypoint_y = ransac_line_mean_y + parking_distance*sin(PI*0.5 - atan(coeff[4]/coeff[3]));
+
+//                                    mpc_pcl->waypoint_cloud->points[0].x = waypoint_x;
+//                                    mpc_pcl->waypoint_cloud->points[0].y = waypoint_y;
+//                                    mpc_pcl->waypoint_cloud->points[0].z = 0;
+//                                    mpc_pcl->waypoint_cloud->points[0].r = 0;
+//                                    mpc_pcl->waypoint_cloud->points[0].g = 255;
+//                                    mpc_pcl->waypoint_cloud->points[0].b = 255;
+                                }
+                                else
+                                {
+                                    waypoint_x = ransac_line_mean_x + parking_distance*cos(PI*0.5 - atan(coeff[4]/coeff[3]));
+                                    waypoint_y = ransac_line_mean_y - parking_distance*sin(PI*0.5 - atan(coeff[4]/coeff[3]));
+
+                                    mpc_pcl->waypoint_cloud->points[0].x = waypoint_x;
+                                    mpc_pcl->waypoint_cloud->points[0].y = waypoint_y;
+                                    mpc_pcl->waypoint_cloud->points[0].z = 0;
+                                    mpc_pcl->waypoint_cloud->points[0].r = 0;
+                                    mpc_pcl->waypoint_cloud->points[0].g = 255;
+                                    mpc_pcl->waypoint_cloud->points[0].b = 255;
+                                }
+                            }
+
                         }
-                        else
+                        else // back
                         {
-                            cout << "front side on the right" << endl;
+                            if (coeff[3] != 0)
+                            {
+                                if ( (coeff[4]/coeff[3]) < 0 )
+                                {
+
+                                    waypoint_x = ransac_line_mean_x - parking_distance*cos(PI*0.5 - atan(coeff[4]/coeff[3])) - (side_distance+maximum_dist_from_ransac_mean)*abs(coeff[3]);
+                                    waypoint_y = ransac_line_mean_y + parking_distance*sin(PI*0.5 - atan(coeff[4]/coeff[3])) + (side_distance+maximum_dist_from_ransac_mean)*abs(coeff[4]);
+
+                                    mpc_pcl->waypoint_cloud->points[0].x = waypoint_x;
+                                    mpc_pcl->waypoint_cloud->points[0].y = waypoint_y;
+                                    mpc_pcl->waypoint_cloud->points[0].z = 0;
+                                    mpc_pcl->waypoint_cloud->points[0].r = 0;
+                                    mpc_pcl->waypoint_cloud->points[0].g = 255;
+                                    mpc_pcl->waypoint_cloud->points[0].b = 255;
+                                }
+                                else
+                                {
+                                    waypoint_x = ransac_line_mean_x + parking_distance*cos(PI*0.5 - atan(coeff[4]/coeff[3])) + (side_distance+maximum_dist_from_ransac_mean)*abs(coeff[3]);
+                                    waypoint_y = ransac_line_mean_y - parking_distance*sin(PI*0.5 - atan(coeff[4]/coeff[3])) + (side_distance+maximum_dist_from_ransac_mean)*abs(coeff[4]);
+
+                                    mpc_pcl->waypoint_cloud->points[0].x = waypoint_x;
+                                    mpc_pcl->waypoint_cloud->points[0].y = waypoint_y;
+                                    mpc_pcl->waypoint_cloud->points[0].z = 0;
+                                    mpc_pcl->waypoint_cloud->points[0].r = 0;
+                                    mpc_pcl->waypoint_cloud->points[0].g = 255;
+                                    mpc_pcl->waypoint_cloud->points[0].b = 255;
+                                }
+                            }
+
+
+
                         }
                     }
                     else
                     {
-                        if(max_len_slope < -0.1)
-                        {
-                            cout << "back side on the left" << endl;
-                        }
-                        else if(max_len_slope > 0.1)
-                        {
-                            cout << "back side on the right" << endl;
-                        }
-                        else
-                        {
-                            cout << "back side" << endl;
-                        }
+
                     }
 
                 }
-                else if( max_len > SIDE_SHORT_LEN - NARROWSIDE_MARGIN &&  max_len < SIDE_SHORT_LEN + NARROWSIDE_MARGIN)
+                else // side
                 {
-                    if( (lines2[max_len_index2][0] - lines[max_len_index][0]) + (lines2[max_len_index2][2] - lines[max_len_index][2])   > 10 )
+
+                    if( (coeff[3]*coeff1[3] + coeff[4]*coeff1[4]) > 0.5) // 0ch and 10.67 ch is parrell
                     {
-                        cout << "left side" << endl;
+                        double waypoint_direct_vec_x = ransac_line1_mean_x - ransac_line_mean_x;
+                        double waypoint_direct_vec_y = ransac_line1_mean_y - ransac_line_mean_y;
+
+                        double waypoint_direct_vec_x_norm = waypoint_direct_vec_x/sqrt(waypoint_direct_vec_x*waypoint_direct_vec_x + waypoint_direct_vec_y*waypoint_direct_vec_y);
+                        double waypoint_direct_vec_y_norm = waypoint_direct_vec_y/sqrt(waypoint_direct_vec_x*waypoint_direct_vec_x + waypoint_direct_vec_y*waypoint_direct_vec_y);
+
+                        double panel_edge_point_x = ransac_line_mean_x + maximum_dist_from_ransac_mean*waypoint_direct_vec_x_norm;
+                        double panel_edge_point_y = ransac_line_mean_y + maximum_dist_from_ransac_mean*waypoint_direct_vec_y_norm;
+
+
+
+
+                        if (coeff[3] != 0)
+                        {
+                            if ( (coeff[4]/coeff[3]) < 0 )
+                            {
+                                waypoint_x = panel_edge_point_x - side_distance*cos(PI*0.5 - atan(coeff[4]/coeff[3])) + parking_distance*waypoint_direct_vec_x_norm;
+                                waypoint_y = panel_edge_point_y + side_distance*sin(PI*0.5 - atan(coeff[4]/coeff[3])) + parking_distance*waypoint_direct_vec_y_norm;
+
+                                mpc_pcl->waypoint_cloud->points[0].x = waypoint_x;
+                                mpc_pcl->waypoint_cloud->points[0].y = waypoint_y;
+                                mpc_pcl->waypoint_cloud->points[0].z = 0;
+                                mpc_pcl->waypoint_cloud->points[0].r = 0;
+                                mpc_pcl->waypoint_cloud->points[0].g = 255;
+                                mpc_pcl->waypoint_cloud->points[0].b = 255;
+                            }
+                            else
+                            {
+                                waypoint_x = panel_edge_point_x + side_distance*cos(PI*0.5 - atan(coeff[4]/coeff[3])) + parking_distance*waypoint_direct_vec_x_norm;
+                                waypoint_y = panel_edge_point_y - side_distance*sin(PI*0.5 - atan(coeff[4]/coeff[3])) + parking_distance*waypoint_direct_vec_y_norm;
+
+                                mpc_pcl->waypoint_cloud->points[0].x = waypoint_x;
+                                mpc_pcl->waypoint_cloud->points[0].y = waypoint_y;
+                                mpc_pcl->waypoint_cloud->points[0].z = 0;
+                                mpc_pcl->waypoint_cloud->points[0].r = 0;
+                                mpc_pcl->waypoint_cloud->points[0].g = 255;
+                                mpc_pcl->waypoint_cloud->points[0].b = 255;
+                            }
+                        }
+
                     }
-                    else if ((lines2[max_len_index2][0] - lines[max_len_index][0]) + (lines2[max_len_index2][2] - lines[max_len_index][2]) < -10 )
-                        cout << "right side" << endl;
-                }
-                else
-                {
-                    if(max_len == -1)
-                        cout << "max len is not detected" << endl;
                     else
-                        cout << "detected len is not for pannel range" << endl;
+                    {
+
+                    }
                 }
 
-                (*inliers).indices.clear();
-                (*inliers2).indices.clear();
 
+                (*final) += (*final1);
+                mpc_pcl->viewer->updatePointCloud(final,"cloud");
                 mpc_pcl->viewer->updatePointCloud(mpc_pcl->cloud,"cloud");
-//                mpc_pcl->viewer->updatePointCloud(ei_result,"cloud");
-            }
+                mpc_pcl->viewer->updatePointCloud(mpc_pcl->waypoint_cloud ,"waypoint_cloud");
+                mpc_pcl->viewer->updatePointCloud(mpc_pcl->panelpoint_cloud,"panelpoint_cloud");
+
+//                mpc_pcl->viewer->updatePointCloud(max_clustering_result,"cloud");
 
             fl_parser_complete = true;
 
@@ -550,10 +714,18 @@ bool CVelodyne::RunVelodyne(){
 
         QThread::usleep(30);
 
-
     }
 
     return true;
+}
+
+vector<double> CVelodyne::GetWaypoint()
+{
+    vector<double> way_point_vec;
+    way_point_vec.push_back(waypoint_x);
+    way_point_vec.push_back(waypoint_y);
+
+    return way_point_vec;
 }
 
 std::vector<double> CVelodyne::GetPanelCenterLoc()

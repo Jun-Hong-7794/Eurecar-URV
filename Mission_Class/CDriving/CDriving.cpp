@@ -247,6 +247,60 @@ LRF_VEHICLE_ANGLE_STRUCT CDriving::GetLRFVehicleAngleOption(){
     return lrf_vehicle;
 }
 
+vector<double> CDriving::GetWaypointError(double _way_x,double _way_y)
+{
+    vector<double> error_vec;
+    double heading_error=0.;
+    double dist_error=0.;
+
+    heading_error = PI/2 - atan2(-(_way_x), _way_y);
+    if(_way_x > 0)
+    {
+        dist_error = - sqrt(_way_x * _way_x + _way_y * _way_y);
+    }
+    else
+    {
+        dist_error = sqrt(_way_x * _way_x + _way_y * _way_y);
+    }
+
+    error_vec.push_back(heading_error);
+    error_vec.push_back(dist_error);
+
+    return error_vec;
+}
+
+int CDriving::GetParkingControl(vector<double> _waypoint_error)
+{
+    double heading_error = _waypoint_error.at(0);
+    double dist_error = _waypoint_error.at(1);
+
+    int dir = -1;
+
+    if(heading_error < -10.0 / 180.0 * PI) // waypoint on the left
+    {
+        dir = UGV_move_left;
+        return dir;
+    }
+    else if(heading_error > 10.0 / 180 * PI) // waypoint on the right
+    {
+        dir = UGV_move_right;
+        return dir;
+    }
+    else if(dist_error < -0.3) // waypoint on the back
+    {
+        dir = UGV_move_backward;
+        return dir;
+    }
+    else if(dist_error > 0.3) // waypoint on the front
+    {
+        dir = UGV_move_forward;
+        return dir;
+    }
+    else
+    {
+        return dir;
+    }
+}
 
 //----------------------------------------------------------------
 // Main Function
@@ -301,10 +355,44 @@ bool CDriving::DriveToPanel(){
 }
 
 bool CDriving::ParkingFrontPanel(){
+    DRIVING_STRUCT driving_struct;
 
-    while(true){
-
+    if(!mpc_vehicle->Connect()){
+        std::cout << "Fail to Connection Vehicle" << std::endl;
+        return false;
     }
+
+    do{
+        vector<double> way_point_error = GetWaypointError(mpc_velodyne->GetWaypoint().at(0),mpc_velodyne->GetWaypoint().at(1));
+        cout<<"heading : " << way_point_error.at(0) <<", distance : "<<way_point_error.at(1) << endl;
+
+        switch(GetParkingControl(way_point_error))
+        {
+        case 3: // turn left
+            driving_struct.direction = UGV_move_left;
+            driving_struct.velocity =75;
+            break;
+        case 4: // turn right
+            driving_struct.direction = UGV_move_right;
+            driving_struct.velocity =75;
+            break;
+        case 1: // go forward
+            driving_struct.direction = UGV_move_forward;
+            driving_struct.velocity =70;
+            break;
+        case 2: // go backward
+            driving_struct.direction = UGV_move_backward;
+            driving_struct.velocity =70;
+            break;
+        default:
+
+            break;
+        }
+
+        mpc_vehicle->Move(driving_struct.direction, driving_struct.velocity);
+        QThread::usleep(30);
+
+    }while(driving_struct.driving_mission);
 
     return true;
 }

@@ -71,6 +71,8 @@ public slots:
 
     void SlotButtonVelodyneConnet();
 
+    void SlotButtonParking();
+
     //-------------------------------------------------
     // View
     //-------------------------------------------------
