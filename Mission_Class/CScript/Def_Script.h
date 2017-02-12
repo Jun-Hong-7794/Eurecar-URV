@@ -92,6 +92,12 @@ typedef struct _Step_Information{
     int before_sleep; //Before Step Start
     int after__sleep; //After Step End
 
+    QString str_if;
+    bool fl_condition_if_flag;
+
+    QString str_else;
+    bool fl_condition_else_flag;
+
 }STEP_INFO;
 
 typedef struct _Mission_Script{

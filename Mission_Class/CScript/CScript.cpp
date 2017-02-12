@@ -217,6 +217,10 @@ void CScript::InitScenarioScript(){
     mstruct_scenario.number_of_mission = 0;
     mstruct_scenario.mission_file_name.clear();
     mstruct_scenario.mission_file_directory.clear();
+
+    mvec_global_bool.clear();
+    mvec_global_int.clear();
+    mvec_global_double.clear();
 }
 
 bool CScript::InterpreteScenarioScriptFile(QString _file_name){
@@ -349,6 +353,8 @@ bool CScript::InterpreteMissionScriptLine(QString _line, MISSION_SCRIPT* _missio
 
         _step_info.after__sleep = 0;
         _step_info.before_sleep = 0;
+        _step_info.fl_condition_if_flag = false;
+        _step_info.fl_condition_else_flag = false;
 
         int colone_index = _line.indexOf(":");
 
@@ -368,6 +374,28 @@ bool CScript::InterpreteMissionScriptLine(QString _line, MISSION_SCRIPT* _missio
         int bracket_small_ed_index = _line.indexOf(")");
 
         _step_info.before_sleep = _line.mid(bracket_small_op_index + 1, bracket_small_ed_index - bracket_small_op_index - 1).toInt();
+    }
+
+    if(_line.contains("IF(")){
+        int bracket_small_op_index = _line.indexOf("(");
+        int bracket_small_ed_index = _line.indexOf(")");
+
+        if((bracket_small_op_index == -1) || (bracket_small_ed_index == -1))
+            return false;
+
+        _step_info.str_if = _line.mid(bracket_small_op_index + 1, bracket_small_ed_index - bracket_small_op_index - 1);
+        _step_info.fl_condition_if_flag = true;
+    }
+
+    if(_line.contains("ELSE(")){
+        int bracket_small_op_index = _line.indexOf("(");
+        int bracket_small_ed_index = _line.indexOf(")");
+
+        if((bracket_small_op_index == -1) || (bracket_small_ed_index == -1))
+            return false;
+
+        _step_info.str_else = _line.mid(bracket_small_op_index + 1, bracket_small_ed_index - bracket_small_op_index - 1);
+        _step_info.fl_condition_else_flag = true;
     }
 
     if(_line.contains("global_")){
@@ -1067,6 +1095,43 @@ bool CScript::InterpreteLRFKinovaHorizenCtrl(QString _line, STEP_INFO& _step_inf
             _step_info.manipulation_option.lrf_kinova_horizen_option.desired_inlier_deg_avr = _line.mid(colone_index + 1).trimmed().toDouble();
             return true;
         }
+
+        if(_line.contains("wrench_hanger_index")){
+            int colone_index = _line.indexOf("=");
+            _step_info.manipulation_option.lrf_kinova_horizen_option.wrench_hanger_index_str = _line.mid(colone_index + 1).trimmed();
+            return true;
+        }
+        if(_line.contains("wrench_location_deg_1")){
+            int colone_index = _line.indexOf("=");
+            _step_info.manipulation_option.lrf_kinova_horizen_option.wrench_location_deg_1 = _line.mid(colone_index + 1).trimmed().toDouble();
+            return true;
+        }
+        if(_line.contains("wrench_location_deg_2")){
+            int colone_index = _line.indexOf("=");
+            _step_info.manipulation_option.lrf_kinova_horizen_option.wrench_location_deg_2 = _line.mid(colone_index + 1).trimmed().toDouble();
+            return true;
+        }
+        if(_line.contains("wrench_location_deg_3")){
+            int colone_index = _line.indexOf("=");
+            _step_info.manipulation_option.lrf_kinova_horizen_option.wrench_location_deg_3 = _line.mid(colone_index + 1).trimmed().toDouble();
+            return true;
+        }
+        if(_line.contains("wrench_location_deg_4")){
+            int colone_index = _line.indexOf("=");
+            _step_info.manipulation_option.lrf_kinova_horizen_option.wrench_location_deg_4 = _line.mid(colone_index + 1).trimmed().toDouble();
+            return true;
+        }
+        if(_line.contains("wrench_location_deg_5")){
+            int colone_index = _line.indexOf("=");
+            _step_info.manipulation_option.lrf_kinova_horizen_option.wrench_location_deg_5 = _line.mid(colone_index + 1).trimmed().toDouble();
+            return true;
+        }
+        if(_line.contains("wrench_location_deg_6")){
+            int colone_index = _line.indexOf("=");
+            _step_info.manipulation_option.lrf_kinova_horizen_option.wrench_location_deg_6 = _line.mid(colone_index + 1).trimmed().toDouble();
+            return true;
+        }
+
         if(_line.contains("error")){
             int colone_index = _line.indexOf("=");
             _step_info.manipulation_option.lrf_kinova_horizen_option.error = _line.mid(colone_index + 1).trimmed().toDouble();
@@ -1226,6 +1291,33 @@ bool CScript::InterpreteConditionallyIterate(QString _line, STEP_INFO& _step_inf
     return true;
 }
 
+bool CScript::SetIntVariable(QString _str_variable, MISSION_SCRIPT& _mission_script, int _value){
+
+    //Check Local Int Value
+    vector<SCRIPT_INT>::iterator iter;
+    for( iter = _mission_script.vec_lc_int.begin();
+         iter != _mission_script.vec_lc_int.end();
+         iter++){
+
+        if((*iter).variable_name == _str_variable){
+            (*iter).int_value = _value;
+            return true;
+        }
+    }
+    //Check Global Int Value
+    for( iter = mvec_global_int.begin();
+         iter != mvec_global_int.end();
+         iter++){
+
+        if((*iter).variable_name == _str_variable){
+            (*iter).int_value = _value;
+            return true;
+        }
+    }
+
+    return false;
+}
+
 bool CScript::SetBoolVariable(QString _str_variable, MISSION_SCRIPT& _mission_script, bool _result){
 
     //Check Local Bool Value
@@ -1255,39 +1347,96 @@ bool CScript::SetBoolVariable(QString _str_variable, MISSION_SCRIPT& _mission_sc
 
 int CScript::InterpreteIntVariable(QString _line, MISSION_SCRIPT _mission_script/*For Local Variable*/){
 
+    QString str_option;
+    str_option = _line;
+
+    QRegExp re("\\d*");
+    if (re.exactMatch(str_option)){
+        int rst =  _line.toInt();
+        return rst;
+    }
+
+    //Check Local Bool Value
+    vector<SCRIPT_INT>::iterator iter;
+    for( iter = _mission_script.vec_lc_int.begin();
+         iter != _mission_script.vec_lc_int.end();
+         iter++){
+
+        int compare = QString::compare((*iter).variable_name, str_option, Qt::CaseSensitive);
+
+        if(compare == 0){
+            return (*iter).int_value;
+        }
+    }
+    //Check Global Bool Value
+    for( iter = mvec_global_int.begin();
+         iter != mvec_global_int.end();
+         iter++){
+
+        int compare = QString::compare((*iter).variable_name, str_option, Qt::CaseSensitive);
+
+        if(compare == 0){
+            return (*iter).int_value;
+        }
+    }
+
     return 0;
 }
 
 bool CScript::InterpreteBoolVariable(QString _line, MISSION_SCRIPT _mission_script/*For Local Variable*/){
 
-    int colone_index = _line.indexOf("=");
+    bool fl_inverse_index = false;
+    int inverse_index = _line.indexOf("!");
+
+    if(inverse_index >= 0)
+        fl_inverse_index = true;
 
     QString str_option;
-    str_option = _line.mid(colone_index + 1).trimmed();
+    str_option = _line.mid(inverse_index + 1).trimmed();
 
-    if(str_option.contains("true") && (str_option.size() == 4))
-        return true;
+    if(str_option.contains("true") && (str_option.size() == 4)){
+        if(fl_inverse_index)
+            return false;
+        else if(!fl_inverse_index)
+            return true;
+    }
 
-    else if(str_option.contains("false") && (str_option.size() == 5))
-        return false;
+    else if(str_option.contains("false") && (str_option.size() == 5)){
+        if(fl_inverse_index)
+            return true;
+        else if(!fl_inverse_index)
+            return false;
+    }
 
     else{
-        //Check Local Bool Value
+        //Check Local Int Value
         vector<SCRIPT_BOOL>::iterator iter;
         for( iter = _mission_script.vec_lc_bool.begin();
              iter != _mission_script.vec_lc_bool.end();
              iter++){
 
-            if((*iter).variable_name == _line)
-                return (*iter).bool_value;
+            int compare = QString::compare((*iter).variable_name, str_option, Qt::CaseSensitive);
+
+            if(compare == 0){
+                if(fl_inverse_index)
+                    return !(*iter).bool_value;
+                else if(!fl_inverse_index)
+                    return (*iter).bool_value;
+            }
         }
-        //Check Global Bool Value
+        //Check Global Int Value
         for( iter = mvec_global_bool.begin();
              iter != mvec_global_bool.end();
              iter++){
 
-            if((*iter).variable_name == _line)
-                return (*iter).bool_value;
+            int compare = QString::compare((*iter).variable_name, str_option, Qt::CaseSensitive);
+
+            if(compare == 0){
+                if(fl_inverse_index)
+                    return !(*iter).bool_value;
+                else if(!fl_inverse_index)
+                    return (*iter).bool_value;
+            }
         }
     }
 
@@ -1295,6 +1444,33 @@ bool CScript::InterpreteBoolVariable(QString _line, MISSION_SCRIPT _mission_scri
 }
 
 double CScript::InterpreteDoubleVariable(QString _line, MISSION_SCRIPT _mission_script/*For Local Variable*/){
+
+    QString str_option;
+    str_option = _line;
+
+    //Check Local Double Value
+    vector<SCRIPT_DOUBLE>::iterator iter;
+    for( iter = _mission_script.vec_lc_double.begin();
+         iter != _mission_script.vec_lc_double.end();
+         iter++){
+
+        int compare = QString::compare((*iter).variable_name, str_option, Qt::CaseSensitive);
+
+        if(compare == 0){
+            return (*iter).double_value;
+        }
+    }
+    //Check Global Double Value
+    for( iter = mvec_global_double.begin();
+         iter != mvec_global_double.end();
+         iter++){
+
+        int compare = QString::compare((*iter).variable_name, str_option, Qt::CaseSensitive);
+
+        if(compare == 0){
+            return (*iter).double_value;
+        }
+    }
 
     return 0;
 }
@@ -1368,13 +1544,42 @@ bool CScript::MissionPlayer(){
             }
 
             msessage = step_font_option_head;
-            msessage += "Start Step: " + mpary_mission_script[i].step_vecor.at(j).step_title;
+            msessage += "Start Step: " + QString::number(j) + mpary_mission_script[i].step_vecor.at(j).step_title;
             msessage += step_font_option_tail;
 
             emit SignalScriptMessage(msessage);
 
             if(mpary_mission_script[i].step_vecor.at(j).before_sleep != 0)
                 msleep(mpary_mission_script[i].step_vecor.at(j).before_sleep);
+
+            if(mpary_mission_script[i].step_vecor.at(j).fl_condition_if_flag){
+                bool fl_condition = false;
+
+                fl_condition = InterpreteBoolVariable(mpary_mission_script[i].step_vecor.at(j).str_if, mpary_mission_script[i]);
+
+                if(!fl_condition){
+                    if(mpary_mission_script[i].step_vecor.at(j).fl_condition_else_flag){
+
+                        QString str_index = mpary_mission_script[i].step_vecor.at(j).str_else;
+
+                        int colone_index = str_index.indexOf(":");
+                        int step_number = str_index.mid(colone_index + 1).toInt();
+
+                        if((unsigned int)step_number > step_end___inx){
+                            step_number = step_end___inx;
+                        }
+                        if(step_number < 0){
+                            step_number = 0;
+                        }
+
+                        j = step_number - 1;
+
+                        msessage = "Jump to Step " + QString::number(step_number);
+                        emit SignalScriptMessage(msessage);
+                    }
+                    continue;
+                }
+            }
 
             if(mpary_mission_script[i].step_vecor.at(j).function_index == DR_VELODYNE_VEHICLE_CONTROL){
                 mpc_drivig->SetDrivingOption(mpary_mission_script[i].step_vecor.at(j).driving_option.driving_option);
@@ -1412,6 +1617,16 @@ bool CScript::MissionPlayer(){
             }
 
             if(mpary_mission_script[i].step_vecor.at(j).function_index == MP_LRF_KINOVA_HORIZEN_CONTROL){
+
+                int wrench_index = 0;
+                QString str_index;
+                str_index = mpary_mission_script[i].step_vecor.at(j).manipulation_option.lrf_kinova_horizen_option.wrench_hanger_index_str;
+
+                wrench_index = InterpreteIntVariable(str_index, mpary_mission_script[i]);
+
+                mpary_mission_script[i].step_vecor.at(j).manipulation_option.lrf_kinova_horizen_option.wrench_hanger_index =
+                        wrench_index;
+
                 mpc_manipulation->SetManipulationOption(mpary_mission_script[i].step_vecor.at(j).manipulation_option.lrf_kinova_horizen_option);
                 mpc_manipulation->SelectMainFunction(MANIPUL_INX_LRF_KINOVA_HORIZEN_CTRL);
 

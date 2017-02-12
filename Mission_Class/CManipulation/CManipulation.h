@@ -75,6 +75,9 @@ private:
 
     KINOVA_ROTATE_VALVE_STRUCT mstruct_kinova_rotate_valve;
     QMutex mxt_kinova_rotate_valve;
+
+    GRIPPER_KINOVA_VALVE_SIZE_RECOG_STRUCT mstruct_gripper_kinova_valve_recog;
+    QMutex mxt_gripper_kinova_valve_recog;
     //-------------------------------------------------
     // ElementTech Class
     //-------------------------------------------------
@@ -168,6 +171,10 @@ public:
     void SetManipulationOption(KINOVA_ROTATE_VALVE_STRUCT _manipulation_option);
     KINOVA_ROTATE_VALVE_STRUCT GetKinovaRotateValveOption();
 
+    void SetManipulationOption(GRIPPER_KINOVA_VALVE_SIZE_RECOG_STRUCT _manipulation_option);
+    GRIPPER_KINOVA_VALVE_SIZE_RECOG_STRUCT GetGripperKinovaValveRecogOption();
+
+
 private:
     //-------------------------------------------------
     // Main Function
@@ -179,6 +186,8 @@ private:
     bool KinovaForceCheck();
     bool KinovaDoManipulate();
     bool KinovaRotateValveMotion();
+
+    bool GripperKinovaValveSizeRecognition();
 
     bool GripperForceCtrl();
     bool GripperMagnetCtrl();

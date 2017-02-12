@@ -734,6 +734,7 @@ bool CGripper::GripperGoToThePositionLoadCheck(int _goal_pos_1, int _goal_pos_2,
             gripper_status.present_load_1 = dxl_present_load_1;
             gripper_status.present_load_2 = dxl_present_load_2;
 
+            SetGripperStatus(gripper_status);
             emit SignalEditeGripperStatus(gripper_status);
 
             if(_load_threshold != 0){// if 0, do not use force ctrl_load_threshold
@@ -821,6 +822,7 @@ bool CGripper::GripperGoToThePositionLoadCheck(int _goal_pos_1, int _goal_pos_2,
     }
     mtx_gripper_handle.unlock();
 
+    SetGripperStatus(gripper_status);
     emit SignalEditeGripperStatus(gripper_status);
 
     return true;
@@ -966,6 +968,28 @@ bool CGripper::GripperGoToThePositionLoadCheck_2(int _goal_pos_2, int _load_thre
 
     return true;
 
+}
+
+GRIPPER_STATUS CGripper::GetGripperStatus(){
+
+    GRIPPER_STATUS gripper_status;
+
+    mtx_gripper_status.lock();
+    {
+        gripper_status = mstruct_gripper_status;
+    }
+    mtx_gripper_status.unlock();
+
+    return gripper_status;
+}
+
+void CGripper::SetGripperStatus(GRIPPER_STATUS _gripper_status){
+
+    mtx_gripper_status.lock();
+    {
+        mstruct_gripper_status = _gripper_status;
+    }
+    mtx_gripper_status.unlock();
 }
 
 

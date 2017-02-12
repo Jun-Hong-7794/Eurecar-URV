@@ -128,7 +128,10 @@ private:
     //-------------------------------------------------
     // Grammar
     //-------------------------------------------------
+    bool SetIntVariable(QString _str_variable, MISSION_SCRIPT& _mission_script, int _value);
     bool SetBoolVariable(QString _str_variable, MISSION_SCRIPT& _mission_script, bool _result);
+    bool SetDoubleVariable(QString _str_variable, MISSION_SCRIPT& _mission_script, double _value);
+
     bool InterpreteConditionallyIterate(QString _line, STEP_INFO& _step_info);
 
     int InterpreteIntVariable(QString _line, MISSION_SCRIPT _mission_script/*For Local Variable*/);

@@ -264,7 +264,7 @@ void Manipulation_Dlg::SlotEditeGripperStatus(GRIPPER_STATUS _gripper_status){
     double diff_1 = _gripper_status.present_pose_1 - 1700;
     double diff_2 = _gripper_status.present_pose_2 - 1700;
 
-    double diff_pose = fabs(diff_1 - diff_2);
+    double diff_pose = fabs(diff_1 + diff_2);
     ui->ed_gripper_diff_pose->setText(QString::number(diff_pose));
 
     ui->ed_gripper_1_current_load->setText(QString::number(_gripper_status.present_load_1));

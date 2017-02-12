@@ -157,4 +157,7 @@ public:
 signals:
     void Get_Kinova_Position(CartesianPosition _position);
     void SignalKinovaPosition(CartesianPosition _position);
+
+private:
+    double base_frame_rot;
 };

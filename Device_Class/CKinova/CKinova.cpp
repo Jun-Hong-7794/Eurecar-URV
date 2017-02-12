@@ -34,6 +34,7 @@ CKinova::CKinova(){
     fl_kinova_init_position = false;
     theta = 0.0;
     initialAngle = 0.0;
+    base_frame_rot = 30.0;
 }
 
 CKinova::~CKinova(){
@@ -775,13 +776,13 @@ bool CKinova::KinovaDoManipulate(CartesianPosition _desired_position,int _mode, 
     desired_position.InitStruct();
     desired_position.Position.Type = CARTESIAN_POSITION;
 
-    desired_position.Position.CartesianPosition.X = _desired_position.Coordinates.X;
-    desired_position.Position.CartesianPosition.Y = _desired_position.Coordinates.Y;
+    desired_position.Position.CartesianPosition.X = _desired_position.Coordinates.X;//*cos(base_frame_rot*3.141592/180) + _desired_position.Coordinates.Y*sin(base_frame_rot*3.141592/180);
+    desired_position.Position.CartesianPosition.Y = _desired_position.Coordinates.Y;//*cos(base_frame_rot*3.141592/180) - _desired_position.Coordinates.X*sin(base_frame_rot*3.141592/180);
     desired_position.Position.CartesianPosition.Z = _desired_position.Coordinates.Z;
 
-    desired_position.Position.CartesianPosition.ThetaX = _desired_position.Coordinates.ThetaX;
+    desired_position.Position.CartesianPosition.ThetaX = _desired_position.Coordinates.ThetaX;//+base_frame_rot*3.141592/180;
     desired_position.Position.CartesianPosition.ThetaY = _desired_position.Coordinates.ThetaY;
-    desired_position.Position.CartesianPosition.ThetaZ = _desired_position.Coordinates.ThetaZ;
+    desired_position.Position.CartesianPosition.ThetaZ = _desired_position.Coordinates.ThetaZ;//+base_frame_rot*3.141592/180;
 
 
     if(_mode == 1){//Joystick Mode

@@ -28,6 +28,16 @@ typedef struct _LRF_Kinova_Horizen_Ctrl_Struct{
 
     double desired_inlier_deg_avr/*deg*/;
 
+    QString wrench_hanger_index_str/*1~6*/;
+    int wrench_hanger_index/*1~6*/;
+
+    double wrench_location_deg_1/*deg*/;
+    double wrench_location_deg_2/*deg*/;
+    double wrench_location_deg_3/*deg*/;
+    double wrench_location_deg_4/*deg*/;
+    double wrench_location_deg_5/*deg*/;
+    double wrench_location_deg_6/*deg*/;
+
     double error;
 
     double s_deg;
@@ -146,6 +156,26 @@ typedef struct _Kinova_Rotate_Valve_Struct{
 
 }KINOVA_ROTATE_VALVE_STRUCT;
 
+typedef struct _Gripper_Kinova_Valve_Size_Recognition_Struct{
+
+    bool gripper_kinova_valve_size_recog_mission;
+
+    // Setting
+    double grasp_pose_1;
+    double grasp_pose_2;
+    double release_pose_1;
+    double release_pose_2;
+    double force_threshold;
+    double unit_rotation_angle;// CW: > 0, CCW: < 0
+
+    int inlier_error;
+
+    // Output
+    int wrench_size;
+    double wrench_rotation_angle;
+
+}GRIPPER_KINOVA_VALVE_SIZE_RECOG_STRUCT;
+
 typedef struct _Gripper_Force_Ctrl_Struct{
 
     bool gripper_force_ctrl_mission;
@@ -182,6 +212,8 @@ typedef struct _Manipulation_Option{
     KINOVA_ROTATE_VALVE_STRUCT kinova_rotate_valve_option;
 
     KINOVA_DO_MANIPULATE_STRUCT kinova_manipulate_option;
+
+    GRIPPER_KINOVA_VALVE_SIZE_RECOG_STRUCT gripper_kinova_valve_recog_option;
 
     GRIPPER_FORCE_CTRL_STRUCT gripper_force_option;
 

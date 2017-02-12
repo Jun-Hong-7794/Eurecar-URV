@@ -1,13 +1,9 @@
 /* Eurecar Scenario Script 
 /* Made By Jun Hong 28.01.2017
 /* This Script is for 2107 MBZIRC Challenge2
-/*
-/* 96
-/* 99
-/* 102
-/* 107
-/* 111
-/* 117
+
+global_int gi_wrench_hanger_index = 3
+
 # Title: Valve Recognition
 
 ## Step0: Gripper Release
@@ -66,69 +62,5 @@ LRF_KINOVA_HORIZEN_CTRL_STRUCT.sensor_option = false
 LRF_KINOVA_HORIZEN_CTRL_FUNCTION()
 
 A_Sleep(500)
-
-## Step2: Kinova Arm Down 
-
-KINOVA_MANIPULATE_STRUCT.x = ==
-KINOVA_MANIPULATE_STRUCT.y = ==
-KINOVA_MANIPULATE_STRUCT.z = 0.2842
-
-KINOVA_MANIPULATE_STRUCT.roll = ==
-KINOVA_MANIPULATE_STRUCT.pitch = ==
-KINOVA_MANIPULATE_STRUCT.yaw = ==
-
-KINOVA_MANIPULATE_STRUCT.force_threshold = 10
-
-KINOVA_MANIPULATE_FUNCTION()
-
-A_Sleep(1000)
-
-## Step5: Magnet On
-
-GRIPPER_MAGNET_CTRL_STRUCT.fl_magnet = true
-
-GRIPPER_MAGNET_CTRL_FUNCTION()
-A_Sleep(1000)
-
-## Step4: Kinova Arm Forward
-
-KINOVA_MANIPULATE_STRUCT.x = ++0.12
-KINOVA_MANIPULATE_STRUCT.y = ==
-KINOVA_MANIPULATE_STRUCT.z = ==
-
-KINOVA_MANIPULATE_STRUCT.roll = ==
-KINOVA_MANIPULATE_STRUCT.pitch = ==
-KINOVA_MANIPULATE_STRUCT.yaw = ==
-
-KINOVA_MANIPULATE_STRUCT.force_threshold = 10
-
-KINOVA_MANIPULATE_FUNCTION()
-
-A_Sleep(2000)
-
-
-## Step6: Kinova Arm Backward
-
-KINOVA_MANIPULATE_STRUCT.x = --0.12
-KINOVA_MANIPULATE_STRUCT.y = ==
-KINOVA_MANIPULATE_STRUCT.z = ==
-
-KINOVA_MANIPULATE_STRUCT.roll = ==
-KINOVA_MANIPULATE_STRUCT.pitch = ==
-KINOVA_MANIPULATE_STRUCT.yaw = ==
-
-KINOVA_MANIPULATE_STRUCT.force_threshold = 10
-
-KINOVA_MANIPULATE_FUNCTION()
-
-A_Sleep(2000)
-
-## Step0: Grasp
-
-GRIPPER_FORCE_CTRL_STRUCT.pose_1 = 1700
-GRIPPER_FORCE_CTRL_STRUCT.pose_2 = 1700
-GRIPPER_FORCE_CTRL_STRUCT.forece_threshold = 200
-
-GRIPPER_FORCE_CTRL_FUNCTION()
 
 ##########################################_MISSION_END_##########################################

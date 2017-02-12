@@ -111,9 +111,12 @@ private:
     uint16_t dxl2_present_position;
     uint16_t dxl1_present_load;
     uint16_t dxl2_present_load;
+
+    GRIPPER_STATUS mstruct_gripper_status;
 private://Mutex
     QMutex mtx_dmx_handle;
     QMutex mtx_gripper_handle;
+    QMutex mtx_gripper_status;
 
 public:
     bool IsDmxInit();
@@ -146,6 +149,9 @@ public:
     bool GripperGoToThePositionLoadCheck(int _goal_pos_1, int _goal_pos_2, int _load_threshold); // Go to The Position
     bool GripperGoToThePositionLoadCheck_1(int _goal_pos_1, int _load_threshold); // Go to The Position
     bool GripperGoToThePositionLoadCheck_2(int _goal_pos_2, int _load_threshold); // Go to The Position
+
+    GRIPPER_STATUS GetGripperStatus();
+    void SetGripperStatus(GRIPPER_STATUS);
 
 signals:
     void SignalEditeGripperStatus(GRIPPER_STATUS _gripper);
