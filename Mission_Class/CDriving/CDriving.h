@@ -71,7 +71,6 @@ private:
     CKinova* mpc_kinova;
     CVehicle* mpc_vehicle;
     CVelodyne* mpc_velodyne;
-
     CRGBD* mpc_rgb_d;
 
 public:
@@ -88,6 +87,7 @@ public:
     void PCLInit();
     CPCL* GetPCL();
 
+
     //-------------------------------------------------
     // Drive Class Option Function
     //-------------------------------------------------
@@ -97,6 +97,11 @@ public:
     void SetParkingOption(PARKING_STRUCT _driving_option);
     void SetManipulationOption(LRF_VEHICLE_ANGLE_STRUCT _driving_option);
     void SetManipulationOption(LRF_VEHICLE_HORIZEN_STRUCT _driving_option);
+
+    vector<double> GetWaypointError(double _way_x,double _way_y);
+
+    int GetParkingControl(vector<double> _waypoint_error);
+
 
     DRIVING_STRUCT GetDrivingOption();
     PARKING_STRUCT GetParkingOption();

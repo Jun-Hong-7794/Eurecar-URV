@@ -18,6 +18,8 @@
 #include <pcl/io/vtk_lib_io.h>
 #include <pcl/ModelCoefficients.h>
 //#include <pcl/point_types.h>
+#include <pcl/sample_consensus/ransac.h>
+#include <pcl/sample_consensus/sac_model_line.h>
 #include <pcl/sample_consensus/method_types.h>
 #include <pcl/sample_consensus/model_types.h>
 #include <pcl/segmentation/sac_segmentation.h>
@@ -60,6 +62,9 @@ const double firing_vertical_angle[32] = {
     -10.67, 10.67
 };
 
+const double prior_panel_points[6][2] = {{0,0}, {1.0,0},{1.0,0.25},{1.0,0.75},{0,0.75},{0,0.25}};
+const double prior_way_points[4][2] = {{2.0,1.75},{-1.0,1.75},{-1.0,-1.0},{0.5,-1.0}};
+
 class CPCL
 {
 public:
@@ -70,6 +75,8 @@ public:
     {
         // Setup the cloud pointer
         cloud.reset(new PointCloudT);
+        waypoint_cloud.reset(new PointCloudT);
+        panelpoint_cloud.reset(new PointCloudT);
         // PCL display setting
         viewer.reset (new pcl::visualization::PCLVisualizer ("viewer" , false));
 
@@ -114,6 +121,8 @@ public:
 
     boost::shared_ptr<pcl::visualization::PCLVisualizer> viewer;
     PointCloudT::Ptr cloud;
+    PointCloudT::Ptr waypoint_cloud;
+    PointCloudT::Ptr panelpoint_cloud;
 };
 
 #endif // CPCL_H

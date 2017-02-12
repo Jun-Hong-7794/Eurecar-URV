@@ -30,17 +30,21 @@ Driving_Dlg::Driving_Dlg(CDriving* _pc_driving,QWidget *parent):
 
     connect(ui->bt_velodyne_connection,SIGNAL(clicked()),this,SLOT(SlotButtonVelodyneConnet()));
 
+    connect(ui->bt_mission_parking,SIGNAL(clicked()),this,SLOT(SlotButtonParking()));
+
     //Driving Class Init
     mpc_drivig = _pc_driving;
 
-    //PCL Init
-    mpc_drivig->PCLInit();
-    ui->qvtk_velodyne_driving_dlg->SetRenderWindow(mpc_drivig->GetPCL()->viewer->getRenderWindow());
-    (mpc_drivig->GetPCL())->viewer->setupInteractor(ui->qvtk_velodyne_driving_dlg->GetInteractor(),ui->qvtk_velodyne_driving_dlg->GetRenderWindow());
-    (mpc_drivig->GetPCL())->viewer->setBackgroundColor(0,0,0);
-    (mpc_drivig->GetPCL())->viewer->addCoordinateSystem(1.0);
-    (mpc_drivig->GetPCL())->viewer->addPointCloud( (mpc_drivig->GetPCL())->cloud);
-    (mpc_drivig->GetPCL())->viewer->setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_FONT_SIZE,1,"cloud");
+//    //PCL Init
+//    mpc_drivig->PCLInit();
+//    ui->qvtk_velodyne_driving_dlg->SetRenderWindow(mpc_drivig->GetPCL()->viewer->getRenderWindow());
+//    (mpc_drivig->GetPCL())->viewer->setupInteractor(ui->qvtk_velodyne_driving_dlg->GetInteractor(),ui->qvtk_velodyne_driving_dlg->GetRenderWindow());
+//    (mpc_drivig->GetPCL())->viewer->setBackgroundColor(0,0,0);
+//    (mpc_drivig->GetPCL())->viewer->addCoordinateSystem(1.0);
+//    (mpc_drivig->GetPCL())->viewer->addPointCloud( (mpc_drivig->GetPCL())->cloud);
+//    (mpc_drivig->GetPCL())->viewer->addPointCloud( (mpc_drivig->GetPCL())->waypoint_cloud);
+//    (mpc_drivig->GetPCL())->viewer->setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_FONT_SIZE,5,"cloud");
+//    (mpc_drivig->GetPCL())->viewer->setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_FONT_SIZE,10,"waypoint_cloud");
 
     // Velodyne View Connect
     connect(mpc_drivig,SIGNAL(SignalVelodyneParser(bool)),this,SLOT(SlotVeloyneParser(bool)));
@@ -171,6 +175,36 @@ void Driving_Dlg::SlotButtonVehicleOptionSetting(){
     mpc_drivig->SetDrivingOption(driving_struct);
 
     return;
+}
+
+void Driving_Dlg::SlotButtonParking(){
+    if(!mpc_drivig->isRunning()){
+        if(!mpc_drivig->ConnectVehicle())
+            QMessageBox::information(this, tr("Fail to Connect Vehicle"), tr("Check Vehicle Status"));
+
+        DRIVING_STRUCT driving_struct;
+
+        driving_struct.velocity = ui->ed_vehicle_velocity->text().toInt();
+
+        driving_struct.driving_mission = true;
+
+        mpc_drivig->SetDrivingOption(driving_struct);
+
+        mpc_drivig->SelectMainFunction(DRIVE_INX_PARKING__PANEL);
+
+        ui->bt_vehicle_run->setText("Stop");
+    }
+    else{
+        DRIVING_STRUCT driving_struct;
+
+        driving_struct.direction = 0;
+        driving_struct.velocity = 0;
+        driving_struct.driving_mission = false;
+
+        mpc_drivig->SetDrivingOption(driving_struct);
+
+        ui->bt_vehicle_run->setText("Go");
+    }
 }
 
 void Driving_Dlg::SlotVeloyneParser(bool _parser_complete){

@@ -96,8 +96,15 @@ EurecarURV_Dlg::EurecarURV_Dlg(QWidget *parent) :
     (mpc_drivig->GetPCL())->viewer->setupInteractor(ui->qvtk_velodyne_main_dlg->GetInteractor(),ui->qvtk_velodyne_main_dlg->GetRenderWindow());
     (mpc_drivig->GetPCL())->viewer->setBackgroundColor(0,0,0);
     (mpc_drivig->GetPCL())->viewer->addCoordinateSystem(1.0);
-    (mpc_drivig->GetPCL())->viewer->addPointCloud( (mpc_drivig->GetPCL())->cloud);
-    (mpc_drivig->GetPCL())->viewer->setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_FONT_SIZE,1,"cloud");
+    (mpc_drivig->GetPCL())->viewer->addPointCloud( (mpc_drivig->GetPCL())->cloud, "cloud");
+    (mpc_drivig->GetPCL())->viewer->addPointCloud( (mpc_drivig->GetPCL())->waypoint_cloud, "waypoint_cloud");
+    (mpc_drivig->GetPCL())->viewer->addPointCloud( (mpc_drivig->GetPCL())->panelpoint_cloud, "panelpoint_cloud");
+
+    (mpc_drivig->GetPCL())->viewer->setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE,1,"cloud");
+    (mpc_drivig->GetPCL())->viewer->setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE,5,"waypoint_cloud");
+    (mpc_drivig->GetPCL())->viewer->setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE,5,"panelpoint_cloud");
+
+
 
     // Velodyne View Connect
     connect(mpc_drivig,SIGNAL(SignalVelodyneParser(bool)),this,SLOT(SlotVeloyneParser(bool)));
