@@ -118,6 +118,7 @@ private:
 
     bool InterpreteGripperForceCtrl(QString _line, STEP_INFO& _step_info);
     bool InterpreteGripperMagnetCtrl(QString _line, STEP_INFO& _step_info);
+    bool InterpreteGripperValveSizeRecog(QString _line, STEP_INFO& _step_info);
 
     bool InterpreteLRFKinovaVerticalCtrl(QString _line, STEP_INFO& _step_info);
     bool InterpreteLRFKinovaHorizenCtrl(QString _line, STEP_INFO& _step_info);

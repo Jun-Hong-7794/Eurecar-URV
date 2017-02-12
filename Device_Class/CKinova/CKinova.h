@@ -14,6 +14,7 @@
 #include <Kinova.API.UsbCommandLayerUbuntu.h>
 #include <KinovaTypes.h>
 
+#define KINOVA_PI 3.1415926535
 #define KINOVA_D2R (3.141592/180)
 #define KINOVA_R2D (180/3.141592)
 

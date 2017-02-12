@@ -33,8 +33,9 @@
 #define MANIPUL_INX_KINOVA_FORCE_CHECK          5
 #define MANIPUL_INX_GRIPPER_FORCE_CLRL          6
 #define MANIPUL_INX_GRIPPER_MAGNET_CLRL         7
-#define MANIPUL_INX_KINOVA_MANIPULATE           8
-#define MANIPUL_INX_KINOVA_ROTATE_VALVE         9
+#define MANIPUL_INX_GRIPPER_VALVE_SIZE_RECOG    8
+#define MANIPUL_INX_KINOVA_MANIPULATE           9
+#define MANIPUL_INX_KINOVA_ROTATE_VALVE         10
 
 class CManipulation:public QThread{
     Q_OBJECT
@@ -48,6 +49,8 @@ public:
     ~CManipulation();
 private:
     int m_main_fnc_index;
+
+    int m_valve_size_graph_index;
 
     bool fl_main_fnc_result;
     bool fl_kinova_force_ctrl_result;
@@ -199,6 +202,8 @@ signals:
     void SignalLRFKinovaAngleStruct(LRF_KINOVA_ANGLE_CTRL_STRUCT);
     void SignalLRFKinovaHorizenStruct(LRF_KINOVA_HORIZEN_CTRL_STRUCT);
     void SignalLRFKinovaVerticalStruct(LRF_KINOVA_VERTICAL_CTRL_STRUCT);
+
+    void SignalValveSizeData(QVector<double> _x, QVector<double> _y, int _graph_index);
 
     void SignalLRFImage(cv::Mat);
     void SignalCameraImage(cv::Mat);

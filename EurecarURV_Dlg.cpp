@@ -8,6 +8,8 @@ EurecarURV_Dlg::EurecarURV_Dlg(QWidget *parent) :
     ui->setupUi(this);
 
 
+    qRegisterMetaType<QVector<int>>("QVector<int>");
+    qRegisterMetaType<QVector<double>>("QVector<double>");
     qRegisterMetaType<GRIPPER_STATUS>("GRIPPER_STATUS");
     qRegisterMetaType<CartesianPosition>("CartesianPosition");
     qRegisterMetaType<LRF_VEHICLE_ANGLE_STRUCT>("LRF_VEHICLE_ANGLE_STRUCT");

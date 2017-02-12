@@ -463,6 +463,14 @@ bool CScript::InterpreteMissionScriptLine(QString _line, MISSION_SCRIPT* _missio
             return false;
     }
 
+    if(_line.contains("VALVE_SIZE_RECOG")){
+
+        if(InterpreteGripperValveSizeRecog(_line, _step_info))
+            return true;
+        else
+            return false;
+    }
+
     if(_line.contains("LRF_KINOVA_VERTICAL_CTRL")){
 
         if(InterpreteLRFKinovaVerticalCtrl(_line, _step_info))
@@ -907,6 +915,75 @@ bool CScript::InterpreteGripperMagnetCtrl(QString _line, STEP_INFO& _step_info){
     }
     else if(_line.contains("GRIPPER_MAGNET_CTRL_FUNCTION")){
         _step_info.function_index = MP_GRIPPER_MAGNET_CONTROL;
+    }
+    else
+        return false;
+
+    return true;
+}
+
+bool CScript::InterpreteGripperValveSizeRecog(QString _line, STEP_INFO& _step_info){
+
+//    double grasp_pose_1;
+//    double grasp_pose_2;
+//    double release_pose_1;
+//    double release_pose_2;
+//    double force_threshold;
+//    double unit_rotation_angle;// CW: > 0, CCW: < 0
+
+//    int trial;//Recomand 36trial
+//    double rotation_angle;//Recomand 180deg
+
+//    int inlier_error;
+
+    if(_line.contains("VALVE_SIZE_RECOG_STRUCT")){
+
+        if(_line.contains("grasp_pose_1")){
+            int colone_index = _line.indexOf("=");
+            _step_info.manipulation_option.gripper_kinova_valve_recog_option.grasp_pose_1 =
+                    _line.mid(colone_index + 1).trimmed().toDouble();
+            return true;
+        }
+        if(_line.contains("grasp_pose_2")){
+            int colone_index = _line.indexOf("=");
+            _step_info.manipulation_option.gripper_kinova_valve_recog_option.grasp_pose_2 =
+                    _line.mid(colone_index + 1).trimmed().toDouble();
+            return true;
+        }
+        if(_line.contains("release_pose_1")){
+            int colone_index = _line.indexOf("=");
+            _step_info.manipulation_option.gripper_kinova_valve_recog_option.release_pose_1 =
+                    _line.mid(colone_index + 1).trimmed().toDouble();
+            return true;
+        }
+        if(_line.contains("release_pose_2")){
+            int colone_index = _line.indexOf("=");
+            _step_info.manipulation_option.gripper_kinova_valve_recog_option.release_pose_2 =
+                    _line.mid(colone_index + 1).trimmed().toDouble();
+            return true;
+        }
+        if(_line.contains("force_threshold")){
+            int colone_index = _line.indexOf("=");
+            _step_info.manipulation_option.gripper_kinova_valve_recog_option.force_threshold =
+                    _line.mid(colone_index + 1).trimmed().toDouble();
+            return true;
+        }
+
+        if(_line.contains("trial")){
+            int colone_index = _line.indexOf("=");
+            _step_info.manipulation_option.gripper_kinova_valve_recog_option.trial =
+                    _line.mid(colone_index + 1).trimmed().toInt();
+            return true;
+        }
+        if(_line.contains("rotation_angle")){
+            int colone_index = _line.indexOf("=");
+            _step_info.manipulation_option.gripper_kinova_valve_recog_option.rotation_angle =
+                    _line.mid(colone_index + 1).trimmed().toDouble();
+            return true;
+        }
+    }
+    else if(_line.contains("VALVE_SIZE_RECOG_FUNCTION")){
+        _step_info.function_index = MP_GRIPPER_VALVE_SIZE_RECOG;
     }
     else
         return false;
@@ -1663,6 +1740,12 @@ bool CScript::MissionPlayer(){
             if(mpary_mission_script[i].step_vecor.at(j).function_index == MP_GRIPPER_MAGNET_CONTROL){
                 mpc_manipulation->SetManipulationOption(mpary_mission_script[i].step_vecor.at(j).manipulation_option.gripper_magnet_option);
                 mpc_manipulation->SelectMainFunction(MANIPUL_INX_GRIPPER_MAGNET_CLRL);
+
+                while(mpc_manipulation->isRunning());
+            }
+            if(mpary_mission_script[i].step_vecor.at(j).function_index == MP_GRIPPER_VALVE_SIZE_RECOG){
+                mpc_manipulation->SetManipulationOption(mpary_mission_script[i].step_vecor.at(j).manipulation_option.gripper_kinova_valve_recog_option);
+                mpc_manipulation->SelectMainFunction(MANIPUL_INX_GRIPPER_VALVE_SIZE_RECOG);
 
                 while(mpc_manipulation->isRunning());
             }

@@ -3,6 +3,11 @@
 
 #include <QDialog>
 //-------------------------------------------------
+// QCustomPlot
+//-------------------------------------------------
+#include "qcustomplot.h"
+
+//-------------------------------------------------
 // Device Class
 //-------------------------------------------------
 #include "Device_Class/CGPS/CGPS.h"
@@ -114,6 +119,10 @@ public slots:
     //Camera
     void SlotViewCameraImage(cv::Mat _image);
     void SlotViewSegnetImage(cv::Mat _image);
+
+    //Custom Graph
+    void SlotValveSizeData(QVector<double>, QVector<double>, int _graph_index);
+
 
     //LRF
     void SlotViewLRFImage(cv::Mat _image);

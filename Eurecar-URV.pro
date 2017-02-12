@@ -6,7 +6,7 @@
 
 QT       += core gui
 
-greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
+greaterThan(QT_MAJOR_VERSION, 4): QT += widgets printsupport
 
 TARGET = Eurecar-URV
 TEMPLATE = app
@@ -31,7 +31,8 @@ SOURCES += main.cpp\
     Device_Class/CVelodyne/CVelodyne.cpp \
     Device_Class/CVehicle/RoboteqDevice.cpp \
     Device_Class/CUDP/CUDP.cpp \
-    Device_Class/CGripper/CGripper.cpp
+    Device_Class/CGripper/CGripper.cpp \
+    qcustomplot.cpp
 
 
 HEADERS  += EurecarURV_Dlg.h \
@@ -61,7 +62,8 @@ HEADERS  += EurecarURV_Dlg.h \
     ElementTech_Class/CRGBD/RGBD_Data.h \
     Mission_Class/CManipulation/Def_Manipulation.h \
     Device_Class/CGripper/CGripper.h \
-    Mission_Class/CScript/Def_Script.h
+    Mission_Class/CScript/Def_Script.h \
+    qcustomplot.h
 
 FORMS    += EurecarURV_Dlg.ui \
     Driving_Dlg.ui \

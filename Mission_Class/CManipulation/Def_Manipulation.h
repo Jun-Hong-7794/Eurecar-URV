@@ -168,6 +168,9 @@ typedef struct _Gripper_Kinova_Valve_Size_Recognition_Struct{
     double force_threshold;
     double unit_rotation_angle;// CW: > 0, CCW: < 0
 
+    int trial;//Recomand 36trial
+    double rotation_angle;//Recomand 180deg
+
     int inlier_error;
 
     // Output

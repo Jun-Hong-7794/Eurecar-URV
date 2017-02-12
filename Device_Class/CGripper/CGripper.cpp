@@ -386,7 +386,6 @@ uint16_t CGripper::DynamixelPresentLoad(){
 //
 //----------------------------------------------------------------
 
-
 bool CGripper::IsGripperInit(){
     if(!fl_init_gripper) return false;
     return true;
@@ -741,7 +740,7 @@ bool CGripper::GripperGoToThePositionLoadCheck(int _goal_pos_1, int _goal_pos_2,
 
                 if(_goal_pos_1 != -1){
                     if(dxl_step_1 == 1){
-                        if((dxl_present_load_1 > 1200)){
+                        if((dxl_present_load_1 > 1800)){
                             std::cout << "Force Occured!" << std::endl;
                             std::cout << "Present Gripper Load :" << dxl_present_load_1 << std::endl;
                             std::cout << "Present Goal Position :" << dxl_present_position_1 << std::endl;
@@ -760,7 +759,7 @@ bool CGripper::GripperGoToThePositionLoadCheck(int _goal_pos_1, int _goal_pos_2,
 
                 if(_goal_pos_2 != -1){
                     if(dxl_step_2 == 1){
-                        if((dxl_present_load_2 > 1200)){
+                        if((dxl_present_load_2 > 1800)){
                             std::cout << "Force Occured!" << std::endl;
                             std::cout << "Present Gripper Load :" << dxl_present_load_2 << std::endl;
                             std::cout << "Present Goal Position :" << dxl_present_position_2 << std::endl;
@@ -992,7 +991,109 @@ void CGripper::SetGripperStatus(GRIPPER_STATUS _gripper_status){
     mtx_gripper_status.unlock();
 }
 
+//----------------------------------------------------------------
+//
+//                            Calculate
+//
+//----------------------------------------------------------------
 
+SINE_EQ_PARAM CGripper::EstimateSineEquation(std::vector<GRIPPER_DATA>& _gripper_data_vec){
+
+    SINE_EQ_PARAM sine_equation_parameter;
+    SINE_EQ_PARAM optimal_sine_equation_parameter;
+
+    int iteration = 500;
+
+    int random_num_1 = 0;
+    int random_num_2 = 0;
+    int random_num_3 = 0;
+    int random_num_4 = 0;
+
+    int random_max_num = _gripper_data_vec.size();
+
+    if(random_max_num <= 0){
+
+        sine_equation_parameter.a = 0;
+        sine_equation_parameter.b = 0;
+        sine_equation_parameter.c = 0;
+        sine_equation_parameter.d = 0;
+
+        return sine_equation_parameter;
+    }
+
+    std::vector<SINE_EQ_PARAM> sine_eq_vector;
+
+    std::srand((unsigned int)time(NULL));
+
+    //Get Line Equations candidate using random sampling
+    for(int i = 0; i < iteration; i++){
+
+        random_num_1 = std::rand() % random_max_num;
+        random_num_2 = std::rand() % random_max_num;
+        random_num_3 = std::rand() % random_max_num;
+        random_num_4 = std::rand() % random_max_num;
+
+        _gripper_data_vec.at(random_num_1);
+        _gripper_data_vec.at(random_num_2);
+        _gripper_data_vec.at(random_num_3);
+        _gripper_data_vec.at(random_num_4);
+
+        //Calculate Sine Function Parameter
+        // y = a * sin(b * x + c) + d
+
+//        sine_equation_parameter.a
+//        sine_equation_parameter.b
+//        sine_equation_parameter.c
+//        sine_equation_parameter.d
+
+        sine_equation_parameter.num_inlier = 0;
+
+        sine_eq_vector.push_back(sine_equation_parameter);
+    }
+
+    double sine_parm_a = 0.0;
+    double sine_parm_b = 0.0;
+    double sine_parm_c = 0.0;
+    double sine_parm_d = 0.0;
+
+    double inlier_standard = 7;
+
+    //Calculate Inlier Point Within inlier_standard
+    for(unsigned int i = 0; i < sine_eq_vector.size(); i++){
+
+        sine_parm_a = sine_eq_vector.at(i).a;
+        sine_parm_b = sine_eq_vector.at(i).b;
+        sine_parm_c = sine_eq_vector.at(i).c;
+        sine_parm_d = sine_eq_vector.at(i).d;
+
+        for(unsigned int j = 0; j < sine_eq_vector.size(); j++){
+
+            double distance = 0;
+
+//            line_son = fabs(line_parm_a*_point_vec.at(j).x - _point_vec.at(j).y + line_parm_b);
+//            line_parent = sqrt(pow(line_parm_a,2.0) + pow(1.0,2.0));
+//            line_distance = (line_son / line_parent);
+
+            if(distance <= inlier_standard){
+                sine_eq_vector.at(i).num_inlier++;
+            }
+        }
+    }
+
+    //Find Maximum inlier Sine Equation Parameter
+    int sine_eq_max_count = 0;
+
+    for(unsigned int i = 0; i < sine_eq_vector.size(); i++){
+
+        if(sine_eq_max_count < sine_eq_vector.at(i).num_inlier){
+
+            sine_eq_max_count = sine_eq_vector.at(i).num_inlier;
+            optimal_sine_equation_parameter = sine_eq_vector.at(i);
+        }
+    }
+
+    return optimal_sine_equation_parameter;
+}
 
 
 

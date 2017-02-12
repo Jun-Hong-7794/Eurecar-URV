@@ -34,7 +34,7 @@ CKinova::CKinova(){
     fl_kinova_init_position = false;
     theta = 0.0;
     initialAngle = 0.0;
-    base_frame_rot = 30.0;
+    base_frame_rot = 10.0;
 }
 
 CKinova::~CKinova(){
@@ -776,13 +776,13 @@ bool CKinova::KinovaDoManipulate(CartesianPosition _desired_position,int _mode, 
     desired_position.InitStruct();
     desired_position.Position.Type = CARTESIAN_POSITION;
 
-    desired_position.Position.CartesianPosition.X = _desired_position.Coordinates.X;//*cos(base_frame_rot*3.141592/180) + _desired_position.Coordinates.Y*sin(base_frame_rot*3.141592/180);
-    desired_position.Position.CartesianPosition.Y = _desired_position.Coordinates.Y;//*cos(base_frame_rot*3.141592/180) - _desired_position.Coordinates.X*sin(base_frame_rot*3.141592/180);
+    desired_position.Position.CartesianPosition.X = _desired_position.Coordinates.X;//*cos(base_frame_rot*KINOVA_PI/180) - _desired_position.Coordinates.Y*sin(base_frame_rot*KINOVA_PI/180);
+    desired_position.Position.CartesianPosition.Y = _desired_position.Coordinates.Y;//*cos(base_frame_rot*KINOVA_PI/180) + _desired_position.Coordinates.X*sin(base_frame_rot*KINOVA_PI/180);
     desired_position.Position.CartesianPosition.Z = _desired_position.Coordinates.Z;
 
-    desired_position.Position.CartesianPosition.ThetaX = _desired_position.Coordinates.ThetaX;//+base_frame_rot*3.141592/180;
+    desired_position.Position.CartesianPosition.ThetaX = _desired_position.Coordinates.ThetaX;//+base_frame_rot*KINOVA_PI/180;
     desired_position.Position.CartesianPosition.ThetaY = _desired_position.Coordinates.ThetaY;
-    desired_position.Position.CartesianPosition.ThetaZ = _desired_position.Coordinates.ThetaZ;//+base_frame_rot*3.141592/180;
+    desired_position.Position.CartesianPosition.ThetaZ = _desired_position.Coordinates.ThetaZ;//+base_frame_rot*KINOVA_PI/180;
 
 
     if(_mode == 1){//Joystick Mode
@@ -794,7 +794,7 @@ bool CKinova::KinovaDoManipulate(CartesianPosition _desired_position,int _mode, 
         Kinova_EraseAllTrajectories();
     }
 
-    else{ // Mode 2 : Trajectory Mode
+    else if(_mode == 2){ // Mode 2 : Trajectory Mode
         double error0;
 
         Kinova_GetCartesianPosition(position);
@@ -846,7 +846,48 @@ bool CKinova::KinovaDoManipulate(CartesianPosition _desired_position,int _mode, 
 
         msleep(100);
     }
+    else if(_mode == 3){ // Mode 3 : Roll
+        double error0;
 
+        Kinova_GetCartesianPosition(position);
+
+        error0 =  pow((desired_position.Position.CartesianPosition.ThetaX - position.Coordinates.ThetaX),2)
+                + pow((desired_position.Position.CartesianPosition.ThetaY - position.Coordinates.ThetaY),2)
+                + pow((desired_position.Position.CartesianPosition.ThetaZ - position.Coordinates.ThetaZ),2);
+
+        error0 = sqrt(error0);
+
+        int count = 0;
+
+        double error = error0;
+        double error_old = error0;
+        double thresh = KINOVA_PI / 180;
+        double thresh2 = (KINOVA_PI / 180);
+
+        while(error>thresh && count < 5)
+        {
+            if(fabs(error-error_old)<thresh2 && error0>error)
+            {
+                count++;
+            }
+            else
+            {
+                count = 0;
+            }
+
+            error_old = error;
+
+            Kinova_GetCartesianPosition(position);
+            error =   pow((desired_position.Position.CartesianPosition.ThetaX - position.Coordinates.ThetaX),2)
+                    + pow((desired_position.Position.CartesianPosition.ThetaY - position.Coordinates.ThetaY),2)
+                    + pow((desired_position.Position.CartesianPosition.ThetaZ - position.Coordinates.ThetaZ),2);
+
+            error = sqrt(error);
+
+            Kinova_SendAdvanceTrajectory(desired_position);
+        }
+
+    }
     emit SignalKinovaPosition(KinovaGetPosition());
     return true;
 }
