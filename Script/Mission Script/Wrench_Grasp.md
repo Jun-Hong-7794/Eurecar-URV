@@ -2,22 +2,6 @@
 /* Made By Jun Hong 28.01.2017
 /* This Script is for 2107 MBZIRC Challenge2
 /*
-/* 95.5
-/* 98.5
-/* 102
-/* 107
-/* 111
-/* 117
-
-local_double  ld_tmp_1 = 35.786
-local_double  ld_tmp_2
-
-local_int  li_tmp_1 = 5
-local_int  li_tmp_1
-
-local_bool lb_tmp_1 = true
-local_bool lb_tmp_2 = false
-local_bool lb_tmp_3
 
 # Title: Valve Recognition
 
@@ -62,8 +46,19 @@ LRF_KINOVA_VERTICAL_CTRL_FUNCTION()
 A_Sleep(500)
 
 ## Step3: LRF-Kinova Horizen CTRL(Wrench Num4)
+/*LRF_KINOVA_HORIZEN_CTRL_STRUCT.wrench_hanger_index = gi_wrench_hanger_index
 
-LRF_KINOVA_HORIZEN_CTRL_STRUCT.desired_inlier_deg_avr = 102
+LRF_KINOVA_HORIZEN_CTRL_STRUCT.wrench_hanger_index = 2
+
+LRF_KINOVA_HORIZEN_CTRL_STRUCT.wrench_location_deg_1 = 95.5
+LRF_KINOVA_HORIZEN_CTRL_STRUCT.wrench_location_deg_2 = 98.5
+LRF_KINOVA_HORIZEN_CTRL_STRUCT.wrench_location_deg_3 = 102
+LRF_KINOVA_HORIZEN_CTRL_STRUCT.wrench_location_deg_4 = 107
+LRF_KINOVA_HORIZEN_CTRL_STRUCT.wrench_location_deg_5 = 111
+LRF_KINOVA_HORIZEN_CTRL_STRUCT.wrench_location_deg_6 = 117
+
+LRF_KINOVA_HORIZEN_CTRL_STRUCT.desired_inlier_deg_avr = 0
+
 LRF_KINOVA_HORIZEN_CTRL_STRUCT.error = 0.75
 
 LRF_KINOVA_HORIZEN_CTRL_STRUCT.s_deg = 30

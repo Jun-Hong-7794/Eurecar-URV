@@ -4,6 +4,7 @@
 #include <QtWidgets>
 #include <QMutex>
 #include <QThread>
+#include <QVector>
 
 #include <unistd.h>
 #include <fcntl.h>
@@ -71,6 +72,29 @@ typedef struct _Gripper_Status{
 
 }GRIPPER_STATUS;
 
+typedef struct _Gripper_Size_Detection_Data{
+
+    double x;//Trial Number
+    double y;//Diff Angle Between two Dynamixel
+
+}GRIPPER_DATA;
+
+
+typedef struct _Sine_Equation_PARAMETER{
+
+    /*
+     * Sin Equation
+     * y = a * sin(bx + c) + d
+     */
+    double a;//scale
+    double b;//period
+
+    double c;//x offset
+    double d;//y offset
+
+    int num_inlier;
+
+}SINE_EQ_PARAM;
 
 class CGripper: public QThread{
     Q_OBJECT
@@ -111,9 +135,12 @@ private:
     uint16_t dxl2_present_position;
     uint16_t dxl1_present_load;
     uint16_t dxl2_present_load;
+
+    GRIPPER_STATUS mstruct_gripper_status;
 private://Mutex
     QMutex mtx_dmx_handle;
     QMutex mtx_gripper_handle;
+    QMutex mtx_gripper_status;
 
 public:
     bool IsDmxInit();
@@ -121,6 +148,8 @@ public:
 
     bool IsGripperInit();
     bool IsGripperTorqueOn();
+public:
+    SINE_EQ_PARAM EstimateSineEquation(std::vector<GRIPPER_DATA>& _gripper_data_vec);
 
 public:
     bool InitDynamixel(char* _device_port = (char *)"/dev/ttyUSB0");
@@ -146,6 +175,9 @@ public:
     bool GripperGoToThePositionLoadCheck(int _goal_pos_1, int _goal_pos_2, int _load_threshold); // Go to The Position
     bool GripperGoToThePositionLoadCheck_1(int _goal_pos_1, int _load_threshold); // Go to The Position
     bool GripperGoToThePositionLoadCheck_2(int _goal_pos_2, int _load_threshold); // Go to The Position
+
+    GRIPPER_STATUS GetGripperStatus();
+    void SetGripperStatus(GRIPPER_STATUS);
 
 signals:
     void SignalEditeGripperStatus(GRIPPER_STATUS _gripper);

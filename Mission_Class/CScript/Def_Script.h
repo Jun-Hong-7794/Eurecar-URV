@@ -31,12 +31,14 @@
 #define MP_GRIPPER_FORCE_CONTROL             0x2003
 #define MP_GRIPPER_MAGNET_CONTROL            0x2004
 
-#define MP_KINOVA_MANIPULATE                 0x2005
-#define MP_KINOVA_ROTATE_VALVE               0x2006
+#define MP_GRIPPER_VALVE_SIZE_RECOG          0x2005
 
-#define MP_LRF_KINOVA_VERTIVAL_CONTROL       0x2007
-#define MP_LRF_KINOVA_HORIZEN_CONTROL        0x2008
-#define MP_LRF_KINOVA_ANGLE_CONTROL          0x2009
+#define MP_KINOVA_MANIPULATE                 0x2006
+#define MP_KINOVA_ROTATE_VALVE               0x2007
+
+#define MP_LRF_KINOVA_VERTIVAL_CONTROL       0x2008
+#define MP_LRF_KINOVA_HORIZEN_CONTROL        0x2009
+#define MP_LRF_KINOVA_ANGLE_CONTROL          0x2010
 
 //Grammar
 #define GR_CONDITIONALLY_ITERATION           0x3000
@@ -91,6 +93,12 @@ typedef struct _Step_Information{
 
     int before_sleep; //Before Step Start
     int after__sleep; //After Step End
+
+    QString str_if;
+    bool fl_condition_if_flag;
+
+    QString str_else;
+    bool fl_condition_else_flag;
 
 }STEP_INFO;
 

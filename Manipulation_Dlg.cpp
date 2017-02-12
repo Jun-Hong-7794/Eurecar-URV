@@ -25,7 +25,6 @@ Manipulation_Dlg::Manipulation_Dlg(CManipulation* _pc_manipulation, QWidget *par
 
     mp_segnet_image_grahicscene = new QGraphicsScene(QRectF(0, 0, segnet_view_width, segnet_view_height), 0);
 
-
     //Button Connetion
     connect(ui->bt_kinova_init, SIGNAL(clicked()), this, SLOT(SlotButtonKinovaInit()));
 
@@ -85,6 +84,16 @@ Manipulation_Dlg::Manipulation_Dlg(CManipulation* _pc_manipulation, QWidget *par
     connect(mpc_manipulation, SIGNAL(SignalCameraImage(cv::Mat)), this, SLOT(SlotViewCameraImage(cv::Mat)));
     connect(mpc_manipulation, SIGNAL(SignalSegnetImage(cv::Mat)), this, SLOT(SlotViewSegnetImage(cv::Mat)));
 
+    connect(mpc_manipulation, SIGNAL(SignalValveSizeData(QVector<double>,QVector<double>,int)),
+            this, SLOT(SlotValveSizeData(QVector<double>,QVector<double>,int)));
+
+    // give the axes some labels:
+    ui->graph_gripper_data_plot->xAxis->setLabel("Trial");
+    ui->graph_gripper_data_plot->yAxis->setLabel("Diff Step");
+    // set axes ranges, so we see all data:
+    ui->graph_gripper_data_plot->xAxis->setRange(0, 36);
+    ui->graph_gripper_data_plot->yAxis->setRange(0, 350);
+    ui->graph_gripper_data_plot->replot();
 }
 
 Manipulation_Dlg::~Manipulation_Dlg()
@@ -264,7 +273,7 @@ void Manipulation_Dlg::SlotEditeGripperStatus(GRIPPER_STATUS _gripper_status){
     double diff_1 = _gripper_status.present_pose_1 - 1700;
     double diff_2 = _gripper_status.present_pose_2 - 1700;
 
-    double diff_pose = fabs(diff_1 - diff_2);
+    double diff_pose = fabs(diff_1 + diff_2);
     ui->ed_gripper_diff_pose->setText(QString::number(diff_pose));
 
     ui->ed_gripper_1_current_load->setText(QString::number(_gripper_status.present_load_1));
@@ -538,3 +547,22 @@ void Manipulation_Dlg::Display_Image(cv::Mat _img, QGraphicsScene* _graphics_sce
     _graphics_view->setScene(_graphics_scene);
     _graphics_view->show();
 }
+
+void Manipulation_Dlg::SlotValveSizeData(QVector<double> _x, QVector<double> _y, int _graph_index){
+
+    //create graph and assign data to it:
+    if(_graph_index == -1){
+        ui->graph_gripper_data_plot->addGraph();
+        return;
+    }
+
+    ui->graph_gripper_data_plot->graph(_graph_index)->setPen(QPen(Qt::red));
+    ui->graph_gripper_data_plot->graph(_graph_index)->setBrush(QBrush(QColor(255, 0, 0, 20))); // first graph will be filled with translucent blue
+    ui->graph_gripper_data_plot->graph(_graph_index)->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ssDisc, 5));
+    ui->graph_gripper_data_plot->graph(_graph_index)->setData(_x, _y);
+
+    ui->graph_gripper_data_plot->replot();
+}
+
+
+

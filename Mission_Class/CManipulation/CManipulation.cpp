@@ -21,6 +21,8 @@ CManipulation::CManipulation(CLRF *_p_mani_lrf, CCamera *_p_camera, CKinova *_p_
 
     mpc_rgb_d = new CRGBD(_p_camera, _p_mani_lrf);
 
+    m_valve_size_graph_index = 0;
+
     connect(mpc_kinova, SIGNAL(SignalKinovaPosition(CartesianPosition)), this, SIGNAL(SignalKinovaPosition(CartesianPosition)));
     connect(mpc_rgb_d, SIGNAL(SignalLRFMapImage(cv::Mat)), this, SIGNAL(SignalLRFImage(cv::Mat)));
     connect(mpc_camera, SIGNAL(SignalCameraImage(cv::Mat)), this, SIGNAL(SignalCameraImage(cv::Mat)));
@@ -319,6 +321,12 @@ bool CManipulation::SelectMainFunction(int _fnc_index_){
 
         return true;
     }
+    else if(_fnc_index_ == MANIPUL_INX_GRIPPER_VALVE_SIZE_RECOG){
+        m_main_fnc_index = MANIPUL_INX_GRIPPER_VALVE_SIZE_RECOG;
+        this->start();
+
+        return true;
+    }
 
     else if(_fnc_index_ == MANIPUL_INX_KINOVA_MANIPULATE){
         m_main_fnc_index = MANIPUL_INX_KINOVA_MANIPULATE;
@@ -511,6 +519,29 @@ KINOVA_ROTATE_VALVE_STRUCT CManipulation::GetKinovaRotateValveOption(){
 
     return kinova_rotate_valve;
 }
+
+void CManipulation::SetManipulationOption(GRIPPER_KINOVA_VALVE_SIZE_RECOG_STRUCT _manipulation_option){
+
+    mxt_gripper_kinova_valve_recog.lock();
+    {
+        mstruct_gripper_kinova_valve_recog = _manipulation_option;
+    }
+    mxt_gripper_kinova_valve_recog.unlock();
+}
+
+GRIPPER_KINOVA_VALVE_SIZE_RECOG_STRUCT CManipulation::GetGripperKinovaValveRecogOption(){
+
+    GRIPPER_KINOVA_VALVE_SIZE_RECOG_STRUCT gripper_kinova_valve_recog;
+
+    mxt_gripper_kinova_valve_recog.lock();
+    {
+        gripper_kinova_valve_recog = mstruct_gripper_kinova_valve_recog;
+    }
+    mxt_gripper_kinova_valve_recog.unlock();
+
+    return gripper_kinova_valve_recog;
+}
+
 //----------------------------------------------------------------
 // Main Function Result
 //----------------------------------------------------------------
@@ -600,6 +631,26 @@ bool CManipulation::LRFKinovaHorizenControl(){
 
     double s_virture_deg = 0;
     double e_virture_deg = 0;
+
+    if(lrf_kinova_struct.desired_inlier_deg_avr == 0){
+
+        switch(lrf_kinova_struct.wrench_hanger_index){
+
+        case 1:
+            lrf_kinova_struct.desired_inlier_deg_avr = lrf_kinova_struct.wrench_location_deg_1;
+        case 2:
+            lrf_kinova_struct.desired_inlier_deg_avr = lrf_kinova_struct.wrench_location_deg_2;
+        case 3:
+            lrf_kinova_struct.desired_inlier_deg_avr = lrf_kinova_struct.wrench_location_deg_3;
+        case 4:
+            lrf_kinova_struct.desired_inlier_deg_avr = lrf_kinova_struct.wrench_location_deg_4;
+        case 5:
+            lrf_kinova_struct.desired_inlier_deg_avr = lrf_kinova_struct.wrench_location_deg_5;
+        case 6:
+            lrf_kinova_struct.desired_inlier_deg_avr = lrf_kinova_struct.wrench_location_deg_6;
+            break;
+        }
+    }
 
     do{
         inlier_s_deg = 0;
@@ -817,6 +868,121 @@ bool CManipulation::KinovaRotateValveMotion(){
     return true;
 }
 
+bool CManipulation::GripperKinovaValveSizeRecognition(){
+
+    if(!mpc_gripper->IsGripperInit())
+        return false;
+    if(!mpc_kinova->IsKinovaInitialized())
+        return false;
+
+    GRIPPER_KINOVA_VALVE_SIZE_RECOG_STRUCT gripper_kinova_valve_recog = GetGripperKinovaValveRecogOption();
+
+    double grasp_pose_1 = gripper_kinova_valve_recog.grasp_pose_1;
+    double grasp_pose_2 = gripper_kinova_valve_recog.grasp_pose_2;
+
+    double force_threshold = gripper_kinova_valve_recog.force_threshold;
+
+    double release_pose_1 = gripper_kinova_valve_recog.release_pose_1;
+    double release_pose_2 = gripper_kinova_valve_recog.release_pose_2;
+
+//    int inlier_error = gripper_kinova_valve_recog.inlier_error;
+
+//    double unit_rotation_angle = gripper_kinova_valve_recog.unit_rotation_angle;
+
+    GRIPPER_STATUS gripper_status;
+
+    QVector<double> gripper_data_x;
+    QVector<double> gripper_data_y;
+
+    double org_roll_pose = 0;
+    CartesianPosition current_pose;
+    current_pose = mpc_kinova->KinovaGetPosition();
+
+    org_roll_pose = current_pose.Coordinates.ThetaZ;
+
+    mpc_kinova->KinovaDoManipulate(current_pose, 2);
+
+    // -1: Add Graph
+    emit SignalValveSizeData(gripper_data_x, gripper_data_y, -1);
+
+    double diff_pose = 0;
+    double diff_pose_1 = 0;
+    double diff_pose_2 = 0;
+
+    double roll_angle = 0;
+
+    bool fl_gripper_1_not_reach = false;
+    bool fl_gripper_2_not_reach = false;
+
+    for(int i = 0; i < gripper_kinova_valve_recog.trial; i++){
+
+        mpc_gripper->GripperGoToThePositionLoadCheck(grasp_pose_1, grasp_pose_2, force_threshold);
+
+        gripper_status = mpc_gripper->GetGripperStatus();
+
+        if(gripper_status.present_pose_1 < 1715){
+            fl_gripper_1_not_reach = true;
+        }
+
+        if(gripper_status.present_pose_2 < 1715){
+            fl_gripper_2_not_reach = true;
+        }
+
+        if(fl_gripper_1_not_reach || fl_gripper_2_not_reach ){
+
+            double y_step = 0;
+            double z_step = 0;
+
+            if(fl_gripper_1_not_reach && !fl_gripper_2_not_reach){
+                y_step = 2*VEL * cos(roll_angle);
+                z_step = 2*VEL * sin(roll_angle);
+            }
+            else if(!fl_gripper_1_not_reach && fl_gripper_2_not_reach){
+                y_step = (-1) * 2*VEL * cos(roll_angle);
+                z_step = (-1) * 2*VEL * sin(roll_angle);
+            }
+
+            mpc_gripper->GripperGoToThePositionLoadCheck(release_pose_1, release_pose_2, force_threshold);
+
+            mpc_kinova->KinovaMoveUnitStep(0, y_step, z_step);
+            current_pose = mpc_kinova->KinovaGetPosition();
+
+            i -= 1;
+            if(i < 0) i = 0;
+
+            fl_gripper_1_not_reach = false;
+            fl_gripper_2_not_reach = false;
+            continue;
+        }
+
+        diff_pose_1 = fabs(gripper_status.present_pose_1 - grasp_pose_1);
+        diff_pose_2 = fabs(gripper_status.present_pose_2 - grasp_pose_2);
+
+        diff_pose = fabs(diff_pose_1 + diff_pose_2);
+
+        gripper_data_x.push_back((double)i);
+        gripper_data_y.push_back(diff_pose);
+
+        emit SignalValveSizeData(gripper_data_x, gripper_data_y, m_valve_size_graph_index);
+
+        mpc_gripper->GripperGoToThePositionLoadCheck(release_pose_1, release_pose_2, force_threshold);
+
+        roll_angle += (KINOVA_PI / 36);
+        current_pose.Coordinates.ThetaZ += (KINOVA_PI / 36);
+        mpc_kinova->KinovaDoManipulate(current_pose, 3);
+
+    };
+
+    m_valve_size_graph_index++;
+
+    SetManipulationOption(gripper_kinova_valve_recog);
+
+    current_pose.Coordinates.ThetaZ = org_roll_pose;
+    mpc_kinova->KinovaDoManipulate(current_pose, 3);
+
+    return true;
+}
+
 bool CManipulation::GripperForceCtrl(){
 
     if(!mpc_gripper->IsGripperInit())
@@ -876,6 +1042,9 @@ void CManipulation::run(){
         break;
     case MANIPUL_INX_GRIPPER_MAGNET_CLRL:
         GripperMagnetCtrl();
+        break;
+    case MANIPUL_INX_GRIPPER_VALVE_SIZE_RECOG:
+        GripperKinovaValveSizeRecognition();
         break;
     case MANIPUL_INX_KINOVA_MANIPULATE:
         KinovaDoManipulate();

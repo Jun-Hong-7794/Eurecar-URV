@@ -6,86 +6,28 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1129</width>
-    <height>597</height>
+    <width>1161</width>
+    <height>607</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Manipulatoin Dialog</string>
   </property>
-  <widget class="QGraphicsView" name="view_camera">
-   <property name="geometry">
-    <rect>
-     <x>10</x>
-     <y>40</y>
-     <width>320</width>
-     <height>240</height>
-    </rect>
-   </property>
-  </widget>
   <widget class="QGraphicsView" name="view_camera_lrf">
    <property name="geometry">
     <rect>
-     <x>10</x>
-     <y>327</y>
+     <x>14</x>
+     <y>347</y>
      <width>320</width>
      <height>240</height>
     </rect>
-   </property>
-  </widget>
-  <widget class="QGraphicsView" name="view_segnet">
-   <property name="geometry">
-    <rect>
-     <x>340</x>
-     <y>40</y>
-     <width>320</width>
-     <height>240</height>
-    </rect>
-   </property>
-  </widget>
-  <widget class="QLabel" name="label">
-   <property name="geometry">
-    <rect>
-     <x>10</x>
-     <y>20</y>
-     <width>59</width>
-     <height>14</height>
-    </rect>
-   </property>
-   <property name="font">
-    <font>
-     <weight>75</weight>
-     <bold>true</bold>
-    </font>
-   </property>
-   <property name="text">
-    <string>Camera</string>
-   </property>
-  </widget>
-  <widget class="QLabel" name="label_2">
-   <property name="geometry">
-    <rect>
-     <x>340</x>
-     <y>20</y>
-     <width>59</width>
-     <height>14</height>
-    </rect>
-   </property>
-   <property name="font">
-    <font>
-     <weight>75</weight>
-     <bold>true</bold>
-    </font>
-   </property>
-   <property name="text">
-    <string>Segnet</string>
    </property>
   </widget>
   <widget class="QLabel" name="label_3">
    <property name="geometry">
     <rect>
-     <x>10</x>
-     <y>307</y>
+     <x>14</x>
+     <y>327</y>
      <width>101</width>
      <height>16</height>
     </rect>
@@ -103,8 +45,8 @@
   <widget class="QLabel" name="label_4">
    <property name="geometry">
     <rect>
-     <x>250</x>
-     <y>307</y>
+     <x>254</x>
+     <y>327</y>
      <width>91</width>
      <height>16</height>
     </rect>
@@ -122,7 +64,7 @@
   <widget class="QGroupBox" name="grbx_manipulation">
    <property name="geometry">
     <rect>
-     <x>670</x>
+     <x>690</x>
      <y>10</y>
      <width>451</width>
      <height>581</height>
@@ -1833,8 +1775,8 @@
   <widget class="QTabWidget" name="tabWidget">
    <property name="geometry">
     <rect>
-     <x>337</x>
-     <y>300</y>
+     <x>341</x>
+     <y>320</y>
      <width>331</width>
      <height>271</height>
     </rect>
@@ -1873,7 +1815,114 @@
     </widget>
    </widget>
   </widget>
+  <widget class="QTabWidget" name="tabWidget_3">
+   <property name="geometry">
+    <rect>
+     <x>10</x>
+     <y>10</y>
+     <width>671</width>
+     <height>301</height>
+    </rect>
+   </property>
+   <property name="currentIndex">
+    <number>0</number>
+   </property>
+   <widget class="QWidget" name="tab">
+    <attribute name="title">
+     <string>Tab 1</string>
+    </attribute>
+    <widget class="QCustomPlot" name="graph_gripper_data_plot" native="true">
+     <property name="geometry">
+      <rect>
+       <x>20</x>
+       <y>10</y>
+       <width>631</width>
+       <height>251</height>
+      </rect>
+     </property>
+    </widget>
+   </widget>
+   <widget class="QWidget" name="tab_2">
+    <attribute name="title">
+     <string>Tab 2</string>
+    </attribute>
+    <widget class="QLabel" name="label">
+     <property name="geometry">
+      <rect>
+       <x>8</x>
+       <y>4</y>
+       <width>59</width>
+       <height>14</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
+     </property>
+     <property name="text">
+      <string>Camera</string>
+     </property>
+    </widget>
+    <widget class="QGraphicsView" name="view_camera">
+     <property name="geometry">
+      <rect>
+       <x>8</x>
+       <y>24</y>
+       <width>320</width>
+       <height>240</height>
+      </rect>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_2">
+     <property name="geometry">
+      <rect>
+       <x>338</x>
+       <y>4</y>
+       <width>59</width>
+       <height>14</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
+     </property>
+     <property name="text">
+      <string>Segnet</string>
+     </property>
+    </widget>
+    <widget class="QGraphicsView" name="view_segnet">
+     <property name="geometry">
+      <rect>
+       <x>338</x>
+       <y>24</y>
+       <width>320</width>
+       <height>240</height>
+      </rect>
+     </property>
+    </widget>
+    <zorder>view_segnet</zorder>
+    <zorder>label</zorder>
+    <zorder>view_camera</zorder>
+    <zorder>label_2</zorder>
+    <zorder>label</zorder>
+    <zorder>view_camera</zorder>
+    <zorder>label_2</zorder>
+    <zorder>view_segnet</zorder>
+   </widget>
+  </widget>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>QCustomPlot</class>
+   <extends>QWidget</extends>
+   <header location="global">qcustomplot.h</header>
+   <container>1</container>
+  </customwidget>
+ </customwidgets>
  <resources/>
  <connections/>
 </ui>

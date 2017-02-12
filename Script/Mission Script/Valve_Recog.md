@@ -24,7 +24,7 @@ A_Sleep(500)
 
 ## Step2: LRF-Kinova Horizen CTRL
 
-LRF_KINOVA_HORIZEN_CTRL_STRUCT.desired_inlier_deg_avr = 86.5
+LRF_KINOVA_HORIZEN_CTRL_STRUCT.desired_inlier_deg_avr = 87.0
 LRF_KINOVA_HORIZEN_CTRL_STRUCT.error = 0.25
 
 LRF_KINOVA_HORIZEN_CTRL_STRUCT.s_deg = 30
@@ -44,7 +44,7 @@ A_Sleep(1000)
 
 KINOVA_MANIPULATE_STRUCT.x = ==
 KINOVA_MANIPULATE_STRUCT.y = ==
-KINOVA_MANIPULATE_STRUCT.z = 0.1381
+KINOVA_MANIPULATE_STRUCT.z = 0.1572
 
 KINOVA_MANIPULATE_STRUCT.roll = ==
 KINOVA_MANIPULATE_STRUCT.pitch = ==
@@ -61,11 +61,11 @@ A_Sleep(500)
 KINOVA_FORCE_CTRL_STRUCT.step_count = 100
 
 KINOVA_FORCE_CTRL_STRUCT.force_threshold = 0
-KINOVA_FORCE_CTRL_STRUCT.force_threshold_x = 3.8
+KINOVA_FORCE_CTRL_STRUCT.force_threshold_x = 6
 KINOVA_FORCE_CTRL_STRUCT.force_threshold_y = 0
 KINOVA_FORCE_CTRL_STRUCT.force_threshold_z = 0
 
-KINOVA_FORCE_CTRL_STRUCT.position_limit_x = 0.4700
+KINOVA_FORCE_CTRL_STRUCT.position_limit_x = 0.5500
 KINOVA_FORCE_CTRL_STRUCT.position_limit_y = 0
 KINOVA_FORCE_CTRL_STRUCT.position_limit_z = 0
 
@@ -93,13 +93,20 @@ KINOVA_MANIPULATE_FUNCTION()
 
 A_Sleep(500)
 
-## Step10: Grasp2
+## Step10: Valve Size Recognition(Using Gripper)
 
-GRIPPER_FORCE_CTRL_STRUCT.pose_1 = 1700
-GRIPPER_FORCE_CTRL_STRUCT.pose_2 = 1700
-GRIPPER_FORCE_CTRL_STRUCT.force_threshold = 130
+VALVE_SIZE_RECOG_STRUCT.grasp_pose_1 = 1700
+VALVE_SIZE_RECOG_STRUCT.grasp_pose_2 = 1700
 
-GRIPPER_FORCE_CTRL_FUNCTION()
+VALVE_SIZE_RECOG_STRUCT.release_pose_1 = 2300
+VALVE_SIZE_RECOG_STRUCT.release_pose_2 = 2300
+
+VALVE_SIZE_RECOG_STRUCT.force_threshold = 120
+
+VALVE_SIZE_RECOG_STRUCT.trial = 36
+VALVE_SIZE_RECOG_STRUCT.rotation_angle = 180
+
+VALVE_SIZE_RECOG_FUNCTION()
 
 A_Sleep(2000)
 
@@ -113,25 +120,6 @@ GRIPPER_FORCE_CTRL_FUNCTION()
 
 
 ##########################################_MISSION_END_##########################################
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
