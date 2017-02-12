@@ -135,8 +135,9 @@ bool CVelodyne::RunVelodyne(){
     double clustering_tolerence = 0.1;
     double clustering_count_tolerence = 50;
     double clustering_max_count_tolerence = 50;
-    double parking_distance = 1;
-    double side_distance = 1;
+    double parking_distance = 0.5;
+    double side_distance = 0.7;
+    double waypoint_converged_margin = 0.15;
 
     while(fl_velodyne_thread){
 
@@ -171,7 +172,7 @@ bool CVelodyne::RunVelodyne(){
                 mpc_pcl->Set_Velodyne_Data(mpc_pcl->m_x_data,mpc_pcl->m_y_data,mpc_pcl->m_z_data);
 
                 mpc_pcl->cloud->points.resize(VELODYNE_LASERS_NUM*VELODYNE_TOTAL_PACKET_NUMBER*VELODYNE_BOLCKS_NUM);
-                mpc_pcl->waypoint_cloud->points.resize(4);
+                mpc_pcl->waypoint_cloud->points.resize(3);
                 mpc_pcl->panelpoint_cloud->points.resize(6);
 
                 point_index = 0;
@@ -411,13 +412,6 @@ bool CVelodyne::RunVelodyne(){
                 sac1.getInliers(inliers_tmp1);
                 sac1.getModelCoefficients(coeff1);
 
-
-//                cout<<coeff.cols()<<endl;
-//                if((coeff.cols() < 4) || (coeff1.cols() < 4))
-//                {
-//                    fl_parser_complete = true;
-//                    continue;
-//                }
                 pcl::copyPointCloud(*max_clustering_result,inliers_tmp,*final);
                 pcl::copyPointCloud(*max_clustering_result1,inliers_tmp1,*final1);
 
@@ -485,8 +479,9 @@ bool CVelodyne::RunVelodyne(){
                 double b = ransac_line_mean_y - (coeff[4]/coeff[3])*ransac_line_mean_x;
                 double b1 = ransac_line1_mean_y - (coeff1[4]/coeff1[3])*ransac_line1_mean_x;
 
-                if ((2.0*maximum_dist_from_ransac_mean) > 0.8) // front or back
+                if (((2.0*maximum_dist_from_ransac_mean) > 0.8) && ((2.0*maximum_dist_from_ransac_mean) < 1.2)) // front or back
                 {
+                    find_panel_point = true;
                     if( (coeff[3]*coeff1[3] + coeff[4]*coeff1[4]) > 0.5) // 0ch and 10.67 ch is parrell
                     {
 
@@ -529,15 +524,10 @@ bool CVelodyne::RunVelodyne(){
                                     double transform_delta_x_for_matching = matching_point1_x;
                                     double transform_delta_y_for_matching = matching_point1_y;
 
-                                    vector<vector<double>> panel_points;
-
-                                    cout << "waypoint cloud size :" << mpc_pcl->waypoint_cloud->size()<<endl;
                                     for(int i = 0;i<mpc_pcl->panelpoint_cloud->points.size();i++)
                                     {
                                         double transform_result_x = (prior_panel_points[i][0] + transform_delta_x_for_prior)*cos(transform_delta_angle) - (prior_panel_points[i][1] + transform_delta_y_for_prior)*sin(transform_delta_angle) + transform_delta_x_for_matching;
                                         double transform_result_y = (prior_panel_points[i][0] + transform_delta_x_for_prior)*sin(transform_delta_angle) + (prior_panel_points[i][1] + transform_delta_y_for_prior)*cos(transform_delta_angle) + transform_delta_y_for_matching;
-
-                                        cout<<"result x : " << transform_result_x << " , " << "result y : " << transform_result_y << endl;
 
                                         mpc_pcl->panelpoint_cloud->points[i].x = transform_result_x;
                                         mpc_pcl->panelpoint_cloud->points[i].y = transform_result_y;
@@ -547,12 +537,72 @@ bool CVelodyne::RunVelodyne(){
                                         mpc_pcl->panelpoint_cloud->points[i].b = 255;
                                     }
 
+                                    // Find optimized waypoints----------
+                                    double panel_front_center_x = (0.5 + transform_delta_x_for_prior)*cos(transform_delta_angle) - (transform_delta_y_for_prior)*sin(transform_delta_angle) + transform_delta_x_for_matching;
+                                    double panel_front_center_y = (0.5 + transform_delta_x_for_prior)*sin(transform_delta_angle) + (transform_delta_y_for_prior)*cos(transform_delta_angle) + transform_delta_y_for_matching;
+
+                                    double panel_back_center_x = (0.5 + transform_delta_x_for_prior)*cos(transform_delta_angle) - (0.75 + transform_delta_y_for_prior)*sin(transform_delta_angle) + transform_delta_x_for_matching;
+                                    double panel_back_center_y = (0.5 + transform_delta_x_for_prior)*sin(transform_delta_angle) + (0.75 + transform_delta_y_for_prior)*cos(transform_delta_angle) + transform_delta_y_for_matching;
+
+                                    double panel_yaw_direction_x = panel_back_center_x - panel_front_center_x;
+                                    double panel_yaw_direction_y = panel_back_center_y - panel_front_center_y;
+
+                                    double prior_way_points[3][2];
+
+                                    if( ((atan2(panel_yaw_direction_y,panel_yaw_direction_x)) > 0) &&  ((atan2(panel_yaw_direction_y,panel_yaw_direction_x)) < PI)) // right is the fastest
+                                    {
+                                        optimization_direction_left = false;
+                                        copy(&prior_way_points_right[0][0],&prior_way_points_right[0][0] + 6,&prior_way_points[0][0]);
+                                    }
+                                    else
+                                    {
+                                        optimization_direction_left = true;
+                                        copy(&prior_way_points_left[0][0],&prior_way_points_left[0][0] + 6,&prior_way_points[0][0]);
+                                    }
+                                    // ----------------------------------
+
+                                    vector<double> panel_center_to_ugv;
+
+                                    panel_center_to_ugv.push_back(-panel_front_center_x);
+                                    panel_center_to_ugv.push_back(-panel_front_center_y);
+
+                                    double angle_from_panel_center;
+                                    if(atan2(panel_center_to_ugv.at(1),panel_center_to_ugv.at(0)) < 0)
+                                    {
+                                        angle_from_panel_center = 2*PI+atan2(panel_center_to_ugv.at(1),panel_center_to_ugv.at(0));
+                                    }
+                                    else
+                                    {
+                                        angle_from_panel_center = atan2(panel_center_to_ugv.at(1),panel_center_to_ugv.at(0));
+                                    }
+
                                     for(int i = 0;i<mpc_pcl->waypoint_cloud->points.size();i++)
                                     {
                                         double transform_result_x = (prior_way_points[i][0] + transform_delta_x_for_prior)*cos(transform_delta_angle) - (prior_way_points[i][1] + transform_delta_y_for_prior)*sin(transform_delta_angle) + transform_delta_x_for_matching;
                                         double transform_result_y = (prior_way_points[i][0] + transform_delta_x_for_prior)*sin(transform_delta_angle) + (prior_way_points[i][1] + transform_delta_y_for_prior)*cos(transform_delta_angle) + transform_delta_y_for_matching;
 
-                                        cout<<"result x : " << transform_result_x << " , " << "result y : " << transform_result_y << endl;
+                                        double panel_center_to_waypoint_x,panel_center_to_waypoint_y;
+
+                                        panel_center_to_waypoint_x = transform_result_x - panel_front_center_x;
+                                        panel_center_to_waypoint_y = transform_result_y - panel_front_center_y;
+
+
+                                        double outer_product_for_wayupdate = panel_center_to_ugv.at(0)*panel_center_to_waypoint_y - panel_center_to_ugv.at(1)*panel_center_to_waypoint_x;
+                                        if(optimization_direction_left)
+                                        {
+                                            if(outer_product_for_wayupdate < 0)
+                                            {
+                                                current_waypoint_index = i+1;
+                                            }
+                                        }
+                                        else
+                                        {
+                                            if(outer_product_for_wayupdate > 0)
+                                            {
+                                                current_waypoint_index = i+1;
+                                            }
+                                        }
+
 
                                         mpc_pcl->waypoint_cloud->points[i].x = transform_result_x;
                                         mpc_pcl->waypoint_cloud->points[i].y = transform_result_y;
@@ -561,30 +611,182 @@ bool CVelodyne::RunVelodyne(){
                                         mpc_pcl->waypoint_cloud->points[i].g = 255;
                                         mpc_pcl->waypoint_cloud->points[i].b = 255;
                                     }
+                                    if(current_waypoint_index == 3)
+                                    {
+                                        current_waypoint_index = 0;
+                                    }
 
+                                    if((current_waypoint_index != 2) && (sqrt(mpc_pcl->waypoint_cloud->points[current_waypoint_index].x*mpc_pcl->waypoint_cloud->points[current_waypoint_index].x + mpc_pcl->waypoint_cloud->points[current_waypoint_index].y*mpc_pcl->waypoint_cloud->points[current_waypoint_index].y) < waypoint_converged_margin))
+                                    {
+                                        current_waypoint_index += 1;
+                                    }
 
+                                    double angle_between_panel_yaw_vector = acos((panel_center_to_ugv.at(0)*(-panel_yaw_direction_x)+panel_center_to_ugv.at(1)*(-panel_yaw_direction_y))/(sqrt(panel_center_to_ugv.at(0)*panel_center_to_ugv.at(0) + panel_center_to_ugv.at(1)*panel_center_to_ugv.at(1))*sqrt(panel_yaw_direction_x*panel_yaw_direction_x+panel_yaw_direction_y*panel_yaw_direction_y)));
 
-//                                    waypoint_x = ransac_line_mean_x - parking_distance*cos(PI*0.5 - atan(coeff[4]/coeff[3]));
-//                                    waypoint_y = ransac_line_mean_y + parking_distance*sin(PI*0.5 - atan(coeff[4]/coeff[3]));
+                                    if(angle_between_panel_yaw_vector < 10.0/180.0*PI)
+                                    {
+                                        current_waypoint_index = 2;
+                                    }
 
-//                                    mpc_pcl->waypoint_cloud->points[0].x = waypoint_x;
-//                                    mpc_pcl->waypoint_cloud->points[0].y = waypoint_y;
-//                                    mpc_pcl->waypoint_cloud->points[0].z = 0;
-//                                    mpc_pcl->waypoint_cloud->points[0].r = 0;
-//                                    mpc_pcl->waypoint_cloud->points[0].g = 255;
-//                                    mpc_pcl->waypoint_cloud->points[0].b = 255;
+                                    pcl::PointXYZRGBA origin_pt;
+                                    origin_pt.x = 0;
+                                    origin_pt.y = 0;
+                                    origin_pt.z = 0;
+
+                                    mpc_pcl->viewer->removeAllShapes();
+                                    mpc_pcl->viewer->addArrow(mpc_pcl->waypoint_cloud->points[current_waypoint_index],origin_pt,255,0,0,true);
+
+                                    waypoint_x = mpc_pcl->waypoint_cloud->points[current_waypoint_index].x;
+                                    waypoint_y = mpc_pcl->waypoint_cloud->points[current_waypoint_index].y;
+
                                 }
                                 else
                                 {
-                                    waypoint_x = ransac_line_mean_x + parking_distance*cos(PI*0.5 - atan(coeff[4]/coeff[3]));
-                                    waypoint_y = ransac_line_mean_y - parking_distance*sin(PI*0.5 - atan(coeff[4]/coeff[3]));
+                                    matching_point1_index = 2;
+                                    matching_point1_x = ransac_line_mean_x + maximum_dist_from_ransac_mean*abs(coeff[3]);
+                                    matching_point1_y = ransac_line_mean_y + maximum_dist_from_ransac_mean*abs(coeff[4]);
+                                    matching_point2_index = 5;
+                                    matching_point2_x = ransac_line_mean_x - maximum_dist_from_ransac_mean*abs(coeff[3]);
+                                    matching_point2_y = ransac_line_mean_y - maximum_dist_from_ransac_mean*abs(coeff[4]);
 
-                                    mpc_pcl->waypoint_cloud->points[0].x = waypoint_x;
-                                    mpc_pcl->waypoint_cloud->points[0].y = waypoint_y;
-                                    mpc_pcl->waypoint_cloud->points[0].z = 0;
-                                    mpc_pcl->waypoint_cloud->points[0].r = 0;
-                                    mpc_pcl->waypoint_cloud->points[0].g = 255;
-                                    mpc_pcl->waypoint_cloud->points[0].b = 255;
+                                    double matching_point_dir_x = matching_point2_x - matching_point1_x;
+                                    double matching_point_dir_y = matching_point2_y - matching_point1_y;
+
+                                    double matching_point_dir_norm_x = matching_point_dir_x/sqrt(matching_point_dir_x*matching_point_dir_x + matching_point_dir_y*matching_point_dir_y);
+                                    double matching_point_dir_norm_y = matching_point_dir_y/sqrt(matching_point_dir_x*matching_point_dir_x + matching_point_dir_y*matching_point_dir_y);
+
+                                    double matching_point_dir_angle = atan2(matching_point_dir_norm_y,matching_point_dir_norm_x);
+
+                                    double prior_point_dir_x = prior_panel_points[matching_point2_index][0] - prior_panel_points[matching_point1_index][0];
+                                    double prior_point_dir_y = prior_panel_points[matching_point2_index][1] - prior_panel_points[matching_point1_index][1];
+
+                                    double prior_point_dir_norm_x = prior_point_dir_x/sqrt(prior_point_dir_x*prior_point_dir_x + prior_point_dir_y*prior_point_dir_y);
+                                    double prior_point_dir_norm_y = prior_point_dir_y/sqrt(prior_point_dir_x*prior_point_dir_x + prior_point_dir_y*prior_point_dir_y);
+
+                                    double prior_point_dir_angle = atan2(prior_point_dir_norm_y,prior_point_dir_norm_x);
+
+                                    double transform_delta_angle = matching_point_dir_angle - prior_point_dir_angle;
+
+                                    double transform_delta_x_for_prior = -prior_panel_points[matching_point1_index][0];
+                                    double transform_delta_y_for_prior = -prior_panel_points[matching_point1_index][1];
+
+                                    double transform_delta_x_for_matching = matching_point1_x;
+                                    double transform_delta_y_for_matching = matching_point1_y;
+
+                                    for(int i = 0;i<mpc_pcl->panelpoint_cloud->points.size();i++)
+                                    {
+                                        double transform_result_x = (prior_panel_points[i][0] + transform_delta_x_for_prior)*cos(transform_delta_angle) - (prior_panel_points[i][1] + transform_delta_y_for_prior)*sin(transform_delta_angle) + transform_delta_x_for_matching;
+                                        double transform_result_y = (prior_panel_points[i][0] + transform_delta_x_for_prior)*sin(transform_delta_angle) + (prior_panel_points[i][1] + transform_delta_y_for_prior)*cos(transform_delta_angle) + transform_delta_y_for_matching;
+
+                                        mpc_pcl->panelpoint_cloud->points[i].x = transform_result_x;
+                                        mpc_pcl->panelpoint_cloud->points[i].y = transform_result_y;
+                                        mpc_pcl->panelpoint_cloud->points[i].z = 0;
+                                        mpc_pcl->panelpoint_cloud->points[i].r = 255;
+                                        mpc_pcl->panelpoint_cloud->points[i].g = 255;
+                                        mpc_pcl->panelpoint_cloud->points[i].b = 255;
+                                    }
+
+                                    // Find optimized waypoints----------
+                                    double panel_front_center_x = (0.5 + transform_delta_x_for_prior)*cos(transform_delta_angle) - (transform_delta_y_for_prior)*sin(transform_delta_angle) + transform_delta_x_for_matching;
+                                    double panel_front_center_y = (0.5 + transform_delta_x_for_prior)*sin(transform_delta_angle) + (transform_delta_y_for_prior)*cos(transform_delta_angle) + transform_delta_y_for_matching;
+
+                                    double panel_back_center_x = (0.5 + transform_delta_x_for_prior)*cos(transform_delta_angle) - (0.75 + transform_delta_y_for_prior)*sin(transform_delta_angle) + transform_delta_x_for_matching;
+                                    double panel_back_center_y = (0.5 + transform_delta_x_for_prior)*sin(transform_delta_angle) + (0.75 + transform_delta_y_for_prior)*cos(transform_delta_angle) + transform_delta_y_for_matching;
+
+                                    double panel_yaw_direction_x = panel_back_center_x - panel_front_center_x;
+                                    double panel_yaw_direction_y = panel_back_center_y - panel_front_center_y;
+
+                                    double prior_way_points[3][2];
+
+                                    if( ((atan2(panel_yaw_direction_y,panel_yaw_direction_x)) > 0) &&  ((atan2(panel_yaw_direction_y,panel_yaw_direction_x)) < PI)) // right is the fastest
+                                    {
+                                        optimization_direction_left = false;
+                                        copy(&prior_way_points_right[0][0],&prior_way_points_right[0][0] + 6,&prior_way_points[0][0]);
+                                    }
+                                    else
+                                    {
+                                        optimization_direction_left = true;
+                                        copy(&prior_way_points_left[0][0],&prior_way_points_left[0][0] + 6,&prior_way_points[0][0]);
+                                    }
+                                    // ----------------------------------
+
+                                    vector<double> panel_center_to_ugv;
+
+                                    panel_center_to_ugv.push_back(-panel_front_center_x);
+                                    panel_center_to_ugv.push_back(-panel_front_center_y);
+
+                                    double angle_from_panel_center;
+                                    if(atan2(panel_center_to_ugv.at(1),panel_center_to_ugv.at(0)) < 0)
+                                    {
+                                        angle_from_panel_center = 2*PI+atan2(panel_center_to_ugv.at(1),panel_center_to_ugv.at(0));
+                                    }
+                                    else
+                                    {
+                                        angle_from_panel_center = atan2(panel_center_to_ugv.at(1),panel_center_to_ugv.at(0));
+                                    }
+
+                                    for(int i = 0;i<mpc_pcl->waypoint_cloud->points.size();i++)
+                                    {
+                                        double transform_result_x = (prior_way_points[i][0] + transform_delta_x_for_prior)*cos(transform_delta_angle) - (prior_way_points[i][1] + transform_delta_y_for_prior)*sin(transform_delta_angle) + transform_delta_x_for_matching;
+                                        double transform_result_y = (prior_way_points[i][0] + transform_delta_x_for_prior)*sin(transform_delta_angle) + (prior_way_points[i][1] + transform_delta_y_for_prior)*cos(transform_delta_angle) + transform_delta_y_for_matching;
+
+                                        double panel_center_to_waypoint_x,panel_center_to_waypoint_y;
+
+                                        panel_center_to_waypoint_x = transform_result_x - panel_front_center_x;
+                                        panel_center_to_waypoint_y = transform_result_y - panel_front_center_y;
+
+
+                                        double outer_product_for_wayupdate = panel_center_to_ugv.at(0)*panel_center_to_waypoint_y - panel_center_to_ugv.at(1)*panel_center_to_waypoint_x;
+                                        if(optimization_direction_left)
+                                        {
+                                            if(outer_product_for_wayupdate < 0)
+                                            {
+                                                current_waypoint_index = i+1;
+                                            }
+                                        }
+                                        else
+                                        {
+                                            if(outer_product_for_wayupdate > 0)
+                                            {
+                                                current_waypoint_index = i+1;
+                                            }
+                                        }
+
+
+                                        mpc_pcl->waypoint_cloud->points[i].x = transform_result_x;
+                                        mpc_pcl->waypoint_cloud->points[i].y = transform_result_y;
+                                        mpc_pcl->waypoint_cloud->points[i].z = 0;
+                                        mpc_pcl->waypoint_cloud->points[i].r = 0;
+                                        mpc_pcl->waypoint_cloud->points[i].g = 255;
+                                        mpc_pcl->waypoint_cloud->points[i].b = 255;
+                                    }
+                                    if(current_waypoint_index == 3)
+                                    {
+                                        current_waypoint_index = 0;
+                                    }
+
+                                    if((current_waypoint_index != 2) && (sqrt(mpc_pcl->waypoint_cloud->points[current_waypoint_index].x*mpc_pcl->waypoint_cloud->points[current_waypoint_index].x + mpc_pcl->waypoint_cloud->points[current_waypoint_index].y*mpc_pcl->waypoint_cloud->points[current_waypoint_index].y) < waypoint_converged_margin))
+                                    {
+                                        current_waypoint_index += 1;
+                                    }
+
+                                    double angle_between_panel_yaw_vector = acos((panel_center_to_ugv.at(0)*(-panel_yaw_direction_x)+panel_center_to_ugv.at(1)*(-panel_yaw_direction_y))/(sqrt(panel_center_to_ugv.at(0)*panel_center_to_ugv.at(0) + panel_center_to_ugv.at(1)*panel_center_to_ugv.at(1))*sqrt(panel_yaw_direction_x*panel_yaw_direction_x+panel_yaw_direction_y*panel_yaw_direction_y)));
+
+                                    if(angle_between_panel_yaw_vector < 10.0/180.0*PI)
+                                    {
+                                        current_waypoint_index = 2;
+                                    }
+
+                                    pcl::PointXYZRGBA origin_pt;
+                                    origin_pt.x = 0;
+                                    origin_pt.y = 0;
+                                    origin_pt.z = 0;
+
+                                    mpc_pcl->viewer->removeAllShapes();
+                                    mpc_pcl->viewer->addArrow(mpc_pcl->waypoint_cloud->points[current_waypoint_index],origin_pt,255,0,0,true);
+                                    waypoint_x = mpc_pcl->waypoint_cloud->points[current_waypoint_index].x;
+                                    waypoint_y = mpc_pcl->waypoint_cloud->points[current_waypoint_index].y;
+
                                 }
                             }
 
@@ -595,28 +797,299 @@ bool CVelodyne::RunVelodyne(){
                             {
                                 if ( (coeff[4]/coeff[3]) < 0 )
                                 {
+                                    matching_point1_index = 3;
+                                    matching_point1_x = ransac_line_mean_x + maximum_dist_from_ransac_mean*abs(coeff[3]);
+                                    matching_point1_y = ransac_line_mean_y - maximum_dist_from_ransac_mean*abs(coeff[4]);
 
-                                    waypoint_x = ransac_line_mean_x - parking_distance*cos(PI*0.5 - atan(coeff[4]/coeff[3])) - (side_distance+maximum_dist_from_ransac_mean)*abs(coeff[3]);
-                                    waypoint_y = ransac_line_mean_y + parking_distance*sin(PI*0.5 - atan(coeff[4]/coeff[3])) + (side_distance+maximum_dist_from_ransac_mean)*abs(coeff[4]);
+                                    matching_point2_index = 4;
+                                    matching_point2_x = ransac_line_mean_x - maximum_dist_from_ransac_mean*abs(coeff[3]);
+                                    matching_point2_y = ransac_line_mean_y + maximum_dist_from_ransac_mean*abs(coeff[4]);
 
-                                    mpc_pcl->waypoint_cloud->points[0].x = waypoint_x;
-                                    mpc_pcl->waypoint_cloud->points[0].y = waypoint_y;
-                                    mpc_pcl->waypoint_cloud->points[0].z = 0;
-                                    mpc_pcl->waypoint_cloud->points[0].r = 0;
-                                    mpc_pcl->waypoint_cloud->points[0].g = 255;
-                                    mpc_pcl->waypoint_cloud->points[0].b = 255;
+                                    double matching_point_dir_x = matching_point2_x - matching_point1_x;
+                                    double matching_point_dir_y = matching_point2_y - matching_point1_y;
+
+                                    double matching_point_dir_norm_x = matching_point_dir_x/sqrt(matching_point_dir_x*matching_point_dir_x + matching_point_dir_y*matching_point_dir_y);
+                                    double matching_point_dir_norm_y = matching_point_dir_y/sqrt(matching_point_dir_x*matching_point_dir_x + matching_point_dir_y*matching_point_dir_y);
+
+                                    double matching_point_dir_angle = atan2(matching_point_dir_norm_y,matching_point_dir_norm_x);
+
+                                    double prior_point_dir_x = prior_panel_points[matching_point2_index][0] - prior_panel_points[matching_point1_index][0];
+                                    double prior_point_dir_y = prior_panel_points[matching_point2_index][1] - prior_panel_points[matching_point1_index][1];
+
+                                    double prior_point_dir_norm_x = prior_point_dir_x/sqrt(prior_point_dir_x*prior_point_dir_x + prior_point_dir_y*prior_point_dir_y);
+                                    double prior_point_dir_norm_y = prior_point_dir_y/sqrt(prior_point_dir_x*prior_point_dir_x + prior_point_dir_y*prior_point_dir_y);
+
+                                    double prior_point_dir_angle = atan2(prior_point_dir_norm_y,prior_point_dir_norm_x);
+
+                                    double transform_delta_angle = matching_point_dir_angle - prior_point_dir_angle;
+
+                                    double transform_delta_x_for_prior = -prior_panel_points[matching_point1_index][0];
+                                    double transform_delta_y_for_prior = -prior_panel_points[matching_point1_index][1];
+
+                                    double transform_delta_x_for_matching = matching_point1_x;
+                                    double transform_delta_y_for_matching = matching_point1_y;
+
+                                    for(int i = 0;i<mpc_pcl->panelpoint_cloud->points.size();i++)
+                                    {
+                                        double transform_result_x = (prior_panel_points[i][0] + transform_delta_x_for_prior)*cos(transform_delta_angle) - (prior_panel_points[i][1] + transform_delta_y_for_prior)*sin(transform_delta_angle) + transform_delta_x_for_matching;
+                                        double transform_result_y = (prior_panel_points[i][0] + transform_delta_x_for_prior)*sin(transform_delta_angle) + (prior_panel_points[i][1] + transform_delta_y_for_prior)*cos(transform_delta_angle) + transform_delta_y_for_matching;
+
+                                        mpc_pcl->panelpoint_cloud->points[i].x = transform_result_x;
+                                        mpc_pcl->panelpoint_cloud->points[i].y = transform_result_y;
+                                        mpc_pcl->panelpoint_cloud->points[i].z = 0;
+                                        mpc_pcl->panelpoint_cloud->points[i].r = 255;
+                                        mpc_pcl->panelpoint_cloud->points[i].g = 255;
+                                        mpc_pcl->panelpoint_cloud->points[i].b = 255;
+                                    }
+
+                                    // Find optimized waypoints----------
+                                    double panel_front_center_x = (0.5 + transform_delta_x_for_prior)*cos(transform_delta_angle) - (transform_delta_y_for_prior)*sin(transform_delta_angle) + transform_delta_x_for_matching;
+                                    double panel_front_center_y = (0.5 + transform_delta_x_for_prior)*sin(transform_delta_angle) + (transform_delta_y_for_prior)*cos(transform_delta_angle) + transform_delta_y_for_matching;
+
+                                    double panel_back_center_x = (0.5 + transform_delta_x_for_prior)*cos(transform_delta_angle) - (0.75 + transform_delta_y_for_prior)*sin(transform_delta_angle) + transform_delta_x_for_matching;
+                                    double panel_back_center_y = (0.5 + transform_delta_x_for_prior)*sin(transform_delta_angle) + (0.75 + transform_delta_y_for_prior)*cos(transform_delta_angle) + transform_delta_y_for_matching;
+
+                                    double panel_yaw_direction_x = panel_back_center_x - panel_front_center_x;
+                                    double panel_yaw_direction_y = panel_back_center_y - panel_front_center_y;
+
+                                    double prior_way_points[3][2];
+
+                                    if( ((atan2(panel_yaw_direction_y,panel_yaw_direction_x)) > 0) &&  ((atan2(panel_yaw_direction_y,panel_yaw_direction_x)) < PI)) // right is the fastest
+                                    {
+                                        optimization_direction_left = false;
+                                        copy(&prior_way_points_right[0][0],&prior_way_points_right[0][0] + 6,&prior_way_points[0][0]);
+                                    }
+                                    else
+                                    {
+                                        optimization_direction_left = true;
+                                        copy(&prior_way_points_left[0][0],&prior_way_points_left[0][0] + 6,&prior_way_points[0][0]);
+                                    }
+                                    // ----------------------------------
+
+                                    vector<double> panel_center_to_ugv;
+
+                                    panel_center_to_ugv.push_back(-panel_front_center_x);
+                                    panel_center_to_ugv.push_back(-panel_front_center_y);
+
+                                    double angle_from_panel_center;
+                                    if(atan2(panel_center_to_ugv.at(1),panel_center_to_ugv.at(0)) < 0)
+                                    {
+                                        angle_from_panel_center = 2*PI+atan2(panel_center_to_ugv.at(1),panel_center_to_ugv.at(0));
+                                    }
+                                    else
+                                    {
+                                        angle_from_panel_center = atan2(panel_center_to_ugv.at(1),panel_center_to_ugv.at(0));
+                                    }
+
+                                    for(int i = 0;i<mpc_pcl->waypoint_cloud->points.size();i++)
+                                    {
+                                        double transform_result_x = (prior_way_points[i][0] + transform_delta_x_for_prior)*cos(transform_delta_angle) - (prior_way_points[i][1] + transform_delta_y_for_prior)*sin(transform_delta_angle) + transform_delta_x_for_matching;
+                                        double transform_result_y = (prior_way_points[i][0] + transform_delta_x_for_prior)*sin(transform_delta_angle) + (prior_way_points[i][1] + transform_delta_y_for_prior)*cos(transform_delta_angle) + transform_delta_y_for_matching;
+
+                                        double panel_center_to_waypoint_x,panel_center_to_waypoint_y;
+
+                                        panel_center_to_waypoint_x = transform_result_x - panel_front_center_x;
+                                        panel_center_to_waypoint_y = transform_result_y - panel_front_center_y;
+
+
+                                        double outer_product_for_wayupdate = panel_center_to_ugv.at(0)*panel_center_to_waypoint_y - panel_center_to_ugv.at(1)*panel_center_to_waypoint_x;
+                                        if(optimization_direction_left)
+                                        {
+                                            if(outer_product_for_wayupdate < 0)
+                                            {
+                                                current_waypoint_index = i+1;
+                                            }
+                                        }
+                                        else
+                                        {
+                                            if(outer_product_for_wayupdate > 0)
+                                            {
+                                                current_waypoint_index = i+1;
+                                            }
+                                        }
+
+
+                                        mpc_pcl->waypoint_cloud->points[i].x = transform_result_x;
+                                        mpc_pcl->waypoint_cloud->points[i].y = transform_result_y;
+                                        mpc_pcl->waypoint_cloud->points[i].z = 0;
+                                        mpc_pcl->waypoint_cloud->points[i].r = 0;
+                                        mpc_pcl->waypoint_cloud->points[i].g = 255;
+                                        mpc_pcl->waypoint_cloud->points[i].b = 255;
+                                    }
+                                    if(current_waypoint_index == 3)
+                                    {
+                                        current_waypoint_index = 0;
+                                    }
+
+                                    if((current_waypoint_index != 2) && (sqrt(mpc_pcl->waypoint_cloud->points[current_waypoint_index].x*mpc_pcl->waypoint_cloud->points[current_waypoint_index].x + mpc_pcl->waypoint_cloud->points[current_waypoint_index].y*mpc_pcl->waypoint_cloud->points[current_waypoint_index].y) < waypoint_converged_margin))
+                                    {
+                                        current_waypoint_index += 1;
+                                    }
+
+                                    double angle_between_panel_yaw_vector = acos((panel_center_to_ugv.at(0)*(-panel_yaw_direction_x)+panel_center_to_ugv.at(1)*(-panel_yaw_direction_y))/(sqrt(panel_center_to_ugv.at(0)*panel_center_to_ugv.at(0) + panel_center_to_ugv.at(1)*panel_center_to_ugv.at(1))*sqrt(panel_yaw_direction_x*panel_yaw_direction_x+panel_yaw_direction_y*panel_yaw_direction_y)));
+
+                                    if(angle_between_panel_yaw_vector < 10.0/180.0*PI)
+                                    {
+                                        current_waypoint_index = 2;
+                                    }
+
+                                    pcl::PointXYZRGBA origin_pt;
+                                    origin_pt.x = 0;
+                                    origin_pt.y = 0;
+                                    origin_pt.z = 0;
+
+                                    mpc_pcl->viewer->removeAllShapes();
+                                    mpc_pcl->viewer->addArrow(mpc_pcl->waypoint_cloud->points[current_waypoint_index],origin_pt,255,0,0,true);
+                                    waypoint_x = mpc_pcl->waypoint_cloud->points[current_waypoint_index].x;
+                                    waypoint_y = mpc_pcl->waypoint_cloud->points[current_waypoint_index].y;
                                 }
                                 else
                                 {
-                                    waypoint_x = ransac_line_mean_x + parking_distance*cos(PI*0.5 - atan(coeff[4]/coeff[3])) + (side_distance+maximum_dist_from_ransac_mean)*abs(coeff[3]);
-                                    waypoint_y = ransac_line_mean_y - parking_distance*sin(PI*0.5 - atan(coeff[4]/coeff[3])) + (side_distance+maximum_dist_from_ransac_mean)*abs(coeff[4]);
+                                    matching_point1_index = 3;
+                                    matching_point1_x = ransac_line_mean_x - maximum_dist_from_ransac_mean*abs(coeff[3]);
+                                    matching_point1_y = ransac_line_mean_y - maximum_dist_from_ransac_mean*abs(coeff[4]);
 
-                                    mpc_pcl->waypoint_cloud->points[0].x = waypoint_x;
-                                    mpc_pcl->waypoint_cloud->points[0].y = waypoint_y;
-                                    mpc_pcl->waypoint_cloud->points[0].z = 0;
-                                    mpc_pcl->waypoint_cloud->points[0].r = 0;
-                                    mpc_pcl->waypoint_cloud->points[0].g = 255;
-                                    mpc_pcl->waypoint_cloud->points[0].b = 255;
+                                    matching_point2_index = 4;
+                                    matching_point2_x = ransac_line_mean_x + maximum_dist_from_ransac_mean*abs(coeff[3]);
+                                    matching_point2_y = ransac_line_mean_y + maximum_dist_from_ransac_mean*abs(coeff[4]);
+
+                                    double matching_point_dir_x = matching_point2_x - matching_point1_x;
+                                    double matching_point_dir_y = matching_point2_y - matching_point1_y;
+
+                                    double matching_point_dir_norm_x = matching_point_dir_x/sqrt(matching_point_dir_x*matching_point_dir_x + matching_point_dir_y*matching_point_dir_y);
+                                    double matching_point_dir_norm_y = matching_point_dir_y/sqrt(matching_point_dir_x*matching_point_dir_x + matching_point_dir_y*matching_point_dir_y);
+
+                                    double matching_point_dir_angle = atan2(matching_point_dir_norm_y,matching_point_dir_norm_x);
+
+                                    double prior_point_dir_x = prior_panel_points[matching_point2_index][0] - prior_panel_points[matching_point1_index][0];
+                                    double prior_point_dir_y = prior_panel_points[matching_point2_index][1] - prior_panel_points[matching_point1_index][1];
+
+                                    double prior_point_dir_norm_x = prior_point_dir_x/sqrt(prior_point_dir_x*prior_point_dir_x + prior_point_dir_y*prior_point_dir_y);
+                                    double prior_point_dir_norm_y = prior_point_dir_y/sqrt(prior_point_dir_x*prior_point_dir_x + prior_point_dir_y*prior_point_dir_y);
+
+                                    double prior_point_dir_angle = atan2(prior_point_dir_norm_y,prior_point_dir_norm_x);
+
+                                    double transform_delta_angle = matching_point_dir_angle - prior_point_dir_angle;
+
+                                    double transform_delta_x_for_prior = -prior_panel_points[matching_point1_index][0];
+                                    double transform_delta_y_for_prior = -prior_panel_points[matching_point1_index][1];
+
+                                    double transform_delta_x_for_matching = matching_point1_x;
+                                    double transform_delta_y_for_matching = matching_point1_y;
+
+                                    for(int i = 0;i<mpc_pcl->panelpoint_cloud->points.size();i++)
+                                    {
+                                        double transform_result_x = (prior_panel_points[i][0] + transform_delta_x_for_prior)*cos(transform_delta_angle) - (prior_panel_points[i][1] + transform_delta_y_for_prior)*sin(transform_delta_angle) + transform_delta_x_for_matching;
+                                        double transform_result_y = (prior_panel_points[i][0] + transform_delta_x_for_prior)*sin(transform_delta_angle) + (prior_panel_points[i][1] + transform_delta_y_for_prior)*cos(transform_delta_angle) + transform_delta_y_for_matching;
+
+                                        mpc_pcl->panelpoint_cloud->points[i].x = transform_result_x;
+                                        mpc_pcl->panelpoint_cloud->points[i].y = transform_result_y;
+                                        mpc_pcl->panelpoint_cloud->points[i].z = 0;
+                                        mpc_pcl->panelpoint_cloud->points[i].r = 255;
+                                        mpc_pcl->panelpoint_cloud->points[i].g = 255;
+                                        mpc_pcl->panelpoint_cloud->points[i].b = 255;
+                                    }
+
+                                    // Find optimized waypoints----------
+                                    double panel_front_center_x = (0.5 + transform_delta_x_for_prior)*cos(transform_delta_angle) - (transform_delta_y_for_prior)*sin(transform_delta_angle) + transform_delta_x_for_matching;
+                                    double panel_front_center_y = (0.5 + transform_delta_x_for_prior)*sin(transform_delta_angle) + (transform_delta_y_for_prior)*cos(transform_delta_angle) + transform_delta_y_for_matching;
+
+                                    double panel_back_center_x = (0.5 + transform_delta_x_for_prior)*cos(transform_delta_angle) - (0.75 + transform_delta_y_for_prior)*sin(transform_delta_angle) + transform_delta_x_for_matching;
+                                    double panel_back_center_y = (0.5 + transform_delta_x_for_prior)*sin(transform_delta_angle) + (0.75 + transform_delta_y_for_prior)*cos(transform_delta_angle) + transform_delta_y_for_matching;
+
+                                    double panel_yaw_direction_x = panel_back_center_x - panel_front_center_x;
+                                    double panel_yaw_direction_y = panel_back_center_y - panel_front_center_y;
+
+                                    double prior_way_points[3][2];
+
+                                    if( ((atan2(panel_yaw_direction_y,panel_yaw_direction_x)) > 0) &&  ((atan2(panel_yaw_direction_y,panel_yaw_direction_x)) < PI)) // right is the fastest
+                                    {
+                                        optimization_direction_left = false;
+                                        copy(&prior_way_points_right[0][0],&prior_way_points_right[0][0] + 6,&prior_way_points[0][0]);
+                                    }
+                                    else
+                                    {
+                                        optimization_direction_left = true;
+                                        copy(&prior_way_points_left[0][0],&prior_way_points_left[0][0] + 6,&prior_way_points[0][0]);
+                                    }
+                                    // ----------------------------------
+
+                                    vector<double> panel_center_to_ugv;
+
+                                    panel_center_to_ugv.push_back(-panel_front_center_x);
+                                    panel_center_to_ugv.push_back(-panel_front_center_y);
+
+                                    double angle_from_panel_center;
+                                    if(atan2(panel_center_to_ugv.at(1),panel_center_to_ugv.at(0)) < 0)
+                                    {
+                                        angle_from_panel_center = 2*PI+atan2(panel_center_to_ugv.at(1),panel_center_to_ugv.at(0));
+                                    }
+                                    else
+                                    {
+                                        angle_from_panel_center = atan2(panel_center_to_ugv.at(1),panel_center_to_ugv.at(0));
+                                    }
+
+                                    for(int i = 0;i<mpc_pcl->waypoint_cloud->points.size();i++)
+                                    {
+                                        double transform_result_x = (prior_way_points[i][0] + transform_delta_x_for_prior)*cos(transform_delta_angle) - (prior_way_points[i][1] + transform_delta_y_for_prior)*sin(transform_delta_angle) + transform_delta_x_for_matching;
+                                        double transform_result_y = (prior_way_points[i][0] + transform_delta_x_for_prior)*sin(transform_delta_angle) + (prior_way_points[i][1] + transform_delta_y_for_prior)*cos(transform_delta_angle) + transform_delta_y_for_matching;
+
+                                        double panel_center_to_waypoint_x,panel_center_to_waypoint_y;
+
+                                        panel_center_to_waypoint_x = transform_result_x - panel_front_center_x;
+                                        panel_center_to_waypoint_y = transform_result_y - panel_front_center_y;
+
+
+                                        double outer_product_for_wayupdate = panel_center_to_ugv.at(0)*panel_center_to_waypoint_y - panel_center_to_ugv.at(1)*panel_center_to_waypoint_x;
+                                        if(optimization_direction_left)
+                                        {
+                                            if(outer_product_for_wayupdate < 0)
+                                            {
+                                                current_waypoint_index = i+1;
+                                            }
+                                        }
+                                        else
+                                        {
+                                            if(outer_product_for_wayupdate > 0)
+                                            {
+                                                current_waypoint_index = i+1;
+                                            }
+                                        }
+
+
+                                        mpc_pcl->waypoint_cloud->points[i].x = transform_result_x;
+                                        mpc_pcl->waypoint_cloud->points[i].y = transform_result_y;
+                                        mpc_pcl->waypoint_cloud->points[i].z = 0;
+                                        mpc_pcl->waypoint_cloud->points[i].r = 0;
+                                        mpc_pcl->waypoint_cloud->points[i].g = 255;
+                                        mpc_pcl->waypoint_cloud->points[i].b = 255;
+                                    }
+                                    if(current_waypoint_index == 3)
+                                    {
+                                        current_waypoint_index = 0;
+                                    }
+
+                                    if((current_waypoint_index != 2) && (sqrt(mpc_pcl->waypoint_cloud->points[current_waypoint_index].x*mpc_pcl->waypoint_cloud->points[current_waypoint_index].x + mpc_pcl->waypoint_cloud->points[current_waypoint_index].y*mpc_pcl->waypoint_cloud->points[current_waypoint_index].y) < waypoint_converged_margin))
+                                    {
+                                        current_waypoint_index += 1;
+                                    }
+
+                                    double angle_between_panel_yaw_vector = acos((panel_center_to_ugv.at(0)*(-panel_yaw_direction_x)+panel_center_to_ugv.at(1)*(-panel_yaw_direction_y))/(sqrt(panel_center_to_ugv.at(0)*panel_center_to_ugv.at(0) + panel_center_to_ugv.at(1)*panel_center_to_ugv.at(1))*sqrt(panel_yaw_direction_x*panel_yaw_direction_x+panel_yaw_direction_y*panel_yaw_direction_y)));
+
+                                    if(angle_between_panel_yaw_vector < 10.0/180.0*PI)
+                                    {
+                                        current_waypoint_index = 2;
+                                    }
+
+                                    pcl::PointXYZRGBA origin_pt;
+                                    origin_pt.x = 0;
+                                    origin_pt.y = 0;
+                                    origin_pt.z = 0;
+
+                                    mpc_pcl->viewer->removeAllShapes();
+                                    mpc_pcl->viewer->addArrow(mpc_pcl->waypoint_cloud->points[current_waypoint_index],origin_pt,255,0,0,true);
+                                    waypoint_x = mpc_pcl->waypoint_cloud->points[current_waypoint_index].x;
+                                    waypoint_y = mpc_pcl->waypoint_cloud->points[current_waypoint_index].y;
                                 }
                             }
 
@@ -630,9 +1103,9 @@ bool CVelodyne::RunVelodyne(){
                     }
 
                 }
-                else // side
+                else if(((2.0*maximum_dist_from_ransac_mean) > 0.35) && ((2.0*maximum_dist_from_ransac_mean) < 0.65))// side
                 {
-
+                    find_panel_point = true;
                     if( (coeff[3]*coeff1[3] + coeff[4]*coeff1[4]) > 0.5) // 0ch and 10.67 ch is parrell
                     {
                         double waypoint_direct_vec_x = ransac_line1_mean_x - ransac_line_mean_x;
@@ -646,32 +1119,332 @@ bool CVelodyne::RunVelodyne(){
 
 
 
+                        double outer_product_result = ransac_line_mean_x*waypoint_direct_vec_y_norm - ransac_line_mean_y*waypoint_direct_vec_x_norm;
 
                         if (coeff[3] != 0)
                         {
                             if ( (coeff[4]/coeff[3]) < 0 )
                             {
-                                waypoint_x = panel_edge_point_x - side_distance*cos(PI*0.5 - atan(coeff[4]/coeff[3])) + parking_distance*waypoint_direct_vec_x_norm;
-                                waypoint_y = panel_edge_point_y + side_distance*sin(PI*0.5 - atan(coeff[4]/coeff[3])) + parking_distance*waypoint_direct_vec_y_norm;
+                                if(outer_product_result < 0) // Left side
+                                {
+                                    matching_point1_index = 4;
+                                    matching_point1_x = ransac_line_mean_x + maximum_dist_from_ransac_mean*abs(coeff[3]);
+                                    matching_point1_y = ransac_line_mean_y - maximum_dist_from_ransac_mean*abs(coeff[4]);
 
-                                mpc_pcl->waypoint_cloud->points[0].x = waypoint_x;
-                                mpc_pcl->waypoint_cloud->points[0].y = waypoint_y;
-                                mpc_pcl->waypoint_cloud->points[0].z = 0;
-                                mpc_pcl->waypoint_cloud->points[0].r = 0;
-                                mpc_pcl->waypoint_cloud->points[0].g = 255;
-                                mpc_pcl->waypoint_cloud->points[0].b = 255;
+                                    matching_point2_index = 5;
+                                    matching_point2_x = ransac_line_mean_x - maximum_dist_from_ransac_mean*abs(coeff[3]);
+                                    matching_point2_y = ransac_line_mean_y + maximum_dist_from_ransac_mean*abs(coeff[4]);
+                                }
+                                else // right side
+                                {
+                                    matching_point1_index = 2;
+                                    matching_point1_x = ransac_line_mean_x + maximum_dist_from_ransac_mean*abs(coeff[3]);
+                                    matching_point1_y = ransac_line_mean_y - maximum_dist_from_ransac_mean*abs(coeff[4]);
+
+                                    matching_point2_index = 3;
+                                    matching_point2_x = ransac_line_mean_x - maximum_dist_from_ransac_mean*abs(coeff[3]);
+                                    matching_point2_y = ransac_line_mean_y + maximum_dist_from_ransac_mean*abs(coeff[4]);
+                                }
+
+                                double matching_point_dir_x = matching_point2_x - matching_point1_x;
+                                double matching_point_dir_y = matching_point2_y - matching_point1_y;
+
+                                double matching_point_dir_norm_x = matching_point_dir_x/sqrt(matching_point_dir_x*matching_point_dir_x + matching_point_dir_y*matching_point_dir_y);
+                                double matching_point_dir_norm_y = matching_point_dir_y/sqrt(matching_point_dir_x*matching_point_dir_x + matching_point_dir_y*matching_point_dir_y);
+
+                                double matching_point_dir_angle = atan2(matching_point_dir_norm_y,matching_point_dir_norm_x);
+
+                                double prior_point_dir_x = prior_panel_points[matching_point2_index][0] - prior_panel_points[matching_point1_index][0];
+                                double prior_point_dir_y = prior_panel_points[matching_point2_index][1] - prior_panel_points[matching_point1_index][1];
+
+                                double prior_point_dir_norm_x = prior_point_dir_x/sqrt(prior_point_dir_x*prior_point_dir_x + prior_point_dir_y*prior_point_dir_y);
+                                double prior_point_dir_norm_y = prior_point_dir_y/sqrt(prior_point_dir_x*prior_point_dir_x + prior_point_dir_y*prior_point_dir_y);
+
+                                double prior_point_dir_angle = atan2(prior_point_dir_norm_y,prior_point_dir_norm_x);
+
+                                double transform_delta_angle = matching_point_dir_angle - prior_point_dir_angle;
+
+                                double transform_delta_x_for_prior = -prior_panel_points[matching_point1_index][0];
+                                double transform_delta_y_for_prior = -prior_panel_points[matching_point1_index][1];
+
+                                double transform_delta_x_for_matching = matching_point1_x;
+                                double transform_delta_y_for_matching = matching_point1_y;
+
+                                for(int i = 0;i<mpc_pcl->panelpoint_cloud->points.size();i++)
+                                {
+                                    double transform_result_x = (prior_panel_points[i][0] + transform_delta_x_for_prior)*cos(transform_delta_angle) - (prior_panel_points[i][1] + transform_delta_y_for_prior)*sin(transform_delta_angle) + transform_delta_x_for_matching;
+                                    double transform_result_y = (prior_panel_points[i][0] + transform_delta_x_for_prior)*sin(transform_delta_angle) + (prior_panel_points[i][1] + transform_delta_y_for_prior)*cos(transform_delta_angle) + transform_delta_y_for_matching;
+
+                                    mpc_pcl->panelpoint_cloud->points[i].x = transform_result_x;
+                                    mpc_pcl->panelpoint_cloud->points[i].y = transform_result_y;
+                                    mpc_pcl->panelpoint_cloud->points[i].z = 0;
+                                    mpc_pcl->panelpoint_cloud->points[i].r = 255;
+                                    mpc_pcl->panelpoint_cloud->points[i].g = 255;
+                                    mpc_pcl->panelpoint_cloud->points[i].b = 255;
+                                }
+
+                                // Find optimized waypoints----------
+                                double panel_front_center_x = (0.5 + transform_delta_x_for_prior)*cos(transform_delta_angle) - (transform_delta_y_for_prior)*sin(transform_delta_angle) + transform_delta_x_for_matching;
+                                double panel_front_center_y = (0.5 + transform_delta_x_for_prior)*sin(transform_delta_angle) + (transform_delta_y_for_prior)*cos(transform_delta_angle) + transform_delta_y_for_matching;
+
+                                double panel_back_center_x = (0.5 + transform_delta_x_for_prior)*cos(transform_delta_angle) - (0.75 + transform_delta_y_for_prior)*sin(transform_delta_angle) + transform_delta_x_for_matching;
+                                double panel_back_center_y = (0.5 + transform_delta_x_for_prior)*sin(transform_delta_angle) + (0.75 + transform_delta_y_for_prior)*cos(transform_delta_angle) + transform_delta_y_for_matching;
+
+                                double panel_yaw_direction_x = panel_back_center_x - panel_front_center_x;
+                                double panel_yaw_direction_y = panel_back_center_y - panel_front_center_y;
+
+                                double prior_way_points[3][2];
+
+                                if( ((atan2(panel_yaw_direction_y,panel_yaw_direction_x)) > 0) &&  ((atan2(panel_yaw_direction_y,panel_yaw_direction_x)) < PI)) // right is the fastest
+                                {
+                                    optimization_direction_left = false;
+                                    copy(&prior_way_points_right[0][0],&prior_way_points_right[0][0] + 6,&prior_way_points[0][0]);
+                                }
+                                else
+                                {
+                                    optimization_direction_left = true;
+                                    copy(&prior_way_points_left[0][0],&prior_way_points_left[0][0] + 6,&prior_way_points[0][0]);
+                                }
+                                // ----------------------------------
+
+                                vector<double> panel_center_to_ugv;
+
+                                panel_center_to_ugv.push_back(-panel_front_center_x);
+                                panel_center_to_ugv.push_back(-panel_front_center_y);
+
+                                double angle_from_panel_center;
+                                if(atan2(panel_center_to_ugv.at(1),panel_center_to_ugv.at(0)) < 0)
+                                {
+                                    angle_from_panel_center = 2*PI+atan2(panel_center_to_ugv.at(1),panel_center_to_ugv.at(0));
+                                }
+                                else
+                                {
+                                    angle_from_panel_center = atan2(panel_center_to_ugv.at(1),panel_center_to_ugv.at(0));
+                                }
+
+                                for(int i = 0;i<mpc_pcl->waypoint_cloud->points.size();i++)
+                                {
+                                    double transform_result_x = (prior_way_points[i][0] + transform_delta_x_for_prior)*cos(transform_delta_angle) - (prior_way_points[i][1] + transform_delta_y_for_prior)*sin(transform_delta_angle) + transform_delta_x_for_matching;
+                                    double transform_result_y = (prior_way_points[i][0] + transform_delta_x_for_prior)*sin(transform_delta_angle) + (prior_way_points[i][1] + transform_delta_y_for_prior)*cos(transform_delta_angle) + transform_delta_y_for_matching;
+
+                                    double panel_center_to_waypoint_x,panel_center_to_waypoint_y;
+
+                                    panel_center_to_waypoint_x = transform_result_x - panel_front_center_x;
+                                    panel_center_to_waypoint_y = transform_result_y - panel_front_center_y;
+
+
+                                    double outer_product_for_wayupdate = panel_center_to_ugv.at(0)*panel_center_to_waypoint_y - panel_center_to_ugv.at(1)*panel_center_to_waypoint_x;
+                                    if(optimization_direction_left)
+                                    {
+                                        if(outer_product_for_wayupdate < 0)
+                                        {
+                                            current_waypoint_index = i+1;
+                                        }
+                                    }
+                                    else
+                                    {
+                                        if(outer_product_for_wayupdate > 0)
+                                        {
+                                            current_waypoint_index = i+1;
+                                        }
+                                    }
+
+
+                                    mpc_pcl->waypoint_cloud->points[i].x = transform_result_x;
+                                    mpc_pcl->waypoint_cloud->points[i].y = transform_result_y;
+                                    mpc_pcl->waypoint_cloud->points[i].z = 0;
+                                    mpc_pcl->waypoint_cloud->points[i].r = 0;
+                                    mpc_pcl->waypoint_cloud->points[i].g = 255;
+                                    mpc_pcl->waypoint_cloud->points[i].b = 255;
+                                }
+                                if(current_waypoint_index == 3)
+                                {
+                                    current_waypoint_index = 0;
+                                }
+
+                                if((current_waypoint_index != 2) && (sqrt(mpc_pcl->waypoint_cloud->points[current_waypoint_index].x*mpc_pcl->waypoint_cloud->points[current_waypoint_index].x + mpc_pcl->waypoint_cloud->points[current_waypoint_index].y*mpc_pcl->waypoint_cloud->points[current_waypoint_index].y) < waypoint_converged_margin))
+                                {
+                                    current_waypoint_index += 1;
+                                }
+
+                                double angle_between_panel_yaw_vector = acos((panel_center_to_ugv.at(0)*(-panel_yaw_direction_x)+panel_center_to_ugv.at(1)*(-panel_yaw_direction_y))/(sqrt(panel_center_to_ugv.at(0)*panel_center_to_ugv.at(0) + panel_center_to_ugv.at(1)*panel_center_to_ugv.at(1))*sqrt(panel_yaw_direction_x*panel_yaw_direction_x+panel_yaw_direction_y*panel_yaw_direction_y)));
+
+                                if(angle_between_panel_yaw_vector < 10.0/180.0*PI)
+                                {
+                                    current_waypoint_index = 2;
+                                }
+
+                                pcl::PointXYZRGBA origin_pt;
+                                origin_pt.x = 0;
+                                origin_pt.y = 0;
+                                origin_pt.z = 0;
+
+                                mpc_pcl->viewer->removeAllShapes();
+                                mpc_pcl->viewer->addArrow(mpc_pcl->waypoint_cloud->points[current_waypoint_index],origin_pt,255,0,0,true);
+                                waypoint_x = mpc_pcl->waypoint_cloud->points[current_waypoint_index].x;
+                                waypoint_y = mpc_pcl->waypoint_cloud->points[current_waypoint_index].y;
                             }
                             else
                             {
-                                waypoint_x = panel_edge_point_x + side_distance*cos(PI*0.5 - atan(coeff[4]/coeff[3])) + parking_distance*waypoint_direct_vec_x_norm;
-                                waypoint_y = panel_edge_point_y - side_distance*sin(PI*0.5 - atan(coeff[4]/coeff[3])) + parking_distance*waypoint_direct_vec_y_norm;
+                                if(outer_product_result < 0) // Left side
+                                {
+                                    matching_point1_index = 4;
+                                    matching_point1_x = ransac_line_mean_x - maximum_dist_from_ransac_mean*abs(coeff[3]);
+                                    matching_point1_y = ransac_line_mean_y - maximum_dist_from_ransac_mean*abs(coeff[4]);
 
-                                mpc_pcl->waypoint_cloud->points[0].x = waypoint_x;
-                                mpc_pcl->waypoint_cloud->points[0].y = waypoint_y;
-                                mpc_pcl->waypoint_cloud->points[0].z = 0;
-                                mpc_pcl->waypoint_cloud->points[0].r = 0;
-                                mpc_pcl->waypoint_cloud->points[0].g = 255;
-                                mpc_pcl->waypoint_cloud->points[0].b = 255;
+                                    matching_point2_index = 5;
+                                    matching_point2_x = ransac_line_mean_x + maximum_dist_from_ransac_mean*abs(coeff[3]);
+                                    matching_point2_y = ransac_line_mean_y + maximum_dist_from_ransac_mean*abs(coeff[4]);
+                                }
+                                else // right side
+                                {
+                                    matching_point1_index = 2;
+                                    matching_point1_x = ransac_line_mean_x - maximum_dist_from_ransac_mean*abs(coeff[3]);
+                                    matching_point1_y = ransac_line_mean_y - maximum_dist_from_ransac_mean*abs(coeff[4]);
+
+                                    matching_point2_index = 3;
+                                    matching_point2_x = ransac_line_mean_x + maximum_dist_from_ransac_mean*abs(coeff[3]);
+                                    matching_point2_y = ransac_line_mean_y + maximum_dist_from_ransac_mean*abs(coeff[4]);
+                                }
+
+                                double matching_point_dir_x = matching_point2_x - matching_point1_x;
+                                double matching_point_dir_y = matching_point2_y - matching_point1_y;
+
+                                double matching_point_dir_norm_x = matching_point_dir_x/sqrt(matching_point_dir_x*matching_point_dir_x + matching_point_dir_y*matching_point_dir_y);
+                                double matching_point_dir_norm_y = matching_point_dir_y/sqrt(matching_point_dir_x*matching_point_dir_x + matching_point_dir_y*matching_point_dir_y);
+
+                                double matching_point_dir_angle = atan2(matching_point_dir_norm_y,matching_point_dir_norm_x);
+
+                                double prior_point_dir_x = prior_panel_points[matching_point2_index][0] - prior_panel_points[matching_point1_index][0];
+                                double prior_point_dir_y = prior_panel_points[matching_point2_index][1] - prior_panel_points[matching_point1_index][1];
+
+                                double prior_point_dir_norm_x = prior_point_dir_x/sqrt(prior_point_dir_x*prior_point_dir_x + prior_point_dir_y*prior_point_dir_y);
+                                double prior_point_dir_norm_y = prior_point_dir_y/sqrt(prior_point_dir_x*prior_point_dir_x + prior_point_dir_y*prior_point_dir_y);
+
+                                double prior_point_dir_angle = atan2(prior_point_dir_norm_y,prior_point_dir_norm_x);
+
+                                double transform_delta_angle = matching_point_dir_angle - prior_point_dir_angle;
+
+                                double transform_delta_x_for_prior = -prior_panel_points[matching_point1_index][0];
+                                double transform_delta_y_for_prior = -prior_panel_points[matching_point1_index][1];
+
+                                double transform_delta_x_for_matching = matching_point1_x;
+                                double transform_delta_y_for_matching = matching_point1_y;
+
+                                for(int i = 0;i<mpc_pcl->panelpoint_cloud->points.size();i++)
+                                {
+                                    double transform_result_x = (prior_panel_points[i][0] + transform_delta_x_for_prior)*cos(transform_delta_angle) - (prior_panel_points[i][1] + transform_delta_y_for_prior)*sin(transform_delta_angle) + transform_delta_x_for_matching;
+                                    double transform_result_y = (prior_panel_points[i][0] + transform_delta_x_for_prior)*sin(transform_delta_angle) + (prior_panel_points[i][1] + transform_delta_y_for_prior)*cos(transform_delta_angle) + transform_delta_y_for_matching;
+
+                                    mpc_pcl->panelpoint_cloud->points[i].x = transform_result_x;
+                                    mpc_pcl->panelpoint_cloud->points[i].y = transform_result_y;
+                                    mpc_pcl->panelpoint_cloud->points[i].z = 0;
+                                    mpc_pcl->panelpoint_cloud->points[i].r = 255;
+                                    mpc_pcl->panelpoint_cloud->points[i].g = 255;
+                                    mpc_pcl->panelpoint_cloud->points[i].b = 255;
+                                }
+
+                                // Find optimized waypoints----------
+                                double panel_front_center_x = (0.5 + transform_delta_x_for_prior)*cos(transform_delta_angle) - (transform_delta_y_for_prior)*sin(transform_delta_angle) + transform_delta_x_for_matching;
+                                double panel_front_center_y = (0.5 + transform_delta_x_for_prior)*sin(transform_delta_angle) + (transform_delta_y_for_prior)*cos(transform_delta_angle) + transform_delta_y_for_matching;
+
+                                double panel_back_center_x = (0.5 + transform_delta_x_for_prior)*cos(transform_delta_angle) - (0.75 + transform_delta_y_for_prior)*sin(transform_delta_angle) + transform_delta_x_for_matching;
+                                double panel_back_center_y = (0.5 + transform_delta_x_for_prior)*sin(transform_delta_angle) + (0.75 + transform_delta_y_for_prior)*cos(transform_delta_angle) + transform_delta_y_for_matching;
+
+                                double panel_yaw_direction_x = panel_back_center_x - panel_front_center_x;
+                                double panel_yaw_direction_y = panel_back_center_y - panel_front_center_y;
+
+                                double prior_way_points[3][2];
+
+                                if( ((atan2(panel_yaw_direction_y,panel_yaw_direction_x)) > 0) &&  ((atan2(panel_yaw_direction_y,panel_yaw_direction_x)) < PI)) // right is the fastest
+                                {
+                                    optimization_direction_left = false;
+                                    copy(&prior_way_points_right[0][0],&prior_way_points_right[0][0] + 6,&prior_way_points[0][0]);
+                                }
+                                else
+                                {
+                                    optimization_direction_left = true;
+                                    copy(&prior_way_points_left[0][0],&prior_way_points_left[0][0] + 6,&prior_way_points[0][0]);
+                                }
+                                // ----------------------------------
+
+                                vector<double> panel_center_to_ugv;
+
+                                panel_center_to_ugv.push_back(-panel_front_center_x);
+                                panel_center_to_ugv.push_back(-panel_front_center_y);
+
+                                double angle_from_panel_center;
+                                if(atan2(panel_center_to_ugv.at(1),panel_center_to_ugv.at(0)) < 0)
+                                {
+                                    angle_from_panel_center = 2*PI+atan2(panel_center_to_ugv.at(1),panel_center_to_ugv.at(0));
+                                }
+                                else
+                                {
+                                    angle_from_panel_center = atan2(panel_center_to_ugv.at(1),panel_center_to_ugv.at(0));
+                                }
+
+                                for(int i = 0;i<mpc_pcl->waypoint_cloud->points.size();i++)
+                                {
+                                    double transform_result_x = (prior_way_points[i][0] + transform_delta_x_for_prior)*cos(transform_delta_angle) - (prior_way_points[i][1] + transform_delta_y_for_prior)*sin(transform_delta_angle) + transform_delta_x_for_matching;
+                                    double transform_result_y = (prior_way_points[i][0] + transform_delta_x_for_prior)*sin(transform_delta_angle) + (prior_way_points[i][1] + transform_delta_y_for_prior)*cos(transform_delta_angle) + transform_delta_y_for_matching;
+
+                                    double panel_center_to_waypoint_x,panel_center_to_waypoint_y;
+
+                                    panel_center_to_waypoint_x = transform_result_x - panel_front_center_x;
+                                    panel_center_to_waypoint_y = transform_result_y - panel_front_center_y;
+
+
+                                    double outer_product_for_wayupdate = panel_center_to_ugv.at(0)*panel_center_to_waypoint_y - panel_center_to_ugv.at(1)*panel_center_to_waypoint_x;
+                                    if(optimization_direction_left)
+                                    {
+                                        if(outer_product_for_wayupdate < 0)
+                                        {
+                                            current_waypoint_index = i+1;
+                                        }
+                                    }
+                                    else
+                                    {
+                                        if(outer_product_for_wayupdate > 0)
+                                        {
+                                            current_waypoint_index = i+1;
+                                        }
+                                    }
+
+
+                                    mpc_pcl->waypoint_cloud->points[i].x = transform_result_x;
+                                    mpc_pcl->waypoint_cloud->points[i].y = transform_result_y;
+                                    mpc_pcl->waypoint_cloud->points[i].z = 0;
+                                    mpc_pcl->waypoint_cloud->points[i].r = 0;
+                                    mpc_pcl->waypoint_cloud->points[i].g = 255;
+                                    mpc_pcl->waypoint_cloud->points[i].b = 255;
+                                }
+
+                                if(current_waypoint_index == 3)
+                                {
+                                    current_waypoint_index = 0;
+                                }
+
+                                if((current_waypoint_index != 2) && (sqrt(mpc_pcl->waypoint_cloud->points[current_waypoint_index].x*mpc_pcl->waypoint_cloud->points[current_waypoint_index].x + mpc_pcl->waypoint_cloud->points[current_waypoint_index].y*mpc_pcl->waypoint_cloud->points[current_waypoint_index].y) < waypoint_converged_margin))
+                                {
+                                    current_waypoint_index += 1;
+                                }
+
+                                double angle_between_panel_yaw_vector = acos((panel_center_to_ugv.at(0)*(-panel_yaw_direction_x)+panel_center_to_ugv.at(1)*(-panel_yaw_direction_y))/(sqrt(panel_center_to_ugv.at(0)*panel_center_to_ugv.at(0) + panel_center_to_ugv.at(1)*panel_center_to_ugv.at(1))*sqrt(panel_yaw_direction_x*panel_yaw_direction_x+panel_yaw_direction_y*panel_yaw_direction_y)));
+
+                                if(angle_between_panel_yaw_vector < 10.0/180.0*PI)
+                                {
+                                    current_waypoint_index = 2;
+                                }
+
+                                pcl::PointXYZRGBA origin_pt;
+                                origin_pt.x = 0;
+                                origin_pt.y = 0;
+                                origin_pt.z = 0;
+
+                                mpc_pcl->viewer->removeAllShapes();
+                                mpc_pcl->viewer->addArrow(mpc_pcl->waypoint_cloud->points[current_waypoint_index],origin_pt,255,0,0,true);
+                                waypoint_x = mpc_pcl->waypoint_cloud->points[current_waypoint_index].x;
+                                waypoint_y = mpc_pcl->waypoint_cloud->points[current_waypoint_index].y;
                             }
                         }
 
@@ -681,7 +1454,10 @@ bool CVelodyne::RunVelodyne(){
 
                     }
                 }
-
+                else // no panel detect
+                {
+                    find_panel_point = false;
+                }
 
                 (*final) += (*final1);
                 mpc_pcl->viewer->updatePointCloud(final,"cloud");
@@ -712,7 +1488,7 @@ bool CVelodyne::RunVelodyne(){
 
         count++;
 
-        QThread::usleep(30);
+//        QThread::usleep(30);
 
     }
 
@@ -726,6 +1502,16 @@ vector<double> CVelodyne::GetWaypoint()
     way_point_vec.push_back(waypoint_y);
 
     return way_point_vec;
+}
+
+bool CVelodyne::GetPanelFindStatus()
+{
+    return find_panel_point;
+}
+
+bool CVelodyne::GetUGVTurnDirection()
+{
+    return optimization_direction_left;
 }
 
 std::vector<double> CVelodyne::GetPanelCenterLoc()

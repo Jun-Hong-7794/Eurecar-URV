@@ -63,7 +63,10 @@ const double firing_vertical_angle[32] = {
 };
 
 const double prior_panel_points[6][2] = {{0,0}, {1.0,0},{1.0,0.25},{1.0,0.75},{0,0.75},{0,0.25}};
-const double prior_way_points[4][2] = {{2.0,1.75},{-1.0,1.75},{-1.0,-1.0},{0.5,-1.0}};
+//const double prior_way_points[4][2] = {{2.0,1.75},{-1.0,1.75},{-1.0,-1.0},{0.5,-1.0}};
+const double prior_way_points_left[3][2] = {{-1.0,1.75},{-1.0,-1.0},{0.5,-1.0}};
+const double prior_way_points_right[3][2] = {{2.0,1.75},{2.0,-1.0},{0.5,-1.0}};
+
 
 class CPCL
 {

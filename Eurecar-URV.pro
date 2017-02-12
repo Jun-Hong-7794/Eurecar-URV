@@ -190,6 +190,7 @@ LIBS += -L/usr/local/lib \
     -lvtkParallelCore-7.1 \
     -lvtkCommonExecutionModel-7.1 \
     -lvtkIOGeometry-7.1 \
+    -lvtkRenderingAnnotation-7.1 \
     -lpcl_io \
     -lpcl_ml \
     -lpcl_common \

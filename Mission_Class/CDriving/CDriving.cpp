@@ -355,44 +355,88 @@ bool CDriving::DriveToPanel(){
 }
 
 bool CDriving::ParkingFrontPanel(){
-    DRIVING_STRUCT driving_struct;
 
-    if(!mpc_vehicle->Connect()){
-        std::cout << "Fail to Connection Vehicle" << std::endl;
-        return false;
+    int _s_deg = 0;
+    int _e_deg = 180;
+
+    int s_lrf_index = (int)((_s_deg + 45) / ANGLE_RESOLUTION);
+    int e_lrf_index = (int)((_e_deg + 45) / ANGLE_RESOLUTION);
+
+    int number_of_point = e_lrf_index -s_lrf_index + 1;
+
+    long* lrf_distance = new long[number_of_point];
+
+    long* lrf_distance_raw = new long[1081];
+
+
+
+    if(!mpc_drive_lrf->GetLRFData(lrf_distance_raw)){
+        std::cout << "LRF : GetLRFData Error" << std::endl;
+    }
+    else
+    {
+        memcpy(lrf_distance, &lrf_distance_raw[s_lrf_index], sizeof(long)*(number_of_point));
+        for(int i = 0; i < number_of_point;i++)
+        {
+            cout<<lrf_distance[i]<<endl;
+        }
     }
 
-    do{
-        vector<double> way_point_error = GetWaypointError(mpc_velodyne->GetWaypoint().at(0),mpc_velodyne->GetWaypoint().at(1));
-        cout<<"heading : " << way_point_error.at(0) <<", distance : "<<way_point_error.at(1) << endl;
+//    DRIVING_STRUCT driving_struct;
 
-        switch(GetParkingControl(way_point_error))
-        {
-        case 3: // turn left
-            driving_struct.direction = UGV_move_left;
-            driving_struct.velocity =75;
-            break;
-        case 4: // turn right
-            driving_struct.direction = UGV_move_right;
-            driving_struct.velocity =75;
-            break;
-        case 1: // go forward
-            driving_struct.direction = UGV_move_forward;
-            driving_struct.velocity =70;
-            break;
-        case 2: // go backward
-            driving_struct.direction = UGV_move_backward;
-            driving_struct.velocity =70;
-            break;
-        default:
+//    if(!mpc_vehicle->Connect()){
+//        std::cout << "Fail to Connection Vehicle" << std::endl;
+//        return false;
+//    }
 
-            break;
-        }
+//    do{
+//        if(!mpc_velodyne->GetPanelFindStatus())
+//        {
+//            if(mpc_velodyne->GetUGVTurnDirection())
+//            {
+//                driving_struct.direction = UGV_move_left;
+//                driving_struct.velocity =75;
+//            }
+//            else
+//            {
+//                driving_struct.direction = UGV_move_right;
+//                driving_struct.velocity =75;
+//            }
+//        }
+//        else
+//        {
+//            vector<double> way_point_error = GetWaypointError(mpc_velodyne->GetWaypoint().at(0),mpc_velodyne->GetWaypoint().at(1));
+//            cout<<"heading : " << way_point_error.at(0) <<", distance : "<<way_point_error.at(1) << endl;
 
-        mpc_vehicle->Move(driving_struct.direction, driving_struct.velocity);
-        QThread::usleep(30);
+//            switch(GetParkingControl(way_point_error))
+//            {
+//            case 3: // turn left
+//                driving_struct.direction = UGV_move_left;
+//                driving_struct.velocity =75;
+//                break;
+//            case 4: // turn right
+//                driving_struct.direction = UGV_move_right;
+//                driving_struct.velocity =75;
+//                break;
+//            case 1: // go forward
+//                driving_struct.direction = UGV_move_forward;
+//                driving_struct.velocity =70;
+//                break;
+//            case 2: // go backward
+//                driving_struct.direction = UGV_move_backward;
+//                driving_struct.velocity =70;
+//                break;
+//            default:
 
-    }while(driving_struct.driving_mission);
+//                break;
+//            }
+//        }
+
+
+//        mpc_vehicle->Move(driving_struct.direction, driving_struct.velocity);
+//        QThread::usleep(30);
+
+//    }while(driving_struct.driving_mission);
 
     return true;
 }

@@ -179,8 +179,8 @@ void Driving_Dlg::SlotButtonVehicleOptionSetting(){
 
 void Driving_Dlg::SlotButtonParking(){
     if(!mpc_drivig->isRunning()){
-        if(!mpc_drivig->ConnectVehicle())
-            QMessageBox::information(this, tr("Fail to Connect Vehicle"), tr("Check Vehicle Status"));
+//        if(!mpc_drivig->ConnectVehicle())
+//            QMessageBox::information(this, tr("Fail to Connect Vehicle"), tr("Check Vehicle Status"));
 
         DRIVING_STRUCT driving_struct;
 

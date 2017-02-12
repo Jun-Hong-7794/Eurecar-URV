@@ -82,6 +82,12 @@ private:
     double matching_point2_x = 0.0;
     double matching_point2_y = 0.0;
 
+    double optimization_direction_left = true; // true means optimized path is left way points
+
+    int current_waypoint_index = 0;
+
+    bool find_panel_point = false;
+
     bool RunVelodyne();
 public:
     bool ConnectVelodyne();
@@ -94,6 +100,12 @@ public:
 
     // Get UGV way point x and y
     std::vector<double> GetWaypoint();
+
+    // Get panel find status
+    bool GetPanelFindStatus();
+
+    // Get ugv turn direction
+    bool GetUGVTurnDirection();
 
 public:
     //PCL
