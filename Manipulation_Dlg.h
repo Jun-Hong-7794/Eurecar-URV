@@ -2,6 +2,9 @@
 #define MANIPULATION_DLG_H
 
 #include <QDialog>
+#include <QFile>
+#include <QTextStream>
+#include <QTime>
 //-------------------------------------------------
 // QCustomPlot
 //-------------------------------------------------
@@ -40,6 +43,16 @@ private:
 
 private:
     //-------------------------------------------------
+    // Valve Size Graph Index
+    //-------------------------------------------------
+    int m_valve_size_graph_num;
+
+    QVector<QVector<double>> mqvec_valve_data_x;
+    QVector<QVector<double>> mqvec_valve_data_y;
+
+    bool InterpreteValveSizeDataLine(QString _line, QVector<double>& _x, QVector<double>& _y, QString& _title);
+
+    //-------------------------------------------------
     // Mission Class
     //-------------------------------------------------
     CManipulation* mpc_manipulation;
@@ -53,6 +66,11 @@ private:// Graphic Scene
 public://Display Image to Qt Graphicview
     QImage Mat2QImage(cv::Mat src);
     void Display_Image(cv::Mat,QGraphicsScene*,QGraphicsView*,bool _fl_clear = false);
+
+public:
+    //Set Valve Size Data
+    int GetValveSizeDataGraphCurrentIndex();
+    void SetValveSizeData(QVector<double>, QVector<double>, int _graph_index, QString _data_name = "Empty");
 
 public slots:
     //-------------------------------------------------
@@ -95,6 +113,12 @@ public slots:
     //Gripper
     void SlotButtonGripperGrasp();
     void SlotButtonGripperTorqueOn();
+
+    //Valve Recognition
+    void SlotButtonGraphClear();
+    void SlotButtonSaveGraphData();
+    void SlotButtonLoadGraphData();
+    void SlotButtonAnalisysGraphData();
 
     //Step Function
     void SlotButtonLRFKinovaCtrl();

@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1161</width>
-    <height>607</height>
+    <height>658</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -17,7 +17,7 @@
    <property name="geometry">
     <rect>
      <x>14</x>
-     <y>347</y>
+     <y>410</y>
      <width>320</width>
      <height>240</height>
     </rect>
@@ -27,7 +27,7 @@
    <property name="geometry">
     <rect>
      <x>14</x>
-     <y>327</y>
+     <y>390</y>
      <width>101</width>
      <height>16</height>
     </rect>
@@ -46,7 +46,7 @@
    <property name="geometry">
     <rect>
      <x>254</x>
-     <y>327</y>
+     <y>390</y>
      <width>91</width>
      <height>16</height>
     </rect>
@@ -67,7 +67,7 @@
      <x>690</x>
      <y>10</y>
      <width>451</width>
-     <height>581</height>
+     <height>631</height>
     </rect>
    </property>
    <property name="font">
@@ -599,7 +599,7 @@
     <property name="geometry">
      <rect>
       <x>10</x>
-      <y>350</y>
+      <y>367</y>
       <width>201</width>
       <height>71</height>
      </rect>
@@ -651,7 +651,7 @@
     <property name="geometry">
      <rect>
       <x>221</x>
-      <y>427</y>
+      <y>470</y>
       <width>221</width>
       <height>151</height>
      </rect>
@@ -661,7 +661,7 @@
     <property name="geometry">
      <rect>
       <x>220</x>
-      <y>407</y>
+      <y>450</y>
       <width>121</width>
       <height>16</height>
      </rect>
@@ -726,13 +726,13 @@
     <property name="geometry">
      <rect>
       <x>220</x>
-      <y>253</y>
+      <y>260</y>
       <width>221</width>
-      <height>151</height>
+      <height>171</height>
      </rect>
     </property>
     <property name="currentIndex">
-     <number>4</number>
+     <number>3</number>
     </property>
     <widget class="QWidget" name="tab_lrf_kinova_distance_ctrl">
      <attribute name="title">
@@ -1510,7 +1510,7 @@
     <property name="geometry">
      <rect>
       <x>6</x>
-      <y>426</y>
+      <y>470</y>
       <width>211</width>
       <height>151</height>
      </rect>
@@ -1776,13 +1776,13 @@
    <property name="geometry">
     <rect>
      <x>341</x>
-     <y>320</y>
+     <y>383</y>
      <width>331</width>
      <height>271</height>
     </rect>
    </property>
    <property name="currentIndex">
-    <number>0</number>
+    <number>1</number>
    </property>
    <widget class="QWidget" name="tab_lrf">
     <attribute name="title">
@@ -1821,15 +1821,22 @@
      <x>10</x>
      <y>10</y>
      <width>671</width>
-     <height>301</height>
+     <height>371</height>
     </rect>
+   </property>
+   <property name="font">
+    <font>
+     <weight>75</weight>
+     <italic>false</italic>
+     <bold>true</bold>
+    </font>
    </property>
    <property name="currentIndex">
     <number>0</number>
    </property>
    <widget class="QWidget" name="tab">
     <attribute name="title">
-     <string>Tab 1</string>
+     <string>Valve Size</string>
     </attribute>
     <widget class="QCustomPlot" name="graph_gripper_data_plot" native="true">
      <property name="geometry">
@@ -1841,10 +1848,182 @@
       </rect>
      </property>
     </widget>
+    <widget class="QPushButton" name="bt_graph_clear">
+     <property name="geometry">
+      <rect>
+       <x>20</x>
+       <y>282</y>
+       <width>101</width>
+       <height>41</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
+     </property>
+     <property name="text">
+      <string>Graph Clear</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="bt_graph_save">
+     <property name="geometry">
+      <rect>
+       <x>130</x>
+       <y>282</y>
+       <width>101</width>
+       <height>41</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
+     </property>
+     <property name="text">
+      <string>Save Data</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="bt_graph_load">
+     <property name="geometry">
+      <rect>
+       <x>240</x>
+       <y>282</y>
+       <width>101</width>
+       <height>41</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
+     </property>
+     <property name="text">
+      <string>Load Data</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="bt_graph_dat_analisys">
+     <property name="geometry">
+      <rect>
+       <x>350</x>
+       <y>282</y>
+       <width>101</width>
+       <height>41</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
+     </property>
+     <property name="text">
+      <string>Data Analisys</string>
+     </property>
+    </widget>
+    <widget class="QLineEdit" name="ed_graph_data_input_label">
+     <property name="geometry">
+      <rect>
+       <x>460</x>
+       <y>282</y>
+       <width>51</width>
+       <height>22</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>0</string>
+     </property>
+    </widget>
+    <widget class="QLineEdit" name="ed_graph_data_analisys_result">
+     <property name="geometry">
+      <rect>
+       <x>550</x>
+       <y>282</y>
+       <width>51</width>
+       <height>22</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>0</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_49">
+     <property name="geometry">
+      <rect>
+       <x>460</x>
+       <y>267</y>
+       <width>81</width>
+       <height>16</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
+     </property>
+     <property name="text">
+      <string>Input Label</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_50">
+     <property name="geometry">
+      <rect>
+       <x>551</x>
+       <y>268</y>
+       <width>81</width>
+       <height>16</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
+     </property>
+     <property name="text">
+      <string>Result(mm)</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_51">
+     <property name="geometry">
+      <rect>
+       <x>460</x>
+       <y>305</y>
+       <width>81</width>
+       <height>16</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
+     </property>
+     <property name="text">
+      <string>Save Index</string>
+     </property>
+    </widget>
+    <widget class="QLineEdit" name="ed_graph_data_save_index">
+     <property name="geometry">
+      <rect>
+       <x>460</x>
+       <y>320</y>
+       <width>51</width>
+       <height>22</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>0</string>
+     </property>
+    </widget>
    </widget>
    <widget class="QWidget" name="tab_2">
     <attribute name="title">
-     <string>Tab 2</string>
+     <string>SSD</string>
     </attribute>
     <widget class="QLabel" name="label">
      <property name="geometry">
@@ -1904,14 +2083,6 @@
       </rect>
      </property>
     </widget>
-    <zorder>view_segnet</zorder>
-    <zorder>label</zorder>
-    <zorder>view_camera</zorder>
-    <zorder>label_2</zorder>
-    <zorder>label</zorder>
-    <zorder>view_camera</zorder>
-    <zorder>label_2</zorder>
-    <zorder>view_segnet</zorder>
    </widget>
   </widget>
  </widget>
