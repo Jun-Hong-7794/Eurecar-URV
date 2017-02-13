@@ -920,11 +920,11 @@ bool CManipulation::GripperKinovaValveSizeRecognition(){
 
         gripper_status = mpc_gripper->GetGripperStatus();
 
-        if(gripper_status.present_pose_1 < 1715){
+        if(gripper_status.present_pose_1 < 1750){
             fl_gripper_1_not_reach = true;
         }
 
-        if(gripper_status.present_pose_2 < 1715){
+        if(gripper_status.present_pose_2 < 1750){
             fl_gripper_2_not_reach = true;
         }
 

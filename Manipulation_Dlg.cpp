@@ -9,6 +9,8 @@ Manipulation_Dlg::Manipulation_Dlg(CManipulation* _pc_manipulation, QWidget *par
 
     mpc_manipulation = _pc_manipulation;
 
+    m_valve_size_graph_num = -1;
+
     //Graphic Scene Initialize
     int lrf_view_width  = ui->view_lrf->geometry().width();
     int lrf_view_height = ui->view_lrf->geometry().height();
@@ -62,6 +64,11 @@ Manipulation_Dlg::Manipulation_Dlg(CManipulation* _pc_manipulation, QWidget *par
 
     connect(ui->bt_gripper_grasp, SIGNAL(clicked()), this, SLOT(SlotButtonGripperGrasp()));
 
+    connect(ui->bt_graph_clear, SIGNAL(clicked()), this, SLOT(SlotButtonGraphClear()));
+    connect(ui->bt_graph_load, SIGNAL(clicked()), this, SLOT(SlotButtonLoadGraphData()));
+    connect(ui->bt_graph_save, SIGNAL(clicked()), this, SLOT(SlotButtonSaveGraphData()));
+    connect(ui->bt_graph_dat_analisys, SIGNAL(clicked()), this, SLOT(SlotButtonAnalisysGraphData()));
+
     connect(mpc_manipulation, SIGNAL(SignalKinovaPosition(CartesianPosition)), this, SLOT(SlotEditeKinovaPosition(CartesianPosition)));
     connect(mpc_manipulation, SIGNAL(SignalKinovaForceVector(CartesianPosition)), this, SLOT(SlotEditeKinovaForceVector(CartesianPosition)));
     connect(mpc_manipulation, SIGNAL(SignalLRFHorizentDistance(LRF_VEHICLE_HORIZEN_STRUCT)), this, SLOT(SlotLRFHorizentDistance(LRF_VEHICLE_HORIZEN_STRUCT)));
@@ -87,12 +94,37 @@ Manipulation_Dlg::Manipulation_Dlg(CManipulation* _pc_manipulation, QWidget *par
     connect(mpc_manipulation, SIGNAL(SignalValveSizeData(QVector<double>,QVector<double>,int)),
             this, SLOT(SlotValveSizeData(QVector<double>,QVector<double>,int)));
 
+    QVector<double> x, y;
+
+    for(int i = 0; i < 36; i++){
+        double data_y;
+
+        double a = (220 - 190) / 2;
+        double d = (220 + 190) / 2;
+
+        data_y = a * sin(( (2*KINOVA_PI) / 36)*i) + d;
+        x.push_back((double)i);
+        y.push_back(data_y);
+    }
+
+    int graph_index = GetValveSizeDataGraphCurrentIndex() + 1;
+    SetValveSizeData(x,y, graph_index, "Test Data");
+
+    ui->graph_gripper_data_plot->setLocale(QLocale(QLocale::English, QLocale::UnitedKingdom)); // period as decimal separator and comma as thousand separator
+    ui->graph_gripper_data_plot->legend->setVisible(true);
+    QFont legendFont = font();  // start out with MainWindow's font..
+    legendFont.setPointSize(9); // and make a bit smaller for legend
+    ui->graph_gripper_data_plot->legend->setFont(legendFont);
+    ui->graph_gripper_data_plot->legend->setBrush(QBrush(QColor(255,255,255,230)));
+    // by default, the legend is in the inset layout of the main axis rect. So this is how we access it to change legend placement:
+    ui->graph_gripper_data_plot->axisRect()->insetLayout()->setInsetAlignment(0, Qt::AlignBottom|Qt::AlignRight);
+
     // give the axes some labels:
     ui->graph_gripper_data_plot->xAxis->setLabel("Trial");
     ui->graph_gripper_data_plot->yAxis->setLabel("Diff Step");
     // set axes ranges, so we see all data:
     ui->graph_gripper_data_plot->xAxis->setRange(0, 36);
-    ui->graph_gripper_data_plot->yAxis->setRange(0, 350);
+    ui->graph_gripper_data_plot->yAxis->setRange(0, 500);
     ui->graph_gripper_data_plot->replot();
 }
 
@@ -490,6 +522,129 @@ void Manipulation_Dlg::SlotButtonGripperTorqueOn(){
 
 }
 
+void Manipulation_Dlg::SlotButtonGraphClear(){
+
+    mqvec_valve_data_x.clear();
+    mqvec_valve_data_y.clear();
+
+    ui->graph_gripper_data_plot->clearGraphs();
+    ui->graph_gripper_data_plot->replot();
+    m_valve_size_graph_num = -1;
+}
+
+void Manipulation_Dlg::SlotButtonSaveGraphData(){
+
+    if(m_valve_size_graph_num < 0){
+        QMessageBox::information(this, tr("Fail to Save Data"), tr("There is no data on graph!!"));
+        return;
+    }
+
+    int graph_index = ui->ed_graph_data_save_index->text().toInt();
+
+    if(graph_index > m_valve_size_graph_num){
+        QMessageBox::information(this, tr("Fail to Save Data"), tr("There is no data on graph!!"));
+        return;
+    }
+
+    QFileDialog dialog(this);
+    QString fileName = dialog.getSaveFileName(this,
+         tr("Save Data"), "/home/winner/Workspace/2017MBZIRC_Code/Eurecar-URV/Eurecar-URV/ValveSizeData/",
+                                              tr("Text File (*.txt)"));
+
+    if(fileName.isEmpty())
+        return;
+
+    if(!fileName.contains(".txt"))
+        fileName += ".txt";
+
+    QFile file(fileName);
+
+    if (file.open(QIODevice::ReadWrite)) {
+        QTextStream stream(&file);
+
+        for(int j = 0; j < mqvec_valve_data_x.at(graph_index).size(); j++){
+
+            QString str_x_value = QString::number(mqvec_valve_data_x.at(graph_index).at(j));
+            QString str_y_value = QString::number(mqvec_valve_data_y.at(graph_index).at(j));
+
+            stream << "(" << str_x_value << "," << str_y_value << ")" << endl;
+        }
+    }
+}
+
+void Manipulation_Dlg::SlotButtonLoadGraphData(){
+
+    QFileDialog dialog(this);
+    QStringList fileName;
+
+    dialog.setDirectory("/home/winner/Workspace/2017MBZIRC_Code/Eurecar-URV/Eurecar-URV/ValveSizeData/");
+
+    dialog.setFileMode(QFileDialog::AnyFile);
+
+    if(dialog.exec())
+        fileName = dialog.selectedFiles();
+    else
+        return;
+
+    QFile inputFile(fileName[0]);
+
+    if (inputFile.open(QIODevice::ReadOnly))
+    {
+       QVector<double> _x;
+       QVector<double> _y;
+       QString _title = "Empty";
+
+       QTextStream in(&inputFile);
+
+       while (!in.atEnd())
+       {
+           InterpreteValveSizeDataLine(in.readLine(), _x, _y, _title);
+       }
+       inputFile.close();
+
+       int graph_index = GetValveSizeDataGraphCurrentIndex() + 1;
+
+       SetValveSizeData(_x, _y, graph_index, _title);
+    }
+    else{
+        std::cout<< "Mission File Open Error!" << std::endl;
+        return;
+    }
+
+}
+
+void Manipulation_Dlg::SlotButtonAnalisysGraphData(){
+
+}
+
+//-------------------------------------------------
+// Interprete
+//-------------------------------------------------
+bool Manipulation_Dlg::InterpreteValveSizeDataLine(QString _line, QVector<double>& _x, QVector<double>& _y, QString& _title){
+
+    if(_line.contains("Title")){
+
+        int colone_index = _line.indexOf(":");
+
+        _title = _line.mid(colone_index + 1).trimmed();
+
+        return true;
+    }
+    else if(_line.contains("(")){
+        int bracket_small_op_index = _line.indexOf("(");
+        int bracket_small_ed_index = _line.indexOf(")");
+        int comma_index = _line.indexOf(",");
+
+        if((bracket_small_op_index == -1) || (bracket_small_ed_index == -1) || (comma_index == -1))
+            return false;
+
+        _x.push_back(_line.mid(bracket_small_op_index + 1, comma_index - bracket_small_op_index - 1).toDouble());
+        _y.push_back(_line.mid(comma_index + 1, bracket_small_ed_index - comma_index - 1).toDouble());
+    }
+
+    return true;
+}
+
 //-------------------------------------------------
 // View
 //-------------------------------------------------
@@ -550,14 +705,43 @@ void Manipulation_Dlg::Display_Image(cv::Mat _img, QGraphicsScene* _graphics_sce
 
 void Manipulation_Dlg::SlotValveSizeData(QVector<double> _x, QVector<double> _y, int _graph_index){
 
+    int graph_index = GetValveSizeDataGraphCurrentIndex();
+
     //create graph and assign data to it:
     if(_graph_index == -1){
-        ui->graph_gripper_data_plot->addGraph();
-        return;
+        graph_index += 1;
     }
 
-    ui->graph_gripper_data_plot->graph(_graph_index)->setPen(QPen(Qt::red));
-    ui->graph_gripper_data_plot->graph(_graph_index)->setBrush(QBrush(QColor(255, 0, 0, 20))); // first graph will be filled with translucent blue
+    SetValveSizeData(_x, _y, graph_index);
+}
+
+int Manipulation_Dlg::GetValveSizeDataGraphCurrentIndex(){
+
+    return m_valve_size_graph_num;;
+}
+
+void Manipulation_Dlg::SetValveSizeData(QVector<double> _x, QVector<double> _y, int _graph_index, QString _data_name){
+
+    if(_graph_index > m_valve_size_graph_num){
+        ui->graph_gripper_data_plot->addGraph();
+        m_valve_size_graph_num++;
+        mqvec_valve_data_x.push_back(_x);
+        mqvec_valve_data_y.push_back(_y);
+    }
+
+    mqvec_valve_data_x[_graph_index] = _x;
+    mqvec_valve_data_y[_graph_index] = _y;
+
+    int color_index = _graph_index - (_graph_index / 12)*12 + 7;
+
+    ui->graph_gripper_data_plot->graph(_graph_index)->setPen(QPen(Qt::GlobalColor(color_index)));
+    if(_data_name != "Empty"){
+        ui->graph_gripper_data_plot->graph(_graph_index)->setName("Graph" + QString::number(_graph_index) + ": " + _data_name);
+    }
+    else{
+        ui->graph_gripper_data_plot->graph(_graph_index)->setName("Graph" + QString::number(_graph_index) + ": New Data");
+    }
+//  ui->graph_gripper_data_plot->graph(_graph_index)->setBrush(QBrush(QColor(255, 0, 0, 20)));
     ui->graph_gripper_data_plot->graph(_graph_index)->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ssDisc, 5));
     ui->graph_gripper_data_plot->graph(_graph_index)->setData(_x, _y);
 
