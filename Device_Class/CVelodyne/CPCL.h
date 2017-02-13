@@ -80,6 +80,7 @@ public:
         cloud.reset(new PointCloudT);
         waypoint_cloud.reset(new PointCloudT);
         panelpoint_cloud.reset(new PointCloudT);
+        lrf_cloud.reset(new PointCloudT);
         // PCL display setting
         viewer.reset (new pcl::visualization::PCLVisualizer ("viewer" , false));
 
@@ -126,6 +127,7 @@ public:
     PointCloudT::Ptr cloud;
     PointCloudT::Ptr waypoint_cloud;
     PointCloudT::Ptr panelpoint_cloud;
+    PointCloudT::Ptr lrf_cloud;
 };
 
 #endif // CPCL_H

@@ -112,7 +112,7 @@ public:
     // Drive Class Main Function
     //-------------------------------------------------
     bool DriveToPanel();
-    bool ParkingFrontPanel();
+    bool  ParkingFrontPanel();
     bool LRFVehicleHorizenControl();
     bool LRFVehicleAngleControl();
 

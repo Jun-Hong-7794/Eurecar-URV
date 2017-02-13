@@ -88,6 +88,14 @@ private:
 
     bool find_panel_point = false;
 
+    double lrf_slope_norm_x = 0.0;
+    double lrf_slope_norm_y = 0.0;
+
+    double lrf_ransac_line_mean_x = 0;
+    double lrf_ransac_line_mean_y = 0;
+
+    double lrf_panel_length = 0.0;
+
     bool RunVelodyne();
 public:
     bool ConnectVelodyne();
@@ -106,6 +114,12 @@ public:
 
     // Get ugv turn direction
     bool GetUGVTurnDirection();
+
+    // Get lrf slope and panel legth
+    std::vector<double> GetLRFPanelInfo();
+
+    // Set lrf data
+    bool SetLRFDataToPCL(long* _lrf_data,int _num_of_points);
 
 public:
     //PCL

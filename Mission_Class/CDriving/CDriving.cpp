@@ -356,8 +356,17 @@ bool CDriving::DriveToPanel(){
 
 bool CDriving::ParkingFrontPanel(){
 
+    DRIVING_STRUCT driving_struct;
+
+    if(!mpc_vehicle->Connect()){
+        std::cout << "Fail to Connection Vehicle" << std::endl;
+        return false;
+    }
+
     int _s_deg = 0;
     int _e_deg = 180;
+
+    double panel_length_margin = 0.15;
 
     int s_lrf_index = (int)((_s_deg + 45) / ANGLE_RESOLUTION);
     int e_lrf_index = (int)((_e_deg + 45) / ANGLE_RESOLUTION);
@@ -368,26 +377,95 @@ bool CDriving::ParkingFrontPanel(){
 
     long* lrf_distance_raw = new long[1081];
 
+    vector<double> detected_panel_info;
 
-
-    if(!mpc_drive_lrf->GetLRFData(lrf_distance_raw)){
-        std::cout << "LRF : GetLRFData Error" << std::endl;
-    }
-    else
-    {
-        memcpy(lrf_distance, &lrf_distance_raw[s_lrf_index], sizeof(long)*(number_of_point));
-        for(int i = 0; i < number_of_point;i++)
-        {
-            cout<<lrf_distance[i]<<endl;
+    do{
+        if(!mpc_drive_lrf->GetLRFData(lrf_distance_raw)){
+            std::cout << "LRF : GetLRFData Error" << std::endl;
         }
-    }
+        else
+        {
+            memcpy(lrf_distance, &lrf_distance_raw[s_lrf_index], sizeof(long)*(number_of_point));
+            mpc_velodyne->SetLRFDataToPCL(lrf_distance,number_of_point);
 
-//    DRIVING_STRUCT driving_struct;
+            detected_panel_info = mpc_velodyne->GetLRFPanelInfo();
 
-//    if(!mpc_vehicle->Connect()){
-//        std::cout << "Fail to Connection Vehicle" << std::endl;
-//        return false;
-//    }
+            double panel_slope = atan(detected_panel_info.at(1)/detected_panel_info.at(0));
+
+            double panel_slope_norm_x = -detected_panel_info.at(1);
+            double panel_slope_norm_y = detected_panel_info.at(0);
+
+            if (panel_slope_norm_y <0)
+            {
+                panel_slope_norm_x =-1*panel_slope_norm_x;
+                panel_slope_norm_y =-1*panel_slope_norm_y;
+            }
+
+            double panel_center_to_origin_x = -(detected_panel_info.at(3) - 0.8);
+            double panel_center_to_origin_y = -detected_panel_info.at(4);
+
+            double outer_product_panel_center_norm = panel_center_to_origin_x*panel_slope_norm_y - panel_center_to_origin_y*panel_slope_norm_x;
+
+
+            double panel_length = detected_panel_info.at(2);
+
+            if((panel_length > 0.5 - panel_length_margin)&&(panel_length < 0.5 + panel_length_margin)) // side
+            {
+                if(outer_product_panel_center_norm  > 0)
+                {
+                    if(panel_slope > (5.0/180.0*PI))
+                    {
+                        cout << "move left " << endl;
+                        driving_struct.direction = UGV_move_left;
+                        driving_struct.velocity =75;
+                    }
+                    else if(panel_slope < - (5.0/180.0*PI))
+                    {
+                        cout << "move right " << endl;
+                        driving_struct.direction = UGV_move_right;
+                        driving_struct.velocity =75;
+                    }
+                    else if(detected_panel_info.at(3)  < 0.38)
+                    {
+                        driving_struct.direction = UGV_move_forward;
+                        driving_struct.velocity =70;
+                    }
+                }
+                else
+                {
+                    driving_struct.direction = UGV_move_differ_left;
+                    driving_struct.velocity =65;
+
+                }
+            }
+            else // front or back
+            {
+                if(outer_product_panel_center_norm  > 0)
+                {
+                    if(panel_slope > (5.0/180.0*PI))
+                    {
+                        cout << "move left " << endl;
+                        driving_struct.direction = UGV_move_left;
+                        driving_struct.velocity =75;
+                    }
+                    else if(panel_slope < - (5.0/180.0*PI))
+                    {
+                        cout << "move right " << endl;
+                        driving_struct.direction = UGV_move_right;
+                        driving_struct.velocity =75;
+                    }
+                    else if(detected_panel_info.at(3)  < 0.38)
+                    {
+                        driving_struct.direction = UGV_move_forward;
+                        driving_struct.velocity =70;
+                    }
+                }
+            }
+            mpc_vehicle->Move(driving_struct.direction, driving_struct.velocity);
+        }
+        QThread::usleep(30);
+    }while(driving_struct.driving_mission);
+
 
 //    do{
 //        if(!mpc_velodyne->GetPanelFindStatus())
