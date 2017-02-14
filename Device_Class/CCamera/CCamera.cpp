@@ -14,13 +14,16 @@ CCamera::~CCamera(){
 }
 
 
-bool CCamera::InitCamera(int _dev_number){
+bool CCamera::InitCamera(std::string _ip_number){
 
     if(fl_camera_init)
         return true;
 
-    if(!m_cam.open(_dev_number))
+    std::string cam_dev_address = "rtsp://"+_ip_number+"/unicast/mjpeg:video_stream_2.ini";
+
+    if(!m_cam.open(cam_dev_address))
         return false;
+
 
     else{
         fl_camera_init = true;

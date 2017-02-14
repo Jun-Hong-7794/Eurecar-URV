@@ -30,7 +30,7 @@ EurecarURV_Dlg::EurecarURV_Dlg(QWidget *parent) :
     mpc_velodyne = new CVelodyne;
     mpc_gripper = new CGripper;
 
-
+    mpc_ssd = new CSSD;
     //-------------------------------------------------
     // Mission Class Initialize
     //-------------------------------------------------
@@ -39,7 +39,7 @@ EurecarURV_Dlg::EurecarURV_Dlg(QWidget *parent) :
     mpc_drivig = new CDriving(mpc_gps, mpc_drive_lrf, mpc_camera, mpc_kinova, mpc_vehicle, mpc_velodyne);
 
     //Manipulation Class Initialize
-    mpc_manipulation = new CManipulation(mpc_mani__lrf, mpc_camera, mpc_kinova, mpc_vehicle, mpc_velodyne, mpc_gripper);
+    mpc_manipulation = new CManipulation(mpc_mani__lrf, mpc_camera, mpc_kinova, mpc_vehicle, mpc_velodyne, mpc_gripper, mpc_ssd);
 
     //-------------------------------------------------
     // Script Class Initialize

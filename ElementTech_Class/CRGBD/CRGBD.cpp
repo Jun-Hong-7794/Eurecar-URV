@@ -4,10 +4,11 @@ CRGBD::CRGBD(){
     fl_function_index = 0;
 }
 
-CRGBD::CRGBD(CCamera* _pc_camera, CLRF* _pc_lrf){
+CRGBD::CRGBD(CCamera* _pc_camera, CLRF* _pc_lrf, CSSD* _ssd){
 
     mpc_lrf = _pc_lrf;
     mpc_camera = _pc_camera;
+    mpc_ssd = _ssd;
 }
 
 CRGBD::CRGBD(CLRF* _pc_lrf){
@@ -39,9 +40,12 @@ void CRGBD::SegnetFunction(){
     while(fl_function_index == THREAD_SEGNET_INDEX){
         if(!mpc_camera->GetCameraImage(camera_image))
             return;
-        segnet_image = mc_segnet.GetSegnetImage(camera_image);
+//        segnet_image = mc_segnet.GetSegnetImage(camera_image);
+
+        segnet_image = mpc_ssd->GetSSDImage(camera_image);
 
         emit SignalSegnetImage(segnet_image);
+        msleep(30);
     }
 
     return;

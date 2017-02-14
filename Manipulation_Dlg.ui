@@ -1832,7 +1832,7 @@
     </font>
    </property>
    <property name="currentIndex">
-    <number>0</number>
+    <number>1</number>
    </property>
    <widget class="QWidget" name="tab">
     <attribute name="title">
@@ -2070,7 +2070,7 @@
       </font>
      </property>
      <property name="text">
-      <string>Segnet</string>
+      <string>SSD</string>
      </property>
     </widget>
     <widget class="QGraphicsView" name="view_segnet">
