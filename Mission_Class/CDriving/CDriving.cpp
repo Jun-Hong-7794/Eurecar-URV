@@ -367,6 +367,8 @@ bool CDriving::ParkingFrontPanel(){
     int _e_deg = 180;
 
     double panel_length_margin = 0.15;
+    double side_center_margin = 0.8;
+    double front_center_margin = 0.3;
 
     int s_lrf_index = (int)((_s_deg + 45) / ANGLE_RESOLUTION);
     int e_lrf_index = (int)((_e_deg + 45) / ANGLE_RESOLUTION);
@@ -388,82 +390,179 @@ bool CDriving::ParkingFrontPanel(){
             memcpy(lrf_distance, &lrf_distance_raw[s_lrf_index], sizeof(long)*(number_of_point));
             mpc_velodyne->SetLRFDataToPCL(lrf_distance,number_of_point);
 
-            detected_panel_info = mpc_velodyne->GetLRFPanelInfo();
-
-            double panel_slope = atan(detected_panel_info.at(1)/detected_panel_info.at(0));
-
-            double panel_slope_norm_x = -detected_panel_info.at(1);
-            double panel_slope_norm_y = detected_panel_info.at(0);
-
-            if (panel_slope_norm_y <0)
+            if(!mpc_velodyne->GetLRFPanelFindStatus())
             {
-                panel_slope_norm_x =-1*panel_slope_norm_x;
-                panel_slope_norm_y =-1*panel_slope_norm_y;
+                driving_struct.direction = UGV_move_left;
+                driving_struct.velocity =85;
             }
-
-            double panel_center_to_origin_x = -(detected_panel_info.at(3) - 0.8);
-            double panel_center_to_origin_y = -detected_panel_info.at(4);
-
-            double outer_product_panel_center_norm = panel_center_to_origin_x*panel_slope_norm_y - panel_center_to_origin_y*panel_slope_norm_x;
-
-
-            double panel_length = detected_panel_info.at(2);
-
-            if((panel_length > 0.5 - panel_length_margin)&&(panel_length < 0.5 + panel_length_margin)) // side
+            else
             {
-                if(outer_product_panel_center_norm  > 0)
+
+                detected_panel_info = mpc_velodyne->GetLRFPanelInfo();
+
+                double panel_slope = atan(detected_panel_info.at(1)/detected_panel_info.at(0));
+
+                double panel_slope_atan2 = atan2(detected_panel_info.at(1),detected_panel_info.at(0));
+
+                if(panel_slope_atan2 < 0)
                 {
-                    if(panel_slope > (5.0/180.0*PI))
+                    panel_slope_atan2 += 2.0*PI;
+                }
+
+                double panel_slope_norm_x = -detected_panel_info.at(1);
+                double panel_slope_norm_y = detected_panel_info.at(0);
+
+                double panel_slope_norm = atan2(panel_slope_norm_y,panel_slope_norm_x);
+
+                if(panel_slope_norm < 0)
+                {
+                    panel_slope_norm += 2.0*PI;
+                }
+
+
+
+                double panel_length = detected_panel_info.at(2);
+
+                if((panel_length > 0.5 - panel_length_margin)&&(panel_length < 0.5 + panel_length_margin)) // side
+                {
+
+                    double panel_center_to_origin_x = -(detected_panel_info.at(3) - side_center_margin);
+                    double panel_center_to_origin_y = -detected_panel_info.at(4);
+
+
+                    double panel_center_to_origin_slope = atan2(panel_center_to_origin_y,panel_center_to_origin_x);
+
+                    if(panel_center_to_origin_slope < 0)
                     {
-                        cout << "move left " << endl;
-                        driving_struct.direction = UGV_move_left;
-                        driving_struct.velocity =75;
+                        panel_center_to_origin_slope += 2.0*PI;
                     }
-                    else if(panel_slope < - (5.0/180.0*PI))
+
+                    double norm_to_origin_angle = abs(panel_center_to_origin_slope - panel_slope_norm);
+
+                    if (norm_to_origin_angle > PI)
                     {
-                        cout << "move right " << endl;
-                        driving_struct.direction = UGV_move_right;
-                        driving_struct.velocity =75;
+                        norm_to_origin_angle -= PI;
                     }
-                    else if(detected_panel_info.at(3)  < 0.38)
+
+                    if (acos((panel_slope_norm_x*panel_center_to_origin_x + panel_slope_norm_y*panel_center_to_origin_y)/(sqrt(panel_center_to_origin_x*panel_center_to_origin_x+panel_center_to_origin_y*panel_center_to_origin_y))) > 0.5*PI)
+                    {
+                        panel_slope_norm_x = -panel_slope_norm_x;
+                        panel_slope_norm_y = -panel_slope_norm_y;
+                    }
+
+                    double outer_product_panel_center_norm = panel_center_to_origin_x*panel_slope_norm_y - panel_center_to_origin_y*panel_slope_norm_x;
+
+
+                    if(outer_product_panel_center_norm  > 0)
+                    {
+                        if(panel_slope > (5.0/180.0*PI) || (abs(panel_slope) > (75.0/180.0*PI)))
+                        {
+                            driving_struct.direction = UGV_move_left;
+                            driving_struct.velocity =85;
+                        }
+                        else if(panel_slope < - (5.0/180.0*PI))
+                        {
+                            driving_struct.direction = UGV_move_right;
+                            driving_struct.velocity =85;
+                        }
+                        else if(outer_product_panel_center_norm  > 0)
+                        {
+                            driving_struct.direction = UGV_move_forward;
+                            driving_struct.velocity =80;
+                        }
+                    }
+                    else
+                    {
+                        driving_struct.direction = UGV_move_differ_left;
+                        driving_struct.velocity =75;
+
+                    }
+                }
+                else if(panel_length > 2.0)
+                {
+                    driving_struct.direction = UGV_move_left;
+                    driving_struct.velocity =85;
+                }
+                else// front or back
+                {
+                    double panel_center_to_origin_x = -(detected_panel_info.at(3) - front_center_margin);
+                    double panel_center_to_origin_y = -detected_panel_info.at(4);
+
+
+                    double panel_center_to_origin_slope = atan2(panel_center_to_origin_y,panel_center_to_origin_x);
+
+                    if(panel_center_to_origin_slope < 0)
+                    {
+                        panel_center_to_origin_slope += 2.0*PI;
+                    }
+
+                    double norm_to_origin_angle = abs(panel_center_to_origin_slope - panel_slope_norm);
+
+                    if (norm_to_origin_angle > PI)
+                    {
+                        norm_to_origin_angle -= PI;
+                    }
+
+                    if (acos((panel_slope_norm_x*panel_center_to_origin_x + panel_slope_norm_y*panel_center_to_origin_y)/(sqrt(panel_center_to_origin_x*panel_center_to_origin_x+panel_center_to_origin_y*panel_center_to_origin_y))) > 0.5*PI)
+                    {
+                        panel_slope_norm_x = -panel_slope_norm_x;
+                        panel_slope_norm_y = -panel_slope_norm_y;
+                    }
+
+                    double outer_product_panel_center_norm = panel_center_to_origin_x*panel_slope_norm_y - panel_center_to_origin_y*panel_slope_norm_x;
+
+
+                    double line_distance_to_origin;
+
+                    if (detected_panel_info.at(0) == 0)
+                    {
+                        line_distance_to_origin = detected_panel_info.at(3);
+                    }
+                    else
+                    {
+                        double line_eq_a = detected_panel_info.at(1) / detected_panel_info.at(0);
+                        double line_eq_b = detected_panel_info.at(4) - line_eq_a*detected_panel_info.at(3);
+
+                        line_distance_to_origin = abs(line_eq_b)/sqrt(line_eq_a*line_eq_a*+1);
+                    }
+
+                    if ( (line_distance_to_origin < (side_center_margin + 0.25)) && (abs(panel_slope) > (75.0/180.0*PI)))
                     {
                         driving_struct.direction = UGV_move_forward;
-                        driving_struct.velocity =70;
+                        driving_struct.velocity =80;
                     }
-                }
-                else
-                {
-                    driving_struct.direction = UGV_move_differ_left;
-                    driving_struct.velocity =65;
+                    else
+                    {
+                        if(outer_product_panel_center_norm  > 0)
+                        {
+                            if(panel_slope > (5.0/180.0*PI) || (abs(panel_slope) > (75.0/180.0*PI)))
+                            {
+                                driving_struct.direction = UGV_move_left;
+                                driving_struct.velocity =85;
+                            }
+                            else if(panel_slope < - (5.0/180.0*PI))
+                            {
+                                driving_struct.direction = UGV_move_right;
+                                driving_struct.velocity =85;
+                            }
+                            else if(outer_product_panel_center_norm  > 0)
+                            {
+                                driving_struct.direction = UGV_move_forward;
+                                driving_struct.velocity =80;
+                            }
 
-                }
-            }
-            else // front or back
-            {
-                if(outer_product_panel_center_norm  > 0)
-                {
-                    if(panel_slope > (5.0/180.0*PI))
-                    {
-                        cout << "move left " << endl;
-                        driving_struct.direction = UGV_move_left;
-                        driving_struct.velocity =75;
-                    }
-                    else if(panel_slope < - (5.0/180.0*PI))
-                    {
-                        cout << "move right " << endl;
-                        driving_struct.direction = UGV_move_right;
-                        driving_struct.velocity =75;
-                    }
-                    else if(detected_panel_info.at(3)  < 0.38)
-                    {
-                        driving_struct.direction = UGV_move_forward;
-                        driving_struct.velocity =70;
+                        }
+                        else
+                        {
+                            driving_struct.direction = UGV_move_forward;
+                            driving_struct.velocity =0;
+                        }
                     }
                 }
+
             }
             mpc_vehicle->Move(driving_struct.direction, driving_struct.velocity);
         }
-        QThread::usleep(30);
     }while(driving_struct.driving_mission);
 
 

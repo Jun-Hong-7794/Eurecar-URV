@@ -34,7 +34,7 @@ CKinova::CKinova(){
     fl_kinova_init_position = false;
     theta = 0.0;
     initialAngle = 0.0;
-    base_frame_rot = 10.0;
+    base_frame_rot = -45.0;
 }
 
 CKinova::~CKinova(){
@@ -781,7 +781,7 @@ bool CKinova::KinovaDoManipulate(CartesianPosition _desired_position,int _mode, 
     desired_position.Position.CartesianPosition.Z = _desired_position.Coordinates.Z;
 
     desired_position.Position.CartesianPosition.ThetaX = _desired_position.Coordinates.ThetaX;//+base_frame_rot*KINOVA_PI/180;
-    desired_position.Position.CartesianPosition.ThetaY = _desired_position.Coordinates.ThetaY;
+    desired_position.Position.CartesianPosition.ThetaY = _desired_position.Coordinates.ThetaY;//-base_frame_rot*KINOVA_PI/180;
     desired_position.Position.CartesianPosition.ThetaZ = _desired_position.Coordinates.ThetaZ;//+base_frame_rot*KINOVA_PI/180;
 
 

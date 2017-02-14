@@ -24,7 +24,7 @@ A_Sleep(500)
 
 ## Step2: LRF-Kinova Horizen CTRL
 
-LRF_KINOVA_HORIZEN_CTRL_STRUCT.desired_inlier_deg_avr = 87.0
+LRF_KINOVA_HORIZEN_CTRL_STRUCT.desired_inlier_deg_avr = 86.0
 LRF_KINOVA_HORIZEN_CTRL_STRUCT.error = 0.25
 
 LRF_KINOVA_HORIZEN_CTRL_STRUCT.s_deg = 30
@@ -99,7 +99,7 @@ VALVE_SIZE_RECOG_STRUCT.grasp_pose_1 = 1700
 VALVE_SIZE_RECOG_STRUCT.grasp_pose_2 = 1700
 
 VALVE_SIZE_RECOG_STRUCT.release_pose_1 = 2000
-VALVE_SIZE_RECOG_STRUCT.release_pose_2 = 2000
+VALVE_SIZE_RECOG_STRUCT.release_pose_2 = 1900
 
 VALVE_SIZE_RECOG_STRUCT.force_threshold = 120
 

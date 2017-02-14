@@ -96,6 +96,8 @@ private:
 
     double lrf_panel_length = 0.0;
 
+    bool lrf_find_panel = false;
+
     bool RunVelodyne();
 public:
     bool ConnectVelodyne();
@@ -114,6 +116,9 @@ public:
 
     // Get ugv turn direction
     bool GetUGVTurnDirection();
+
+    // Get lrf find panel status
+    bool GetLRFPanelFindStatus();
 
     // Get lrf slope and panel legth
     std::vector<double> GetLRFPanelInfo();
