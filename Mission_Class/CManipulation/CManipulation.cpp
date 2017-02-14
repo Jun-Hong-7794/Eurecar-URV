@@ -900,7 +900,6 @@ bool CManipulation::GripperKinovaValveSizeRecognition(){
 
     org_roll_pose = current_pose.Coordinates.ThetaZ;
 
-    mpc_kinova->KinovaDoManipulate(current_pose, 2);
 
     // -1: Add Graph
     emit SignalValveSizeData(gripper_data_x, gripper_data_y, -1);
@@ -945,13 +944,16 @@ bool CManipulation::GripperKinovaValveSizeRecognition(){
             mpc_gripper->GripperGoToThePositionLoadCheck(release_pose_1, release_pose_2, force_threshold);
 
             mpc_kinova->KinovaMoveUnitStep(0, y_step, z_step);
+
             current_pose = mpc_kinova->KinovaGetPosition();
+            mpc_kinova->KinovaDoManipulate(current_pose, 2);
+
+            fl_gripper_1_not_reach = false;
+            fl_gripper_2_not_reach = false;
 
             i -= 1;
             if(i < 0) i = 0;
 
-            fl_gripper_1_not_reach = false;
-            fl_gripper_2_not_reach = false;
             continue;
         }
 
