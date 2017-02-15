@@ -18,6 +18,7 @@
 
 ###4) Caffe Installation 
 * Edit "Makefile.config" file.(#USE_CUDNN and #OPENCV_VERSION:=3 => comment out)
+* `$ git clone https://github.com/weiliu89/caffe.git`
 * `$ sudo apt-get install libprotobuf-dev libleveldb-dev libsnappy-dev libhdf5-serial-dev protobuf-compiler`
 * `$ sudo apt-get install --no-install-recommends libboost-all-dev`
 * `$ sudo apt-get install libatlas-base-dev`
@@ -26,8 +27,7 @@
 * `$ cd build `
 * `$ cmake ..`
 * `$ make -j8`
-* `$ make py`
-* `$ make install`
+* `$ make pycaffe`
 
 
 ##2. VTK & PCL installation for Velodyne
