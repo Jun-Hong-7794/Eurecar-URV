@@ -18,7 +18,7 @@ CManipulation::CManipulation(CLRF *_p_mani_lrf, CCamera *_p_camera, CKinova *_p_
     mpc_vehicle = _p_vehicle;
     mpc_velodyne = _p_velodyne;
     mpc_gripper = _p_gripper;
-
+    mpc_ssd = _ssd;
 
     mpc_rgb_d = new CRGBD(_p_camera, _p_mani_lrf, _ssd);
 
@@ -1203,9 +1203,84 @@ bool CManipulation::WrenchRecognition(){
         return false;
 
     WRENCH_RECOGNITION wrench_recognition = GetWrenchRecognitionOption();
-//    wrench_recognition.valve_size;
-//    mpc_rgb_d->SSD~~~
 
+    cv::Mat camera_image;
+    cv::Mat segnet_image;
+    vector<vector<int>> bb_info;
+    vector<int> bb_info_x_ori;
+    vector<int> bb_info_x_sort;
+    vector<int> bb_info_y_ori;
+    vector<int> bb_info_y_sort;
+
+
+    if(!mpc_camera->GetCameraImage(camera_image))
+        return false;
+
+//    mpc_rgb_d->SSD~~~
+    bb_info = mpc_ssd->GetSSDImage(camera_image);
+
+    while(bb_info.size() != 6)
+    {
+        mpc_camera->GetCameraImage(camera_image);
+        msleep(300);
+
+        bb_info = mpc_ssd->GetSSDImage(camera_image);
+        msleep(300);
+    }
+
+    for(vector<vector<int>>::iterator it = bb_info.begin();it < bb_info.end();++it)
+    {
+        bb_info_x_ori.push_back((*it).at(0));
+        bb_info_y_ori.push_back((*it).at(1));
+    }
+
+
+    bb_info_y_sort = bb_info_y_ori;
+    std::sort(bb_info_y_sort.begin(),bb_info_y_sort.end(),std::greater<int>());
+    int wrench_index_app;
+
+    switch(wrench_recognition.valve_size)
+    {
+    case 24:
+        wrench_index_app = 0;
+        break;
+    case 22:
+        wrench_index_app = 1;
+        break;
+    case 19:
+        wrench_index_app = 2;
+        break;
+    case 18:
+        wrench_index_app = 3;
+        break;
+    case 17:
+        wrench_index_app = 4;
+        break;
+    case 16:
+        wrench_index_app = 5;
+        break;
+    default:
+        std::cout<<"Unclassified rench index"<<std::endl;
+        break;
+    }
+
+
+    vector<int>::iterator it_x,it_y;
+    it_y = std::find(bb_info_y_ori.begin(),bb_info_y_ori.end(),bb_info_y_sort.at(wrench_index_app));
+    int index_of_x = std::distance(bb_info_y_ori.begin(),it_y);
+
+    int rench_x_loc = bb_info_x_ori.at(index_of_x);
+
+    bb_info_x_sort = bb_info_x_ori;
+
+    std::sort(bb_info_x_sort.begin(),bb_info_x_sort.end());
+
+    it_x = std::find(bb_info_x_sort.begin(),bb_info_x_sort.end(),rench_x_loc);
+
+    wrench_recognition.wrench_location = std::distance(bb_info_x_sort.begin(),it_x) + 1;
+    SetManipulationOption(wrench_recognition);
+
+    std::cout << "wrench_location : " << wrench_recognition.wrench_location << std::endl;
     return true;
 }
 

@@ -13,7 +13,7 @@ class CSSD {
            const string& weights_file,
            const string& mean_value);
 
-  cv::Mat GetSSDImage(const cv::Mat& _org_image);
+  vector<vector<int>> GetSSDImage(cv::Mat& _org_image);
 
  private:
   std::string mstr_model_path;

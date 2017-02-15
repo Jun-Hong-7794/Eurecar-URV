@@ -22,6 +22,8 @@
 #define DR_VELODYNE_VEHICLE_CONTROL          0x1000
 #define DR_LRF_VEHICLE_ANGLE_CONTROL         0x1001
 #define DR_LRF_VEHICLE_HORIZEN_CONTROL       0x1002
+#define DR_VEHICLE_DRIVE_TO_PANEL            0x1003
+#define DR_VEHICLE_PARKING                   0x1004
 
 
 //Manipulation

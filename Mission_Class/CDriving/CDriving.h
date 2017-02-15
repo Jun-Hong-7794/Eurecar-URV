@@ -105,6 +105,7 @@ public:
 
     DRIVING_STRUCT GetDrivingOption();
     PARKING_STRUCT GetParkingOption();
+
     LRF_VEHICLE_ANGLE_STRUCT GetLRFVehicleAngleOption();
     LRF_VEHICLE_HORIZEN_STRUCT GetLRFVehicleHorizenOption();
 

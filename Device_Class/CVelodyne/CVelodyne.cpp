@@ -134,9 +134,9 @@ bool CVelodyne::RunVelodyne(){
 
     double clustering_tolerence = 0.1;
     double clustering_count_tolerence = 50;
-    double clustering_max_count_tolerence = 50;
-    double parking_distance = 0.5;
-    double side_distance = 0.7;
+//    double clustering_max_count_tolerence = 50;
+//    double parking_distance = 0.5;
+//    double side_distance = 0.7;
     double waypoint_converged_margin = 0.15;
 
     while(fl_velodyne_thread)
@@ -1265,8 +1265,8 @@ bool CVelodyne::RunVelodyne(){
                             double waypoint_direct_vec_x_norm = waypoint_direct_vec_x/sqrt(waypoint_direct_vec_x*waypoint_direct_vec_x + waypoint_direct_vec_y*waypoint_direct_vec_y);
                             double waypoint_direct_vec_y_norm = waypoint_direct_vec_y/sqrt(waypoint_direct_vec_x*waypoint_direct_vec_x + waypoint_direct_vec_y*waypoint_direct_vec_y);
 
-                            double panel_edge_point_x = ransac_line_mean_x + maximum_dist_from_ransac_mean*waypoint_direct_vec_x_norm;
-                            double panel_edge_point_y = ransac_line_mean_y + maximum_dist_from_ransac_mean*waypoint_direct_vec_y_norm;
+//                            double panel_edge_point_x = ransac_line_mean_x + maximum_dist_from_ransac_mean*waypoint_direct_vec_x_norm;
+//                            double panel_edge_point_y = ransac_line_mean_y + maximum_dist_from_ransac_mean*waypoint_direct_vec_y_norm;
 
 
 

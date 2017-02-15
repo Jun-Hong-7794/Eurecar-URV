@@ -417,6 +417,22 @@ bool CScript::InterpreteMissionScriptLine(QString _line, MISSION_SCRIPT* _missio
             return false;
     }
 
+    if(_line.contains("VEHICLE_DRIVE_TO_PANEL")){
+
+        if(InterpreteVehicleDriveToPanel(_line, _step_info))
+            return true;
+        else
+            return false;
+    }
+
+    if(_line.contains("VEHICLE_PARKING")){
+
+        if(InterpreteVehicleParking(_line, _step_info))
+            return true;
+        else
+            return false;
+    }
+
     if(_line.contains("KINOVA_FORCE_CTRL")){
 
         if(InterpreteKinovaForceCtrl(_line, _step_info))
@@ -702,6 +718,38 @@ bool CScript::InterpreteLocalValue(QString _line, MISSION_SCRIPT* _mission_scrip
     else
         return false;
 
+    return true;
+}
+
+bool CScript::InterpreteVehicleDriveToPanel(QString _line, STEP_INFO& _step_info){
+
+    if(_line.contains("VEHICLE_DRIVE_TO_PANEL_STRUCT")){
+        if(_line.contains("velocity")){
+            int colone_index = _line.indexOf("=");
+            _step_info.driving_option.driving_option.velocity = _line.mid(colone_index + 1).trimmed().toDouble();
+            return true;
+        }
+    }
+
+    else if(_line.contains("VEHICLE_DRIVE_TO_PANEL_FUNCTION")){
+        _step_info.function_index = DR_VEHICLE_DRIVE_TO_PANEL;
+    }
+    return true;
+}
+
+bool CScript::InterpreteVehicleParking(QString _line, STEP_INFO& _step_info){
+
+    if(_line.contains("VEHICLE_PARKING_STRUCT")){
+        if(_line.contains("velocity")){
+            int colone_index = _line.indexOf("=");
+//            _step_info.driving_option.parking_option = _line.mid(colone_index + 1).trimmed().toDouble();
+            return true;
+        }
+    }
+
+    else if(_line.contains("VEHICLE_PARKING_FUNCTION")){
+        _step_info.function_index = DR_VEHICLE_PARKING;
+    }
     return true;
 }
 
@@ -1719,6 +1767,20 @@ bool CScript::MissionPlayer(){
                 while(mpc_drivig->isRunning());
             }
 
+            if(mpary_mission_script[i].step_vecor.at(j).function_index == DR_VEHICLE_DRIVE_TO_PANEL){
+                mpc_drivig->SetDrivingOption(mpary_mission_script[i].step_vecor.at(j).driving_option.driving_option);
+                mpc_drivig->SelectMainFunction(DRIVE_INX_DRIVE_TO_PANEL);
+
+                while(mpc_drivig->isRunning());
+            }
+
+            if(mpary_mission_script[i].step_vecor.at(j).function_index == DR_VEHICLE_PARKING){
+                mpc_drivig->SetParkingOption(mpary_mission_script[i].step_vecor.at(j).driving_option.parking_option);
+                mpc_drivig->SelectMainFunction(DRIVE_INX_PARKING__PANEL);
+
+                while(mpc_drivig->isRunning());
+            }
+
             if(mpary_mission_script[i].step_vecor.at(j).function_index == MP_KINOVA_ROTATE_VALVE){
                 mpc_manipulation->SetManipulationOption(mpary_mission_script[i].step_vecor.at(j).manipulation_option.kinova_rotate_valve_option);
                 mpc_manipulation->SelectMainFunction(MANIPUL_INX_KINOVA_ROTATE_VALVE);
@@ -1806,7 +1868,7 @@ bool CScript::MissionPlayer(){
 
             if(mpary_mission_script[i].step_vecor.at(j).function_index == MP_WRENCH_RECOGNITION){
 
-                int valve_size = InterpreteBoolVariable(mpary_mission_script[i].step_vecor.at(j).manipulation_option.wrench_recognition_option.str_valve_size,
+                int valve_size = InterpreteIntVariable(mpary_mission_script[i].step_vecor.at(j).manipulation_option.wrench_recognition_option.str_valve_size,
                                                         mpary_mission_script[i]);
 
                 mpary_mission_script[i].step_vecor.at(j).manipulation_option.wrench_recognition_option.valve_size = valve_size;

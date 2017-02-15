@@ -5,32 +5,8 @@
 
 # Title: Valve Recognition
 
-## Step0: Grasp 120
+## Step0: Drive to Panel
 
-GRIPPER_FORCE_CTRL_STRUCT.bend_deg = 120
-GRIPPER_FORCE_CTRL_STRUCT.forece_threshold = 1350
-
-GRIPPER_FORCE_CTRL_FUNCTION()
-
-## Step1: Grasp 60
-
-GRIPPER_FORCE_CTRL_STRUCT.bend_deg = 60
-GRIPPER_FORCE_CTRL_STRUCT.forece_threshold = 1350
-
-GRIPPER_FORCE_CTRL_FUNCTION()
-
-## Step2: Grasp 80
-
-GRIPPER_FORCE_CTRL_STRUCT.bend_deg = 80
-GRIPPER_FORCE_CTRL_STRUCT.forece_threshold = 1350
-
-GRIPPER_FORCE_CTRL_FUNCTION()
-A_Sleep(1000)
-
-## Step3: Grasp 20
-
-GRIPPER_FORCE_CTRL_STRUCT.bend_deg = 20
-GRIPPER_FORCE_CTRL_STRUCT.forece_threshold = 1350
-
+VEHICLE_DRIVE_TO_PANEL_FUNCTION()
 
 ##########################################_MISSION_END_##########################################

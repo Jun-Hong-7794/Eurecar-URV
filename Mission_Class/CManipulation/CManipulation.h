@@ -103,6 +103,7 @@ private:
     CVehicle* mpc_vehicle;
     CVelodyne* mpc_velodyne;
     CGripper* mpc_gripper;
+    CSSD* mpc_ssd;
 
     //-------------------------------------------------
     // Valve Model Vector

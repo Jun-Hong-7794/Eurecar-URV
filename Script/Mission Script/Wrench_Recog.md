@@ -66,8 +66,8 @@ A_Sleep(500)
 
 ## Step3: Wrench Recognition
 
-WRENCH_RECOGNITION_STRUCT.valve_size = gi_valve_size
-
+/*WRENCH_RECOGNITION_STRUCT.valve_size = gi_valve_size
+WRENCH_RECOGNITION_STRUCT.valve_size = 24
 gi_wrench_hanger_index = WRENCH_RECOGNITION_FUNCTION()
 
 A_Sleep(500)

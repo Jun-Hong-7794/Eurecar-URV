@@ -34,7 +34,7 @@ CKinova::CKinova(){
     fl_kinova_init_position = false;
     theta = 0.0;
     initialAngle = 0.0;
-    base_frame_rot = -5.0;
+//    base_frame_rot = -5.0;
 }
 
 CKinova::~CKinova(){

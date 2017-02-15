@@ -207,6 +207,7 @@ typedef struct _Wrench_Recognition{
 
     //Setting
     int valve_size;
+    int num_valve;
     QString str_valve_size;
 
     //Output
