@@ -34,7 +34,7 @@ CKinova::CKinova(){
     fl_kinova_init_position = false;
     theta = 0.0;
     initialAngle = 0.0;
-    base_frame_rot = -45.0;
+    base_frame_rot = -5.0;
 }
 
 CKinova::~CKinova(){
@@ -641,7 +641,7 @@ void CKinova::KinovaAlignToPanel(){
     desired_point.Position.CartesianPosition.Y = -0.2992; //0.22056;
     desired_point.Position.CartesianPosition.Z = 0.3900; //0.28821 + _param2*0.01;
     desired_point.Position.CartesianPosition.ThetaZ = -1.1;//0.2535;
-    desired_point.Position.CartesianPosition.ThetaY = 1.57;
+    desired_point.Position.CartesianPosition.ThetaY = 1.57;//+base_frame_rot*KINOVA_PI/180;
     desired_point.Position.CartesianPosition.ThetaX = 1.57; //1.39 0.2535
 
     Kinova_SendBasicTrajectory(desired_point);
@@ -776,12 +776,12 @@ bool CKinova::KinovaDoManipulate(CartesianPosition _desired_position,int _mode, 
     desired_position.InitStruct();
     desired_position.Position.Type = CARTESIAN_POSITION;
 
-    desired_position.Position.CartesianPosition.X = _desired_position.Coordinates.X;//*cos(base_frame_rot*KINOVA_PI/180) - _desired_position.Coordinates.Y*sin(base_frame_rot*KINOVA_PI/180);
-    desired_position.Position.CartesianPosition.Y = _desired_position.Coordinates.Y;//*cos(base_frame_rot*KINOVA_PI/180) + _desired_position.Coordinates.X*sin(base_frame_rot*KINOVA_PI/180);
+    desired_position.Position.CartesianPosition.X = _desired_position.Coordinates.X*cos(base_frame_rot*KINOVA_PI/180) - _desired_position.Coordinates.Y*sin(base_frame_rot*KINOVA_PI/180);
+    desired_position.Position.CartesianPosition.Y = _desired_position.Coordinates.Y*cos(base_frame_rot*KINOVA_PI/180) + _desired_position.Coordinates.X*sin(base_frame_rot*KINOVA_PI/180);
     desired_position.Position.CartesianPosition.Z = _desired_position.Coordinates.Z;
 
     desired_position.Position.CartesianPosition.ThetaX = _desired_position.Coordinates.ThetaX;//+base_frame_rot*KINOVA_PI/180;
-    desired_position.Position.CartesianPosition.ThetaY = _desired_position.Coordinates.ThetaY;//-base_frame_rot*KINOVA_PI/180;
+    desired_position.Position.CartesianPosition.ThetaY = _desired_position.Coordinates.ThetaY+base_frame_rot*KINOVA_PI/180;
     desired_position.Position.CartesianPosition.ThetaZ = _desired_position.Coordinates.ThetaZ;//+base_frame_rot*KINOVA_PI/180;
 
 

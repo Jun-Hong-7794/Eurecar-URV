@@ -32,7 +32,8 @@ SOURCES += main.cpp\
     Device_Class/CVehicle/RoboteqDevice.cpp \
     Device_Class/CUDP/CUDP.cpp \
     Device_Class/CGripper/CGripper.cpp \
-    qcustomplot.cpp
+    qcustomplot.cpp \
+    ElementTech_Class/CSSD/CSSD.cpp
 
 
 HEADERS  += EurecarURV_Dlg.h \
@@ -63,7 +64,8 @@ HEADERS  += EurecarURV_Dlg.h \
     Mission_Class/CManipulation/Def_Manipulation.h \
     Device_Class/CGripper/CGripper.h \
     Mission_Class/CScript/Def_Script.h \
-    qcustomplot.h
+    qcustomplot.h \
+    ElementTech_Class/CSSD/CSSD.h
 
 FORMS    += EurecarURV_Dlg.ui \
     Driving_Dlg.ui \
@@ -123,7 +125,7 @@ LIBS += -lopencv_videostab
 INCLUDEPATH += /usr/local/include
 INCLUDEPATH += /usr/lib/x86_64-linux-gnu/hdf5/serial/include
 INCLUDEPATH += /usr/local/cuda/include
-INCLUDEPATH += /home/winner/caffe-master/include
+INCLUDEPATH += /home/winner/caffe-ssd/include
 
 LIBS += -L/usr/local/lib
 LIBS += -lopencv_core
@@ -135,12 +137,13 @@ LIBS += -lopencv_imgcodecs
 LIBS += -L/usr/lib/x86_64-linux-gnu/hdf5/serial
 LIBS += -lhdf5
 
-LIBS += -L/home/winner/caffe-master/build/lib
+LIBS += -L/home/winner/caffe-ssd/build/lib
 LIBS += -lcaffe
 
 LIBS += -L/usr/lib/x86_64-linux-gnu
 LIBS += -lboost_system
 LIBS += -lglog
+LIBS += -lgflags
 
 #-------------------------------------------------
 #

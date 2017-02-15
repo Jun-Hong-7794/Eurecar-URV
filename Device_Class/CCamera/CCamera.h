@@ -7,6 +7,8 @@
 
 #include "../../opencv_header.h"
 
+#include "ElementTech_Class/CSSD/CSSD.h"
+
 #define CAMERA_DEVICE_NUMBER 1
 
 class CCamera: public QThread{
@@ -29,7 +31,7 @@ private:
     QMutex mtx_camera;
 
 public:
-    bool InitCamera(int _dev_number);
+    bool InitCamera(std::string _ip_number);
     void CloseCamera();
     bool IsCameraConnected();
 

@@ -9,6 +9,7 @@
 #include "Device_Class/CCamera/CCamera.h"
 
 #include "ElementTech_Class/CSegnet/CSegnet.h"
+#include "ElementTech_Class/CSSD/CSSD.h"
 
 #include "RGBD_Data.h"
 
@@ -26,7 +27,7 @@ protected:
 public:
     CRGBD();
     CRGBD(CLRF* _pc_lrf);
-    CRGBD(CCamera* _pc_camera, CLRF* _pc_lrf);
+    CRGBD(CCamera* _pc_camera, CLRF* _pc_lrf, CSSD* _ssd);
 
     ~CRGBD();
 private:
@@ -44,6 +45,7 @@ private:
     // Element Tech Class
     //-------------------------------------------------
     CSegnet mc_segnet;
+    CSSD *mpc_ssd;
     //-------------------------------------------------
     // Device Class
     //-------------------------------------------------

@@ -47,6 +47,7 @@ private:
     CVelodyne* mpc_velodyne;
     CGripper* mpc_gripper;
 
+    CSSD* mpc_ssd;
     //-------------------------------------------------
     // Mission Class
     //-------------------------------------------------

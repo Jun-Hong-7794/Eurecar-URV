@@ -46,7 +46,7 @@ protected:
 
 public:
     CManipulation();
-    CManipulation(CLRF* _p_mani_lrf, CCamera* _p_camera, CKinova* _p_kinova, CVehicle* _p_vehicle, CVelodyne* _p_velodyne, CGripper* _p_gripper);
+    CManipulation(CLRF* _p_mani_lrf, CCamera* _p_camera, CKinova* _p_kinova, CVehicle* _p_vehicle, CVelodyne* _p_velodyne, CGripper* _p_gripper, CSSD* _ssd);
     ~CManipulation();
 private:
     int m_main_fnc_index;

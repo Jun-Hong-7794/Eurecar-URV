@@ -2191,7 +2191,7 @@
       </font>
      </property>
      <property name="text">
-      <string>Segnet</string>
+      <string>SSD</string>
      </property>
     </widget>
     <widget class="QGraphicsView" name="view_segnet">

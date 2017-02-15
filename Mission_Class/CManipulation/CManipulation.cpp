@@ -10,7 +10,7 @@ CManipulation::~CManipulation(){
         this->terminate();
 }
 
-CManipulation::CManipulation(CLRF *_p_mani_lrf, CCamera *_p_camera, CKinova *_p_kinova, CVehicle *_p_vehicle, CVelodyne *_p_velodyne, CGripper* _p_gripper){
+CManipulation::CManipulation(CLRF *_p_mani_lrf, CCamera *_p_camera, CKinova *_p_kinova, CVehicle *_p_vehicle, CVelodyne *_p_velodyne, CGripper* _p_gripper, CSSD* _ssd){
 
     mpc_lrf = _p_mani_lrf;
     mpc_camera = _p_camera;
@@ -19,7 +19,8 @@ CManipulation::CManipulation(CLRF *_p_mani_lrf, CCamera *_p_camera, CKinova *_p_
     mpc_velodyne = _p_velodyne;
     mpc_gripper = _p_gripper;
 
-    mpc_rgb_d = new CRGBD(_p_camera, _p_mani_lrf);
+
+    mpc_rgb_d = new CRGBD(_p_camera, _p_mani_lrf, _ssd);
 
     m_valve_size_result = 0;
     m_valve_size_graph_index = 0;
@@ -198,7 +199,7 @@ bool CManipulation::GetHorizenDistance(double _inlier_distance,double& _horizen_
 //Camera
 bool CManipulation::InitCamera(){
 
-    if(!mpc_camera->InitCamera(CAMERA_DEVICE_NUMBER))
+    if(!mpc_camera->InitCamera("192.168.0.44"))
         return false;
 
     return true;
