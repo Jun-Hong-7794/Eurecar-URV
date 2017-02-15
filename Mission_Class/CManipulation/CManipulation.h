@@ -36,6 +36,7 @@
 #define MANIPUL_INX_GRIPPER_VALVE_SIZE_RECOG    8
 #define MANIPUL_INX_KINOVA_MANIPULATE           9
 #define MANIPUL_INX_KINOVA_ROTATE_VALVE         10
+#define MANIPUL_INX_WRENCH_RECOGNITION          11
 
 class CManipulation:public QThread{
     Q_OBJECT
@@ -49,8 +50,11 @@ public:
     ~CManipulation();
 private:
     int m_main_fnc_index;
+    int mary_valve_size[6] = {16,17,18,19,22,24};
 
     int m_valve_size_graph_index;
+
+    int m_valve_size_result;
 
     bool fl_main_fnc_result;
     bool fl_kinova_force_ctrl_result;
@@ -81,6 +85,9 @@ private:
 
     GRIPPER_KINOVA_VALVE_SIZE_RECOG_STRUCT mstruct_gripper_kinova_valve_recog;
     QMutex mxt_gripper_kinova_valve_recog;
+
+    WRENCH_RECOGNITION mstruct_wrench_recognition;
+    QMutex mxt_wrench_recognition;
     //-------------------------------------------------
     // ElementTech Class
     //-------------------------------------------------
@@ -96,8 +103,35 @@ private:
     CVehicle* mpc_vehicle;
     CVelodyne* mpc_velodyne;
     CGripper* mpc_gripper;
+    CSSD* mpc_ssd;
+
+    //-------------------------------------------------
+    // Valve Model Vector
+    //-------------------------------------------------
+    QVector<double> mqvec_16mm;
+    QVector<double> mqvec_17mm;
+    QVector<double> mqvec_18mm;
+    QVector<double> mqvec_19mm;
+    QVector<double> mqvec_22mm;
+    QVector<double> mqvec_24mm;
+
+    QVector<double> mqvec_sorted_16mm;
+    QVector<double> mqvec_sorted_17mm;
+    QVector<double> mqvec_sorted_18mm;
+    QVector<double> mqvec_sorted_19mm;
+    QVector<double> mqvec_sorted_22mm;
+    QVector<double> mqvec_sorted_24mm;
 
 public:
+    //-------------------------------------------------
+    // Calculate Function
+    //-------------------------------------------------
+    QVector<double> DataSort(QVector<double> _data);
+
+    void ValveSizeDataModelInit(QVector<double> _data, int _index/*mm*/);
+
+    int DataAnalisys(QVector<double> _data);//For Valve Recognition, Result: 16 ~ 24(16mm, 17mm, 18mm, 19mm, 22mm, 24mm)
+
     //-------------------------------------------------
     // Dvice Class Initialize(Connect) Function
     //-------------------------------------------------
@@ -117,7 +151,6 @@ public:
     bool KinovaMoveUnitStepLe();
     bool KinovaMoveUnitStepFw();
     bool KinovaMoveUnitStepBw();
-
 
     //LRF
     bool InitLRF(char* _dev_path = (char *)"/dev/ttyACM0", int _dev_type = UST_20LX);
@@ -146,6 +179,9 @@ public:
 public:
     bool GetMainFunctionResult();
     void SetMainFunctionResult(bool _result);
+
+    int GetValveSizeRecogResult();
+    void SetValveSizeRecogResult(int _result);
 
 public:
     bool SelectMainFunction(int _fnc_index_);
@@ -177,6 +213,8 @@ public:
     void SetManipulationOption(GRIPPER_KINOVA_VALVE_SIZE_RECOG_STRUCT _manipulation_option);
     GRIPPER_KINOVA_VALVE_SIZE_RECOG_STRUCT GetGripperKinovaValveRecogOption();
 
+    void SetManipulationOption(WRENCH_RECOGNITION _manipulation_option);
+    WRENCH_RECOGNITION GetWrenchRecognitionOption();
 
 private:
     //-------------------------------------------------
@@ -194,6 +232,8 @@ private:
 
     bool GripperForceCtrl();
     bool GripperMagnetCtrl();
+
+    bool WrenchRecognition();
 
 signals:
     void SignalKinovaPosition(CartesianPosition);

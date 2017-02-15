@@ -37,14 +37,15 @@ void CRGBD::SegnetFunction(){
 
     cv::Mat camera_image;
     cv::Mat segnet_image;
+    vector<vector<int>> bb_info;
     while(fl_function_index == THREAD_SEGNET_INDEX){
         if(!mpc_camera->GetCameraImage(camera_image))
             return;
 //        segnet_image = mc_segnet.GetSegnetImage(camera_image);
 
-        segnet_image = mpc_ssd->GetSSDImage(camera_image);
+        bb_info = mpc_ssd->GetSSDImage(camera_image);
 
-        emit SignalSegnetImage(segnet_image);
+        emit SignalSegnetImage(camera_image);
         msleep(30);
     }
 

@@ -44,7 +44,7 @@ void CSSD::NetInitialize(const string& model_file,
   SetMean(mean_value);
 }
 
-cv::Mat CSSD::GetSSDImage(const cv::Mat& _org_image) {
+vector<vector<int>> CSSD::GetSSDImage(cv::Mat& _org_image) {
   Blob<float>* input_layer = net_->input_blobs()[0];
   input_layer->Reshape(1, num_channels_,
                        input_geometry_.height, input_geometry_.width);
@@ -75,8 +75,7 @@ cv::Mat CSSD::GetSSDImage(const cv::Mat& _org_image) {
     result += 7;
   }
 
-  cv::Mat ssd_image;
-  _org_image.copyTo(ssd_image);
+  vector<vector<int>> bb_info;
   /* Print the detection results. */
   for (int i = 0; i < detections.size(); ++i) {
     const vector<float>& d = detections[i];
@@ -98,11 +97,15 @@ cv::Mat CSSD::GetSSDImage(const cv::Mat& _org_image) {
       cv::Rect boundRect = cv::boundingRect(points);
       string labelstring;
       cv::Scalar box_color;
+      vector<int> bb_info_xy;
       switch(int(d[1]))
       {
       case 1:
           labelstring = "Rench";
           box_color = cv::Scalar(255,171,0);
+          bb_info_xy.push_back(br.x);
+          bb_info_xy.push_back(br.y);
+          bb_info.push_back(bb_info_xy);
           break;
       case 2:
           labelstring = "Valve";
@@ -112,13 +115,13 @@ cv::Mat CSSD::GetSSDImage(const cv::Mat& _org_image) {
 
           break;
       }
-      cv::rectangle(ssd_image,boundRect,box_color,2);
-      cv::putText(ssd_image,labelstring,tl,cv::FONT_HERSHEY_SIMPLEX,0.7,CV_RGB(255,255,255),2);
+      cv::rectangle(_org_image,boundRect,box_color,2);
+      cv::putText(_org_image,labelstring,tl,cv::FONT_HERSHEY_SIMPLEX,0.7,CV_RGB(255,255,255),2);
     }
   }
 
 
-  return ssd_image;
+  return bb_info;
 }
 
 /* Load the mean file in binaryproto format. */

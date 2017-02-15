@@ -69,12 +69,10 @@ const double prior_way_points_left[3][2] = {{-1.0,1.75},{-1.0,-1.0},{0.5,-1.0}};
 const double prior_way_points_right[3][2] = {{2.0,1.75},{2.0,-1.0},{0.5,-1.0}};
 const double prior_way_point_lrf_left[5][3] = {{0.5,1.75,PI},{-1.0,1.75,1.5*PI},{-1.0,0.375,1.5*PI},{-1.0,-1.0,0},{0.5,-1.0,0}};
 const double prior_way_point_lrf_right[4][3] = {{2.0,1.75,0.5*PI},{2.0,1.75,0.5*PI},{2.0,1.75,0.5*PI},{2.0,1.75,0.5*PI}};
-
 const double driving_waypoint_x_margin = 1.2;
 const double driving_waypoint_y_margin = 0.5;
 const double velodyne_range_driving = 5.0;
 const double velodyne_range_parking = 3.0;
-
 
 class CPCL
 {

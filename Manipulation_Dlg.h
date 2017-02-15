@@ -45,11 +45,19 @@ private:
     //-------------------------------------------------
     // Valve Size Graph Index
     //-------------------------------------------------
+    QMutex mtx_valve_data_graph;
+    QMutex mtx_valve_anal_graph;
+
     int m_valve_size_graph_num;
+    int m_valve_anal_graph_num;
 
     QVector<QVector<double>> mqvec_valve_data_x;
     QVector<QVector<double>> mqvec_valve_data_y;
 
+    QVector<QVector<double>> mqvec_valve_anal_x;
+    QVector<QVector<double>> mqvec_valve_anal_y;
+
+    void InterpreteValveSizeDataFile(QString _file, QVector<double>& _x, QVector<double>& _y);
     bool InterpreteValveSizeDataLine(QString _line, QVector<double>& _x, QVector<double>& _y, QString& _title);
 
     //-------------------------------------------------
@@ -70,7 +78,11 @@ public://Display Image to Qt Graphicview
 public:
     //Set Valve Size Data
     int GetValveSizeDataGraphCurrentIndex();
-    void SetValveSizeData(QVector<double>, QVector<double>, int _graph_index, QString _data_name = "Empty");
+    int GetValveSizeAnalGraphCurrentIndex();
+    void SetValveSizeData(QCustomPlot* _plot,
+                          QVector<double> _input_x, QVector<double> _input_y,
+                          QVector<QVector<double>>& _contain_x,QVector<QVector<double>>& _contain_y,
+                          int& _current_index, int _graph_index, QString _data_name = "Empty");
 
 public slots:
     //-------------------------------------------------
@@ -119,6 +131,10 @@ public slots:
     void SlotButtonSaveGraphData();
     void SlotButtonLoadGraphData();
     void SlotButtonAnalisysGraphData();
+
+    void SlotButtonAnalGraphClear();
+    void SlotButtonAnalLoadGraphData();
+    void SlotButtonAnalDataAnalisys();
 
     //Step Function
     void SlotButtonLRFKinovaCtrl();

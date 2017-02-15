@@ -132,6 +132,12 @@ bool CVelodyne::RunVelodyne(){
 
     double clustering_tolerence = 0.1;
     double clustering_count_tolerence = 50;
+<<<<<<< HEAD
+=======
+//    double clustering_max_count_tolerence = 50;
+//    double parking_distance = 0.5;
+//    double side_distance = 0.7;
+>>>>>>> 36da918d61e194c0dca503bef5b646a287d35888
     double waypoint_converged_margin = 0.15;
 
     while(fl_velodyne_thread)
@@ -952,6 +958,22 @@ bool CVelodyne::RunVelodyne(){
                         }
                         else // back
                         {
+<<<<<<< HEAD
+=======
+                            double waypoint_direct_vec_x = ransac_line1_mean_x - ransac_line_mean_x;
+                            double waypoint_direct_vec_y = ransac_line1_mean_y - ransac_line_mean_y;
+
+                            double waypoint_direct_vec_x_norm = waypoint_direct_vec_x/sqrt(waypoint_direct_vec_x*waypoint_direct_vec_x + waypoint_direct_vec_y*waypoint_direct_vec_y);
+                            double waypoint_direct_vec_y_norm = waypoint_direct_vec_y/sqrt(waypoint_direct_vec_x*waypoint_direct_vec_x + waypoint_direct_vec_y*waypoint_direct_vec_y);
+
+//                            double panel_edge_point_x = ransac_line_mean_x + maximum_dist_from_ransac_mean*waypoint_direct_vec_x_norm;
+//                            double panel_edge_point_y = ransac_line_mean_y + maximum_dist_from_ransac_mean*waypoint_direct_vec_y_norm;
+
+
+
+                            double outer_product_result = ransac_line_mean_x*waypoint_direct_vec_y_norm - ransac_line_mean_y*waypoint_direct_vec_x_norm;
+
+>>>>>>> 36da918d61e194c0dca503bef5b646a287d35888
                             if (coeff[3] != 0)
                             {
                                 if ( (coeff[4]/coeff[3]) < 0 )

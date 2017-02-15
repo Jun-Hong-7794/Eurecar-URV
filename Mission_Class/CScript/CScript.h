@@ -111,6 +111,9 @@ private:
     //-------------------------------------------------
     // Function
     //-------------------------------------------------
+    bool InterpreteVehicleDriveToPanel(QString _line, STEP_INFO& _step_info);
+    bool InterpreteVehicleParking(QString _line, STEP_INFO& _step_info);
+
     bool InterpreteKinovaForceCtrl(QString _line, STEP_INFO& _step_info);
     bool InterpreteKinovaForceCheck(QString _line, STEP_INFO& _step_info);
     bool InterpreteKinovaManipulate(QString _line, STEP_INFO& _step_info);
@@ -125,6 +128,8 @@ private:
 
     bool InterpreteLRFVehicleAngleCtrl(QString _line, STEP_INFO& _step_info);
     bool InterpreteLRFVehicleHorizenCtrl(QString _line, STEP_INFO& _step_info);
+
+    bool InterpreteWrenchRecognition(QString _line, STEP_INFO& _step_info);
 
     //-------------------------------------------------
     // Grammar
