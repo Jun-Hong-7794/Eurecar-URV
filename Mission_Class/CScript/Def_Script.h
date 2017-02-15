@@ -40,6 +40,8 @@
 #define MP_LRF_KINOVA_HORIZEN_CONTROL        0x2009
 #define MP_LRF_KINOVA_ANGLE_CONTROL          0x2010
 
+#define MP_WRENCH_RECOGNITION                0x2011
+
 //Grammar
 #define GR_CONDITIONALLY_ITERATION           0x3000
 //-------------------------------------------------

@@ -174,6 +174,7 @@ typedef struct _Gripper_Kinova_Valve_Size_Recognition_Struct{
     int inlier_error;
 
     // Output
+    QString str_result_variable;
     int wrench_size;
     double wrench_rotation_angle;
 
@@ -200,6 +201,20 @@ typedef struct _Gripper_Magnet_Ctrl_Struct{
 
 }GRIPPER_MAGNET_CTRL_STRUCT;
 
+typedef struct _Wrench_Recognition{
+
+    bool wrench_recognition_mission;
+
+    //Setting
+    int valve_size;
+    QString str_valve_size;
+
+    //Output
+    int wrench_location;// 1 ~ 6
+    QString str_result_variable;
+
+}WRENCH_RECOGNITION;
+
 typedef struct _Manipulation_Option{
 
     LRF_KINOVA_VERTICAL_CTRL_STRUCT lrf_kinova_vertical_option;
@@ -221,6 +236,8 @@ typedef struct _Manipulation_Option{
     GRIPPER_FORCE_CTRL_STRUCT gripper_force_option;
 
     GRIPPER_MAGNET_CTRL_STRUCT gripper_magnet_option;
+
+    WRENCH_RECOGNITION wrench_recognition_option;
 
 }MANIPULATION_OPTION;
 

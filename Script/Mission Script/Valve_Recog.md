@@ -5,6 +5,8 @@
 
 # Title: Valve Recognition
 
+global_int gi_valve_size = 0
+
 ## Step0: LRF-Kinova Vertical Control
 
 LRF_KINOVA_VERTICAL_CTRL_STRUCT.desired_distance = 253
@@ -106,7 +108,7 @@ VALVE_SIZE_RECOG_STRUCT.force_threshold = 120
 VALVE_SIZE_RECOG_STRUCT.trial = 36
 VALVE_SIZE_RECOG_STRUCT.rotation_angle = 180
 
-VALVE_SIZE_RECOG_FUNCTION()
+gi_valve_size = VALVE_SIZE_RECOG_FUNCTION()
 
 A_Sleep(2000)
 
@@ -120,6 +122,7 @@ GRIPPER_FORCE_CTRL_FUNCTION()
 
 
 ##########################################_MISSION_END_##########################################
+
 
 
 

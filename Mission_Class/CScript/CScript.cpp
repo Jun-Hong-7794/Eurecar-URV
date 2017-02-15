@@ -503,6 +503,14 @@ bool CScript::InterpreteMissionScriptLine(QString _line, MISSION_SCRIPT* _missio
             return false;
     }
 
+    if(_line.contains("WRENCH_RECOGNITION")){
+
+        if(InterpreteWrenchRecognition(_line, _step_info))
+            return true;
+        else
+            return false;
+    }
+
     if(_line.contains("MISSION_END")){
 
         if(_step_info.step_title != "Empty"){
@@ -760,12 +768,12 @@ bool CScript::InterpreteKinovaForceCtrl(QString _line, STEP_INFO& _step_info){
     }
     else if(_line.contains("KINOVA_FORCE_CTRL_FUNCTION")){
         int equal_index = _line.indexOf("=");
-        _step_info.function_index = MP_KINOVA_FORCE_CONTROL;
 
         if(equal_index >= 0){
             _step_info.manipulation_option.kinova_force_option.str_result_variable =
                     _line.mid(0, equal_index - 1).trimmed();
         }
+        _step_info.function_index = MP_KINOVA_FORCE_CONTROL;
     }
     else
         return false;
@@ -922,6 +930,31 @@ bool CScript::InterpreteGripperMagnetCtrl(QString _line, STEP_INFO& _step_info){
     return true;
 }
 
+bool CScript::InterpreteWrenchRecognition(QString _line, STEP_INFO& _step_info){
+
+    if(_line.contains("WRENCH_RECOGNITION_STRUCT")){
+
+        if(_line.contains("valve_size")){
+            int colone_index = _line.indexOf("=");
+            _step_info.manipulation_option.wrench_recognition_option.str_valve_size = _line.mid(colone_index + 1).trimmed();
+            return true;
+        }
+    }
+    else if(_line.contains("WRENCH_RECOGNITION_FUNCTION")){
+        int equal_index = _line.indexOf("=");
+
+        if(equal_index >= 0){
+            _step_info.manipulation_option.wrench_recognition_option.str_result_variable =
+                    _line.mid(0, equal_index - 1).trimmed();
+        }
+        _step_info.function_index = MP_WRENCH_RECOGNITION;
+    }
+    else
+        return false;
+
+    return true;
+}
+
 bool CScript::InterpreteGripperValveSizeRecog(QString _line, STEP_INFO& _step_info){
 
 //    double grasp_pose_1;
@@ -983,6 +1016,13 @@ bool CScript::InterpreteGripperValveSizeRecog(QString _line, STEP_INFO& _step_in
         }
     }
     else if(_line.contains("VALVE_SIZE_RECOG_FUNCTION")){
+
+        int equal_index = _line.indexOf("=");
+
+        if(equal_index >= 0){
+            _step_info.manipulation_option.gripper_kinova_valve_recog_option.str_result_variable =
+                    _line.mid(0, equal_index - 1).trimmed();
+        }
         _step_info.function_index = MP_GRIPPER_VALVE_SIZE_RECOG;
     }
     else
@@ -1748,6 +1788,12 @@ bool CScript::MissionPlayer(){
                 mpc_manipulation->SelectMainFunction(MANIPUL_INX_GRIPPER_VALVE_SIZE_RECOG);
 
                 while(mpc_manipulation->isRunning());
+
+                int valve_size = mpc_manipulation->GetValveSizeRecogResult();
+                QString variable_name = mpary_mission_script[i].step_vecor.at(j).manipulation_option.gripper_kinova_valve_recog_option.str_result_variable;
+
+                SetIntVariable(variable_name, mpary_mission_script[i], valve_size);
+                mpc_manipulation->SetValveSizeRecogResult(0);
             }
 
             if(mpary_mission_script[i].step_vecor.at(j).function_index == MP_KINOVA_MANIPULATE){
@@ -1756,6 +1802,26 @@ bool CScript::MissionPlayer(){
                 mpc_manipulation->SelectMainFunction(MANIPUL_INX_KINOVA_MANIPULATE);
 
                 while(mpc_manipulation->isRunning());
+            }
+
+            if(mpary_mission_script[i].step_vecor.at(j).function_index == MP_WRENCH_RECOGNITION){
+
+                int valve_size = InterpreteBoolVariable(mpary_mission_script[i].step_vecor.at(j).manipulation_option.wrench_recognition_option.str_valve_size,
+                                                        mpary_mission_script[i]);
+
+                mpary_mission_script[i].step_vecor.at(j).manipulation_option.wrench_recognition_option.valve_size = valve_size;
+
+                mpc_manipulation->SetManipulationOption(mpary_mission_script[i].step_vecor.at(j).manipulation_option.wrench_recognition_option);
+                mpc_manipulation->SelectMainFunction(MANIPUL_INX_WRENCH_RECOGNITION);
+
+                while(mpc_manipulation->isRunning());
+
+                WRENCH_RECOGNITION wrech_recognitino_rst = mpc_manipulation->GetWrenchRecognitionOption();
+                int wrench_location = wrech_recognitino_rst.wrench_location;// 1 ~ 6
+
+                QString variable_name = mpary_mission_script[i].step_vecor.at(j).manipulation_option.wrench_recognition_option.str_result_variable;
+                SetIntVariable(variable_name, mpary_mission_script[i], wrench_location);
+
             }
 
             if(mpary_mission_script[i].step_vecor.at(j).function_index == GR_CONDITIONALLY_ITERATION){

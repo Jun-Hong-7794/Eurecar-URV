@@ -126,6 +126,8 @@ private:
     bool InterpreteLRFVehicleAngleCtrl(QString _line, STEP_INFO& _step_info);
     bool InterpreteLRFVehicleHorizenCtrl(QString _line, STEP_INFO& _step_info);
 
+    bool InterpreteWrenchRecognition(QString _line, STEP_INFO& _step_info);
+
     //-------------------------------------------------
     // Grammar
     //-------------------------------------------------

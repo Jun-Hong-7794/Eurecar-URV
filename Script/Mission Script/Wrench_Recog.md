@@ -3,6 +3,7 @@
 /* This Script is for 2107 MBZIRC Challenge2
 
 global_int gi_wrench_hanger_index = 3
+/*gi_valve_size
 
 # Title: Valve Recognition
 
@@ -46,7 +47,7 @@ LRF_KINOVA_VERTICAL_CTRL_FUNCTION()
 
 A_Sleep(500)
 
-## Step3: LRF-Kinova Horizen CTRL(Wrench Num4)
+## Step3: LRF-Kinova Horizen CTRL
 
 LRF_KINOVA_HORIZEN_CTRL_STRUCT.desired_inlier_deg_avr = 102
 LRF_KINOVA_HORIZEN_CTRL_STRUCT.error = 0.25
@@ -60,6 +61,14 @@ LRF_KINOVA_HORIZEN_CTRL_STRUCT.loop_sleep = 300
 LRF_KINOVA_HORIZEN_CTRL_STRUCT.sensor_option = false
 
 LRF_KINOVA_HORIZEN_CTRL_FUNCTION()
+
+A_Sleep(500)
+
+## Step3: Wrench Recognition
+
+WRENCH_RECOGNITION_STRUCT.valve_size = gi_valve_size
+
+gi_wrench_hanger_index = WRENCH_RECOGNITION_FUNCTION()
 
 A_Sleep(500)
 

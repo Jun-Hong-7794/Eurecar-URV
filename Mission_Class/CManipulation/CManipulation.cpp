@@ -21,6 +21,7 @@ CManipulation::CManipulation(CLRF *_p_mani_lrf, CCamera *_p_camera, CKinova *_p_
 
     mpc_rgb_d = new CRGBD(_p_camera, _p_mani_lrf);
 
+    m_valve_size_result = 0;
     m_valve_size_graph_index = 0;
 
     connect(mpc_kinova, SIGNAL(SignalKinovaPosition(CartesianPosition)), this, SIGNAL(SignalKinovaPosition(CartesianPosition)));
@@ -340,6 +341,12 @@ bool CManipulation::SelectMainFunction(int _fnc_index_){
 
         return true;
     }
+    else if(_fnc_index_ == MANIPUL_INX_WRENCH_RECOGNITION){
+        m_main_fnc_index = MANIPUL_INX_WRENCH_RECOGNITION;
+        this->start();
+
+        return true;
+    }
     else
         return false;
 }
@@ -542,6 +549,167 @@ GRIPPER_KINOVA_VALVE_SIZE_RECOG_STRUCT CManipulation::GetGripperKinovaValveRecog
     return gripper_kinova_valve_recog;
 }
 
+void CManipulation::SetManipulationOption(WRENCH_RECOGNITION _manipulation_option){
+
+    mxt_wrench_recognition.lock();
+    {
+        mstruct_wrench_recognition = _manipulation_option;
+    }
+    mxt_wrench_recognition.unlock();
+}
+
+WRENCH_RECOGNITION CManipulation::GetWrenchRecognitionOption(){
+
+    WRENCH_RECOGNITION wrench_recognition;
+
+    mxt_wrench_recognition.lock();
+    {
+        wrench_recognition = mstruct_wrench_recognition;
+    }
+    mxt_wrench_recognition.unlock();
+
+    return wrench_recognition;
+}
+
+//-------------------------------------------------
+// Calculate Function
+//-------------------------------------------------
+void CManipulation::ValveSizeDataModelInit(QVector<double> _data, int _index/*mm*/){
+
+    if(_index == 16){
+        if(!mqvec_16mm.empty()){
+            mqvec_16mm.clear();
+            mqvec_sorted_16mm.clear();
+        }
+
+        mqvec_16mm = _data;
+        mqvec_sorted_16mm = DataSort(mqvec_16mm);
+    }
+
+    if(_index == 17){
+        if(!mqvec_17mm.empty()){
+            mqvec_17mm.clear();
+            mqvec_sorted_17mm.clear();
+        }
+
+        mqvec_17mm = _data;
+        mqvec_sorted_17mm = DataSort(mqvec_17mm);
+    }
+
+    if(_index == 18){
+        if(!mqvec_18mm.empty()){
+            mqvec_18mm.clear();
+            mqvec_sorted_18mm.clear();
+        }
+
+        mqvec_18mm = _data;
+        mqvec_sorted_18mm = DataSort(mqvec_18mm);
+    }
+
+    if(_index == 19){
+        if(!mqvec_19mm.empty()){
+            mqvec_19mm.clear();
+            mqvec_sorted_19mm.clear();
+        }
+
+        mqvec_19mm = _data;
+        mqvec_sorted_19mm = DataSort(mqvec_19mm);
+    }
+
+    if(_index == 22){
+        if(!mqvec_22mm.empty()){
+            mqvec_22mm.clear();
+            mqvec_sorted_22mm.clear();
+        }
+
+        mqvec_22mm = _data;
+        mqvec_sorted_22mm = DataSort(mqvec_22mm);
+    }
+
+    if(_index == 24){
+        if(!mqvec_24mm.empty()){
+            mqvec_24mm.clear();
+            mqvec_sorted_24mm.clear();
+        }
+
+        mqvec_24mm = _data;
+        mqvec_sorted_24mm = DataSort(mqvec_24mm);
+    }
+}
+
+QVector<double> CManipulation::DataSort(QVector<double> _data){
+
+    for(int i = 0; i < _data.size(); i++){
+        for(int j = i; j < _data.size(); j++){
+
+            if(_data.at(i) > _data.at(j)){
+
+                double tmp_data = 0;
+
+                tmp_data = _data[i];
+                _data[i] = _data[j];
+                _data[j] = tmp_data;
+
+            }
+        }
+    }
+
+    return _data;
+}
+
+int CManipulation::DataAnalisys(QVector<double> _data){//For Valve Recognition, Result: 16 ~ 24(16mm, 17mm, 18mm, 19mm, 22mm, 24mm)
+
+    QVector<double> x(_data.size());
+
+    int valve_index = 0;
+    int min_error = 999999;/*Just... Big Number*/
+    int ary_error[6] = {-1, -1, -1, -1, -1, -1};
+    int result_valve = 0;//16,17,18,19,22,24mm
+
+    for(int i = 0; i < x.size(); i++){
+        x[i] = i;
+    }
+
+    for(int i = 0; i < 35; i++){
+
+        if(!mqvec_sorted_16mm.isEmpty()){
+            ary_error[0] += fabs(_data[i] - mqvec_sorted_16mm[i]);
+        }
+        if(!mqvec_sorted_17mm.isEmpty()){
+            ary_error[1] += fabs(_data[i] - mqvec_sorted_17mm[i]);
+        }
+        if(!mqvec_sorted_18mm.isEmpty()){
+            ary_error[2] += fabs(_data[i] - mqvec_sorted_18mm[i]);
+        }
+        if(!mqvec_sorted_19mm.isEmpty()){
+            ary_error[3] += fabs(_data[i] - mqvec_sorted_19mm[i]);
+        }
+        if(!mqvec_sorted_22mm.isEmpty()){
+            ary_error[4] += fabs(_data[i] - mqvec_sorted_22mm[i]);
+        }
+        if(!mqvec_sorted_24mm.isEmpty()){
+            ary_error[5] += fabs(_data[i] - mqvec_sorted_24mm[i]);
+        }
+    }
+
+    for(int i = 0; i < 6/*Number of Valve*/; i++){
+        if(ary_error[i] != -1){
+            if(min_error > ary_error[i]){
+                valve_index = i;
+                min_error = ary_error[i];
+            }
+        }
+    }
+
+    if(min_error == 999999){
+        return 0;
+    }
+    else
+        result_valve = mary_valve_size[valve_index];
+
+    return result_valve;
+}
+
 //----------------------------------------------------------------
 // Main Function Result
 //----------------------------------------------------------------
@@ -553,6 +721,15 @@ void CManipulation::SetMainFunctionResult(bool _result){
 bool CManipulation::GetMainFunctionResult(){
 
     return fl_main_fnc_result;
+}
+
+int CManipulation::GetValveSizeRecogResult(){
+
+    return m_valve_size_result;
+}
+
+void CManipulation::SetValveSizeRecogResult(int _result){
+    m_valve_size_result = _result;
 }
 
 //----------------------------------------------------------------
@@ -982,6 +1159,10 @@ bool CManipulation::GripperKinovaValveSizeRecognition(){
     current_pose.Coordinates.ThetaZ = org_roll_pose;
     mpc_kinova->KinovaDoManipulate(current_pose, 3);
 
+    int valve_size_recog = DataAnalisys(DataSort(gripper_data_y));
+
+    SetValveSizeRecogResult(valve_size_recog);
+
     return true;
 }
 
@@ -1011,6 +1192,18 @@ bool CManipulation::GripperMagnetCtrl(){
     gripper_magnet_ctrl = GetGripperMagnetCtrlOption();
 
     mpc_vehicle->ActiveMagnet(gripper_magnet_ctrl.fl_magnet);
+
+    return true;
+}
+
+bool CManipulation::WrenchRecognition(){
+
+    if(!mpc_camera->isRunning())
+        return false;
+
+    WRENCH_RECOGNITION wrench_recognition = GetWrenchRecognitionOption();
+//    wrench_recognition.valve_size;
+//    mpc_rgb_d->SSD~~~
 
     return true;
 }
@@ -1053,6 +1246,9 @@ void CManipulation::run(){
         break;
     case MANIPUL_INX_KINOVA_ROTATE_VALVE:
         KinovaRotateValveMotion();
+        break;
+    case MANIPUL_INX_WRENCH_RECOGNITION:
+        WrenchRecognition();
         break;
     default:
         break;
