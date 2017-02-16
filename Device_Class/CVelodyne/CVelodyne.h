@@ -21,6 +21,11 @@
 
 #define PI 3.14159265358979
 
+#define VELODYNE_MODE_DRIVING 0
+#define VELODYNE_MODE_PARKING 1
+
+typedef int VELODYNE_MODE;
+
 class CVelodyne : public QThread
 {
     Q_OBJECT
@@ -98,6 +103,9 @@ private:
 
     bool lrf_find_panel = false;
 
+    int velodyne_range = 100.0;
+    VELODYNE_MODE velodyne_mode = VELODYNE_MODE_DRIVING;
+
     bool RunVelodyne();
 public:
     bool ConnectVelodyne();
@@ -125,6 +133,11 @@ public:
 
     // Set lrf data
     bool SetLRFDataToPCL(long* _lrf_data,int _num_of_points);
+
+    void SetVelodyneRange(double _range);
+
+    void SetVelodyneMode(VELODYNE_MODE _mode);
+
 
 public:
     //PCL

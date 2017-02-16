@@ -315,37 +315,66 @@ bool CDriving::DriveToPanel(){
         return false;
     }
 
+    mpc_velodyne->SetVelodyneMode(VELODYNE_MODE_DRIVING);
+
     do{
-        int heading_control_flag = GetPanelHeadingError();
-        vector<double> panel_loc_info = mpc_velodyne->GetPanelCenterLoc();
 
-        double distance = panel_loc_info.at(2);
-        int test_vel;
-        if(distance < 0.6)
-            test_vel =0;
-        else if(distance >= 0.6)
-            test_vel = 65;
-        else
-            test_vel =0;
+        vector<double> way_point_error = GetWaypointError(mpc_velodyne->GetWaypoint().at(0),mpc_velodyne->GetWaypoint().at(1));
 
-        switch(heading_control_flag)
+        switch(GetParkingControl(way_point_error))
         {
-        case -1: // turn left
+        case 3: // turn left
             driving_struct.direction = UGV_move_left;
             driving_struct.velocity =75;
             break;
-        case 1: // turn right
+        case 4: // turn right
             driving_struct.direction = UGV_move_right;
             driving_struct.velocity =75;
             break;
-        case 0: // Go straight
+        case 1: // go forward
             driving_struct.direction = UGV_move_forward;
-            driving_struct.velocity =test_vel;
+            driving_struct.velocity =70;
+            break;
+        case 2: // go backward
+            driving_struct.direction = UGV_move_backward;
+            driving_struct.velocity =70;
             break;
         default:
 
             break;
         }
+
+
+//        int heading_control_flag = GetPanelHeadingError();
+//        vector<double> panel_loc_info = mpc_velodyne->GetPanelCenterLoc();
+
+//        double distance = panel_loc_info.at(2);
+//        int test_vel;
+//        if(distance < 0.6)
+//            test_vel =0;
+//        else if(distance >= 0.6)
+//            test_vel = 65;
+//        else
+//            test_vel =0;
+
+//        switch(heading_control_flag)
+//        {
+//        case -1: // turn left
+//            driving_struct.direction = UGV_move_left;
+//            driving_struct.velocity =75;
+//            break;
+//        case 1: // turn right
+//            driving_struct.direction = UGV_move_right;
+//            driving_struct.velocity =75;
+//            break;
+//        case 0: // Go straight
+//            driving_struct.direction = UGV_move_forward;
+//            driving_struct.velocity =test_vel;
+//            break;
+//        default:
+
+//            break;
+//        }
 
         mpc_vehicle->Move(driving_struct.direction, driving_struct.velocity);
 
@@ -362,6 +391,9 @@ bool CDriving::ParkingFrontPanel(){
         std::cout << "Fail to Connection Vehicle" << std::endl;
         return false;
     }
+
+    mpc_velodyne->SetVelodyneMode(VELODYNE_MODE_PARKING);
+
 
     int _s_deg = 0;
     int _e_deg = 180;
