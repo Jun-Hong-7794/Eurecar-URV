@@ -44,6 +44,11 @@
 
 #define MP_WRENCH_RECOGNITION                0x2011
 
+#define MP_LRF_KINOVA_WRENCH_LOVATION_CTRL   0x2012
+
+#define MP_LRF_K_VEHICLE_HORIZEN_CONTROL     0x2013
+#define MP_LRF_K_VEHICLE_ANGLE_CONTROL       0x2014
+
 //Grammar
 #define GR_CONDITIONALLY_ITERATION           0x3000
 //-------------------------------------------------

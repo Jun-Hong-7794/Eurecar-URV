@@ -37,6 +37,10 @@
 #define MANIPUL_INX_KINOVA_MANIPULATE           9
 #define MANIPUL_INX_KINOVA_ROTATE_VALVE         10
 #define MANIPUL_INX_WRENCH_RECOGNITION          11
+#define MANIPUL_INX_LRF_KINOVA_WRENCH_LOCATION  12
+
+#define MANIPUL_INX_LRF_K_VEHICLE_HORIZEN_CTRL  13
+#define MANIPUL_INX_LRF_K_VEHICLE_ANGLE_CTRL    14
 
 class CManipulation:public QThread{
     Q_OBJECT
@@ -64,6 +68,15 @@ private:
 
     LRF_KINOVA_HORIZEN_CTRL_STRUCT mstruct_lrf_kinova_horizen;
     QMutex mxt_lrf_kinova_horizen;
+
+    LRF_K_VEHICLE_ANGLE_STRUCT mstruct_lrf_k_vehicle_angle;
+    QMutex mxt_lrf_k_vehicle_angle;
+
+    LRF_K_VEHICLE_HORIZEN_STRUCT mstruct_lrf_k_vehicle_horizen;
+    QMutex mxt_lrf_k_vehicle_horizen;
+
+    LRF_KINOVA_WRENCH_LOCATION_STRUCT mstruct_lrf_kinova_wrench;
+    QMutex mxt_lrf_kinova_wrench;
 
     KINOVA_FORCE_CTRL_STRUCT mstruct_kinova_force_ctrl;
     QMutex mxt_kinova_force_ctrl;
@@ -152,6 +165,8 @@ public:
     bool KinovaMoveUnitStepFw();
     bool KinovaMoveUnitStepBw();
 
+    bool KinovaRotateBase(double _rot_deg);
+
     //LRF
     bool InitLRF(char* _dev_path = (char *)"/dev/ttyACM0", int _dev_type = UST_20LX);
     bool CloseLRF();
@@ -192,6 +207,15 @@ public:
     void SetManipulationOption(LRF_KINOVA_HORIZEN_CTRL_STRUCT _manipulation_option);
     LRF_KINOVA_HORIZEN_CTRL_STRUCT GetLRFKinovaHorizenOption();
 
+    void SetManipulationOption(LRF_K_VEHICLE_ANGLE_STRUCT _manipulation_option);
+    LRF_K_VEHICLE_ANGLE_STRUCT GetLRFVehicleAngleOption();
+
+    void SetManipulationOption(LRF_K_VEHICLE_HORIZEN_STRUCT _manipulation_option);
+    LRF_K_VEHICLE_HORIZEN_STRUCT GetLRFVehicleHorizenOption();
+
+    void SetManipulationOption(LRF_KINOVA_WRENCH_LOCATION_STRUCT _manipulation_option);
+    LRF_KINOVA_WRENCH_LOCATION_STRUCT GetLRFKinovaWrenchLocationOption();
+
     void SetManipulationOption(KINOVA_FORCE_CTRL_STRUCT _manipulation_option);
     KINOVA_FORCE_CTRL_STRUCT GetKinovaForceCtrlOption();
 
@@ -222,6 +246,10 @@ private:
     //-------------------------------------------------
     bool LRFKinovaVerticalControl();
     bool LRFKinovaHorizenControl();
+    bool LRFKinovaWrenchLocationMove();
+
+    bool LRFVehicleAngleControl();
+    bool LRFVehicleHorizenControl();
 
     bool KinovaForceCtrl();
     bool KinovaForceCheck();

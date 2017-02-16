@@ -9,38 +9,4 @@
 
 VEHICLE_PARKING_FUNCTION()
 
-## Step1: Vehicle Angle Control(Using LRF)
-/* unit is mm
-LRF_VEHICLE_ANGLE_CTRL_STRUCT.desired_angle = 0
-LRF_VEHICLE_ANGLE_CTRL_STRUCT.error_boundary = 0.5
-
-LRF_VEHICLE_ANGLE_CTRL_STRUCT.s_deg = 45
-LRF_VEHICLE_ANGLE_CTRL_STRUCT.e_deg = 135
-
-LRF_VEHICLE_ANGLE_CTRL_STRUCT.velocity = 77
-
-LRF_VEHICLE_ANGLE_CTRL_STRUCT.sensor_option = false
-
-LRF_VEHICLE_ANGLE_CTRL_FUNCTION()
-
-## Step2: Vehicle Horizen Control(Using LRF)
-/* unit is mm
-LRF_VEHICLE_HORIZEN_CTRL_STRUCT.inlier_distance = 1000
-
-LRF_VEHICLE_HORIZEN_CTRL_STRUCT.desired_avr_inlier_deg = 80
-LRF_VEHICLE_HORIZEN_CTRL_STRUCT.error_deg_boundary = 3
-
-LRF_VEHICLE_HORIZEN_CTRL_STRUCT.s_deg = 30
-LRF_VEHICLE_HORIZEN_CTRL_STRUCT.e_deg = 150
-
-
-LRF_VEHICLE_HORIZEN_CTRL_STRUCT.velocity = 65
-
-LRF_VEHICLE_HORIZEN_CTRL_STRUCT.sensor_option = false
-
-LRF_VEHICLE_HORIZEN_CTRL_FUNCTION()
-
-
-##########################################_MISSION_END_##########################################
-
 ##########################################_MISSION_END_##########################################

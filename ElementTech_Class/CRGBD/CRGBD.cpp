@@ -140,6 +140,13 @@ void CRGBD::GetHorizenDistance(double _inlier_distance,double& _horizen_distance
             memcpy(lrf_distance, &mary_lrf_distance[s_lrf_index], sizeof(long)*(number_of_point));
 
             ClaculateLRFHeightDistance(lrf_distance, _s_deg, _e_deg, s_index, point_vec, inlier_v_distance);
+
+            if(point_vec.size() == 0){
+                _s_inlier_deg = 0;
+                _e_inlier_deg = 0;
+                std::cout << "Error: ClaculateLRFHeightDistance" << std::endl;
+                return;
+            }
             ClaculateHorizenDistance(point_vec, _inlier_distance, _horizen_distance, s_inlier_inx, e_inlier_inx);
 
             ClaculateVirtualHorizenInfo(_virt_s_deg, _virt_e_deg, point_vec.at(s_inlier_inx).x, point_vec.at(e_inlier_inx).x);

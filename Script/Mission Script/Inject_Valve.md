@@ -8,6 +8,50 @@ global_bool gb_bool_kinova_force_ctrl_rst = true;
 
 # Title: Valve Recognition
 
+## Step1: LRF-Kinova Vertical CTRL
+
+LRF_KINOVA_VERTICAL_CTRL_STRUCT.desired_distance = 270
+LRF_KINOVA_VERTICAL_CTRL_STRUCT.error = 2
+
+LRF_KINOVA_VERTICAL_CTRL_STRUCT.s_deg = 30
+LRF_KINOVA_VERTICAL_CTRL_STRUCT.e_deg = 150
+
+LRF_KINOVA_VERTICAL_CTRL_STRUCT.inlier_lrf_dst = 800
+
+LRF_KINOVA_VERTICAL_CTRL_STRUCT.loop_sleep = 30
+LRF_KINOVA_VERTICAL_CTRL_STRUCT.sensor_option = false
+
+LRF_KINOVA_VERTICAL_CTRL_FUNCTION()
+
+A_Sleep(500)
+
+## Step2: Vehicle Horizen Control(Using LRF)
+/* unit is mm
+
+LRF_VEHICLE_HORIZEN_CTRL_STRUCT.desired_avr_inlier_deg = 87.5
+LRF_VEHICLE_HORIZEN_CTRL_STRUCT.error_deg_boundary = 1
+
+LRF_VEHICLE_HORIZEN_CTRL_STRUCT.s_deg = 30
+LRF_VEHICLE_HORIZEN_CTRL_STRUCT.e_deg = 150
+
+LRF_VEHICLE_HORIZEN_CTRL_STRUCT.inlier_distance = 800
+
+
+LRF_VEHICLE_HORIZEN_CTRL_STRUCT.velocity = 77
+
+LRF_VEHICLE_HORIZEN_CTRL_STRUCT.sensor_option = false
+
+LRF_VEHICLE_HORIZEN_CTRL_FUNCTION()
+
+## Step0: Gripper Release
+
+GRIPPER_FORCE_CTRL_STRUCT.pose_1 = 2500
+GRIPPER_FORCE_CTRL_STRUCT.pose_2 = 2500
+GRIPPER_FORCE_CTRL_STRUCT.forece_threshold = 200
+
+GRIPPER_FORCE_CTRL_FUNCTION()
+
+
 ## Step0: Go to Rotate Z-Position
 
 KINOVA_MANIPULATE_STRUCT.x = ==
@@ -27,7 +71,7 @@ A_Sleep(500)
 
 ## Step1: LRF-Kinova Vertical CTRL
 
-LRF_KINOVA_VERTICAL_CTRL_STRUCT.desired_distance = 181.0
+LRF_KINOVA_VERTICAL_CTRL_STRUCT.desired_distance = 351
 LRF_KINOVA_VERTICAL_CTRL_STRUCT.error = 1
 
 LRF_KINOVA_VERTICAL_CTRL_STRUCT.s_deg = 110
@@ -44,11 +88,11 @@ A_Sleep(500)
 
 ## Step2: LRF-Kinova Horizen CTRL
 
-LRF_KINOVA_HORIZEN_CTRL_STRUCT.desired_inlier_deg_avr = 130.0
-LRF_KINOVA_HORIZEN_CTRL_STRUCT.error = 0.25
+LRF_KINOVA_HORIZEN_CTRL_STRUCT.desired_inlier_deg_avr = 82.0
+LRF_KINOVA_HORIZEN_CTRL_STRUCT.error = 0.5
 
-LRF_KINOVA_HORIZEN_CTRL_STRUCT.s_deg = 110
-LRF_KINOVA_HORIZEN_CTRL_STRUCT.e_deg = 170
+LRF_KINOVA_HORIZEN_CTRL_STRUCT.s_deg = 30
+LRF_KINOVA_HORIZEN_CTRL_STRUCT.e_deg = 150
 
 LRF_KINOVA_HORIZEN_CTRL_STRUCT.inlier_lrf_dst = 800
 
@@ -59,6 +103,22 @@ LRF_KINOVA_HORIZEN_CTRL_FUNCTION()
 
 A_Sleep(1000)
 
+## Step1: LRF-Kinova Vertical CTRL
+
+LRF_KINOVA_VERTICAL_CTRL_STRUCT.desired_distance = 178
+LRF_KINOVA_VERTICAL_CTRL_STRUCT.error = 1
+
+LRF_KINOVA_VERTICAL_CTRL_STRUCT.s_deg = 110
+LRF_KINOVA_VERTICAL_CTRL_STRUCT.e_deg = 170
+
+LRF_KINOVA_VERTICAL_CTRL_STRUCT.inlier_lrf_dst = 800
+
+LRF_KINOVA_VERTICAL_CTRL_STRUCT.loop_sleep = 30
+LRF_KINOVA_VERTICAL_CTRL_STRUCT.sensor_option = false
+
+LRF_KINOVA_VERTICAL_CTRL_FUNCTION()
+
+A_Sleep(500)
 
 ## Step3: KINOVA Force CTRL
 
@@ -71,7 +131,7 @@ KINOVA_FORCE_CTRL_STRUCT.force_threshold_z = -1
 
 KINOVA_FORCE_CTRL_STRUCT.position_limit_x = 0
 KINOVA_FORCE_CTRL_STRUCT.position_limit_y = 0
-KINOVA_FORCE_CTRL_STRUCT.position_limit_z = 0.213
+KINOVA_FORCE_CTRL_STRUCT.position_limit_z = 0.2748
 
 KINOVA_FORCE_CTRL_STRUCT.move_step_x = 0
 KINOVA_FORCE_CTRL_STRUCT.move_step_y = 0
@@ -82,7 +142,7 @@ A_Sleep(1000)
 
 ## Step4: Gripper Release
 
-IF(gb_bool_kinova_force_ctrl_rst)
+/*IF(gb_bool_kinova_force_ctrl_rst)
 /*IF(false)
 
 GRIPPER_FORCE_CTRL_STRUCT.pose_1 = 1780
@@ -92,7 +152,7 @@ GRIPPER_FORCE_CTRL_STRUCT.force_threshold = 80
 GRIPPER_FORCE_CTRL_FUNCTION()
 
 /*Else Go to 0 Step*/
-ELSE(GoTo:0)
+/*ELSE(GoTo:0)
 ## Step5: Magnet OFF
 
 GRIPPER_MAGNET_CTRL_STRUCT.fl_magnet = false
