@@ -10,6 +10,7 @@
 //-------------------------------------------------
 // Device Class
 //-------------------------------------------------
+#include "Device_Class/CIMU/CIMU.h"
 #include "Device_Class/CGPS/CGPS.h"
 #include "Device_Class/CLRF/CLRF.h"
 #include "Device_Class/CCamera/CCamera.h"
@@ -44,7 +45,7 @@ protected:
 
 public:
     CDriving();
-    CDriving(CGPS* _p_gps, CLRF* _p_lrf, CCamera* _p_camera, CKinova* _p_kinova, CVehicle* _p_vehicle, CVelodyne* _p_velodyne);
+    CDriving(CIMU* _p_imu, CGPS* _p_gps, CLRF* _p_lrf, CCamera* _p_camera, CKinova* _p_kinova, CVehicle* _p_vehicle, CVelodyne* _p_velodyne);
 
     ~CDriving();
 private:
@@ -65,6 +66,7 @@ private:
     //-------------------------------------------------
     // Device Class
     //-------------------------------------------------
+    CIMU* mpc_imu;
     CGPS* mpc_gps;
     CLRF* mpc_drive_lrf;
     CCamera* mpc_camera;
@@ -83,6 +85,12 @@ public:
     bool ConnectVelodyne();
     bool CloseVelodyne();
     bool IsVelodyneConnected();
+
+    bool ConnectGPS();
+    bool IsGPSConnected();
+    bool CloseGPS();
+    void SetInitGPSpoint();
+    void SetGroundGPS();
 
     void PCLInit();
     CPCL* GetPCL();

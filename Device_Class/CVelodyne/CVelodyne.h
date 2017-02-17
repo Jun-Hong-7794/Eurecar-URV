@@ -19,6 +19,11 @@
 #include "CPCL.h"
 #include "../CUDP/CUDP.h"
 
+#include "Device_Class/CIMU/CIMU.h"
+#include "Device_Class/CGPS/CGPS.h"
+#include "Device_Class/CGPS/gps_struct.h"
+
+
 #define PI 3.14159265358979
 
 #define VELODYNE_MODE_DRIVING 0
@@ -34,12 +39,29 @@ protected:
 
 public:
     CVelodyne();
+    CVelodyne(CIMU* _p_imu, CGPS* _p_gps);
+
     ~CVelodyne();
 
 private:
+
     // PCL Class
     CPCL* mpc_pcl;
     QMutex mtx_pcl;
+
+    // IMU Class
+    CIMU* mpc_imu;
+
+    //GPS Class
+    CGPS* mpc_gps;
+    Ground_Gpspoint m_ground_gps;
+    Ground_Bodypoint m_ground_body;
+    Gpspoint m_current_gps;
+    double m_cur_heading;
+
+    bool fl_gps_init;
+
+
 
     bool fl_parser_complete;
 
@@ -138,11 +160,17 @@ public:
 
     void SetVelodyneMode(VELODYNE_MODE _mode);
 
+    //calc ground gps points to body coordiante
+//    Ground_Bodypoint GetGroundGPS_Body();
 
 public:
     //PCL
     CPCL* GetPCL();
     void PCLInitialize();
+
+public:
+    //GPS
+    CGPS* GetGPS();
 
 public slots:
     void SignalRecieveParam(bool ps);

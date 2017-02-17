@@ -21,22 +21,23 @@ EurecarURV_Dlg::EurecarURV_Dlg(QWidget *parent) :
     //-------------------------------------------------
     // Device Class Initialize
     //-------------------------------------------------
+    mpc_imu = new CIMU;
     mpc_gps = new CGPS;
     mpc_drive_lrf = new CLRF;
     mpc_mani__lrf = new CLRF;
     mpc_camera = new CCamera;
     mpc_kinova = new CKinova;
     mpc_vehicle = new CVehicle;
-    mpc_velodyne = new CVelodyne;
     mpc_gripper = new CGripper;
 
     mpc_ssd = new CSSD;
+    mpc_velodyne = new CVelodyne(mpc_imu, mpc_gps);
     //-------------------------------------------------
     // Mission Class Initialize
     //-------------------------------------------------
 
     //Driving Class Initialize
-    mpc_drivig = new CDriving(mpc_gps, mpc_drive_lrf, mpc_camera, mpc_kinova, mpc_vehicle, mpc_velodyne);
+    mpc_drivig = new CDriving(mpc_imu, mpc_gps, mpc_drive_lrf, mpc_camera, mpc_kinova, mpc_vehicle, mpc_velodyne);
 
     //Manipulation Class Initialize
     mpc_manipulation = new CManipulation(mpc_mani__lrf, mpc_camera, mpc_kinova, mpc_vehicle, mpc_velodyne, mpc_gripper, mpc_ssd);
@@ -81,6 +82,8 @@ EurecarURV_Dlg::EurecarURV_Dlg(QWidget *parent) :
     connect(ui->bt_drive_lrf,SIGNAL(clicked()), this, SLOT(SlotButtonLRFDriveSwitch()));
     connect(ui->bt_ugv,SIGNAL(clicked()), this, SLOT(SlotButtonVehicleSwitch()));
     connect(ui->bt_gripper,SIGNAL(clicked()), this, SLOT(SlotButtonGripperSwitch()));
+    connect(ui->bt_gps,SIGNAL(clicked()), this, SLOT(SlotButtonGPSSwitch()));
+    connect(ui->bt_imu,SIGNAL(clicked()), this, SLOT(SlotButtonIMUSwitch()));
 
     //Click List View
     connect(ui->lsview_mission_title,SIGNAL(clicked(QModelIndex)), this, SLOT(SlotMissionListUpdate(QModelIndex)));
@@ -170,6 +173,21 @@ void EurecarURV_Dlg::SlotButtonGripperSwitch(){
 
 }
 
+void EurecarURV_Dlg::SlotButtonIMUSwitch(){
+    if(!mpc_imu->IsIMUInit())
+    {
+        if(!mpc_imu->IMUInit(ui->ed_imu_path->text().toStdString()))
+        {
+            QMessageBox::information(this, tr("Fail to Connect IMU"),tr("Check IMU"));
+        }
+        else
+        {
+            ui->bt_imu->setText("IMU On");
+        }
+
+    }
+}
+
 void EurecarURV_Dlg::SlotButtonVelodyneSwitch(){
 
     if(!mpc_velodyne->IsVelodyneConneted()){
@@ -241,7 +259,22 @@ void EurecarURV_Dlg::SlotButtonLRFDriveSwitch(){
 }
 
 void EurecarURV_Dlg::SlotButtonGPSSwitch(){
+    QString dev_path;
+    dev_path = ui->ed_gps_path->text();
 
+    QByteArray char_dev_path = dev_path.toLocal8Bit();
+
+    if(!mpc_gps->port->isOpen()){
+        if(!mpc_gps->GpsInit()){
+            QMessageBox::information(this, tr("Fail to Open Device"), tr("Check the GPS"));
+            return;
+        }
+        ui->bt_gps->setText("GPS OFF");
+    }
+    else{
+        mpc_gps->GpsClose();
+        ui->bt_gps->setText("GPS Connect");
+    }
 }
 
 void EurecarURV_Dlg::SlotButtonVehicleSwitch(){

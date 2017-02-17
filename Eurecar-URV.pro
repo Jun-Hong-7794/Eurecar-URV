@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-QT       += core gui
+QT       += core gui serialport
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets printsupport
 
@@ -33,7 +33,19 @@ SOURCES += main.cpp\
     Device_Class/CUDP/CUDP.cpp \
     Device_Class/CGripper/CGripper.cpp \
     qcustomplot.cpp \
-    ElementTech_Class/CSSD/CSSD.cpp
+    ElementTech_Class/CSSD/CSSD.cpp \
+    Device_Class/CIMU/3DM-GX/byteswap_utilities.cpp \
+    Device_Class/CIMU/3DM-GX/mip_sdk_3dm.cpp \
+    Device_Class/CIMU/3DM-GX/mip_sdk_ahrs.cpp \
+    Device_Class/CIMU/3DM-GX/mip_sdk_base.cpp \
+    Device_Class/CIMU/3DM-GX/mip_sdk_filter.cpp \
+    Device_Class/CIMU/3DM-GX/mip_sdk_gps.cpp \
+    Device_Class/CIMU/3DM-GX/mip_sdk_inteface.cpp \
+    Device_Class/CIMU/3DM-GX/mip_sdk_system.cpp \
+    Device_Class/CIMU/3DM-GX/mip_sdk_user_functions.cpp \
+    Device_Class/CIMU/3DM-GX/mip.cpp \
+    Device_Class/CIMU/3DM-GX/ring_buffer.cpp \
+    Device_Class/CIMU/CIMU.cpp
 
 
 HEADERS  += EurecarURV_Dlg.h \
@@ -65,7 +77,32 @@ HEADERS  += EurecarURV_Dlg.h \
     Device_Class/CGripper/CGripper.h \
     Mission_Class/CScript/Def_Script.h \
     qcustomplot.h \
-    ElementTech_Class/CSSD/CSSD.h
+    ElementTech_Class/CSSD/CSSD.h \
+    Device_Class/CGPS/gps_struct.h \
+    Device_Class/CIMU/3DM-GX/byteswap_utilities.h \
+    Device_Class/CIMU/3DM-GX/mainpage.h \
+    Device_Class/CIMU/3DM-GX/mip_gx3_35.h \
+    Device_Class/CIMU/3DM-GX/mip_gx3_45.h \
+    Device_Class/CIMU/3DM-GX/mip_gx4_15.h \
+    Device_Class/CIMU/3DM-GX/mip_gx4_25.h \
+    Device_Class/CIMU/3DM-GX/mip_gx4_45.h \
+    Device_Class/CIMU/3DM-GX/mip_gx4_imu.h \
+    Device_Class/CIMU/3DM-GX/mip_rq1_imu.h \
+    Device_Class/CIMU/3DM-GX/mip_rq1.h \
+    Device_Class/CIMU/3DM-GX/mip_sdk_3dm.h \
+    Device_Class/CIMU/3DM-GX/mip_sdk_ahrs.h \
+    Device_Class/CIMU/3DM-GX/mip_sdk_base.h \
+    Device_Class/CIMU/3DM-GX/mip_sdk_config.h \
+    Device_Class/CIMU/3DM-GX/mip_sdk_filter.h \
+    Device_Class/CIMU/3DM-GX/mip_sdk_gps.h \
+    Device_Class/CIMU/3DM-GX/mip_sdk_interface.h \
+    Device_Class/CIMU/3DM-GX/mip_sdk_system.h \
+    Device_Class/CIMU/3DM-GX/mip_sdk_user_functions.h \
+    Device_Class/CIMU/3DM-GX/mip_sdk.h \
+    Device_Class/CIMU/3DM-GX/mip_types.h \
+    Device_Class/CIMU/3DM-GX/mip.h \
+    Device_Class/CIMU/3DM-GX/ring_buffer.h \
+    Device_Class/CIMU/CIMU.h
 
 FORMS    += EurecarURV_Dlg.ui \
     Driving_Dlg.ui \

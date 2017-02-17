@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1221</width>
-    <height>624</height>
+    <height>694</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -470,7 +470,7 @@
       <x>980</x>
       <y>310</y>
       <width>231</width>
-      <height>271</height>
+      <height>321</height>
      </rect>
     </property>
     <property name="font">
@@ -480,7 +480,7 @@
      </font>
     </property>
     <property name="currentIndex">
-     <number>0</number>
+     <number>1</number>
     </property>
     <widget class="QWidget" name="tab_sensor_switch">
      <attribute name="title">
@@ -588,6 +588,19 @@
       </property>
       <property name="text">
        <string>Gripper On</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="bt_imu">
+      <property name="geometry">
+       <rect>
+        <x>4</x>
+        <y>198</y>
+        <width>101</width>
+        <height>41</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>IMU On</string>
       </property>
      </widget>
     </widget>
@@ -723,6 +736,58 @@
       </property>
       <property name="text">
        <string>Gripper Init</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="bt_gps_path_set">
+      <property name="geometry">
+       <rect>
+        <x>120</x>
+        <y>210</y>
+        <width>101</width>
+        <height>31</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Gps Init</string>
+      </property>
+     </widget>
+     <widget class="QLineEdit" name="ed_gps_path">
+      <property name="geometry">
+       <rect>
+        <x>0</x>
+        <y>220</y>
+        <width>113</width>
+        <height>22</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>/dev/ttyACM0</string>
+      </property>
+     </widget>
+     <widget class="QLineEdit" name="ed_imu_path">
+      <property name="geometry">
+       <rect>
+        <x>0</x>
+        <y>260</y>
+        <width>113</width>
+        <height>22</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>2</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="bt_imu_path_set">
+      <property name="geometry">
+       <rect>
+        <x>120</x>
+        <y>250</y>
+        <width>101</width>
+        <height>31</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>IMU Init</string>
       </property>
      </widget>
     </widget>

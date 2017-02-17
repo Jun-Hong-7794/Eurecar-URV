@@ -4,8 +4,9 @@ CDriving::CDriving(){
 
 }
 
-CDriving::CDriving(CGPS* _p_gps, CLRF* _p_lrf, CCamera* _p_camera, CKinova* _p_kinova, CVehicle* _p_vehicle, CVelodyne* _p_velodyne){
+CDriving::CDriving(CIMU* _p_imu, CGPS* _p_gps, CLRF* _p_lrf, CCamera* _p_camera, CKinova* _p_kinova, CVehicle* _p_vehicle, CVelodyne* _p_velodyne){
 
+    mpc_imu = _p_imu;
     mpc_gps = _p_gps;
     mpc_drive_lrf = _p_lrf;
     mpc_camera = _p_camera;
@@ -61,6 +62,7 @@ bool CDriving::ConnectVelodyne(){
         return false;
 }
 
+
 bool CDriving::CloseVelodyne(){
 
     if(mpc_velodyne->SetVelodyneThread(false))
@@ -72,6 +74,40 @@ bool CDriving::CloseVelodyne(){
 bool CDriving::IsVelodyneConnected(){
     return mpc_velodyne->IsVelodyneConneted();
 }
+
+
+//GPS
+bool CDriving::ConnectGPS()
+{
+    if(!mpc_gps->GpsInit())
+    {
+        std::cout << "Fail to Connection GPS" << std::endl;
+        return false;
+    }
+    else
+        return true;
+}
+bool CDriving::IsGPSConnected(){
+    return mpc_gps->IsGPSConnected();
+}
+
+void CDriving::SetInitGPSpoint()
+{
+    mpc_gps->SetInitGPS();
+    mpc_gps->CalcGroundGpspoint();
+}
+
+void CDriving::SetGroundGPS()
+{
+}
+
+bool CDriving::CloseGPS()
+{
+    mpc_gps->GpsClose();
+    return true;
+}
+
+
 
 void CDriving::PCLInit(){
     mpc_velodyne->PCLInitialize();
@@ -315,6 +351,12 @@ bool CDriving::DriveToPanel(){
         return false;
     }
 
+    if(!mpc_gps->port->isOpen())
+    {
+        std::cout << "Fail to Connection GPS" << std::endl;
+        return false;
+    }
+
     mpc_velodyne->SetVelodyneMode(VELODYNE_MODE_DRIVING);
 
     do{
@@ -500,14 +542,17 @@ bool CDriving::ParkingFrontPanel(){
                         else if(outer_product_panel_center_norm  > 0)
                         {
                             driving_struct.direction = UGV_move_forward;
-                            driving_struct.velocity =80;
+                            driving_struct.velocity =100;
                         }
                     }
                     else
                     {
-                        driving_struct.direction = UGV_move_differ_left;
-                        driving_struct.velocity =75;
-
+//                        driving_struct.direction = UGV_move_differ_left;
+//                        driving_struct.velocity =120;
+                        driving_struct.direction = UGV_move_forward;
+                        driving_struct.velocity =100;
+//                        driving_struct.direction = UGV_move_left;
+//                        driving_struct.velocity =85;
                     }
                 }
                 else if(panel_length > 2.0)
@@ -561,7 +606,7 @@ bool CDriving::ParkingFrontPanel(){
                     if ( (line_distance_to_origin < (side_center_margin + 0.25)) && (abs(panel_slope) > (75.0/180.0*PI)))
                     {
                         driving_struct.direction = UGV_move_forward;
-                        driving_struct.velocity =80;
+                        driving_struct.velocity =100;
                     }
                     else
                     {
@@ -580,19 +625,20 @@ bool CDriving::ParkingFrontPanel(){
                             else if(outer_product_panel_center_norm  > 0)
                             {
                                 driving_struct.direction = UGV_move_forward;
-                                driving_struct.velocity =80;
+                                driving_struct.velocity =100;
                             }
 
                         }
                         else
                         {
                             driving_struct.direction = UGV_move_forward;
-                            driving_struct.velocity =0;
+                            driving_struct.velocity =100;
                         }
                     }
                 }
 
             }
+            cout<<driving_struct.direction << endl;
             mpc_vehicle->Move(driving_struct.direction, driving_struct.velocity);
         }
     }while(driving_struct.driving_mission);

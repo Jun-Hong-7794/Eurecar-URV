@@ -38,6 +38,7 @@ private:
     //-------------------------------------------------
     // Device Class
     //-------------------------------------------------
+    CIMU* mpc_imu;
     CGPS* mpc_gps;
     CLRF* mpc_drive_lrf;
     CLRF* mpc_mani__lrf;
@@ -94,6 +95,7 @@ public slots:
     void SlotButtonVelodyneSwitch();
     void SlotButtonKinovaSwitch();
     void SlotButtonGripperSwitch();
+    void SlotButtonIMUSwitch();
 
     //ListView
     void SlotMissionListUpdate(QModelIndex);
