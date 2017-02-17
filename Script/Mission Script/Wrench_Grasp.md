@@ -48,9 +48,9 @@ A_Sleep(500)
 ## Step3: LRF-Kinova Horizen CTRL(Wrench Num4)
 /*LRF_KINOVA_HORIZEN_CTRL_STRUCT.wrench_hanger_index = gi_wrench_hanger_index
 
-LRF_KINOVA_HORIZEN_CTRL_STRUCT.wrench_hanger_index = 2
+LRF_KINOVA_HORIZEN_CTRL_STRUCT.wrench_hanger_index = 1
 
-LRF_KINOVA_HORIZEN_CTRL_STRUCT.wrench_location_deg_1 = 95.5 
+LRF_KINOVA_HORIZEN_CTRL_STRUCT.wrench_location_deg_1 = 96.0 
 LRF_KINOVA_HORIZEN_CTRL_STRUCT.wrench_location_deg_2 = 98.5 
 LRF_KINOVA_HORIZEN_CTRL_STRUCT.wrench_location_deg_3 = 102 
 LRF_KINOVA_HORIZEN_CTRL_STRUCT.wrench_location_deg_4 = 105.5 
