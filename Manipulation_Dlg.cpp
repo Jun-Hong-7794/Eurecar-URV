@@ -47,6 +47,8 @@ Manipulation_Dlg::Manipulation_Dlg(CManipulation* _pc_manipulation, QWidget *par
     connect(ui->bt_kinova_pitch_up, SIGNAL(clicked()), this, SLOT(SlotButtonKinovaMoveStepPitchUp()));
     connect(ui->bt_kinova_pitch_dw, SIGNAL(clicked()), this, SLOT(SlotButtonKinovaMoveStepPitchDw()));
 
+    connect(ui->bt_kinova_base_rotate, SIGNAL(clicked()), this, SLOT(SlotButtonKinovaBaseRotate()));
+
     connect(ui->bt_lrf_kinova_ctrl, SIGNAL(clicked()), this, SLOT(SlotButtonLRFKinovaCtrl()));
     connect(ui->bt_kinova_force_ctrl, SIGNAL(clicked()), this, SLOT(SlotButtonKinovaForceCtrl()));
     connect(ui->bt_gripper_force_ctrl, SIGNAL(clicked()), this, SLOT(SlotButtonEEffectorLoadCheckIter()));
@@ -135,7 +137,7 @@ Manipulation_Dlg::Manipulation_Dlg(CManipulation* _pc_manipulation, QWidget *par
     ui->graph_gripper_data_plot->yAxis->setLabel("Diff Step");
     // set axes ranges, so we see all data:
     ui->graph_gripper_data_plot->xAxis->setRange(0, 36);
-    ui->graph_gripper_data_plot->yAxis->setRange(0, 300);
+    ui->graph_gripper_data_plot->yAxis->setRange(150, 450);
     ui->graph_gripper_data_plot->replot();
 
     ui->graph_gripper_data_anal_plot->setLocale(QLocale(QLocale::English, QLocale::UnitedKingdom)); // period as decimal separator and comma as thousand separator
@@ -150,7 +152,7 @@ Manipulation_Dlg::Manipulation_Dlg(CManipulation* _pc_manipulation, QWidget *par
     ui->graph_gripper_data_anal_plot->yAxis->setLabel("Diff Step");
     // set axes ranges, so we see all data:
     ui->graph_gripper_data_anal_plot->xAxis->setRange(0, 36);
-    ui->graph_gripper_data_anal_plot->yAxis->setRange(0, 300);
+    ui->graph_gripper_data_anal_plot->yAxis->setRange(150, 450);
     ui->graph_gripper_data_anal_plot->replot();
 
     QString fileName = "/home/winner/Workspace/2017MBZIRC_Code/Eurecar-URV/Eurecar-URV/ValveSizeData/ModelData/";
@@ -291,6 +293,14 @@ void Manipulation_Dlg::SlotButtonKinovaMoveStepPitchDw(){
 
     if(!mpc_manipulation->KinovaMoveUnitStep(0, 0, 0, 0, (-1)*unit_step, 0))
         QMessageBox::information(this, tr("Fail to Move Step"), tr("Check Kinova Status"));
+}
+
+void Manipulation_Dlg::SlotButtonKinovaBaseRotate(){
+
+    double rotate_value = ui->ed_kinova_base_rotate->text().toDouble();
+
+    if(!mpc_manipulation->KinovaRotateBase(rotate_value))
+        QMessageBox::information(this, tr("Fail to Base Rotate"), tr("Check Kinova Status"));;
 }
 
 void Manipulation_Dlg::SlotEditeKinovaPosition(CartesianPosition _position){
@@ -477,7 +487,7 @@ void Manipulation_Dlg::SlotButtonHorizenDistance(){
     double s_virture_deg = 0;
     double e_virture_deg = 0;
 
-    int sampling_loop = 5;
+    int sampling_loop = 1;
 
     double inlier_lrf_dst = ui->ed_lrf_horizen_inlier->text().toDouble();
 

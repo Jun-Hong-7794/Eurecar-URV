@@ -154,6 +154,16 @@ bool CManipulation::KinovaGetPosition(CartesianPosition& _position){
     return true;
 }
 
+bool CManipulation::KinovaRotateBase(double _rot_deg){
+
+    if(!mpc_kinova->IsKinovaInitialized())
+        return false;
+
+    mpc_kinova->KinovaRotateBase(_rot_deg);
+
+    return true;
+}
+
 //LRF
 bool CManipulation::InitLRF(char* _dev_path, int _dev_type){
 
@@ -298,6 +308,26 @@ bool CManipulation::SelectMainFunction(int _fnc_index_){
 
         return true;
     }
+    if(_fnc_index_ == MANIPUL_INX_LRF_K_VEHICLE_HORIZEN_CTRL){
+        m_main_fnc_index = MANIPUL_INX_LRF_K_VEHICLE_HORIZEN_CTRL;
+        this->start();
+
+        return true;
+    }
+    if(_fnc_index_ == MANIPUL_INX_LRF_K_VEHICLE_ANGLE_CTRL){
+        m_main_fnc_index = MANIPUL_INX_LRF_K_VEHICLE_ANGLE_CTRL;
+        this->start();
+
+        return true;
+    }
+    if(_fnc_index_ == MANIPUL_INX_LRF_KINOVA_ANGLE_CTRL){
+        m_main_fnc_index = MANIPUL_INX_LRF_KINOVA_ANGLE_CTRL;
+        this->start();
+
+        return true;
+    }
+
+
     else if(_fnc_index_ == MANIPUL_INX_KINOVA_FORCE_CLRL){
         m_main_fnc_index = MANIPUL_INX_KINOVA_FORCE_CLRL;
         this->start();
@@ -348,6 +378,13 @@ bool CManipulation::SelectMainFunction(int _fnc_index_){
 
         return true;
     }
+    else if(_fnc_index_ == MANIPUL_INX_LRF_KINOVA_WRENCH_LOCATION){
+        m_main_fnc_index = MANIPUL_INX_LRF_KINOVA_WRENCH_LOCATION;
+        this->start();
+
+        return true;
+    }
+
     else
         return false;
 }
@@ -392,6 +429,76 @@ LRF_KINOVA_HORIZEN_CTRL_STRUCT CManipulation::GetLRFKinovaHorizenOption(){
         lrf_kinova_struct = mstruct_lrf_kinova_horizen;
     }
     mxt_lrf_kinova_horizen.unlock();
+
+    return lrf_kinova_struct;
+}
+
+void CManipulation::SetManipulationOption(LRF_K_VEHICLE_ANGLE_STRUCT _manipulation_option){
+
+    mxt_lrf_k_vehicle_angle .lock();
+    {
+        mstruct_lrf_k_vehicle_angle = _manipulation_option;
+    }
+    mxt_lrf_k_vehicle_angle.unlock();
+}
+
+LRF_K_VEHICLE_ANGLE_STRUCT CManipulation::GetLRFVehicleAngleOption(){
+
+    LRF_K_VEHICLE_ANGLE_STRUCT lrf_kinova_struct;
+
+    mxt_lrf_k_vehicle_angle .lock();
+    {
+        lrf_kinova_struct = mstruct_lrf_k_vehicle_angle;
+    }
+    mxt_lrf_k_vehicle_angle.unlock();
+
+    return lrf_kinova_struct;
+}
+
+void CManipulation::SetManipulationOption(LRF_K_VEHICLE_HORIZEN_STRUCT _manipulation_option){
+
+    mxt_lrf_k_vehicle_horizen.lock();
+    {
+        mstruct_lrf_k_vehicle_horizen = _manipulation_option;
+    }
+    mxt_lrf_k_vehicle_horizen.unlock();
+
+}
+
+LRF_K_VEHICLE_HORIZEN_STRUCT CManipulation::GetLRFVehicleHorizenOption(){
+
+    LRF_K_VEHICLE_HORIZEN_STRUCT lrf_kinova_struct;
+
+    mxt_lrf_k_vehicle_horizen.lock();
+    {
+        lrf_kinova_struct = mstruct_lrf_k_vehicle_horizen;
+    }
+    mxt_lrf_k_vehicle_horizen.unlock();
+
+    return lrf_kinova_struct;
+}
+
+
+
+
+void CManipulation::SetManipulationOption(LRF_KINOVA_WRENCH_LOCATION_STRUCT _manipulation_option){
+
+    mxt_lrf_kinova_wrench.lock();
+    {
+        mstruct_lrf_kinova_wrench = _manipulation_option;
+    }
+    mxt_lrf_kinova_wrench.unlock();
+}
+
+LRF_KINOVA_WRENCH_LOCATION_STRUCT CManipulation::GetLRFKinovaWrenchLocationOption(){
+
+    LRF_KINOVA_WRENCH_LOCATION_STRUCT lrf_kinova_struct;
+
+    mxt_lrf_kinova_wrench.lock();
+    {
+        lrf_kinova_struct = mstruct_lrf_kinova_wrench;
+    }
+    mxt_lrf_kinova_wrench.unlock();
 
     return lrf_kinova_struct;
 }
@@ -747,7 +854,6 @@ bool CManipulation::LRFKinovaVerticalControl(){
             return false;
     }
 
-
     do{
         double slope = 0;
         double current_distance = 0;
@@ -785,6 +891,137 @@ bool CManipulation::LRFKinovaVerticalControl(){
     return true;
 }
 
+bool CManipulation::LRFVehicleAngleControl(){
+
+    LRF_K_VEHICLE_ANGLE_STRUCT lrf_vehicle = GetLRFVehicleAngleOption();
+
+    if(!lrf_vehicle.sensor_option){
+        if(!mpc_vehicle->IsConnected())
+            return false;
+    }
+
+    if(!mpc_lrf->IsLRFOn())
+        return false;
+
+    do{
+        int direction = 0;
+
+        double slope = 0;
+        double distance = 0;
+
+        double slope_error = 0;
+
+        mpc_rgb_d->GetLRFInfo(slope, distance, lrf_vehicle.s_deg, lrf_vehicle.e_deg);
+
+        lrf_vehicle.angle = slope;
+        lrf_vehicle.vertical_distance = distance;
+
+        slope_error = lrf_vehicle.desired_angle - lrf_vehicle.angle;
+
+//        emit SignalLRFVehicleAngleStruct(lrf_vehicle);
+
+        if(lrf_vehicle.error_boundary > fabs(slope_error)){
+            break;
+        }
+
+        if(!lrf_vehicle.sensor_option){
+            if(slope_error < 0){
+                direction = UGV_move_left;
+            }
+            else{
+                direction = UGV_move_right;
+            }
+
+            mpc_vehicle->Move(direction, lrf_vehicle.velocity);
+        }
+
+    }while(true);
+
+    mpc_vehicle->Move(UGV_move_forward, 0);
+
+    return true;
+}
+
+bool CManipulation::LRFVehicleHorizenControl(){
+
+    double inlier_distance = 0;
+
+    LRF_K_VEHICLE_HORIZEN_STRUCT lrf_vehicle = GetLRFVehicleHorizenOption();
+    inlier_distance = lrf_vehicle.inlier_distance;
+
+    if(!mpc_lrf->IsLRFOn())
+        return false;
+
+    if(!lrf_vehicle.sensor_option){
+        if(!mpc_vehicle->IsConnected())
+            return false;
+    }
+
+    int count = 0;
+
+    do{
+        int direction = 0;
+        double current_a_inlier_deg = 0;
+        double current_a_virtual_deg = 0;
+
+        double a_deg_boundary = 0;
+        double a_deg_virtual_boundary = 0;
+
+        double horizen_distance = 0;
+
+        double s_virture_deg = 0;
+        double e_virture_deg = 0;
+
+        double s_inlier_deg = 0;
+        double e_inlier_deg = 0;
+
+        mpc_rgb_d->GetHorizenDistance(inlier_distance, horizen_distance, s_inlier_deg, e_inlier_deg,
+                                      s_virture_deg, e_virture_deg, lrf_vehicle.s_deg, lrf_vehicle.e_deg);
+
+        current_a_inlier_deg = (s_inlier_deg + e_inlier_deg) / 2;
+        current_a_virtual_deg = (s_virture_deg + e_virture_deg) / 2;;
+
+        a_deg_boundary = lrf_vehicle.desired_avr_inlier_deg - current_a_inlier_deg;
+        a_deg_virtual_boundary = lrf_vehicle.desired_avr_inlier_deg - current_a_virtual_deg;
+
+        lrf_vehicle.horizen_distance = horizen_distance;
+
+        lrf_vehicle.s_inlier_deg = s_inlier_deg;
+        lrf_vehicle.e_inlier_deg = e_inlier_deg;
+
+        lrf_vehicle.s_virtual_deg = s_virture_deg;
+        lrf_vehicle.e_virtual_deg = e_virture_deg;
+
+//        emit SignalLRFVehicleHorizenStruct(lrf_vehicle);
+
+        if(lrf_vehicle.error_deg_boundary > fabs(a_deg_boundary)){
+//            if(count < 10){
+//                count++;
+//                continue;
+//            }
+//            else
+                break;
+        }
+
+        if(!lrf_vehicle.sensor_option){
+            if(a_deg_boundary > 0){
+                direction = UGV_move_forward;
+            }
+            else{
+                direction = UGV_move_backward;
+            }
+            mpc_vehicle->Move(direction, lrf_vehicle.velocity);
+        }
+
+        count = 0;
+
+    }while(true);
+
+    mpc_vehicle->Move(UGV_move_forward, 0);
+
+    return true;
+}
+
 bool CManipulation::LRFKinovaHorizenControl(){
 
     LRF_KINOVA_HORIZEN_CTRL_STRUCT lrf_kinova_struct = GetLRFKinovaHorizenOption();
@@ -816,14 +1053,19 @@ bool CManipulation::LRFKinovaHorizenControl(){
 
         case 1:
             lrf_kinova_struct.desired_inlier_deg_avr = lrf_kinova_struct.wrench_location_deg_1;
+            break;
         case 2:
             lrf_kinova_struct.desired_inlier_deg_avr = lrf_kinova_struct.wrench_location_deg_2;
+            break;
         case 3:
             lrf_kinova_struct.desired_inlier_deg_avr = lrf_kinova_struct.wrench_location_deg_3;
+            break;
         case 4:
             lrf_kinova_struct.desired_inlier_deg_avr = lrf_kinova_struct.wrench_location_deg_4;
+            break;
         case 5:
             lrf_kinova_struct.desired_inlier_deg_avr = lrf_kinova_struct.wrench_location_deg_5;
+            break;
         case 6:
             lrf_kinova_struct.desired_inlier_deg_avr = lrf_kinova_struct.wrench_location_deg_6;
             break;
@@ -847,6 +1089,10 @@ bool CManipulation::LRFKinovaHorizenControl(){
 
         mpc_rgb_d->GetHorizenDistance(lrf_kinova_struct.inlier_lrf_dst, current_h_distance, inlier_s_deg, inlier_e_deg,
                                       s_virture_deg, e_virture_deg, lrf_kinova_struct.s_deg, lrf_kinova_struct.e_deg, sampling_loop);
+
+        if(inlier_s_deg == 0 && inlier_e_deg == 0){
+            continue;
+        }
 
         lrf_kinova_struct.inlier_deg_s_output = inlier_s_deg;
         lrf_kinova_struct.inlier_deg_e_output = inlier_e_deg;
@@ -888,6 +1134,114 @@ bool CManipulation::LRFKinovaHorizenControl(){
         count = 0;
     }
     while(true);
+
+    return true;
+}
+
+bool CManipulation::LRFKinovaWrenchLocationMove(){
+
+    LRF_KINOVA_WRENCH_LOCATION_STRUCT lrf_kinova_struct = GetLRFKinovaWrenchLocationOption();
+    LRF_KINOVA_HORIZEN_CTRL_STRUCT lrf_kinova_horizen;
+    if(!mpc_lrf->IsLRFOn())
+        return false;
+    if(!lrf_kinova_struct.sensor_option){
+        if(!mpc_kinova->IsKinovaInitialized())
+            return false;
+    }
+
+    int count = 0;
+    int sampling_loop = 1;
+
+    double inlier_s_deg = 0;
+    double inlier_e_deg = 0;
+    double current_h_distance = 0;
+    double inlier_deg_error = 0;
+
+    double s_virture_deg = 0;
+    double e_virture_deg = 0;
+
+    if(lrf_kinova_struct.desired_start_deg == 0){
+
+        switch(lrf_kinova_struct.wrench_hanger_index){
+
+        case 1:
+            lrf_kinova_struct.desired_start_deg = lrf_kinova_struct.wrench_rel_location_1;
+            break;
+        case 2:
+            lrf_kinova_struct.desired_start_deg = lrf_kinova_struct.wrench_rel_location_2;
+            break;
+        case 3:
+            lrf_kinova_struct.desired_start_deg = lrf_kinova_struct.wrench_rel_location_3;
+            break;
+        case 4:
+            lrf_kinova_struct.desired_start_deg = lrf_kinova_struct.wrench_rel_location_4;
+            break;
+        case 5:
+            lrf_kinova_struct.desired_start_deg = lrf_kinova_struct.wrench_rel_location_5;
+            break;
+        case 6:
+            lrf_kinova_struct.desired_start_deg = lrf_kinova_struct.wrench_rel_location_6;
+            break;
+        }
+    }
+
+    do{
+        lrf_kinova_struct.inlier_deg_s_output = 0;
+        lrf_kinova_struct.inlier_deg_e_output = 0;
+
+        mpc_rgb_d->GetHorizenDistance(lrf_kinova_struct.inlier_lrf_dst, current_h_distance, inlier_s_deg, inlier_e_deg,
+                                      s_virture_deg, e_virture_deg, lrf_kinova_struct.s_deg, lrf_kinova_struct.e_deg, sampling_loop);
+
+        lrf_kinova_struct.inlier_deg_s_output = inlier_s_deg;
+        lrf_kinova_struct.inlier_deg_e_output = inlier_e_deg;
+        lrf_kinova_struct.current_h_distance = current_h_distance;
+
+        inlier_deg_error = lrf_kinova_struct.desired_start_deg - inlier_s_deg;
+
+
+        lrf_kinova_horizen.inlier_deg_s_output = inlier_s_deg;
+        lrf_kinova_horizen.inlier_deg_e_output = inlier_e_deg;
+
+        emit SignalLRFKinovaHorizenStruct(lrf_kinova_horizen);
+
+        if(fabs(inlier_deg_error) < lrf_kinova_struct.error){
+            if(count < 5){
+                count++;
+                sampling_loop = 5;
+                usleep(500);
+                continue;
+            }
+            else
+                break;
+        }
+        else if(fabs(inlier_deg_error) < (lrf_kinova_struct.error*5)){
+            sampling_loop = 5;
+            usleep(500);
+        }
+
+        if(!lrf_kinova_struct.sensor_option){
+            if(inlier_deg_error < 0){
+                mpc_kinova->KinovaMoveUnitStepLe();
+            }
+            else if(inlier_deg_error > 0){
+                mpc_kinova->KinovaMoveUnitStepRi();
+            }
+            if(lrf_kinova_struct.loop_sleep != 0)
+                msleep(lrf_kinova_struct.loop_sleep/*msec*/);
+        }
+
+        count = 0;
+    }
+    while(true);
+
+//    if(lrf_kinova_struct.wrench_hanger_index != 0){
+//        CartesianPosition position;
+//        position = mpc_kinova->KinovaGetPosition();
+
+//        position.Coordinates.Y -= (0.05) * (lrf_kinova_struct.wrench_hanger_index - 1);
+
+//        mpc_kinova->KinovaDoManipulate(position,2,20);
+//    }
 
     return true;
 }
@@ -1155,6 +1509,10 @@ bool CManipulation::GripperKinovaValveSizeRecognition(){
 
     m_valve_size_graph_index++;
 
+    mpc_gripper->GripperGoToThePositionLoadCheck(2300, 2300, -2);
+
+    msleep(1000);
+
     SetManipulationOption(gripper_kinova_valve_recog);
 
     current_pose.Coordinates.ThetaZ = org_roll_pose;
@@ -1163,6 +1521,8 @@ bool CManipulation::GripperKinovaValveSizeRecognition(){
     int valve_size_recog = DataAnalisys(DataSort(gripper_data_y));
 
     SetValveSizeRecogResult(valve_size_recog);
+
+    std::cout << "Valve Size: " << valve_size_recog << std::endl;
 
     return true;
 }
@@ -1205,7 +1565,6 @@ bool CManipulation::WrenchRecognition(){
     WRENCH_RECOGNITION wrench_recognition = GetWrenchRecognitionOption();
 
     cv::Mat camera_image;
-    cv::Mat segnet_image;
     vector<vector<int>> bb_info;
     vector<int> bb_info_x_ori;
     vector<int> bb_info_x_sort;
@@ -1302,6 +1661,12 @@ void CManipulation::run(){
     case MANIPUL_INX_LRF_KINOVA_HORIZEN_CTRL:
         LRFKinovaHorizenControl();
         break;
+    case MANIPUL_INX_LRF_K_VEHICLE_HORIZEN_CTRL:
+        LRFVehicleHorizenControl();
+        break;
+    case MANIPUL_INX_LRF_K_VEHICLE_ANGLE_CTRL:
+        LRFVehicleAngleControl();
+        break;
     case MANIPUL_INX_KINOVA_FORCE_CLRL:
         SetMainFunctionResult(KinovaForceCtrl());
         break;
@@ -1325,6 +1690,9 @@ void CManipulation::run(){
         break;
     case MANIPUL_INX_WRENCH_RECOGNITION:
         WrenchRecognition();
+        break;
+    case MANIPUL_INX_LRF_KINOVA_WRENCH_LOCATION:
+        LRFKinovaWrenchLocationMove();
         break;
     default:
         break;

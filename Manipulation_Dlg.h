@@ -108,6 +108,8 @@ public slots:
     void SlotButtonKinovaMoveStepPitchUp();
     void SlotButtonKinovaMoveStepPitchDw();
 
+    void SlotButtonKinovaBaseRotate();
+
     //LRF
     void SlotButtonLRFOn();
     void SlotButtonGetLRFInfo();

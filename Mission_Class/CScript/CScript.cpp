@@ -503,6 +503,14 @@ bool CScript::InterpreteMissionScriptLine(QString _line, MISSION_SCRIPT* _missio
             return false;
     }
 
+    if(_line.contains("LRF_KINOVA_WRENCH_LOCATION_CTRL")){
+
+        if(InterpreteLRFKinovaWrenchLocationCtrl(_line, _step_info))
+            return true;
+        else
+            return false;
+    }
+
     if(_line.contains("LRF_VEHICLE_HORIZEN_CTRL")){
 
         if(InterpreteLRFVehicleHorizenCtrl(_line, _step_info))
@@ -1085,28 +1093,28 @@ bool CScript::InterpreteLRFVehicleAngleCtrl(QString _line, STEP_INFO& _step_info
 
         if(_line.contains("desired_angle")){
             int colone_index = _line.indexOf("=");
-            _step_info.driving_option.lrf_vehicle_angle_option.desired_angle = _line.mid(colone_index + 1).trimmed().toDouble();
+            _step_info.manipulation_option.lrf_k_vehicle_angle_option.desired_angle = _line.mid(colone_index + 1).trimmed().toDouble();
             return true;
         }
         if(_line.contains("error_boundary")){
             int colone_index = _line.indexOf("=");
-            _step_info.driving_option.lrf_vehicle_angle_option.error_boundary = _line.mid(colone_index + 1).trimmed().toDouble();
+            _step_info.manipulation_option.lrf_k_vehicle_angle_option.error_boundary = _line.mid(colone_index + 1).trimmed().toDouble();
             return true;
         }
         if(_line.contains("s_deg")){
             int colone_index = _line.indexOf("=");
-            _step_info.driving_option.lrf_vehicle_angle_option.s_deg = _line.mid(colone_index + 1).trimmed().toDouble();
+            _step_info.manipulation_option.lrf_k_vehicle_angle_option.s_deg = _line.mid(colone_index + 1).trimmed().toDouble();
             return true;
         }
         if(_line.contains("e_deg")){
             int colone_index = _line.indexOf("=");
-            _step_info.driving_option.lrf_vehicle_angle_option.e_deg = _line.mid(colone_index + 1).trimmed().toDouble();
+            _step_info.manipulation_option.lrf_k_vehicle_angle_option.e_deg = _line.mid(colone_index + 1).trimmed().toDouble();
             return true;
         }
 
         if(_line.contains("velocity")){
             int colone_index = _line.indexOf("=");
-            _step_info.driving_option.lrf_vehicle_angle_option.velocity = _line.mid(colone_index + 1).trimmed().toDouble();
+            _step_info.manipulation_option.lrf_k_vehicle_angle_option.velocity = _line.mid(colone_index + 1).trimmed().toDouble();
             return true;
         }
 
@@ -1117,16 +1125,16 @@ bool CScript::InterpreteLRFVehicleAngleCtrl(QString _line, STEP_INFO& _step_info
             str_option = _line.mid(colone_index + 1).trimmed();
 
             if(str_option.contains("true"))
-                _step_info.driving_option.lrf_vehicle_angle_option.sensor_option = true;
+                _step_info.manipulation_option.lrf_k_vehicle_angle_option.sensor_option = true;
             else
-                _step_info.driving_option.lrf_vehicle_angle_option.sensor_option = false;
+                _step_info.manipulation_option.lrf_k_vehicle_angle_option.sensor_option = false;
 
             return true;
         }
 
     }
     else if(_line.contains("LRF_VEHICLE_ANGLE_CTRL_FUNCTION")){
-        _step_info.function_index = DR_LRF_VEHICLE_ANGLE_CONTROL;
+        _step_info.function_index = MP_LRF_K_VEHICLE_ANGLE_CONTROL;
     }
     else
         return false;
@@ -1140,32 +1148,32 @@ bool CScript::InterpreteLRFVehicleHorizenCtrl(QString _line, STEP_INFO& _step_in
 
         if(_line.contains("inlier_distance")){
             int colone_index = _line.indexOf("=");
-            _step_info.driving_option.lrf_vehicle_horizen_option.inlier_distance = _line.mid(colone_index + 1).trimmed().toDouble();
+            _step_info.manipulation_option.lrf_k_vehicle_horizen_option.inlier_distance = _line.mid(colone_index + 1).trimmed().toDouble();
             return true;
         }
         if(_line.contains("desired_avr_inlier_deg")){
             int colone_index = _line.indexOf("=");
-            _step_info.driving_option.lrf_vehicle_horizen_option.desired_avr_inlier_deg = _line.mid(colone_index + 1).trimmed().toDouble();
+            _step_info.manipulation_option.lrf_k_vehicle_horizen_option.desired_avr_inlier_deg = _line.mid(colone_index + 1).trimmed().toDouble();
             return true;
         }
         if(_line.contains("error_deg_boundary")){
             int colone_index = _line.indexOf("=");
-            _step_info.driving_option.lrf_vehicle_horizen_option.error_deg_boundary = _line.mid(colone_index + 1).trimmed().toDouble();
+            _step_info.manipulation_option.lrf_k_vehicle_horizen_option.error_deg_boundary = _line.mid(colone_index + 1).trimmed().toDouble();
             return true;
         }
         if(_line.contains("velocity")){
             int colone_index = _line.indexOf("=");
-            _step_info.driving_option.lrf_vehicle_horizen_option.velocity = _line.mid(colone_index + 1).trimmed().toDouble();
+            _step_info.manipulation_option.lrf_k_vehicle_horizen_option.velocity = _line.mid(colone_index + 1).trimmed().toDouble();
             return true;
         }
         if(_line.contains("s_deg")){
             int colone_index = _line.indexOf("=");
-            _step_info.driving_option.lrf_vehicle_horizen_option.s_deg = _line.mid(colone_index + 1).trimmed().toDouble();
+            _step_info.manipulation_option.lrf_k_vehicle_horizen_option.s_deg = _line.mid(colone_index + 1).trimmed().toDouble();
             return true;
         }
         if(_line.contains("e_deg")){
             int colone_index = _line.indexOf("=");
-            _step_info.driving_option.lrf_vehicle_horizen_option.e_deg = _line.mid(colone_index + 1).trimmed().toDouble();
+            _step_info.manipulation_option.lrf_k_vehicle_horizen_option.e_deg = _line.mid(colone_index + 1).trimmed().toDouble();
             return true;
         }
 
@@ -1176,16 +1184,16 @@ bool CScript::InterpreteLRFVehicleHorizenCtrl(QString _line, STEP_INFO& _step_in
             str_option = _line.mid(colone_index + 1).trimmed();
 
             if(str_option.contains("true"))
-                _step_info.driving_option.lrf_vehicle_horizen_option.sensor_option = true;
+                _step_info.manipulation_option.lrf_k_vehicle_horizen_option.sensor_option = true;
             else
-                _step_info.driving_option.lrf_vehicle_horizen_option.sensor_option = false;
+                _step_info.manipulation_option.lrf_k_vehicle_horizen_option.sensor_option = false;
 
             return true;
         }
 
     }
     else if(_line.contains("LRF_VEHICLE_HORIZEN_CTRL_FUNCTION")){
-        _step_info.function_index = DR_LRF_VEHICLE_HORIZEN_CONTROL;
+        _step_info.function_index = MP_LRF_K_VEHICLE_HORIZEN_CONTROL;
     }
     else
         return false;
@@ -1340,6 +1348,109 @@ bool CScript::InterpreteLRFKinovaHorizenCtrl(QString _line, STEP_INFO& _step_inf
     }
     else if(_line.contains("LRF_KINOVA_HORIZEN_CTRL_FUNCTION")){
         _step_info.function_index = MP_LRF_KINOVA_HORIZEN_CONTROL;
+    }
+    else
+        return false;
+
+    return true;
+}
+
+bool CScript::InterpreteLRFKinovaWrenchLocationCtrl(QString _line, STEP_INFO& _step_info){
+
+
+    if(_line.contains("LRF_KINOVA_WRENCH_LOCATION_CTRL_STRUCT")){
+
+        if(_line.contains("desired_start_deg")){
+            int colone_index = _line.indexOf("=");
+            _step_info.manipulation_option.lrf_kinova_wrench_option.desired_start_deg = _line.mid(colone_index + 1).trimmed().toDouble();
+            return true;
+        }
+        if(_line.contains("desired_end_deg")){
+            int colone_index = _line.indexOf("=");
+            _step_info.manipulation_option.lrf_kinova_wrench_option.desired_end_deg = _line.mid(colone_index + 1).trimmed().toDouble();
+            return true;
+        }
+
+        if(_line.contains("wrench_hanger_index")){
+            int colone_index = _line.indexOf("=");
+            _step_info.manipulation_option.lrf_kinova_wrench_option.wrench_hanger_index_str = _line.mid(colone_index + 1).trimmed();
+            return true;
+        }
+
+        if(_line.contains("wrench_rel_location_1")){
+            int colone_index = _line.indexOf("=");
+            _step_info.manipulation_option.lrf_kinova_wrench_option.wrench_rel_location_1 = _line.mid(colone_index + 1).trimmed().toDouble();
+            return true;
+        }
+        if(_line.contains("wrench_rel_location_2")){
+            int colone_index = _line.indexOf("=");
+            _step_info.manipulation_option.lrf_kinova_wrench_option.wrench_rel_location_2 = _line.mid(colone_index + 1).trimmed().toDouble();
+            return true;
+        }
+        if(_line.contains("wrench_rel_location_3")){
+            int colone_index = _line.indexOf("=");
+            _step_info.manipulation_option.lrf_kinova_wrench_option.wrench_rel_location_3 = _line.mid(colone_index + 1).trimmed().toDouble();
+            return true;
+        }
+        if(_line.contains("wrench_rel_location_4")){
+            int colone_index = _line.indexOf("=");
+            _step_info.manipulation_option.lrf_kinova_wrench_option.wrench_rel_location_4 = _line.mid(colone_index + 1).trimmed().toDouble();
+            return true;
+        }
+        if(_line.contains("wrench_rel_location_5")){
+            int colone_index = _line.indexOf("=");
+            _step_info.manipulation_option.lrf_kinova_wrench_option.wrench_rel_location_5 = _line.mid(colone_index + 1).trimmed().toDouble();
+            return true;
+        }
+        if(_line.contains("wrench_rel_location_6")){
+            int colone_index = _line.indexOf("=");
+            _step_info.manipulation_option.lrf_kinova_wrench_option.wrench_rel_location_6 = _line.mid(colone_index + 1).trimmed().toDouble();
+            return true;
+        }
+
+        if(_line.contains("error")){
+            int colone_index = _line.indexOf("=");
+            _step_info.manipulation_option.lrf_kinova_wrench_option.error = _line.mid(colone_index + 1).trimmed().toDouble();
+            return true;
+        }
+        if(_line.contains("s_deg")){
+            int colone_index = _line.indexOf("=");
+            _step_info.manipulation_option.lrf_kinova_wrench_option.s_deg = _line.mid(colone_index + 1).trimmed().toDouble();
+            return true;
+        }
+        if(_line.contains("e_deg")){
+            int colone_index = _line.indexOf("=");
+            _step_info.manipulation_option.lrf_kinova_wrench_option.e_deg = _line.mid(colone_index + 1).trimmed().toDouble();
+            return true;
+        }
+        if(_line.contains("inlier_lrf_dst")){
+            int colone_index = _line.indexOf("=");
+            _step_info.manipulation_option.lrf_kinova_wrench_option.inlier_lrf_dst = _line.mid(colone_index + 1).trimmed().toDouble();
+            return true;
+        }
+        if(_line.contains("loop_sleep")){
+            int colone_index = _line.indexOf("=");
+            _step_info.manipulation_option.lrf_kinova_wrench_option.loop_sleep = _line.mid(colone_index + 1).trimmed().toDouble();
+            return true;
+        }
+
+        if(_line.contains("sensor_option")){
+            int colone_index = _line.indexOf("=");
+
+            QString str_option;
+            str_option = _line.mid(colone_index + 1).trimmed();
+
+            if(str_option.contains("true"))
+                _step_info.manipulation_option.lrf_kinova_wrench_option.sensor_option = true;
+            else
+                _step_info.manipulation_option.lrf_kinova_wrench_option.sensor_option = false;
+
+            return true;
+        }
+
+    }
+    else if(_line.contains("LRF_KINOVA_WRENCH_LOCATION_CTRL_FUNCTION")){
+        _step_info.function_index = MP_LRF_KINOVA_WRENCH_LOVATION_CTRL;
     }
     else
         return false;
@@ -1746,25 +1857,18 @@ bool CScript::MissionPlayer(){
                 }
             }
 
-            if(mpary_mission_script[i].step_vecor.at(j).function_index == DR_VELODYNE_VEHICLE_CONTROL){
-                mpc_drivig->SetDrivingOption(mpary_mission_script[i].step_vecor.at(j).driving_option.driving_option);
-                mpc_drivig->SelectMainFunction(DRIVE_INX_DRIVE_TO_PANEL);
+            if(mpary_mission_script[i].step_vecor.at(j).function_index == MP_LRF_K_VEHICLE_HORIZEN_CONTROL){
+                mpc_manipulation->SetManipulationOption(mpary_mission_script[i].step_vecor.at(j).manipulation_option.lrf_k_vehicle_horizen_option);
+                mpc_manipulation->SelectMainFunction(MANIPUL_INX_LRF_K_VEHICLE_HORIZEN_CTRL);
 
-                while(mpc_drivig->isRunning());
+                while(mpc_manipulation->isRunning());
             }
 
-            if(mpary_mission_script[i].step_vecor.at(j).function_index == DR_LRF_VEHICLE_ANGLE_CONTROL){
-                mpc_drivig->SetManipulationOption(mpary_mission_script[i].step_vecor.at(j).driving_option.lrf_vehicle_angle_option);
-                mpc_drivig->SelectMainFunction(DRIVE_INX_LRF_VEHICLE_ANGLE);
+            if(mpary_mission_script[i].step_vecor.at(j).function_index == MP_LRF_K_VEHICLE_ANGLE_CONTROL){
+                mpc_manipulation->SetManipulationOption(mpary_mission_script[i].step_vecor.at(j).manipulation_option.lrf_k_vehicle_angle_option);
+                mpc_manipulation->SelectMainFunction(MANIPUL_INX_LRF_K_VEHICLE_ANGLE_CTRL);
 
-                while(mpc_drivig->isRunning());
-            }
-
-            if(mpary_mission_script[i].step_vecor.at(j).function_index == DR_LRF_VEHICLE_HORIZEN_CONTROL){
-                mpc_drivig->SetManipulationOption(mpary_mission_script[i].step_vecor.at(j).driving_option.lrf_vehicle_horizen_option);
-                mpc_drivig->SelectMainFunction(DRIVE_INX_LRF_VEHICLE_HORIZEN);
-
-                while(mpc_drivig->isRunning());
+                while(mpc_manipulation->isRunning());
             }
 
             if(mpary_mission_script[i].step_vecor.at(j).function_index == DR_VEHICLE_DRIVE_TO_PANEL){
@@ -1808,6 +1912,23 @@ bool CScript::MissionPlayer(){
 
                 mpc_manipulation->SetManipulationOption(mpary_mission_script[i].step_vecor.at(j).manipulation_option.lrf_kinova_horizen_option);
                 mpc_manipulation->SelectMainFunction(MANIPUL_INX_LRF_KINOVA_HORIZEN_CTRL);
+
+                while(mpc_manipulation->isRunning());
+            }
+
+            if(mpary_mission_script[i].step_vecor.at(j).function_index == MP_LRF_KINOVA_WRENCH_LOVATION_CTRL){
+
+                int wrench_index = 0;
+                QString str_index;
+                str_index = mpary_mission_script[i].step_vecor.at(j).manipulation_option.lrf_kinova_wrench_option.wrench_hanger_index_str;
+
+                wrench_index = InterpreteIntVariable(str_index, mpary_mission_script[i]);
+
+                mpary_mission_script[i].step_vecor.at(j).manipulation_option.lrf_kinova_wrench_option.wrench_hanger_index =
+                        wrench_index;
+
+                mpc_manipulation->SetManipulationOption(mpary_mission_script[i].step_vecor.at(j).manipulation_option.lrf_kinova_wrench_option);
+                mpc_manipulation->SelectMainFunction(MANIPUL_INX_LRF_KINOVA_WRENCH_LOCATION);
 
                 while(mpc_manipulation->isRunning());
             }

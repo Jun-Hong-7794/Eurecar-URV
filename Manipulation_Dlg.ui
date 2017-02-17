@@ -98,7 +98,7 @@
       <x>10</x>
       <y>26</y>
       <width>281</width>
-      <height>191</height>
+      <height>231</height>
      </rect>
     </property>
     <property name="title">
@@ -460,12 +460,48 @@
       <string>&amp;PU</string>
      </property>
     </widget>
+    <widget class="QLabel" name="lb_kinova_unit_step_2">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>187</y>
+       <width>81</width>
+       <height>16</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Base Rotate</string>
+     </property>
+    </widget>
+    <widget class="QLineEdit" name="ed_kinova_base_rotate">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>204</y>
+       <width>61</width>
+       <height>22</height>
+      </rect>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="bt_kinova_base_rotate">
+     <property name="geometry">
+      <rect>
+       <x>136</x>
+       <y>187</y>
+       <width>141</width>
+       <height>41</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Base Rotate</string>
+     </property>
+    </widget>
    </widget>
    <widget class="QGroupBox" name="grbx_lrf">
     <property name="geometry">
      <rect>
       <x>10</x>
-      <y>223</y>
+      <y>260</y>
       <width>201</width>
       <height>121</height>
      </rect>
@@ -599,7 +635,7 @@
     <property name="geometry">
      <rect>
       <x>10</x>
-      <y>367</y>
+      <y>390</y>
       <width>201</width>
       <height>71</height>
      </rect>
@@ -1832,7 +1868,7 @@
     </font>
    </property>
    <property name="currentIndex">
-    <number>1</number>
+    <number>2</number>
    </property>
    <widget class="QWidget" name="tab">
     <attribute name="title">

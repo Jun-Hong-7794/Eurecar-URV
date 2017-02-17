@@ -148,6 +148,8 @@ EurecarURV_Dlg::~EurecarURV_Dlg()
     delete mpc_vehicle;
     delete mpc_velodyne;
 
+    delete mpc_ssd;
+
     delete ui;
 }
 

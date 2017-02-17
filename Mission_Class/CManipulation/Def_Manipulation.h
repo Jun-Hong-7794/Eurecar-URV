@@ -54,6 +54,94 @@ typedef struct _LRF_Kinova_Horizen_Ctrl_Struct{
 
 }LRF_KINOVA_HORIZEN_CTRL_STRUCT;
 
+typedef struct _LRF_KINOVA_Vehicle_Horizen_Struct{
+
+    bool lrf_vehicle_mission;
+
+    //Get From LRF
+    double horizen_distance;
+    double s_inlier_deg;
+    double e_inlier_deg;
+
+    double s_virtual_deg;
+    double e_virtual_deg;
+    /////////////////////
+
+    //User Setting
+    double inlier_distance;
+    double desired_avr_inlier_deg;//average of inlier degree
+    double desired_avr_virtual_deg;//average of inlier degree
+    double error_deg_boundary;//average of inlier degree
+
+    double velocity;
+
+    double s_deg;
+    double e_deg;
+
+    bool sensor_option;
+    /////////////////////
+
+}LRF_K_VEHICLE_HORIZEN_STRUCT;
+
+typedef struct _LRF_KINOVA_Vehicle_Angle_Struct{
+
+    bool lrf_vehicle_mission;
+
+    //Get From LRF
+    double angle;
+    double vertical_distance;
+    /////////////////////
+
+    //User Setting
+    double desired_angle;
+    double error_boundary;//error boundary
+
+    double s_deg;
+    double e_deg;
+
+    double velocity;
+
+    bool sensor_option;
+    /////////////////////
+
+}LRF_K_VEHICLE_ANGLE_STRUCT;
+
+typedef struct _LRF_Kinova_Wrench_Location_Struct{
+
+    bool lrf_kinova_mission;
+
+    //Setting
+    bool sensor_option; //true: can not move kinova, Just sensing. false: can move kinova, normal mode.
+
+    QString wrench_hanger_index_str/*1~6*/;
+    int wrench_hanger_index/*1~6, 7: other*/;
+
+    double desired_start_deg/*deg*/;
+    double desired_end_deg/*deg*/;
+
+    double wrench_rel_location_1/*CartesianY_Pose*/;
+    double wrench_rel_location_2/*CartesianY_Pose*/;
+    double wrench_rel_location_3/*CartesianY_Pose*/;
+    double wrench_rel_location_4/*CartesianY_Pose*/;
+    double wrench_rel_location_5/*CartesianY_Pose*/;
+    double wrench_rel_location_6/*CartesianY_Pose*/;
+
+    double error;
+
+    double s_deg;
+    double e_deg;
+
+    int inlier_lrf_dst;
+
+    int loop_sleep;
+
+    //Output
+    double current_h_distance;
+    double inlier_deg_s_output;
+    double inlier_deg_e_output;
+
+}LRF_KINOVA_WRENCH_LOCATION_STRUCT;
+
 typedef struct _LRF_Kinova_Vertical_Ctrl_Struct{
 
     bool lrf_kinova_mission;
@@ -223,6 +311,12 @@ typedef struct _Manipulation_Option{
     LRF_KINOVA_ANGLE_CTRL_STRUCT lrf_kinova_angle_option;
 
     LRF_KINOVA_HORIZEN_CTRL_STRUCT lrf_kinova_horizen_option;
+
+    LRF_K_VEHICLE_ANGLE_STRUCT lrf_k_vehicle_angle_option;
+
+    LRF_K_VEHICLE_HORIZEN_STRUCT lrf_k_vehicle_horizen_option;
+
+    LRF_KINOVA_WRENCH_LOCATION_STRUCT lrf_kinova_wrench_option;
 
     KINOVA_FORCE_CTRL_STRUCT kinova_force_option;
 

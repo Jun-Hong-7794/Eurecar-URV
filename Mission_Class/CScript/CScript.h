@@ -117,6 +117,7 @@ private:
     bool InterpreteKinovaForceCtrl(QString _line, STEP_INFO& _step_info);
     bool InterpreteKinovaForceCheck(QString _line, STEP_INFO& _step_info);
     bool InterpreteKinovaManipulate(QString _line, STEP_INFO& _step_info);
+
     bool InterpreteKinovaRotateValveCtrl(QString _line, STEP_INFO& _step_info);
 
     bool InterpreteGripperForceCtrl(QString _line, STEP_INFO& _step_info);
@@ -125,6 +126,8 @@ private:
 
     bool InterpreteLRFKinovaVerticalCtrl(QString _line, STEP_INFO& _step_info);
     bool InterpreteLRFKinovaHorizenCtrl(QString _line, STEP_INFO& _step_info);
+
+    bool InterpreteLRFKinovaWrenchLocationCtrl(QString _line, STEP_INFO& _step_info);
 
     bool InterpreteLRFVehicleAngleCtrl(QString _line, STEP_INFO& _step_info);
     bool InterpreteLRFVehicleHorizenCtrl(QString _line, STEP_INFO& _step_info);
