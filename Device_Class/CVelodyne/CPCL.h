@@ -71,7 +71,7 @@ const double prior_way_point_lrf_left[5][3] = {{0.5,1.75,PI},{-1.0,1.75,1.5*PI},
 const double prior_way_point_lrf_right[4][3] = {{2.0,1.75,0.5*PI},{2.0,1.75,0.5*PI},{2.0,1.75,0.5*PI},{2.0,1.75,0.5*PI}};
 const double driving_waypoint_x_margin = 1.2;
 const double driving_waypoint_y_margin = 0.5;
-const double velodyne_range_driving = 5.0;
+const double velodyne_range_driving = 1.5;
 const double velodyne_range_parking = 3.0;
 
 class CPCL

@@ -32,6 +32,8 @@ Driving_Dlg::Driving_Dlg(CDriving* _pc_driving,QWidget *parent):
 
     connect(ui->bt_mission_parking,SIGNAL(clicked()),this,SLOT(SlotButtonParking()));
 
+    connect(ui->bt_gps_connection,SIGNAL(clicked()),this,SLOT(SlotButtonGetGPSInitialPoint()));
+
     //Driving Class Init
     mpc_drivig = _pc_driving;
 
@@ -101,6 +103,26 @@ void Driving_Dlg::SlotButtonVelodyneConnet(){
     else{
         mpc_drivig->CloseVelodyne();
         ui->bt_velodyne_connection->setText("Connect");
+    }
+}
+
+void Driving_Dlg::SlotButtonGetGPSInitialPoint()
+{
+    if(!mpc_drivig->IsGPSConnected())
+    {
+        if(!mpc_drivig->ConnectGPS())
+        {
+            QMessageBox::information(this, tr("Fail to get initial gps point"), tr("Check gps port is open"));
+            ui->bt_gps_connection->setText("Disconnect");
+        }
+        else
+        {
+
+        }
+    }
+    else
+    {
+        mpc_drivig->SetInitGPSpoint(); // set initial gps point and calc ground point
     }
 }
 

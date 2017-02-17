@@ -12,12 +12,14 @@
 //-------------------------------------------------
 // Device Class
 //-------------------------------------------------
+#include "Device_Class/CIMU/CIMU.h"
 #include "Device_Class/CGPS/CGPS.h"
 #include "Device_Class/CLRF/CLRF.h"
 #include "Device_Class/CCamera/CCamera.h"
 #include "Device_Class/CKinova/CKinova.h"
 #include "Device_Class/CVehicle/CVehicle.h"
 #include "Device_Class/CVelodyne/CVelodyne.h"
+
 
 //-------------------------------------------------
 // Mission Class
@@ -69,9 +71,13 @@ public slots:
     void SlotButtonVehicleOperate();
     void SlotButtonVehicleOptionSetting();
 
+    void SlotButtonGetGPSInitialPoint();
+
     void SlotButtonVelodyneConnet();
 
     void SlotButtonParking();
+
+//    void SlotButtonGpsConnect();
 
     //-------------------------------------------------
     // View
