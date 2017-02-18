@@ -281,7 +281,8 @@ bool CGPS::GpsUpdate()
 {
     if(port->isOpen())
     {
-        bool ret = port->waitForReadyRead(1200);
+        bool ret = port->waitForReadyRead(10);
+
 
         if (ret)
         {

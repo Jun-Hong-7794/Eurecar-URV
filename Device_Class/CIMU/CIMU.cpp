@@ -89,6 +89,15 @@ bool CIMU::IMUInit(string _comport)
 
     while(mip_base_cmd_idle(&device_interface) != MIP_INTERFACE_OK){}
 
+
+
+
+
+    //Set device to external heading update mode
+    heading_source = 0x0;
+
+    while(mip_filter_heading_source(&device_interface, MIP_FUNCTION_SELECTOR_WRITE, &heading_source) != MIP_INTERFACE_OK){}
+
     ///
     //Tare Orientation
     ///
@@ -98,6 +107,7 @@ bool CIMU::IMUInit(string _comport)
     cout<<"----------------------------------------------------------------------\n\n"<<endl;
 
     cout<<"Re-initializing filter (required for tare)\n\n"<<endl;
+
 
     //Re-initialize the filter
     angles[0] = angles[1] = angles[2] = 0;
@@ -144,7 +154,6 @@ bool CIMU::IMUInit(string _comport)
         Sleep(1000);
     }
 
-    cout<<"\n\nRestoring Orientation to default value.\n\n"<<endl;
 
     ///
     //Setup the GX4-25 dataset callbacks
@@ -162,30 +171,31 @@ bool CIMU::IMUInit(string _comport)
 
 
 
-    ///
-    //Angular Rate Zero Update Control
-    ///
+//    ///
+//    //Angular Rate Zero Update Control
+//    ///
 
-    cout<<"----------------------------------------------------------------------\n"<<endl;
-    cout<<"Setting Zero Angular-Rate-Update threshold\n"<<endl;
-    cout<<"----------------------------------------------------------------------\n\n"<<endl;
+//    cout<<"----------------------------------------------------------------------\n"<<endl;
+//    cout<<"Setting Zero Angular-Rate-Update threshold\n"<<endl;
+//    cout<<"----------------------------------------------------------------------\n\n"<<endl;
 
-    zero_update_control.threshold = 0.05; // rads/s
-    zero_update_control.enable = 1; //enable zero-angular-rate update
+//    zero_update_control.threshold = 0.05; // rads/s
+//    zero_update_control.enable = 1; //enable zero-angular-rate update
 
-    //Set ZUPT parameters
-    while(mip_filter_zero_angular_rate_update_control(&device_interface, MIP_FUNCTION_SELECTOR_WRITE, &zero_update_control) != MIP_INTERFACE_OK){}
+//    //Set ZUPT parameters
+//    while(mip_filter_zero_angular_rate_update_control(&device_interface, MIP_FUNCTION_SELECTOR_WRITE, &zero_update_control) != MIP_INTERFACE_OK){}
 
 
-    ///
-    //Commanded Zero Angular-Rate Update
-    ///
+//    ///
+//    //Commanded Zero Angular-Rate Update
+//    ///
 
-    cout<<"----------------------------------------------------------------------\n"<<endl;
-    cout<<"Performing Commanded Zero-Angular-Rate Update\n"<<endl;
-    cout<<"----------------------------------------------------------------------\n\n"<<endl;
+//    cout<<"----------------------------------------------------------------------\n"<<endl;
+//    cout<<"Performing Commanded Zero-Angular-Rate Update\n"<<endl;
+//    cout<<"----------------------------------------------------------------------\n\n"<<endl;
 
-    while(mip_filter_commanded_zero_angular_rate_update(&device_interface) != MIP_INTERFACE_OK){}
+
+//    while(mip_filter_zero_angular_rate_update_control(&device_interface,MIP_FUNCTION_SELECTOR_LOAD_DEFAULT,NULL) != MIP_INTERFACE_OK){}
 
     #ifdef FILTER_MODE
     ///
@@ -205,10 +215,12 @@ bool CIMU::IMUInit(string _comport)
     while(mip_3dm_cmd_filter_message_format(&device_interface, MIP_FUNCTION_SELECTOR_WRITE, &data_stream_format_num_entries,
                           data_stream_format_descriptors, data_stream_format_decimation) != MIP_INTERFACE_OK){}
 
+
     #else
     ///
     //Setup the AHRS datastream format
     ///
+
 
     cout<<"----------------------------------------------------------------------\n"<<endl;
     cout<<"Setting the AHRS message format\n"<<endl;

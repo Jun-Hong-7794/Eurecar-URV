@@ -95,6 +95,9 @@ public:
     void PCLInit();
     CPCL* GetPCL();
 
+    CIMU* GetIMU();
+
+    CVelodyne* GetVelodyne();
 
     //-------------------------------------------------
     // Drive Class Option Function

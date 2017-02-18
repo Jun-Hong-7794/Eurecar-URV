@@ -34,19 +34,18 @@ Driving_Dlg::Driving_Dlg(CDriving* _pc_driving,QWidget *parent):
 
     connect(ui->bt_gps_connection,SIGNAL(clicked()),this,SLOT(SlotButtonGetGPSInitialPoint()));
 
+    connect(ui->rd_driving_view,SIGNAL(clicked()),this,SLOT(SlotButtonDrivingView()));
+    connect(ui->rd_parking_view,SIGNAL(clicked()),this,SLOT(SlotButtonParkingView()));
+
     //Driving Class Init
     mpc_drivig = _pc_driving;
 
-//    //PCL Init
-//    mpc_drivig->PCLInit();
-//    ui->qvtk_velodyne_driving_dlg->SetRenderWindow(mpc_drivig->GetPCL()->viewer->getRenderWindow());
-//    (mpc_drivig->GetPCL())->viewer->setupInteractor(ui->qvtk_velodyne_driving_dlg->GetInteractor(),ui->qvtk_velodyne_driving_dlg->GetRenderWindow());
-//    (mpc_drivig->GetPCL())->viewer->setBackgroundColor(0,0,0);
-//    (mpc_drivig->GetPCL())->viewer->addCoordinateSystem(1.0);
-//    (mpc_drivig->GetPCL())->viewer->addPointCloud( (mpc_drivig->GetPCL())->cloud);
-//    (mpc_drivig->GetPCL())->viewer->addPointCloud( (mpc_drivig->GetPCL())->waypoint_cloud);
-//    (mpc_drivig->GetPCL())->viewer->setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_FONT_SIZE,5,"cloud");
-//    (mpc_drivig->GetPCL())->viewer->setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_FONT_SIZE,10,"waypoint_cloud");
+    //-------------------------------------------------
+    // PCL Init For Velodyne
+    //-------------------------------------------------
+    mpc_drivig->PCLInit();
+    ui->qvtk_velodyne_driving_dlg->SetRenderWindow(mpc_drivig->GetPCL()->viewer->getRenderWindow());
+    (mpc_drivig->GetPCL())->viewer->setupInteractor(ui->qvtk_velodyne_driving_dlg->GetInteractor(),ui->qvtk_velodyne_driving_dlg->GetRenderWindow());
 
     // Velodyne View Connect
     connect(mpc_drivig,SIGNAL(SignalVelodyneParser(bool)),this,SLOT(SlotVeloyneParser(bool)));
@@ -199,6 +198,15 @@ void Driving_Dlg::SlotButtonVehicleOptionSetting(){
     return;
 }
 
+void Driving_Dlg::SlotButtonDrivingView(){
+    mpc_drivig->GetVelodyne()->SetVelodyneMode(VELODYNE_MODE_DRIVING);
+}
+
+void Driving_Dlg::SlotButtonParkingView(){
+    mpc_drivig->GetVelodyne()->SetVelodyneMode(VELODYNE_MODE_PARKING);
+}
+
+
 void Driving_Dlg::SlotButtonParking(){
     if(!mpc_drivig->isRunning()){
         if(!mpc_drivig->ConnectVehicle())
@@ -231,8 +239,13 @@ void Driving_Dlg::SlotButtonParking(){
 
 void Driving_Dlg::SlotVeloyneParser(bool _parser_complete){
     if(_parser_complete){
-
         ui->qvtk_velodyne_driving_dlg->update();
+        if(mpc_drivig->GetIMU()->IsIMUInit())
+        {
+            ui->ed_roll->setText(QString::fromStdString((std::to_string((mpc_drivig->GetIMU()->GetEulerAngles()).at(0)*180.0/PI))));
+            ui->ed_pitch->setText(QString::fromStdString((std::to_string((mpc_drivig->GetIMU()->GetEulerAngles()).at(1)*180.0/PI))));
+            ui->ed_yaw->setText(QString::fromStdString((std::to_string((mpc_drivig->GetIMU()->GetEulerAngles()).at(2)*180.0/PI))));
+        }
     }
 }
 

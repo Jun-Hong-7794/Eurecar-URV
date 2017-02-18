@@ -51,6 +51,8 @@ private:
 
     // IMU Class
     CIMU* mpc_imu;
+    vector<double> imu_euler;
+
 
     //GPS Class
     CGPS* mpc_gps;
@@ -155,10 +157,14 @@ public:
 
     // Set lrf data
     bool SetLRFDataToPCL(long* _lrf_data,int _num_of_points);
+    void SetLRFWaypointToPCL(vector<vector<double>> _waypoint);
 
     void SetVelodyneRange(double _range);
 
     void SetVelodyneMode(VELODYNE_MODE _mode);
+
+    // Get IMU data
+    std::vector<double> GetIMUData();
 
     //calc ground gps points to body coordiante
 //    Ground_Bodypoint GetGroundGPS_Body();

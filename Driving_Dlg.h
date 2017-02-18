@@ -77,6 +77,9 @@ public slots:
 
     void SlotButtonParking();
 
+    void SlotButtonDrivingView();
+    void SlotButtonParkingView();
+
 //    void SlotButtonGpsConnect();
 
     //-------------------------------------------------
