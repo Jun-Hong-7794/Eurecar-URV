@@ -41,8 +41,8 @@ A_Sleep(500)
 ## Step2: Vehicle Horizen Control(Using LRF)
 /* unit is mm
 
-LRF_VEHICLE_HORIZEN_CTRL_STRUCT.desired_avr_inlier_deg = 89.5
-LRF_VEHICLE_HORIZEN_CTRL_STRUCT.error_deg_boundary = 3
+LRF_VEHICLE_HORIZEN_CTRL_STRUCT.desired_avr_inlier_deg = 87.5
+LRF_VEHICLE_HORIZEN_CTRL_STRUCT.error_deg_boundary = 2
 
 LRF_VEHICLE_HORIZEN_CTRL_STRUCT.s_deg = 30
 LRF_VEHICLE_HORIZEN_CTRL_STRUCT.e_deg = 150
@@ -196,7 +196,3 @@ A_Sleep(500)
 
 
 ##########################################_MISSION_END_##########################################
-
-
-
-
