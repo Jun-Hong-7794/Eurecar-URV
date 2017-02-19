@@ -28,6 +28,11 @@ Manipulation_Dlg::Manipulation_Dlg(CManipulation* _pc_manipulation, QWidget *par
 
     mp_segnet_image_grahicscene = new QGraphicsScene(QRectF(0, 0, segnet_view_width, segnet_view_height), 0);
 
+    int valve_view_width  = ui->view_valve_modeling->geometry().width();
+    int valve_view_height = ui->view_valve_modeling->geometry().height();
+
+    mp_valve_image_grahicscene = new QGraphicsScene(QRectF(0, 0, valve_view_width, valve_view_height), 0);
+
     //Button Connetion
     connect(ui->bt_kinova_init, SIGNAL(clicked()), this, SLOT(SlotButtonKinovaInit()));
 
@@ -48,6 +53,9 @@ Manipulation_Dlg::Manipulation_Dlg(CManipulation* _pc_manipulation, QWidget *par
     connect(ui->bt_kinova_pitch_dw, SIGNAL(clicked()), this, SLOT(SlotButtonKinovaMoveStepPitchDw()));
 
     connect(ui->bt_kinova_base_rotate, SIGNAL(clicked()), this, SLOT(SlotButtonKinovaBaseRotate()));
+
+    connect(ui->bt_kinova_get_force, SIGNAL(clicked()), this, SLOT(SlotButtonKinovaGetForceFeedBackData()));
+    connect(ui->bt_kinova_set_force_thresh, SIGNAL(clicked()), this, SLOT(SlotButtonKinovaSetForceThreshData()));
 
     connect(ui->bt_lrf_kinova_ctrl, SIGNAL(clicked()), this, SLOT(SlotButtonLRFKinovaCtrl()));
     connect(ui->bt_kinova_force_ctrl, SIGNAL(clicked()), this, SLOT(SlotButtonKinovaForceCtrl()));
@@ -78,6 +86,9 @@ Manipulation_Dlg::Manipulation_Dlg(CManipulation* _pc_manipulation, QWidget *par
 
     connect(mpc_manipulation, SIGNAL(SignalKinovaPosition(CartesianPosition)), this, SLOT(SlotEditeKinovaPosition(CartesianPosition)));
     connect(mpc_manipulation, SIGNAL(SignalKinovaForceVector(CartesianPosition)), this, SLOT(SlotEditeKinovaForceVector(CartesianPosition)));
+    connect(mpc_manipulation, SIGNAL(SignalKinovaForceVector(CartesianPosition)), this, SLOT(SlotKinovaForceVectorData(CartesianPosition)));
+
+
     connect(mpc_manipulation, SIGNAL(SignalLRFHorizentDistance(LRF_VEHICLE_HORIZEN_STRUCT)), this, SLOT(SlotLRFHorizentDistance(LRF_VEHICLE_HORIZEN_STRUCT)));
 
     //Edit Update
@@ -97,6 +108,7 @@ Manipulation_Dlg::Manipulation_Dlg(CManipulation* _pc_manipulation, QWidget *par
     connect(mpc_manipulation, SIGNAL(SignalLRFImage(cv::Mat)), this, SLOT(SlotViewLRFImage(cv::Mat)));
     connect(mpc_manipulation, SIGNAL(SignalCameraImage(cv::Mat)), this, SLOT(SlotViewCameraImage(cv::Mat)));
     connect(mpc_manipulation, SIGNAL(SignalSegnetImage(cv::Mat)), this, SLOT(SlotViewSegnetImage(cv::Mat)));
+    connect(mpc_manipulation, SIGNAL(SignalValveImage(cv::Mat)), this, SLOT(SlotValveImage(cv::Mat)));
 
     connect(mpc_manipulation, SIGNAL(SignalValveSizeData(QVector<double>,QVector<double>,int)),
             this, SLOT(SlotValveSizeData(QVector<double>,QVector<double>,int)));
@@ -123,6 +135,9 @@ Manipulation_Dlg::Manipulation_Dlg(CManipulation* _pc_manipulation, QWidget *par
     }
     mtx_valve_data_graph.unlock();
 
+    //-------------------------------------------
+    // Graph_gripper_data_plot
+    //-------------------------------------------
     ui->graph_gripper_data_plot->setLocale(QLocale(QLocale::English, QLocale::UnitedKingdom)); // period as decimal separator and comma as thousand separator
     ui->graph_gripper_data_plot->legend->setVisible(true);
     QFont legendFont = font();  // start out with MainWindow's font..
@@ -140,6 +155,9 @@ Manipulation_Dlg::Manipulation_Dlg(CManipulation* _pc_manipulation, QWidget *par
     ui->graph_gripper_data_plot->yAxis->setRange(150, 450);
     ui->graph_gripper_data_plot->replot();
 
+    //-------------------------------------------
+    // Graph_gripper_data_anal_plot
+    //-------------------------------------------
     ui->graph_gripper_data_anal_plot->setLocale(QLocale(QLocale::English, QLocale::UnitedKingdom)); // period as decimal separator and comma as thousand separator
     ui->graph_gripper_data_anal_plot->legend->setVisible(true);
     ui->graph_gripper_data_anal_plot->legend->setFont(legendFont);
@@ -154,6 +172,76 @@ Manipulation_Dlg::Manipulation_Dlg(CManipulation* _pc_manipulation, QWidget *par
     ui->graph_gripper_data_anal_plot->xAxis->setRange(0, 36);
     ui->graph_gripper_data_anal_plot->yAxis->setRange(150, 450);
     ui->graph_gripper_data_anal_plot->replot();
+
+    //-------------------------------------------
+    // Graph_kinova_force_plot_x
+    //-------------------------------------------
+    ui->graph_kinova_force_plot_x->setLocale(QLocale(QLocale::English, QLocale::UnitedKingdom)); // period as decimal separator and comma as thousand separator
+    ui->graph_kinova_force_plot_x->legend->setVisible(true);
+    legendFont.setPointSize(9); // and make a bit smaller for legend
+    ui->graph_kinova_force_plot_x->legend->setFont(legendFont);
+    ui->graph_kinova_force_plot_x->legend->setBrush(QBrush(QColor(255,255,255,230)));
+    // by default, the legend is in the inset layout of the main axis rect. So this is how we access it to change legend placement:
+    ui->graph_kinova_force_plot_x->axisRect()->insetLayout()->setInsetAlignment(0, Qt::AlignBottom|Qt::AlignRight);
+
+    // give the axes some labels:
+    ui->graph_kinova_force_plot_x->yAxis->setLabel("Force(N)");
+    // set axes ranges, so we see all data:
+    ui->graph_kinova_force_plot_x->xAxis->setRange(0, 30);
+    ui->graph_kinova_force_plot_x->yAxis->setRange(-15, 15);
+    ui->graph_kinova_force_plot_x->replot();
+
+    ui->graph_kinova_force_plot_x->addGraph();//For Data
+    ui->graph_kinova_force_plot_x->addGraph();//For Thresh
+
+    //-------------------------------------------
+    // Graph_kinova_force_plot_y
+    //-------------------------------------------
+    ui->graph_kinova_force_plot_y->setLocale(QLocale(QLocale::English, QLocale::UnitedKingdom)); // period as decimal separator and comma as thousand separator
+    ui->graph_kinova_force_plot_y->legend->setVisible(true);
+    legendFont.setPointSize(9); // and make a bit smaller for legend
+    ui->graph_kinova_force_plot_y->legend->setFont(legendFont);
+    ui->graph_kinova_force_plot_y->legend->setBrush(QBrush(QColor(255,255,255,230)));
+    // by default, the legend is in the inset layout of the main axis rect. So this is how we access it to change legend placement:
+    ui->graph_kinova_force_plot_y->axisRect()->insetLayout()->setInsetAlignment(0, Qt::AlignBottom|Qt::AlignRight);
+
+    // give the axes some labels:
+    ui->graph_kinova_force_plot_y->yAxis->setLabel("Force(N)");
+    // set axes ranges, so we see all data:
+    ui->graph_kinova_force_plot_y->xAxis->setRange(0, 30);
+    ui->graph_kinova_force_plot_y->yAxis->setRange(-15, 15);
+    ui->graph_kinova_force_plot_y->replot();
+
+    ui->graph_kinova_force_plot_y->addGraph();//For Data
+    ui->graph_kinova_force_plot_y->addGraph();//For Thresh
+
+    //-------------------------------------------
+    // Graph_kinova_force_plot_z
+    //-------------------------------------------
+    ui->graph_kinova_force_plot_z->setLocale(QLocale(QLocale::English, QLocale::UnitedKingdom)); // period as decimal separator and comma as thousand separator
+    ui->graph_kinova_force_plot_z->legend->setVisible(true);
+    legendFont.setPointSize(9); // and make a bit smaller for legend
+    ui->graph_kinova_force_plot_z->legend->setFont(legendFont);
+    ui->graph_kinova_force_plot_z->legend->setBrush(QBrush(QColor(255,255,255,230)));
+    // by default, the legend is in the inset layout of the main axis rect. So this is how we access it to change legend placement:
+    ui->graph_kinova_force_plot_z->axisRect()->insetLayout()->setInsetAlignment(0, Qt::AlignBottom|Qt::AlignRight);
+
+    // give the axes some labels:
+    ui->graph_kinova_force_plot_z->yAxis->setLabel("Force(N)");
+    // set axes ranges, so we see all data:
+    ui->graph_kinova_force_plot_z->xAxis->setRange(0, 30);
+    ui->graph_kinova_force_plot_z->yAxis->setRange(-15, 15);
+    ui->graph_kinova_force_plot_z->replot();
+
+    ui->graph_kinova_force_plot_z->addGraph();//For Data
+    ui->graph_kinova_force_plot_z->addGraph();//For Thresh
+
+    for(int i =0; i < 30; i++){
+        mqvec_kinova_force_thresh_x.push_back(0.0);
+        mqvec_kinova_force_thresh_y.push_back(0.0);
+        mqvec_kinova_force_thresh_z.push_back(0.0);
+        mqvec_kinova_force_thresh_time.push_back(i);
+    }
 
     QString fileName = "/home/winner/Workspace/2017MBZIRC_Code/Eurecar-URV/Eurecar-URV/ValveSizeData/ModelData/";
 
@@ -177,6 +265,8 @@ Manipulation_Dlg::Manipulation_Dlg(CManipulation* _pc_manipulation, QWidget *par
     mpc_manipulation->ValveSizeDataModelInit(y_19, 19);
     mpc_manipulation->ValveSizeDataModelInit(y_22, 22);
     mpc_manipulation->ValveSizeDataModelInit(y_24, 24);
+
+    mpc_manipulation->ValveModeling(16,0);
 }
 
 Manipulation_Dlg::~Manipulation_Dlg()
@@ -302,6 +392,54 @@ void Manipulation_Dlg::SlotButtonKinovaBaseRotate(){
     if(!mpc_manipulation->KinovaRotateBase(rotate_value))
         QMessageBox::information(this, tr("Fail to Base Rotate"), tr("Check Kinova Status"));;
 }
+
+ void Manipulation_Dlg::SlotButtonKinovaGetForceFeedBackData(){
+
+     KINOVA_FORCE_CHECK_STRUCT force_check;
+     if(mpc_manipulation->isRunning()){
+         force_check.fl_kinova_force_sensing_option = false;
+         mpc_manipulation->SetManipulationOption(force_check);
+
+         ui->bt_kinova_get_force->setText("Get Force");
+     }
+     else{
+         force_check.fl_kinova_force_sensing_option = true;
+         mpc_manipulation->SetManipulationOption(force_check);
+         mpc_manipulation->SelectMainFunction(MANIPUL_INX_KINOVA_FORCE_CHECK);
+         ui->bt_kinova_get_force->setText("Stop");
+     }
+}
+
+ void Manipulation_Dlg::SlotButtonKinovaSetForceThreshData(){
+
+     int current_graph = 0;
+
+     QString force_x;
+     QString force_y;
+     QString force_z;
+
+     force_x = ui->ed_kinova_force_thresh_x->text();
+     force_y = ui->ed_kinova_force_thresh_y->text();
+     force_z = ui->ed_kinova_force_thresh_z->text();
+
+     for(int i = 0; i < 30;i++){
+        mqvec_kinova_force_thresh_x[i] = force_x.toDouble();
+        mqvec_kinova_force_thresh_y[i] = force_y.toDouble();
+        mqvec_kinova_force_thresh_z[i] = force_z.toDouble();
+     }
+
+     mtx_kinova_force_vector_graph.lock();
+     {
+         SetValveSizeData(ui->graph_kinova_force_plot_x, mqvec_kinova_force_thresh_time,
+                          mqvec_kinova_force_thresh_x, mqvec_kinova_force_x_data_x, mqvec_kinova_force_x_data_y, current_graph, 0, "X_Thresh");
+         SetValveSizeData(ui->graph_kinova_force_plot_y, mqvec_kinova_force_thresh_time,
+                          mqvec_kinova_force_thresh_y, mqvec_kinova_force_y_data_x, mqvec_kinova_force_y_data_y, current_graph, 0, "Y_Thresh");
+         SetValveSizeData(ui->graph_kinova_force_plot_z, mqvec_kinova_force_thresh_time,
+                          mqvec_kinova_force_thresh_z, mqvec_kinova_force_z_data_x, mqvec_kinova_force_z_data_y, current_graph, 0, "Z_Thresh");
+     }
+     mtx_kinova_force_vector_graph.unlock();
+
+ }
 
 void Manipulation_Dlg::SlotEditeKinovaPosition(CartesianPosition _position){
 
@@ -833,6 +971,11 @@ void Manipulation_Dlg::SlotViewLRFImage(cv::Mat _image){
 
 }
 
+void Manipulation_Dlg::SlotValveImage(cv::Mat _image){
+
+    Display_Image(_image,mp_valve_image_grahicscene,ui->view_valve_modeling);
+}
+
 QImage Manipulation_Dlg::Mat2QImage(cv::Mat src){
     cv::Mat temp; // make the same cv::Mat
     cvtColor(src, temp,CV_BGR2RGB); // cvtColor Makes a copt, that what i need
@@ -890,6 +1033,42 @@ void Manipulation_Dlg::SlotValveSizeData(QVector<double> _x, QVector<double> _y,
     mtx_valve_data_graph.unlock();
 }
 
+void Manipulation_Dlg::SlotKinovaForceVectorData(CartesianPosition _force_vector){
+
+    int current_graph = 0;
+
+    if(mqvec_kinova_force_data_x.size() > 30){
+        mqvec_kinova_force_data_x.pop_back();
+        mqvec_kinova_force_data_y.pop_back();
+        mqvec_kinova_force_data_z.pop_back();
+
+        mqvec_kinova_force_data_time.pop_back();
+    }
+
+    int time = mqvec_kinova_force_data_time.size();
+
+    mqvec_kinova_force_data_time.push_back(time);
+
+    mqvec_kinova_force_data_x.push_front(_force_vector.Coordinates.X);
+    mqvec_kinova_force_data_y.push_front(_force_vector.Coordinates.Y);
+    mqvec_kinova_force_data_z.push_front(_force_vector.Coordinates.Z);
+
+    ui->ed_kinova_force_current_x->setText(QString::number(_force_vector.Coordinates.X));
+    ui->ed_kinova_force_current_y->setText(QString::number(_force_vector.Coordinates.Y));
+    ui->ed_kinova_force_current_z->setText(QString::number(_force_vector.Coordinates.Z));
+
+    mtx_kinova_force_vector_graph.lock();
+    {
+        SetValveSizeData(ui->graph_kinova_force_plot_x, mqvec_kinova_force_data_time,
+                         mqvec_kinova_force_data_x, mqvec_kinova_force_x_data_x, mqvec_kinova_force_x_data_y, current_graph, 0, "Force_X");
+        SetValveSizeData(ui->graph_kinova_force_plot_y, mqvec_kinova_force_data_time,
+                         mqvec_kinova_force_data_y, mqvec_kinova_force_y_data_x, mqvec_kinova_force_y_data_y, current_graph, 0, "Force_Y");
+        SetValveSizeData(ui->graph_kinova_force_plot_z, mqvec_kinova_force_data_time,
+                         mqvec_kinova_force_data_z, mqvec_kinova_force_z_data_x, mqvec_kinova_force_z_data_y, current_graph, 0, "Force_Z");
+    }
+    mtx_kinova_force_vector_graph.unlock();
+}
+
 int Manipulation_Dlg::GetValveSizeDataGraphCurrentIndex(){
 
     return m_valve_size_graph_num;;
@@ -911,8 +1090,8 @@ void Manipulation_Dlg::SetValveSizeData(QCustomPlot* _plot, QVector<double> _x, 
         _contain_y.push_back(_y);
     }
 
-    _contain_x[_graph_index] = _x;
-    _contain_y[_graph_index] = _y;
+//    _contain_x[_graph_index] = _x;
+//    _contain_y[_graph_index] = _y;
 
     int color_index = _graph_index - (_graph_index / 12)*12 + 7;
 
@@ -926,7 +1105,6 @@ void Manipulation_Dlg::SetValveSizeData(QCustomPlot* _plot, QVector<double> _x, 
 //  ui->graph_gripper_data_plot->graph(_graph_index)->setBrush(QBrush(QColor(255, 0, 0, 20)));
     _plot->graph(_graph_index)->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ssDisc, 5));
     _plot->graph(_graph_index)->setData(_x, _y);
-
     _plot->replot();
 }
 

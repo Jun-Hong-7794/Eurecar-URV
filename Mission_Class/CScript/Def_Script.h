@@ -49,6 +49,9 @@
 #define MP_LRF_K_VEHICLE_HORIZEN_CONTROL     0x2013
 #define MP_LRF_K_VEHICLE_ANGLE_CONTROL       0x2014
 
+#define MP_KINOVA_ALIGN_TO_PANEL             0x2015
+#define MP_KINOVA_FIT_TO_VALVE_POSE          0x2016
+
 //Grammar
 #define GR_CONDITIONALLY_ITERATION           0x3000
 //-------------------------------------------------

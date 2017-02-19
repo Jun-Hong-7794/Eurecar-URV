@@ -48,6 +48,8 @@ private:
     QMutex mtx_valve_data_graph;
     QMutex mtx_valve_anal_graph;
 
+    QMutex mtx_kinova_force_vector_graph;
+
     int m_valve_size_graph_num;
     int m_valve_anal_graph_num;
 
@@ -56,6 +58,28 @@ private:
 
     QVector<QVector<double>> mqvec_valve_anal_x;
     QVector<QVector<double>> mqvec_valve_anal_y;
+
+
+    QVector<double> mqvec_kinova_force_data_time;
+    QVector<double> mqvec_kinova_force_thresh_time;
+
+    QVector<double> mqvec_kinova_force_data_x;
+    QVector<double> mqvec_kinova_force_data_y;
+    QVector<double> mqvec_kinova_force_data_z;
+
+    QVector<double> mqvec_kinova_force_thresh_x;
+    QVector<double> mqvec_kinova_force_thresh_y;
+    QVector<double> mqvec_kinova_force_thresh_z;
+
+    QVector<QVector<double>> mqvec_kinova_force_x_data_x;
+    QVector<QVector<double>> mqvec_kinova_force_x_data_y;
+
+    QVector<QVector<double>> mqvec_kinova_force_y_data_x;
+    QVector<QVector<double>> mqvec_kinova_force_y_data_y;
+
+    QVector<QVector<double>> mqvec_kinova_force_z_data_x;
+    QVector<QVector<double>> mqvec_kinova_force_z_data_y;
+
 
     void InterpreteValveSizeDataFile(QString _file, QVector<double>& _x, QVector<double>& _y);
     bool InterpreteValveSizeDataLine(QString _line, QVector<double>& _x, QVector<double>& _y, QString& _title);
@@ -70,6 +94,8 @@ private:// Graphic Scene
     QGraphicsScene *mp_segnet_image_grahicscene;
 
     QGraphicsScene *mp_lrf_image_grahicscene;
+
+    QGraphicsScene *mp_valve_image_grahicscene;
 
 public://Display Image to Qt Graphicview
     QImage Mat2QImage(cv::Mat src);
@@ -107,6 +133,9 @@ public slots:
     void SlotButtonKinovaMoveStepRollDw();
     void SlotButtonKinovaMoveStepPitchUp();
     void SlotButtonKinovaMoveStepPitchDw();
+
+    void SlotButtonKinovaGetForceFeedBackData();
+    void SlotButtonKinovaSetForceThreshData();
 
     void SlotButtonKinovaBaseRotate();
 
@@ -164,7 +193,10 @@ public slots:
 
     //Custom Graph
     void SlotValveSizeData(QVector<double>, QVector<double>, int _graph_index);
+    void SlotKinovaForceVectorData(CartesianPosition _force_vector);
 
+    //Valve Modeling
+    void SlotValveImage(cv::Mat _image);
 
     //LRF
     void SlotViewLRFImage(cv::Mat _image);

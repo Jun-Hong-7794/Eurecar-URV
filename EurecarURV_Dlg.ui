@@ -40,7 +40,7 @@
       <x>680</x>
       <y>330</y>
       <width>291</width>
-      <height>251</height>
+      <height>321</height>
      </rect>
     </property>
    </widget>
@@ -460,7 +460,7 @@
       <x>13</x>
       <y>288</y>
       <width>651</width>
-      <height>291</height>
+      <height>361</height>
      </rect>
     </property>
    </widget>
@@ -470,7 +470,7 @@
       <x>980</x>
       <y>310</y>
       <width>231</width>
-      <height>321</height>
+      <height>341</height>
      </rect>
     </property>
     <property name="font">
@@ -480,7 +480,7 @@
      </font>
     </property>
     <property name="currentIndex">
-     <number>1</number>
+     <number>0</number>
     </property>
     <widget class="QWidget" name="tab_sensor_switch">
      <attribute name="title">
@@ -601,6 +601,19 @@
       </property>
       <property name="text">
        <string>IMU On</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="bt_kinova_factory_reset">
+      <property name="geometry">
+       <rect>
+        <x>4</x>
+        <y>247</y>
+        <width>101</width>
+        <height>41</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Kinova Reset</string>
       </property>
      </widget>
     </widget>

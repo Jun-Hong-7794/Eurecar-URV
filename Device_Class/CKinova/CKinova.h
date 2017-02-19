@@ -50,14 +50,19 @@ private:
     bool fl_kinova_init_position;
     bool fl_kinova_manipulation;
 
+    bool fl_kinova_get_force_feedback;
+
     KinovaDevice m_kinova_list[MAX_KINOVA_DEVICE];
 
     double m_kinova_rel_pos;
     CartesianPosition m_kinova_disired_position;
 
 public://Function pointers to the functions we need
+
     int (*Kinova_InitAPI)();
     int (*Kinova_CloseAPI)();
+
+    int (*Kinova_RestoreFactoryDefault)();
 
     int (*Kinova_SetActiveDevice)(KinovaDevice device);
     int (*Kinova_GetDevices)(KinovaDevice devices[MAX_KINOVA_DEVICE], int &result);
@@ -111,6 +116,7 @@ private:
 public: // Basic Motion
     void KinovaInitMotion();
     void KinovaAlignToPanel();
+    void KinovaResetFactorial();
 
     void KinovaRotateBase(double _rot_deg);
 
@@ -120,6 +126,9 @@ public: // Basic Motion
 
     CartesianPosition KinovaGetPosition();
     CartesianPosition KinovaGetCartesianForce();
+
+    void KinovaSetCartesianForceThread();
+    CartesianPosition KinovaGetCartesianForceThread();
 
     bool KinovaMoveUnitStep(double _x, double _y, double _z, double _th_x = 0, double _th_y = 0, double _th_z = 0 );
 
@@ -164,4 +173,5 @@ public:
 signals:
     void Get_Kinova_Position(CartesianPosition _position);
     void SignalKinovaPosition(CartesianPosition _position);
+    void SignalKinovaForce(CartesianPosition _position);
 };

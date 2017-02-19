@@ -170,6 +170,7 @@ typedef struct _Kinova_Force_Ctrl_Struct{
     QString str_result_variable;
 
     bool kinova_force_ctrl_mission;
+    bool fl_kinova_force_ctrl_sensing_option;
 
     int step_count;
 
@@ -191,7 +192,10 @@ typedef struct _Kinova_Force_Ctrl_Struct{
 
 typedef struct _Kinova_Force_Check_Struct{
 
+    QString str_result_variable;
+
     bool kinova_force_ctrl_mission;
+    bool fl_kinova_force_sensing_option;
 
     double force_threshold_x;
     double force_threshold_y;
@@ -224,6 +228,21 @@ typedef struct _Kinova_Do_Manipulate_Struct{
     double force_threshold;
 
 }KINOVA_DO_MANIPULATE_STRUCT;
+
+typedef struct _Kinova_Fit_To_Valve_Pose_Struct{
+
+    //Setting
+    QString str_valve_size;
+    QString str_rotation_angle;
+
+    int valve_size;/*16 ~ 24mm*/
+    double valve_rotation_angle;
+
+    int move_step;
+    int angle_step;
+
+}KINOVA_FIT_TO_VALVE_POSE_STRUCT;
+
 
 typedef struct _Kinova_Rotate_Valve_Struct{
 
@@ -262,9 +281,10 @@ typedef struct _Gripper_Kinova_Valve_Size_Recognition_Struct{
     int inlier_error;
 
     // Output
-    QString str_result_variable;
-    int wrench_size;
-    double wrench_rotation_angle;
+    QString str_size_result_variable;
+    QString str_rotation_result_variable;
+    int valve_size;
+    double valve_rotation_angle;
 
 }GRIPPER_KINOVA_VALVE_SIZE_RECOG_STRUCT;
 
@@ -295,8 +315,9 @@ typedef struct _Wrench_Recognition{
 
     //Setting
     int valve_size;
-    int num_valve;
+    int num_of_wrench;
     QString str_valve_size;
+    QString str_num_of_wrench;
 
     //Output
     int wrench_location;// 1 ~ 6
@@ -325,6 +346,8 @@ typedef struct _Manipulation_Option{
     KINOVA_ROTATE_VALVE_STRUCT kinova_rotate_valve_option;
 
     KINOVA_DO_MANIPULATE_STRUCT kinova_manipulate_option;
+
+    KINOVA_FIT_TO_VALVE_POSE_STRUCT kinova_fit_to_valve_pose;
 
     GRIPPER_KINOVA_VALVE_SIZE_RECOG_STRUCT gripper_kinova_valve_recog_option;
 

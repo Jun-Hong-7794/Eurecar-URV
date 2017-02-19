@@ -42,6 +42,9 @@
 #define MANIPUL_INX_LRF_K_VEHICLE_HORIZEN_CTRL  13
 #define MANIPUL_INX_LRF_K_VEHICLE_ANGLE_CTRL    14
 
+#define MANIPUL_INX_KINOVA_ALIGN_TO_PANEL      15
+#define MANIPUL_INX_KINOVA_FIT_TO_VALVE        16
+
 class CManipulation:public QThread{
     Q_OBJECT
 
@@ -101,6 +104,9 @@ private:
 
     WRENCH_RECOGNITION mstruct_wrench_recognition;
     QMutex mxt_wrench_recognition;
+
+    KINOVA_FIT_TO_VALVE_POSE_STRUCT mstruct_fit_to_valve_pose;
+    QMutex mxt_fit_to_valve_pose;
     //-------------------------------------------------
     // ElementTech Class
     //-------------------------------------------------
@@ -140,11 +146,13 @@ public:
     // Calculate Function
     //-------------------------------------------------
     QVector<double> DataSort(QVector<double> _data);
+    void DataSort(std::vector<GRIPPER_DATA>& _data);
 
     void ValveSizeDataModelInit(QVector<double> _data, int _index/*mm*/);
 
     int DataAnalisys(QVector<double> _data);//For Valve Recognition, Result: 16 ~ 24(16mm, 17mm, 18mm, 19mm, 22mm, 24mm)
 
+    cv::Mat ValveModeling(int _valve_size, double _rotation_angle);
     //-------------------------------------------------
     // Dvice Class Initialize(Connect) Function
     //-------------------------------------------------
@@ -198,6 +206,8 @@ public:
     int GetValveSizeRecogResult();
     void SetValveSizeRecogResult(int _result);
 
+    void SetForceCheckThread(bool _data);
+
 public:
     bool SelectMainFunction(int _fnc_index_);
 
@@ -240,6 +250,9 @@ public:
     void SetManipulationOption(WRENCH_RECOGNITION _manipulation_option);
     WRENCH_RECOGNITION GetWrenchRecognitionOption();
 
+    void SetManipulationOption(KINOVA_FIT_TO_VALVE_POSE_STRUCT _manipulation_option);
+    KINOVA_FIT_TO_VALVE_POSE_STRUCT GetFitToValvePoseOption();
+
 private:
     //-------------------------------------------------
     // Main Function
@@ -255,6 +268,8 @@ private:
     bool KinovaForceCheck();
     bool KinovaDoManipulate();
     bool KinovaRotateValveMotion();
+
+    bool KinovaFitToValvePose();
 
     bool GripperKinovaValveSizeRecognition();
 
@@ -276,6 +291,8 @@ signals:
     void SignalLRFImage(cv::Mat);
     void SignalCameraImage(cv::Mat);
     void SignalSegnetImage(cv::Mat);
+
+    void SignalValveImage(cv::Mat);
 
     void SignalEditeGripperStatus(GRIPPER_STATUS);
 };
