@@ -65,7 +65,7 @@ bool CVehicle::Move(int _dir, int _vel){
         rst_right_side = mc_device.SetCommand(UGV_DEF_GO,2,_vel*(2));
         break;
     case UGV_move_differ_left:
-        rst__left_side = mc_device.SetCommand(UGV_DEF_GO,1,_vel*(-0.72));
+        rst__left_side = mc_device.SetCommand(UGV_DEF_GO,1,_vel*(-1.2));
         rst_right_side = mc_device.SetCommand(UGV_DEF_GO,2,_vel*(-2));
         break;
     default:

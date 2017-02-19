@@ -1,5 +1,10 @@
 #include "CDriving.h"
 
+vector<vector<double>> lrf_panelpoint = {{0.5,0.0},{0.0,0.375}};
+vector<vector<double>> lrf_waypoint = {{1.5,1.425}, {0.0,1.425}, {-1.5,1.425}, {-1.5,0.0}};
+double lrf_waypoint_update_thres = 0.2;
+
+
 CDriving::CDriving(){
 
 }
@@ -123,6 +128,14 @@ CPCL* CDriving::GetPCL(){
     return mpc_velodyne->GetPCL();
 }
 
+CIMU* CDriving::GetIMU(){
+    return mpc_imu;
+}
+
+CVelodyne* CDriving::GetVelodyne(){
+    return mpc_velodyne;
+}
+
 int CDriving::GetPanelHeadingError(){
     std::vector<double> panel_loc;
 
@@ -130,7 +143,7 @@ int CDriving::GetPanelHeadingError(){
 
     double heading_error;
 
-    double error_margin = 3.141592/180.0*(10.0);
+    double error_margin = PI/180.0*(10.0);
 
     if((panel_loc.at(0) == 0) | (panel_loc.at(1) == 0))
     {
@@ -322,12 +335,12 @@ int CDriving::GetParkingControl(vector<double> _waypoint_error)
         dir = UGV_move_right;
         return dir;
     }
-    else if(dist_error < -0.3) // waypoint on the back
+    else if(dist_error < -0.05) // waypoint on the back
     {
         dir = UGV_move_backward;
         return dir;
     }
-    else if(dist_error > 0.3) // waypoint on the front
+    else if(dist_error > 0.05) // waypoint on the front
     {
         dir = UGV_move_forward;
         return dir;
@@ -350,6 +363,7 @@ bool CDriving::DriveToPanel(){
         std::cout << "Fail to Connection Vehicle" << std::endl;
         return false;
     }
+
 
     if(!mpc_gps->port->isOpen())
     {
@@ -441,7 +455,7 @@ bool CDriving::ParkingFrontPanel(){
     int _e_deg = 180;
 
     double panel_length_margin = 0.15;
-    double side_center_margin = 0.8;
+    double side_center_margin = 1.0;
     double front_center_margin = 0.3;
 
     int s_lrf_index = (int)((_s_deg + 45) / ANGLE_RESOLUTION);
@@ -452,6 +466,8 @@ bool CDriving::ParkingFrontPanel(){
     long* lrf_distance = new long[number_of_point];
 
     long* lrf_distance_raw = new long[1081];
+
+    bool front_heading_range_satisfiled = false;
 
     vector<double> detected_panel_info;
 
@@ -474,8 +490,7 @@ bool CDriving::ParkingFrontPanel(){
 
                 detected_panel_info = mpc_velodyne->GetLRFPanelInfo();
 
-                double panel_slope = atan(detected_panel_info.at(1)/detected_panel_info.at(0));
-
+                double panel_slope = detected_panel_info.at(1)/detected_panel_info.at(0);
                 double panel_slope_atan2 = atan2(detected_panel_info.at(1),detected_panel_info.at(0));
 
                 if(panel_slope_atan2 < 0)
@@ -493,14 +508,14 @@ bool CDriving::ParkingFrontPanel(){
                     panel_slope_norm += 2.0*PI;
                 }
 
-
-
                 double panel_length = detected_panel_info.at(2);
+                int current_lrf_waypoint_index= 0;
+                vector<double> current_lrf_waypoint;
 
                 if((panel_length > 0.5 - panel_length_margin)&&(panel_length < 0.5 + panel_length_margin)) // side
                 {
-
                     double panel_center_to_origin_x = -(detected_panel_info.at(3) - side_center_margin);
+//                    double panel_center_to_origin_x = -detected_panel_info.at(3);
                     double panel_center_to_origin_y = -detected_panel_info.at(4);
 
 
@@ -524,33 +539,182 @@ bool CDriving::ParkingFrontPanel(){
                         panel_slope_norm_y = -panel_slope_norm_y;
                     }
 
+                    double panel_slope_norm_angle = atan2(panel_slope_norm_y,panel_slope_norm_x);
+
+//                    double panel_slope_norm_vec_x = panel_slope_norm_x/sqrt(panel_slope_norm_x*panel_slope_norm_x + panel_slope_norm_y*panel_slope_norm_y);
+//                    double panel_slope_norm_vec_y = panel_slope_norm_y/sqrt(panel_slope_norm_x*panel_slope_norm_x + panel_slope_norm_y*panel_slope_norm_y);
+
+//                    double panel_core_x = detected_panel_info.at(3) + 0.5*(-panel_slope_norm_vec_x);
+//                    double panel_core_y = detected_panel_info.at(4) + 0.5*(-panel_slope_norm_vec_y);
+
+//                    double panel_core_to_center_x = detected_panel_info.at(3) - panel_core_x;
+//                    double panel_core_to_center_y = detected_panel_info.at(4) - panel_core_y;
+//                    double panel_core_to_center_angle = atan2(panel_core_to_center_y, panel_core_to_center_x);
+
+//                    double panel_core_to_center_x_ori = (lrf_panelpoint.at(0)).at(0);
+//                    double panel_core_to_center_y_ori = (lrf_panelpoint.at(0)).at(1);
+//                    double panel_core_to_center_angle_ori = atan2(panel_core_to_center_y_ori, panel_core_to_center_x_ori);
+
+//                    double lrf_transform_rotate = panel_core_to_center_angle - panel_core_to_center_angle_ori;
+//                    vector<double> lrf_transform_translate = {panel_core_x, panel_core_y};
+
+//                    vector<vector<double>> lrf_waypoint_transform;
+
+//                    for(vector<vector<double>>::iterator it = lrf_waypoint.begin(); it < lrf_waypoint.end();++it)
+//                    {
+//                        double transform_x = (*it).at(0)*cos(lrf_transform_rotate) - (*it).at(1)*sin(lrf_transform_rotate) + lrf_transform_translate.at(0);
+//                        double transform_y = (*it).at(0)*sin(lrf_transform_rotate) + (*it).at(1)*cos(lrf_transform_rotate) + lrf_transform_translate.at(1) - 0.5;
+
+//                        vector<double> transform_result = {transform_x, transform_y};
+
+//                        lrf_waypoint_transform.push_back(transform_result);
+//                    }
+
+//                    double core_to_origin_x = -panel_core_x;
+//                    double core_to_origin_y = -panel_core_y;
+//                    double core_to_origin_angle = atan2(core_to_origin_y,core_to_origin_x);
+//                    if(core_to_origin_angle < 0)
+//                    {
+//                        core_to_origin_angle += 2*PI;
+//                    }
+
+
+//                    for(int i = 0; i < lrf_waypoint_transform.size()-1;i++)
+//                    {
+//                        double core_to_lrf_way1_x = (lrf_waypoint_transform.at(i)).at(0) - panel_core_x;
+//                        double core_to_lrf_way1_y = (lrf_waypoint_transform.at(i)).at(1) - panel_core_y;
+//                        double core_to_lrf_way1_angle = atan2(core_to_lrf_way1_y,core_to_lrf_way1_x);
+//                        if(core_to_lrf_way1_angle < 0)
+//                        {
+//                            core_to_lrf_way1_angle += 2*PI;
+//                        }
+
+//                        double core_to_lrf_way2_x = (lrf_waypoint_transform.at(i+1)).at(0) - panel_core_x;
+//                        double core_to_lrf_way2_y = (lrf_waypoint_transform.at(i+1)).at(1) - panel_core_y;
+//                        double core_to_lrf_way2_angle = atan2(core_to_lrf_way2_y, core_to_lrf_way2_x);
+//                        if(core_to_lrf_way2_angle < 0)
+//                        {
+//                            core_to_lrf_way2_angle += 2*PI;
+//                        }
+
+//                        if(core_to_lrf_way2_angle < core_to_lrf_way1_angle)
+//                        {
+//                            if(((core_to_lrf_way2_angle > core_to_origin_angle) && (0 <= core_to_origin_angle)) || ((2*PI > core_to_origin_angle) && (core_to_lrf_way1_angle <= core_to_origin_angle)))
+//                            {
+//                                current_lrf_waypoint_index = i+1;
+//                            }
+//                        }
+//                        else
+//                        {
+//                            if((core_to_lrf_way2_angle > core_to_origin_angle) && (core_to_lrf_way1_angle <= core_to_origin_angle))
+//                            {
+//                                current_lrf_waypoint_index = i + 1;
+//                            }
+//                        }
+
+//                        double way_to_vehicle_dist = sqrt((lrf_waypoint_transform.at(current_lrf_waypoint_index)).at(0)*(lrf_waypoint_transform.at(current_lrf_waypoint_index)).at(0) + (lrf_waypoint_transform.at(current_lrf_waypoint_index)).at(1)*(lrf_waypoint_transform.at(current_lrf_waypoint_index)).at(1));
+//                        if ( (way_to_vehicle_dist < lrf_waypoint_update_thres) && (current_lrf_waypoint_index < lrf_waypoint_transform.size()))
+//                        {
+//                            current_lrf_waypoint_index += 1;
+//                        }
+
+//                        mpc_velodyne->SetLRFWaypointToPCL(lrf_waypoint_transform);
+
+//                        current_lrf_waypoint.push_back((lrf_waypoint_transform.at(current_lrf_waypoint_index)).at(0));
+//                        current_lrf_waypoint.push_back((lrf_waypoint_transform.at(current_lrf_waypoint_index)).at(1));
+
+//                        vector<double> way_point_error = GetWaypointError(current_lrf_waypoint.at(0),current_lrf_waypoint.at(1));
+
+//                        switch(GetParkingControl(way_point_error))
+//                        {
+//                        case 3: // turn left
+//                            driving_struct.direction = UGV_move_left;
+//                            driving_struct.velocity =75;
+//                            break;
+//                        case 4: // turn right
+//                            driving_struct.direction = UGV_move_right;
+//                            driving_struct.velocity =75;
+//                            break;
+//                        case 1: // go forward
+//                            driving_struct.direction = UGV_move_forward;
+//                            driving_struct.velocity =70;
+//                            break;
+//                        case 2: // go backward
+//                            driving_struct.direction = UGV_move_backward;
+//                            driving_struct.velocity =70;
+//                            break;
+//                        default:
+
+//                            break;
+//                        }
+
+//                    }
+
+
                     double outer_product_panel_center_norm = panel_center_to_origin_x*panel_slope_norm_y - panel_center_to_origin_y*panel_slope_norm_x;
+
+
 
 
                     if(outer_product_panel_center_norm  > 0)
                     {
-                        if(panel_slope > (5.0/180.0*PI) || (abs(panel_slope) > (75.0/180.0*PI)))
+                        if(panel_slope_norm_angle > (0.5*PI + (5.0/180.0*PI)))
                         {
                             driving_struct.direction = UGV_move_left;
                             driving_struct.velocity =85;
                         }
-                        else if(panel_slope < - (5.0/180.0*PI))
+                        else if (panel_slope_norm_angle < (0.5*PI - (5.0/180.0*PI)))
                         {
                             driving_struct.direction = UGV_move_right;
                             driving_struct.velocity =85;
                         }
-                        else if(outer_product_panel_center_norm  > 0)
+                        else
                         {
                             driving_struct.direction = UGV_move_forward;
-                            driving_struct.velocity =100;
+                            driving_struct.velocity =70;
                         }
+
+//                        if(panel_slope > (5.0/180.0*PI) || (abs(panel_slope) > (75.0/180.0*PI)))
+//                        {
+//                            driving_struct.direction = UGV_move_left;
+//                            driving_struct.velocity =85;
+//                        }
+//                        else if(panel_slope < - (5.0/180.0*PI))
+//                        {
+//                            driving_struct.direction = UGV_move_right;
+//                            driving_struct.velocity =85;
+//                        }
+
+//                        else if(outer_product_panel_center_norm  > 0)
+//                        {
+//                            driving_struct.direction = UGV_move_forward;
+//                            driving_struct.velocity =70;
+//                        }
+
                     }
                     else
                     {
+                        if(panel_slope_norm_angle > (0.0 + (5.0/180.0*PI)))
+                        {
+//                            driving_struct.direction = UGV_move_left;
+                            driving_struct.direction = UGV_move_differ_left;
+                            driving_struct.velocity =85;
+                        }
+                        else if (panel_slope_norm_angle < (0.0 - (5.0/180.0*PI)))
+                        {
+                            driving_struct.direction = UGV_move_right;
+                            driving_struct.velocity =85;
+                        }
+                        else
+                        {
+                            driving_struct.direction = UGV_move_forward;
+                            driving_struct.velocity =85;
+                        }
+
 //                        driving_struct.direction = UGV_move_differ_left;
-//                        driving_struct.velocity =120;
-                        driving_struct.direction = UGV_move_forward;
-                        driving_struct.velocity =100;
+//                        driving_struct.velocity =85;
+//                        driving_struct.direction = UGV_move_forward;
+//                        driving_struct.velocity =100;
 //                        driving_struct.direction = UGV_move_left;
 //                        driving_struct.velocity =85;
                     }
@@ -562,7 +726,14 @@ bool CDriving::ParkingFrontPanel(){
                 }
                 else// front or back
                 {
+                    if(front_heading_range_satisfiled == false)
+                    {
+                        front_center_margin = 0.8;
+                    }
+
+
                     double panel_center_to_origin_x = -(detected_panel_info.at(3) - front_center_margin);
+//                    double panel_center_to_origin_x = -detected_panel_info.at(3);
                     double panel_center_to_origin_y = -detected_panel_info.at(4);
 
 
@@ -585,6 +756,119 @@ bool CDriving::ParkingFrontPanel(){
                         panel_slope_norm_x = -panel_slope_norm_x;
                         panel_slope_norm_y = -panel_slope_norm_y;
                     }
+
+                    double panel_slope_norm_angle = atan2(panel_slope_norm_y,panel_slope_norm_x);
+
+//                    double panel_slope_norm_vec_x = panel_slope_norm_x/sqrt(panel_slope_norm_x*panel_slope_norm_x + panel_slope_norm_y*panel_slope_norm_y);
+//                    double panel_slope_norm_vec_y = panel_slope_norm_y/sqrt(panel_slope_norm_x*panel_slope_norm_x + panel_slope_norm_y*panel_slope_norm_y);
+
+//                    double panel_core_x = detected_panel_info.at(3) + 0.375*(-panel_slope_norm_vec_x);
+//                    double panel_core_y = detected_panel_info.at(4) + 0.375*(-panel_slope_norm_vec_y);
+
+//                    double panel_core_to_center_x = detected_panel_info.at(3) - panel_core_x;
+//                    double panel_core_to_center_y = detected_panel_info.at(4) - panel_core_y;
+//                    double panel_core_to_center_angle = atan2(panel_core_to_center_y, panel_core_to_center_x);
+
+//                    double panel_core_to_center_x_ori = (lrf_panelpoint.at(1)).at(0);
+//                    double panel_core_to_center_y_ori = (lrf_panelpoint.at(1)).at(1);
+//                    double panel_core_to_center_angle_ori = atan2(panel_core_to_center_y_ori, panel_core_to_center_x_ori);
+
+//                    double lrf_transform_rotate = panel_core_to_center_angle - panel_core_to_center_angle_ori;
+//                    vector<double> lrf_transform_translate = {panel_core_x, panel_core_y};
+
+//                    vector<vector<double>> lrf_waypoint_transform;
+
+//                    for(vector<vector<double>>::iterator it = lrf_waypoint.begin(); it < lrf_waypoint.end();++it)
+//                    {
+//                        double transform_x = (*it).at(0)*cos(lrf_transform_rotate) - (*it).at(1)*sin(lrf_transform_rotate) + lrf_transform_translate.at(0);
+//                        double transform_y = (*it).at(0)*sin(lrf_transform_rotate) + (*it).at(1)*cos(lrf_transform_rotate) + lrf_transform_translate.at(1);
+
+//                        vector<double> transform_result = {transform_x, transform_y};
+
+//                        lrf_waypoint_transform.push_back(transform_result);
+//                    }
+
+//                    double core_to_origin_x = -panel_core_x;
+//                    double core_to_origin_y = -panel_core_y;
+//                    double core_to_origin_angle = atan2(core_to_origin_y,core_to_origin_x);
+//                    if(core_to_origin_angle < 0)
+//                    {
+//                        core_to_origin_angle += 2*PI;
+//                    }
+
+
+//                    for(int i = 0; i < lrf_waypoint_transform.size()-1;i++)
+//                    {
+//                        double core_to_lrf_way1_x = (lrf_waypoint_transform.at(i)).at(0) - panel_core_x;
+//                        double core_to_lrf_way1_y = (lrf_waypoint_transform.at(i)).at(1) - panel_core_y;
+//                        double core_to_lrf_way1_angle = atan2(core_to_lrf_way1_y,core_to_lrf_way1_x);
+//                        if(core_to_lrf_way1_angle < 0)
+//                        {
+//                            core_to_lrf_way1_angle += 2*PI;
+//                        }
+
+//                        double core_to_lrf_way2_x = (lrf_waypoint_transform.at(i+1)).at(0) - panel_core_x;
+//                        double core_to_lrf_way2_y = (lrf_waypoint_transform.at(i+1)).at(1) - panel_core_y;
+//                        double core_to_lrf_way2_angle = atan2(core_to_lrf_way2_y, core_to_lrf_way2_x);
+//                        if(core_to_lrf_way2_angle < 0)
+//                        {
+//                            core_to_lrf_way2_angle += 2*PI;
+//                        }
+
+//                        if(core_to_lrf_way2_angle < core_to_lrf_way1_angle)
+//                        {
+//                            if(((core_to_lrf_way2_angle > core_to_origin_angle) && (0 <= core_to_origin_angle)) || ((2*PI > core_to_origin_angle) && (core_to_lrf_way1_angle <= core_to_origin_angle)))
+//                            {
+//                                current_lrf_waypoint_index = i+1;
+//                            }
+//                        }
+//                        else
+//                        {
+//                            if((core_to_lrf_way2_angle > core_to_origin_angle) && (core_to_lrf_way1_angle <= core_to_origin_angle))
+//                            {
+//                                current_lrf_waypoint_index = i + 1;
+//                            }
+//                        }
+
+//                        double way_to_vehicle_dist = sqrt((lrf_waypoint_transform.at(current_lrf_waypoint_index)).at(0)*(lrf_waypoint_transform.at(current_lrf_waypoint_index)).at(0) + (lrf_waypoint_transform.at(current_lrf_waypoint_index)).at(1)*(lrf_waypoint_transform.at(current_lrf_waypoint_index)).at(1));
+//                        if ( (way_to_vehicle_dist < lrf_waypoint_update_thres) && (current_lrf_waypoint_index < lrf_waypoint_transform.size()))
+//                        {
+//                            current_lrf_waypoint_index += 1;
+//                        }
+
+//                        mpc_velodyne->SetLRFWaypointToPCL(lrf_waypoint_transform);
+
+
+//                        current_lrf_waypoint.push_back((lrf_waypoint_transform.at(current_lrf_waypoint_index)).at(0));
+//                        current_lrf_waypoint.push_back((lrf_waypoint_transform.at(current_lrf_waypoint_index)).at(1));
+
+//                        vector<double> way_point_error = GetWaypointError(current_lrf_waypoint.at(0),current_lrf_waypoint.at(1));
+
+
+//                        switch(GetParkingControl(way_point_error))
+//                        {
+//                        case 3: // turn left
+//                            driving_struct.direction = UGV_move_left;
+//                            driving_struct.velocity =75;
+//                            break;
+//                        case 4: // turn right
+//                            driving_struct.direction = UGV_move_right;
+//                            driving_struct.velocity =75;
+//                            break;
+//                        case 1: // go forward
+//                            driving_struct.direction = UGV_move_forward;
+//                            driving_struct.velocity =70;
+//                            break;
+//                        case 2: // go backward
+//                            driving_struct.direction = UGV_move_backward;
+//                            driving_struct.velocity =70;
+//                            break;
+//                        default:
+
+//                            break;
+//                        }
+
+//                    }
 
                     double outer_product_panel_center_norm = panel_center_to_origin_x*panel_slope_norm_y - panel_center_to_origin_y*panel_slope_norm_x;
 
@@ -606,92 +890,78 @@ bool CDriving::ParkingFrontPanel(){
                     if ( (line_distance_to_origin < (side_center_margin + 0.25)) && (abs(panel_slope) > (75.0/180.0*PI)))
                     {
                         driving_struct.direction = UGV_move_forward;
-                        driving_struct.velocity =100;
+                        driving_struct.velocity =70;
                     }
                     else
                     {
                         if(outer_product_panel_center_norm  > 0)
                         {
-                            if(panel_slope > (5.0/180.0*PI) || (abs(panel_slope) > (75.0/180.0*PI)))
+
+                            if(panel_slope_norm_angle > (0.5*PI + (5.0/180.0*PI)))
                             {
                                 driving_struct.direction = UGV_move_left;
                                 driving_struct.velocity =85;
                             }
-                            else if(panel_slope < - (5.0/180.0*PI))
+                            else if (panel_slope_norm_angle < (0.5*PI - (5.0/180.0*PI)))
                             {
                                 driving_struct.direction = UGV_move_right;
                                 driving_struct.velocity =85;
                             }
-                            else if(outer_product_panel_center_norm  > 0)
+                            else
                             {
                                 driving_struct.direction = UGV_move_forward;
-                                driving_struct.velocity =100;
+                                driving_struct.velocity =70;
                             }
+
+//                            if(panel_slope > (5.0/180.0*PI) || (abs(panel_slope) > (75.0/180.0*PI)))
+//                            {
+//                                driving_struct.direction = UGV_move_left;
+//                                driving_struct.velocity =85;
+//                            }
+//                            else if(panel_slope < - (5.0/180.0*PI))
+//                            {
+//                                driving_struct.direction = UGV_move_right;
+//                                driving_struct.velocity =85;
+//                            }
+//                            else if(outer_product_panel_center_norm  > 0)
+//                            {
+//                                driving_struct.direction = UGV_move_forward;
+//                                driving_struct.velocity =70;
+//                            }
 
                         }
                         else
                         {
-                            driving_struct.direction = UGV_move_forward;
-                            driving_struct.velocity =100;
+                            if(panel_slope_norm_angle > (0.0 + (5.0/180.0*PI)))
+                            {
+    //                            driving_struct.direction = UGV_move_left;
+                                driving_struct.direction = UGV_move_differ_left;
+                                driving_struct.velocity =85;
+                            }
+                            else if (panel_slope_norm_angle < (0.0 - (5.0/180.0*PI)))
+                            {
+                                driving_struct.direction = UGV_move_right;
+                                driving_struct.velocity =85;
+                            }
+                            else
+                            {
+                                driving_struct.direction = UGV_move_forward;
+                                driving_struct.velocity =85;
+                            }
+//                            driving_struct.direction = UGV_move_forward;
+//                            driving_struct.velocity =70;
                         }
                     }
                 }
 
             }
-            cout<<driving_struct.direction << endl;
+
+//            cout << "driving direction " << driving_struct.direction<<endl;
             mpc_vehicle->Move(driving_struct.direction, driving_struct.velocity);
+
+
         }
     }while(driving_struct.driving_mission);
-
-
-//    do{
-//        if(!mpc_velodyne->GetPanelFindStatus())
-//        {
-//            if(mpc_velodyne->GetUGVTurnDirection())
-//            {
-//                driving_struct.direction = UGV_move_left;
-//                driving_struct.velocity =75;
-//            }
-//            else
-//            {
-//                driving_struct.direction = UGV_move_right;
-//                driving_struct.velocity =75;
-//            }
-//        }
-//        else
-//        {
-//            vector<double> way_point_error = GetWaypointError(mpc_velodyne->GetWaypoint().at(0),mpc_velodyne->GetWaypoint().at(1));
-//            cout<<"heading : " << way_point_error.at(0) <<", distance : "<<way_point_error.at(1) << endl;
-
-//            switch(GetParkingControl(way_point_error))
-//            {
-//            case 3: // turn left
-//                driving_struct.direction = UGV_move_left;
-//                driving_struct.velocity =75;
-//                break;
-//            case 4: // turn right
-//                driving_struct.direction = UGV_move_right;
-//                driving_struct.velocity =75;
-//                break;
-//            case 1: // go forward
-//                driving_struct.direction = UGV_move_forward;
-//                driving_struct.velocity =70;
-//                break;
-//            case 2: // go backward
-//                driving_struct.direction = UGV_move_backward;
-//                driving_struct.velocity =70;
-//                break;
-//            default:
-
-//                break;
-//            }
-//        }
-
-
-//        mpc_vehicle->Move(driving_struct.direction, driving_struct.velocity);
-//        QThread::usleep(30);
-
-//    }while(driving_struct.driving_mission);
 
     return true;
 }
