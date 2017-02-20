@@ -94,6 +94,7 @@ public slots:
     void SlotButtonCameraSwitch();
     void SlotButtonVelodyneSwitch();
     void SlotButtonKinovaSwitch();
+    void SlotButtonKinovaReset();
     void SlotButtonGripperSwitch();
     void SlotButtonIMUSwitch();
 

@@ -3,13 +3,18 @@
 CKinova::CKinova(){
 
     //We load the library
-    mp_commandLayer_handle= dlopen("Kinova.API.USBCommandLayerUbuntu.so",RTLD_NOW|RTLD_GLOBAL);
+    mp_commandLayer_handle= dlopen("/opt/kinova/GUI/Kinova.API.USBCommandLayerUbuntu.so",RTLD_NOW|RTLD_GLOBAL);
 
     //We load the functions from the library (Under Windows, use GetProcAddress)
     Kinova_InitAPI = (int (*)()) dlsym(mp_commandLayer_handle,"InitAPI");
     Kinova_CloseAPI = (int (*)()) dlsym(mp_commandLayer_handle,"CloseAPI");
     Kinova_MoveHome = (int (*)()) dlsym(mp_commandLayer_handle,"MoveHome");
-    Kinova_SetFrameType = (int (*)(int)) dlsym(mp_commandLayer_handle,"SetFrameType");;
+    Kinova_SetFrameType = (int (*)(int)) dlsym(mp_commandLayer_handle,"SetFrameType");
+
+    Kinova_RestoreFactoryDefault = (int (*)()) dlsym(mp_commandLayer_handle,"RestoreFactoryDefault");;
+
+//    restoreFactoryDefault )()
+
 
     //Kinova_InitFingers = (int (*)()) dlsym(mp_commandLayer_handle,"InitFingers");
     Kinova_GetDevices = (int (*)(KinovaDevice devices[MAX_KINOVA_DEVICE], int &result)) dlsym(mp_commandLayer_handle,"GetDevices");
@@ -29,9 +34,12 @@ CKinova::CKinova(){
 
     Kinova_GetForcesInfo = (int (*)(ForcesInfo &)) dlsym(mp_commandLayer_handle,"GetForcesInfo");
     Kinova_GetCartesianForce = (int (*)(CartesianPosition &)) dlsym(mp_commandLayer_handle, "GetCartesianForce");
+
     fl_kinova_init = false;
     fl_kinova_manipulation = false;
     fl_kinova_init_position = false;
+    fl_kinova_get_force_feedback = false;
+
     theta = 0.0;
     initialAngle = 0.0;
 //    m_base_frame_rot = -5.0;
@@ -152,8 +160,9 @@ void CKinova::KinovaInitMotion(){
     emit SignalKinovaPosition(KinovaGetPosition());
 }
 
-
-
+void CKinova::KinovaResetFactorial(){
+    Kinova_RestoreFactoryDefault();
+}
 
 bool CKinova::Kinova_Scan_Init(double _rel_pos,double unit_step/*m*/,CartesianPosition _ref_position){
 
@@ -191,6 +200,26 @@ CartesianPosition CKinova::KinovaGetCartesianForce(){
     Kinova_GetCartesianForce(force);
 
     return force;
+}
+
+void CKinova::KinovaSetCartesianForceThread(){
+
+    if(!fl_kinova_get_force_feedback){
+        this->start();
+    }
+
+    else
+        fl_kinova_get_force_feedback = false;
+}
+
+CartesianPosition CKinova::KinovaGetCartesianForceThread(){
+
+    CartesianPosition kinova_force;
+    Kinova_GetCartesianForce(kinova_force);
+
+    emit SignalKinovaForce(kinova_force);
+
+    msleep(30);
 }
 
 bool CKinova::KinovaMoveUnitStep(double _x, double _y, double _z, double _th_x, double _th_y, double _th_z){
@@ -1090,5 +1119,9 @@ void CKinova::run(){
         Kinova_Scan_Moving(m_kinova_rel_pos, m_kinova_disired_position);
         std::cout << "End Scan Motion!" << std::endl;
         fl_kinova_manipulation = false;
+    }
+
+    if(fl_kinova_get_force_feedback){
+        KinovaGetCartesianForceThread();
     }
 }

@@ -2,16 +2,37 @@
 /* Made By Jun Hong 28.01.2017
 /* This Script is for 2107 MBZIRC Challenge2
 /*
-
+/*<
 # Title: Valve Recognition
 
-## Step0: Gripper Release
+global_bool gb_froce_check = false;
 
-GRIPPER_FORCE_CTRL_STRUCT.pose_1 = 2800
-GRIPPER_FORCE_CTRL_STRUCT.pose_2 = 2800
-GRIPPER_FORCE_CTRL_STRUCT.forece_threshold = 200
+
+## Step0: Align to Panel
+
+KINOVA_ALIGN_TO_PANEL_FUNCTION()
+
+## Step1: Grasp(For Align Center)
+IF(gb_froce_check)
+
+GRIPPER_FORCE_CTRL_STRUCT.pose_1 = 1700
+GRIPPER_FORCE_CTRL_STRUCT.pose_2 = 1700
+GRIPPER_FORCE_CTRL_STRUCT.force_threshold = 130
 
 GRIPPER_FORCE_CTRL_FUNCTION()
+
+A_Sleep(2000)
+
+## Step2: Grasp(For Align Center)
+IF(gb_froce_check)
+
+GRIPPER_FORCE_CTRL_STRUCT.pose_1 = 2300
+GRIPPER_FORCE_CTRL_STRUCT.pose_2 = 2300
+GRIPPER_FORCE_CTRL_STRUCT.force_threshold = -2
+
+GRIPPER_FORCE_CTRL_FUNCTION()
+
+A_Sleep(2000)
 
 ## Step0: Kinova Arm Up
 
@@ -28,6 +49,61 @@ KINOVA_MANIPULATE_STRUCT.force_threshold = 10
 KINOVA_MANIPULATE_FUNCTION()
 
 A_Sleep(500)
+
+## Step0: LRF-Kinova Vertical CTRL
+
+LRF_KINOVA_VERTICAL_CTRL_STRUCT.desired_distance = 270
+LRF_KINOVA_VERTICAL_CTRL_STRUCT.error = 2
+
+LRF_KINOVA_VERTICAL_CTRL_STRUCT.s_deg = 30
+LRF_KINOVA_VERTICAL_CTRL_STRUCT.e_deg = 150
+
+LRF_KINOVA_VERTICAL_CTRL_STRUCT.inlier_lrf_dst = 800
+
+LRF_KINOVA_VERTICAL_CTRL_STRUCT.loop_sleep = 30
+LRF_KINOVA_VERTICAL_CTRL_STRUCT.sensor_option = false
+
+LRF_KINOVA_VERTICAL_CTRL_FUNCTION()
+
+A_Sleep(500)
+
+# Step1: LRF-Vehicle Horizen CTRL
+IF(gi_wrench_hanger_index > 3)
+
+LRF_VEHICLE_HORIZEN_CTRL_STRUCT.desired_avr_inlier_deg = 87.5
+LRF_VEHICLE_HORIZEN_CTRL_STRUCT.error_deg_boundary = 1
+
+LRF_VEHICLE_HORIZEN_CTRL_STRUCT.s_deg = 30
+LRF_VEHICLE_HORIZEN_CTRL_STRUCT.e_deg = 150
+
+LRF_VEHICLE_HORIZEN_CTRL_STRUCT.inlier_distance = 800
+
+
+LRF_VEHICLE_HORIZEN_CTRL_STRUCT.velocity = 77
+
+LRF_VEHICLE_HORIZEN_CTRL_STRUCT.sensor_option = false
+
+LRF_VEHICLE_HORIZEN_CTRL_FUNCTION()
+
+# Step2: LRF-Vehicle Horizen CTRL
+IF(gi_wrench_hanger_index < 4)
+/*>
+
+LRF_VEHICLE_HORIZEN_CTRL_STRUCT.desired_avr_inlier_deg = 87.5
+LRF_VEHICLE_HORIZEN_CTRL_STRUCT.error_deg_boundary = 1
+
+LRF_VEHICLE_HORIZEN_CTRL_STRUCT.s_deg = 30
+LRF_VEHICLE_HORIZEN_CTRL_STRUCT.e_deg = 150
+
+LRF_VEHICLE_HORIZEN_CTRL_STRUCT.inlier_distance = 800
+
+
+LRF_VEHICLE_HORIZEN_CTRL_STRUCT.velocity = 77
+
+LRF_VEHICLE_HORIZEN_CTRL_STRUCT.sensor_option = false
+
+LRF_VEHICLE_HORIZEN_CTRL_FUNCTION()
+
 ## Step1: LRF-Kinova Vertical CTRL
 
 LRF_KINOVA_VERTICAL_CTRL_STRUCT.desired_distance = 240
@@ -45,10 +121,11 @@ LRF_KINOVA_VERTICAL_CTRL_FUNCTION()
 
 A_Sleep(500)
 
-## Step3: LRF-Kinova Horizen CTRL(Wrench Num4)
-/*LRF_KINOVA_HORIZEN_CTRL_STRUCT.wrench_hanger_index = gi_wrench_hanger_index
+## Step2: LRF-Kinova Horizen CTRL
 
-LRF_KINOVA_HORIZEN_CTRL_STRUCT.wrench_hanger_index = 1
+LRF_KINOVA_HORIZEN_CTRL_STRUCT.wrench_hanger_index = gi_wrench_hanger_index
+
+/*LRF_KINOVA_HORIZEN_CTRL_STRUCT.wrench_hanger_index = 1
 
 LRF_KINOVA_HORIZEN_CTRL_STRUCT.wrench_location_deg_1 = 96.0 
 LRF_KINOVA_HORIZEN_CTRL_STRUCT.wrench_location_deg_2 = 98.5 
@@ -72,7 +149,8 @@ LRF_KINOVA_HORIZEN_CTRL_STRUCT.sensor_option = false
 LRF_KINOVA_HORIZEN_CTRL_FUNCTION()
 
 A_Sleep(500)
-## Step2: Kinova Arm Down 
+
+## Step3: Kinova Arm Down 
 
 KINOVA_MANIPULATE_STRUCT.x = ==
 KINOVA_MANIPULATE_STRUCT.y = ==
@@ -88,14 +166,14 @@ KINOVA_MANIPULATE_FUNCTION()
 
 A_Sleep(1000)
 
-## Step5: Magnet On
+## Step4: Magnet On
 
 GRIPPER_MAGNET_CTRL_STRUCT.fl_magnet = true
 
 GRIPPER_MAGNET_CTRL_FUNCTION()
 A_Sleep(1000)
 
-## Step4: Kinova Arm Forward
+## Step5: Kinova Arm Forward
 
 KINOVA_MANIPULATE_STRUCT.x = ++0.12
 KINOVA_MANIPULATE_STRUCT.y = ==
@@ -110,7 +188,6 @@ KINOVA_MANIPULATE_STRUCT.force_threshold = 10
 KINOVA_MANIPULATE_FUNCTION()
 
 A_Sleep(4000)
-
 
 ## Step6: Kinova Arm Backward
 
@@ -134,16 +211,26 @@ KINOVA_FORCE_CHECK_STRUCT.force_threshold_x = 0
 KINOVA_FORCE_CHECK_STRUCT.force_threshold_y = 0
 KINOVA_FORCE_CHECK_STRUCT.force_threshold_z = 6.5
 
-KINOVA_FORCE_CHECK_STRUCT.check_count = 20
+KINOVA_FORCE_CHECK_STRUCT. = check_threshold = 75
+KINOVA_FORCE_CHECK_STRUCT.check_count = 100
 
-KINOVA_FORCE_CHECK_FUNCTION()
+gb_froce_check = KINOVA_FORCE_CHECK_FUNCTION()
 
-## Step9: Grasp2
+## Step8: Grasp2
+IF(gb_froce_check)
 
 GRIPPER_FORCE_CTRL_STRUCT.pose_1 = 1700
 GRIPPER_FORCE_CTRL_STRUCT.pose_2 = 1700
 GRIPPER_FORCE_CTRL_STRUCT.force_threshold = 130
 
 GRIPPER_FORCE_CTRL_FUNCTION()
+
+A_Sleep(2000)
+
+ELSE(GoTo: 0)
+
+## Step9: Align to Panel
+
+KINOVA_ALIGN_TO_PANEL_FUNCTION()
 
 ##########################################_MISSION_END_##########################################

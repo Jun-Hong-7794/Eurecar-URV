@@ -7,6 +7,24 @@ global_int gi_wrench_hanger_index = 3
 
 # Title: Valve Recognition
 
+## Step0: Align to Panel
+
+KINOVA_ALIGN_TO_PANEL_FUNCTION()
+
+## Step0: Kinova Arm Up
+
+KINOVA_MANIPULATE_STRUCT.x = ==
+KINOVA_MANIPULATE_STRUCT.y = ==
+KINOVA_MANIPULATE_STRUCT.z = 0.4319
+
+KINOVA_MANIPULATE_STRUCT.roll = ==
+KINOVA_MANIPULATE_STRUCT.pitch = ==
+KINOVA_MANIPULATE_STRUCT.yaw = ==
+
+KINOVA_MANIPULATE_STRUCT.force_threshold = 10
+
+KINOVA_MANIPULATE_FUNCTION()
+
 ## Step1: LRF-Kinova Vertical CTRL
 
 LRF_KINOVA_VERTICAL_CTRL_STRUCT.desired_distance = 270
@@ -42,32 +60,8 @@ LRF_VEHICLE_HORIZEN_CTRL_STRUCT.sensor_option = false
 
 LRF_VEHICLE_HORIZEN_CTRL_FUNCTION()
 
-## Step0: Gripper Release
-
-GRIPPER_FORCE_CTRL_STRUCT.pose_1 = 2500
-GRIPPER_FORCE_CTRL_STRUCT.pose_2 = 2500
-GRIPPER_FORCE_CTRL_STRUCT.forece_threshold = 200
-
-GRIPPER_FORCE_CTRL_FUNCTION()
-
-A_Sleep(1000)
-
-## Step0: Kinova Arm Up
-
-KINOVA_MANIPULATE_STRUCT.x = ==
-KINOVA_MANIPULATE_STRUCT.y = ==
-KINOVA_MANIPULATE_STRUCT.z = 0.4319
-
-KINOVA_MANIPULATE_STRUCT.roll = ==
-KINOVA_MANIPULATE_STRUCT.pitch = ==
-KINOVA_MANIPULATE_STRUCT.yaw = ==
-
-KINOVA_MANIPULATE_STRUCT.force_threshold = 10
-
-KINOVA_MANIPULATE_FUNCTION()
-
 A_Sleep(500)
-## Step1: LRF-Kinova Vertical CTRL
+## Step3: LRF-Kinova Vertical CTRL
 
 LRF_KINOVA_VERTICAL_CTRL_STRUCT.desired_distance = 300
 LRF_KINOVA_VERTICAL_CTRL_STRUCT.error = 2
@@ -84,7 +78,7 @@ LRF_KINOVA_VERTICAL_CTRL_FUNCTION()
 
 A_Sleep(500)
 
-## Step3: LRF-Kinova Horizen CTRL
+## Step4: LRF-Kinova Horizen CTRL
 LRF_KINOVA_HORIZEN_CTRL_STRUCT.desired_inlier_deg_avr = 107.5
 
 LRF_KINOVA_HORIZEN_CTRL_STRUCT.error = 0.5
@@ -100,8 +94,7 @@ LRF_KINOVA_HORIZEN_CTRL_FUNCTION()
 
 A_Sleep(500)
 
-
-## Step0: Kinova Arm Dw
+## Step5: Kinova Arm Dw
 
 KINOVA_MANIPULATE_STRUCT.x = ==
 KINOVA_MANIPULATE_STRUCT.y = ==
@@ -117,13 +110,21 @@ KINOVA_MANIPULATE_FUNCTION()
 
 A_Sleep(500)
 
+## Step6: Wrench Recognition
 
-/*## Step3: Wrench Recognition
-
+WRENCH_RECOGNITION_STRUCT.num_of_wrench = 6
+WRENCH_RECOGNITION_STRUCT.loop_count = 50
 /*WRENCH_RECOGNITION_STRUCT.valve_size = gi_valve_size
-/*WRENCH_RECOGNITION_STRUCT.valve_size = 16
-/*gi_wrench_hanger_index = WRENCH_RECOGNITION_FUNCTION()
+WRENCH_RECOGNITION_STRUCT.valve_size = 16
+gi_wrench_hanger_index = WRENCH_RECOGNITION_FUNCTION()
 
-/*A_Sleep(500)
+A_Sleep(500)
+
+## Step13: Align to Panel
+IF(gi_wrench_hanger_index != -1)
+
+KINOVA_ALIGN_TO_PANEL_FUNCTION()
+
+ELSE(GoTo: 0)
 
 ##########################################_MISSION_END_##########################################

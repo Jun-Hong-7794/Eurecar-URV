@@ -71,6 +71,8 @@ EurecarURV_Dlg::EurecarURV_Dlg(QWidget *parent) :
     connect(ui->bt_kinova,SIGNAL(clicked()), this, SLOT(SlotButtonKinovaSwitch()));
     connect(ui->bt_mission_run,SIGNAL(clicked()), this, SLOT(SlotButtonMissionRun()));
 
+    connect(ui->bt_kinova_factory_reset,SIGNAL(clicked()), this, SLOT(SlotButtonKinovaReset()));
+
     connect(ui->bt_mission_partial_run,SIGNAL(clicked()), this, SLOT(SlotButtonMissionPartialRun()));
     connect(ui->bt_scenario_partial_run,SIGNAL(clicked()), this, SLOT(SlotButtonScenarioPartialRun()));
     connect(ui->bt_script_update,SIGNAL(clicked()), this, SLOT(SlotButtonScenarioLoad()));
@@ -218,6 +220,16 @@ void EurecarURV_Dlg::SlotButtonKinovaSwitch(){
     else{
         mpc_kinova->CloseKinova();
         ui->bt_kinova->setText("Kinova On");
+    }
+}
+
+void EurecarURV_Dlg::SlotButtonKinovaReset(){
+    if(!mpc_kinova->IsKinovaInitialized()){
+        if(!mpc_kinova->InitKinova())
+            QMessageBox::information(this, tr("Fail to Connect KINOVA"), tr("Check KINOVA"));
+        else{
+            mpc_kinova->KinovaResetFactorial();
+        }
     }
 }
 

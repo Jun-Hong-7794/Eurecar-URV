@@ -42,6 +42,9 @@
 #define MANIPUL_INX_LRF_K_VEHICLE_HORIZEN_CTRL  13
 #define MANIPUL_INX_LRF_K_VEHICLE_ANGLE_CTRL    14
 
+#define MANIPUL_INX_KINOVA_ALIGN_TO_PANEL      15
+#define MANIPUL_INX_KINOVA_FIT_TO_VALVE        16
+
 class CManipulation:public QThread{
     Q_OBJECT
 
@@ -62,6 +65,9 @@ private:
 
     bool fl_main_fnc_result;
     bool fl_kinova_force_ctrl_result;
+
+    cv::Mat m_mat_panel_model;
+    QMutex mtx_panel_model;
 
     LRF_KINOVA_VERTICAL_CTRL_STRUCT mstruct_lrf_kinova_vertical;
     QMutex mxt_lrf_kinova_vertical;
@@ -101,6 +107,9 @@ private:
 
     WRENCH_RECOGNITION mstruct_wrench_recognition;
     QMutex mxt_wrench_recognition;
+
+    KINOVA_FIT_TO_VALVE_POSE_STRUCT mstruct_fit_to_valve_pose;
+    QMutex mxt_fit_to_valve_pose;
     //-------------------------------------------------
     // ElementTech Class
     //-------------------------------------------------
@@ -140,11 +149,17 @@ public:
     // Calculate Function
     //-------------------------------------------------
     QVector<double> DataSort(QVector<double> _data);
+    void DataSort(std::vector<GRIPPER_DATA>& _data);
 
     void ValveSizeDataModelInit(QVector<double> _data, int _index/*mm*/);
 
     int DataAnalisys(QVector<double> _data);//For Valve Recognition, Result: 16 ~ 24(16mm, 17mm, 18mm, 19mm, 22mm, 24mm)
 
+    cv::Mat ValveModeling(int _valve_size, double _rotation_angle);
+
+    void MakePanelModel(int _valve_size, int _wrench_index);
+    cv::Mat GetPanelModel();
+    void PanelModeling(int _valve_size, int _virtical_dst/*mm*/, int _horizen_dst/*mm*/, double _angle/*deg*/);
     //-------------------------------------------------
     // Dvice Class Initialize(Connect) Function
     //-------------------------------------------------
@@ -198,6 +213,8 @@ public:
     int GetValveSizeRecogResult();
     void SetValveSizeRecogResult(int _result);
 
+    void SetForceCheckThread(bool _data);
+
 public:
     bool SelectMainFunction(int _fnc_index_);
 
@@ -240,6 +257,9 @@ public:
     void SetManipulationOption(WRENCH_RECOGNITION _manipulation_option);
     WRENCH_RECOGNITION GetWrenchRecognitionOption();
 
+    void SetManipulationOption(KINOVA_FIT_TO_VALVE_POSE_STRUCT _manipulation_option);
+    KINOVA_FIT_TO_VALVE_POSE_STRUCT GetFitToValvePoseOption();
+
 private:
     //-------------------------------------------------
     // Main Function
@@ -256,6 +276,8 @@ private:
     bool KinovaDoManipulate();
     bool KinovaRotateValveMotion();
 
+    bool KinovaFitToValvePose();
+
     bool GripperKinovaValveSizeRecognition();
 
     bool GripperForceCtrl();
@@ -266,6 +288,7 @@ private:
 signals:
     void SignalKinovaPosition(CartesianPosition);
     void SignalKinovaForceVector(CartesianPosition);
+    void SignalKinovaForceCheckOption(KINOVA_FORCE_CHECK_STRUCT);
 
     void SignalLRFKinovaAngleStruct(LRF_KINOVA_ANGLE_CTRL_STRUCT);
     void SignalLRFKinovaHorizenStruct(LRF_KINOVA_HORIZEN_CTRL_STRUCT);
@@ -276,6 +299,9 @@ signals:
     void SignalLRFImage(cv::Mat);
     void SignalCameraImage(cv::Mat);
     void SignalSegnetImage(cv::Mat);
+
+    void SignalValveImage(cv::Mat);
+    void SignalPanelImage(cv::Mat);
 
     void SignalEditeGripperStatus(GRIPPER_STATUS);
 };

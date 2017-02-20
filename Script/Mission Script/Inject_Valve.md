@@ -8,7 +8,7 @@ global_bool gb_bool_kinova_force_ctrl_rst = true;
 
 # Title: Valve Recognition
 
-## Step1: LRF-Kinova Vertical CTRL
+## Step0: LRF-Kinova Vertical CTRL
 
 LRF_KINOVA_VERTICAL_CTRL_STRUCT.desired_distance = 270
 LRF_KINOVA_VERTICAL_CTRL_STRUCT.error = 2
@@ -25,7 +25,7 @@ LRF_KINOVA_VERTICAL_CTRL_FUNCTION()
 
 A_Sleep(500)
 
-## Step2: Vehicle Horizen Control(Using LRF)
+## Step1: Vehicle Horizen Control(Using LRF)
 /* unit is mm
 
 LRF_VEHICLE_HORIZEN_CTRL_STRUCT.desired_avr_inlier_deg = 87.5
@@ -43,7 +43,7 @@ LRF_VEHICLE_HORIZEN_CTRL_STRUCT.sensor_option = false
 
 LRF_VEHICLE_HORIZEN_CTRL_FUNCTION()
 
-## Step1: Vehicle Angle Control(Using LRF)
+## Step2: Vehicle Angle Control(Using LRF)
 /* unit is mm
 LRF_VEHICLE_ANGLE_CTRL_STRUCT.desired_angle = 2
 LRF_VEHICLE_ANGLE_CTRL_STRUCT.error_boundary = 0.5
@@ -57,8 +57,7 @@ LRF_VEHICLE_ANGLE_CTRL_STRUCT.sensor_option = false
 
 LRF_VEHICLE_ANGLE_CTRL_FUNCTION()
 
-
-## Step0: Gripper Release
+## Step3: Gripper Release
 
 GRIPPER_FORCE_CTRL_STRUCT.pose_1 = 2500
 GRIPPER_FORCE_CTRL_STRUCT.pose_2 = 2500
@@ -66,8 +65,7 @@ GRIPPER_FORCE_CTRL_STRUCT.forece_threshold = 200
 
 GRIPPER_FORCE_CTRL_FUNCTION()
 
-
-## Step0: Go to Rotate Z-Position
+## Step4: Go to Rotate Z-Position
 
 KINOVA_MANIPULATE_STRUCT.x = ==
 KINOVA_MANIPULATE_STRUCT.y = ==
@@ -84,7 +82,7 @@ KINOVA_MANIPULATE_FUNCTION()
 A_Sleep(500)
 
 
-## Step1: LRF-Kinova Vertical CTRL
+## Step5: LRF-Kinova Vertical CTRL
 
 LRF_KINOVA_VERTICAL_CTRL_STRUCT.desired_distance = 351
 LRF_KINOVA_VERTICAL_CTRL_STRUCT.error = 1
@@ -101,7 +99,7 @@ LRF_KINOVA_VERTICAL_CTRL_FUNCTION()
 
 A_Sleep(500)
 
-## Step2: LRF-Kinova Horizen CTRL
+## Step6: LRF-Kinova Horizen CTRL
 
 LRF_KINOVA_HORIZEN_CTRL_STRUCT.desired_inlier_deg_avr = 82.0
 LRF_KINOVA_HORIZEN_CTRL_STRUCT.error = 0.5
@@ -118,7 +116,9 @@ LRF_KINOVA_HORIZEN_CTRL_FUNCTION()
 
 A_Sleep(1000)
 
-## Step1: LRF-Kinova Vertical CTRL
+/*gb_valve_rotation
+
+## Step7: LRF-Kinova Vertical CTRL
 
 LRF_KINOVA_VERTICAL_CTRL_STRUCT.desired_distance = 178
 LRF_KINOVA_VERTICAL_CTRL_STRUCT.error = 1
@@ -135,7 +135,16 @@ LRF_KINOVA_VERTICAL_CTRL_FUNCTION()
 
 A_Sleep(500)
 
-## Step3: KINOVA Force CTRL
+# Step8: Correct Fit to valve pose 
+
+KINOVA_FIT_TO_VALVE_POSE_STRUCT.valve_size = gi_valve_size
+KINOVA_FIT_TO_VALVE_POSE_STRUCT.valve_rotation_angle = gb_valve_rotation
+KINOVA_FIT_TO_VALVE_POSE_STRUCT.move_step = 19
+KINOVA_FIT_TO_VALVE_POSE_STRUCT.angle_step = 19
+
+KINOVA_FIT_TO_VALVE_POSE_FUNCTION()
+
+## Step8: KINOVA Force CTRL
 
 KINOVA_FORCE_CTRL_STRUCT.step_count = 100
 
@@ -155,7 +164,7 @@ KINOVA_FORCE_CTRL_STRUCT.move_step_z = -0.05
 gb_bool_kinova_force_ctrl_rst = KINOVA_FORCE_CTRL_FUNCTION()
 A_Sleep(1000)
 
-## Step4: Gripper Release
+## Step9: Gripper Release
 
 /*IF(gb_bool_kinova_force_ctrl_rst)
 /*IF(false)
@@ -168,14 +177,15 @@ GRIPPER_FORCE_CTRL_FUNCTION()
 
 /*Else Go to 0 Step*/
 /*ELSE(GoTo:0)
-## Step5: Magnet OFF
+
+## Step10: Magnet OFF
 
 GRIPPER_MAGNET_CTRL_STRUCT.fl_magnet = false
 
 GRIPPER_MAGNET_CTRL_FUNCTION()
 A_Sleep(1000)
 
-## Step6: Go to Rotate Z-Position
+## Step11: Go to Rotate Z-Position
 
 KINOVA_MANIPULATE_STRUCT.x = ==
 KINOVA_MANIPULATE_STRUCT.y = ==
@@ -191,7 +201,7 @@ KINOVA_MANIPULATE_FUNCTION()
 
 A_Sleep(500)
 
-## Step7: Rotate Valve
+## Step12: Rotate Valve
 
 KINOVA_ROTATE_VALVE_STRUCT.using_current_coord = true
 
@@ -206,16 +216,15 @@ KINOVA_ROTATE_VALVE_STRUCT.init_angle = false
 
 KINOVA_ROTATE_VALVE_FUNCTION()
 
-
-## Step8: Grasp1
+## Step13: Grasp1
 
 GRIPPER_FORCE_CTRL_STRUCT.pose_1 = 1780
-GRIPPER_FORCE_CTRL_STRUCT.pose_2 = 1600
+GRIPPER_FORCE_CTRL_STRUCT.pose_2 = 1700
 GRIPPER_FORCE_CTRL_STRUCT.force_threshold = 100
 
 GRIPPER_FORCE_CTRL_FUNCTION()
 
-## Step9: Grasp2
+## Step14: Grasp2
 
 GRIPPER_FORCE_CTRL_STRUCT.pose_1 = 1700
 GRIPPER_FORCE_CTRL_STRUCT.pose_2 = 1700
@@ -223,27 +232,11 @@ GRIPPER_FORCE_CTRL_STRUCT.force_threshold = 130
 
 GRIPPER_FORCE_CTRL_FUNCTION()
 
-## Step10: Magnet ON
+## Step15: Magnet ON
 
 GRIPPER_MAGNET_CTRL_STRUCT.fl_magnet = true
 
 GRIPPER_MAGNET_CTRL_FUNCTION()
 A_Sleep(1000)
-
-
-## Step11: Rotate Valve
-
-KINOVA_ROTATE_VALVE_STRUCT.using_current_coord = true
-
-KINOVA_ROTATE_VALVE_STRUCT.center_x = 0
-KINOVA_ROTATE_VALVE_STRUCT.center_y = 0
-KINOVA_ROTATE_VALVE_STRUCT.center_z = 0.1223
-
-KINOVA_ROTATE_VALVE_STRUCT.theta = -45
-KINOVA_ROTATE_VALVE_STRUCT.radius = 10
-
-KINOVA_ROTATE_VALVE_STRUCT.init_angle = false
-
-KINOVA_ROTATE_VALVE_FUNCTION()
 
 ##########################################_MISSION_END_##########################################

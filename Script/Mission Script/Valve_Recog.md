@@ -5,10 +5,12 @@
 
 # Title: Valve Recognition
 
-global_int gi_valve_size = 0
+global_int gi_valve_size = 19
+global_double gb_valve_rotation = 30
 
-## Step1: Vehicle Angle Control(Using LRF)
+## Step0: Vehicle Angle Control(Using LRF)
 /* unit is mm
+
 LRF_VEHICLE_ANGLE_CTRL_STRUCT.desired_angle = 2
 LRF_VEHICLE_ANGLE_CTRL_STRUCT.error_boundary = 0.5
 
@@ -56,7 +58,7 @@ LRF_VEHICLE_HORIZEN_CTRL_STRUCT.sensor_option = false
 
 LRF_VEHICLE_HORIZEN_CTRL_FUNCTION()
 
-## Step0: Gripper Release
+## Step3: Gripper Release
 
 GRIPPER_FORCE_CTRL_STRUCT.pose_1 = 2500
 GRIPPER_FORCE_CTRL_STRUCT.pose_2 = 2500
@@ -64,7 +66,9 @@ GRIPPER_FORCE_CTRL_STRUCT.forece_threshold = 200
 
 GRIPPER_FORCE_CTRL_FUNCTION()
 
-## Step0: LRF-Kinova Vertical Control
+A_Sleep(500)
+
+## Step4: LRF-Kinova Vertical Control
 
 LRF_KINOVA_VERTICAL_CTRL_STRUCT.desired_distance = 253
 LRF_KINOVA_VERTICAL_CTRL_STRUCT.error = 2
@@ -81,7 +85,7 @@ LRF_KINOVA_VERTICAL_CTRL_FUNCTION()
 
 A_Sleep(500)
 
-## Step2: LRF-Kinova Horizen CTRL
+## Step6: LRF-Kinova Horizen CTRL
 
 LRF_KINOVA_HORIZEN_CTRL_STRUCT.desired_inlier_deg_avr = 87.0
 LRF_KINOVA_HORIZEN_CTRL_STRUCT.error = 0.25
@@ -98,8 +102,7 @@ LRF_KINOVA_HORIZEN_CTRL_FUNCTION()
 
 A_Sleep(1000)
 
-
-## Step1: Kinova Arm Down
+## Step7: Kinova Arm Down
 
 KINOVA_MANIPULATE_STRUCT.x = ==
 KINOVA_MANIPULATE_STRUCT.y = ==
@@ -115,7 +118,7 @@ KINOVA_MANIPULATE_FUNCTION()
 
 A_Sleep(500)
 
-## Step3: Kinova Force Control(Go Forward)
+## Step8: Kinova Force Control(Go Forward)
 
 KINOVA_FORCE_CTRL_STRUCT.step_count = 100
 
@@ -136,7 +139,7 @@ KINOVA_FORCE_CTRL_FUNCTION()
 
 A_Sleep(1000)
 
-## Step4: Kinova Arm Backward
+## Step9: Kinova Arm Backward
 
 KINOVA_MANIPULATE_STRUCT.x = --0.02
 KINOVA_MANIPULATE_STRUCT.y = ==
@@ -165,20 +168,22 @@ VALVE_SIZE_RECOG_STRUCT.force_threshold = 120
 VALVE_SIZE_RECOG_STRUCT.trial = 36
 VALVE_SIZE_RECOG_STRUCT.rotation_angle = 180
 
-gi_valve_size = VALVE_SIZE_RECOG_FUNCTION()
+VALVE_SIZE_RECOG_FUNCTION()
+
+gi_valve_size     = VALVE_SIZE_RECOG_GET_SIZE()
+gb_valve_rotation = VALVE_SIZE_RECOG_GET_ANGLE()
 
 A_Sleep(2000)
 
+## Step11: Gripper Release
 
-## Step5: Gripper Release
-
-GRIPPER_FORCE_CTRL_STRUCT.pose_1 = 2300
-GRIPPER_FORCE_CTRL_STRUCT.pose_2 = 2300
-GRIPPER_FORCE_CTRL_STRUCT.force_threshold = -2
+GRIPPER_FORCE_CTRL_STRUCT.pose_1 = 2800
+GRIPPER_FORCE_CTRL_STRUCT.pose_2 = 2800
+GRIPPER_FORCE_CTRL_STRUCT.forece_threshold = 200
 
 GRIPPER_FORCE_CTRL_FUNCTION()
 
-## Step1: Kinova Arm Back
+## Step12: Kinova Arm Back
 
 KINOVA_MANIPULATE_STRUCT.x = --0.07
 KINOVA_MANIPULATE_STRUCT.y = ==
@@ -192,7 +197,10 @@ KINOVA_MANIPULATE_STRUCT.force_threshold = 10
 
 KINOVA_MANIPULATE_FUNCTION()
 
-A_Sleep(500)
+A_Sleep(3000)
 
+## Step13: Align to Panel
+
+KINOVA_ALIGN_TO_PANEL_FUNCTION()
 
 ##########################################_MISSION_END_##########################################

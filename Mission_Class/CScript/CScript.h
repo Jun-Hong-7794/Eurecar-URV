@@ -21,6 +21,8 @@
 #include "Mission_Class/CDriving/CDriving.h"
 #include "Mission_Class/CManipulation/CManipulation.h"
 
+#define UNDEFINE_VARIABLE -3759 /*My Random Number For Error Check*/
+
 class CScript: public QThread{
     Q_OBJECT
 
@@ -117,6 +119,9 @@ private:
     bool InterpreteKinovaForceCtrl(QString _line, STEP_INFO& _step_info);
     bool InterpreteKinovaForceCheck(QString _line, STEP_INFO& _step_info);
     bool InterpreteKinovaManipulate(QString _line, STEP_INFO& _step_info);
+    bool InterpreteKinovaAlignToPanel(QString _line, STEP_INFO& _step_info);
+
+    bool InterpreteKinovaFitToValvePose(QString _line, STEP_INFO& _step_info);
 
     bool InterpreteKinovaRotateValveCtrl(QString _line, STEP_INFO& _step_info);
 
@@ -145,6 +150,7 @@ private:
 
     int InterpreteIntVariable(QString _line, MISSION_SCRIPT _mission_script/*For Local Variable*/);
     bool InterpreteBoolVariable(QString _line, MISSION_SCRIPT _mission_script/*For Local Variable*/);
+    bool InterpreteSignOfInequality(bool &_fl_result, QString _line, MISSION_SCRIPT _mission_script/*For Local Variable*/);
     double InterpreteDoubleVariable(QString _line, MISSION_SCRIPT _mission_script/*For Local Variable*/);
 
 private:

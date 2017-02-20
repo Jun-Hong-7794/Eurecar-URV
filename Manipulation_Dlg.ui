@@ -13,7 +13,7 @@
   <property name="windowTitle">
    <string>Manipulatoin Dialog</string>
   </property>
-  <widget class="QGraphicsView" name="view_camera_lrf">
+  <widget class="QGraphicsView" name="view_valve_modeling">
    <property name="geometry">
     <rect>
      <x>14</x>
@@ -28,25 +28,6 @@
     <rect>
      <x>14</x>
      <y>390</y>
-     <width>101</width>
-     <height>16</height>
-    </rect>
-   </property>
-   <property name="font">
-    <font>
-     <weight>75</weight>
-     <bold>true</bold>
-    </font>
-   </property>
-   <property name="text">
-    <string>Camera &amp; LRF</string>
-   </property>
-  </widget>
-  <widget class="QLabel" name="label_4">
-   <property name="geometry">
-    <rect>
-     <x>254</x>
-     <y>390</y>
      <width>91</width>
      <height>16</height>
     </rect>
@@ -58,7 +39,7 @@
     </font>
    </property>
    <property name="text">
-    <string>RGB-D</string>
+    <string>Valve Model</string>
    </property>
   </widget>
   <widget class="QGroupBox" name="grbx_manipulation">
@@ -1817,9 +1798,30 @@
      <height>271</height>
     </rect>
    </property>
-   <property name="currentIndex">
-    <number>1</number>
+   <property name="font">
+    <font>
+     <weight>75</weight>
+     <bold>true</bold>
+    </font>
    </property>
+   <property name="currentIndex">
+    <number>0</number>
+   </property>
+   <widget class="QWidget" name="tab_7">
+    <attribute name="title">
+     <string>Panel Model</string>
+    </attribute>
+    <widget class="QGraphicsView" name="view_panel_modeling_2">
+     <property name="geometry">
+      <rect>
+       <x>4</x>
+       <y>2</y>
+       <width>320</width>
+       <height>240</height>
+      </rect>
+     </property>
+    </widget>
+   </widget>
    <widget class="QWidget" name="tab_lrf">
     <attribute name="title">
      <string>LRF</string>
@@ -1868,7 +1870,7 @@
     </font>
    </property>
    <property name="currentIndex">
-    <number>2</number>
+    <number>4</number>
    </property>
    <widget class="QWidget" name="tab">
     <attribute name="title">
@@ -2178,6 +2180,214 @@
      </property>
     </widget>
    </widget>
+   <widget class="QWidget" name="tab_6">
+    <attribute name="title">
+     <string>Kinova Force</string>
+    </attribute>
+    <widget class="QCustomPlot" name="graph_kinova_force_plot_x" native="true">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>27</y>
+       <width>181</width>
+       <height>311</height>
+      </rect>
+     </property>
+    </widget>
+    <widget class="QCustomPlot" name="graph_kinova_force_plot_y" native="true">
+     <property name="geometry">
+      <rect>
+       <x>200</x>
+       <y>27</y>
+       <width>181</width>
+       <height>311</height>
+      </rect>
+     </property>
+    </widget>
+    <widget class="QCustomPlot" name="graph_kinova_force_plot_z" native="true">
+     <property name="geometry">
+      <rect>
+       <x>390</x>
+       <y>27</y>
+       <width>181</width>
+       <height>311</height>
+      </rect>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="bt_kinova_get_force">
+     <property name="geometry">
+      <rect>
+       <x>578</x>
+       <y>20</y>
+       <width>80</width>
+       <height>41</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Get Force</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_4">
+     <property name="geometry">
+      <rect>
+       <x>13</x>
+       <y>10</y>
+       <width>16</width>
+       <height>16</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>X</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_54">
+     <property name="geometry">
+      <rect>
+       <x>203</x>
+       <y>10</y>
+       <width>16</width>
+       <height>16</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Y</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_55">
+     <property name="geometry">
+      <rect>
+       <x>393</x>
+       <y>10</y>
+       <width>16</width>
+       <height>16</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Z</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="bt_kinova_set_force_thresh">
+     <property name="geometry">
+      <rect>
+       <x>578</x>
+       <y>70</y>
+       <width>80</width>
+       <height>41</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Set Thresh</string>
+     </property>
+    </widget>
+    <widget class="QLineEdit" name="ed_kinova_force_thresh_x">
+     <property name="geometry">
+      <rect>
+       <x>580</x>
+       <y>135</y>
+       <width>61</width>
+       <height>22</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>0</string>
+     </property>
+    </widget>
+    <widget class="QLineEdit" name="ed_kinova_force_thresh_y">
+     <property name="geometry">
+      <rect>
+       <x>580</x>
+       <y>175</y>
+       <width>61</width>
+       <height>22</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>0</string>
+     </property>
+    </widget>
+    <widget class="QLineEdit" name="ed_kinova_force_thresh_z">
+     <property name="geometry">
+      <rect>
+       <x>580</x>
+       <y>215</y>
+       <width>61</width>
+       <height>22</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>0</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_56">
+     <property name="geometry">
+      <rect>
+       <x>580</x>
+       <y>120</y>
+       <width>51</width>
+       <height>16</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>X-axis</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_57">
+     <property name="geometry">
+      <rect>
+       <x>580</x>
+       <y>161</y>
+       <width>51</width>
+       <height>16</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Y-axis</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_58">
+     <property name="geometry">
+      <rect>
+       <x>580</x>
+       <y>200</y>
+       <width>51</width>
+       <height>16</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Z-axis</string>
+     </property>
+    </widget>
+    <widget class="QLineEdit" name="ed_kinova_force_current_x">
+     <property name="geometry">
+      <rect>
+       <x>30</x>
+       <y>3</y>
+       <width>61</width>
+       <height>22</height>
+      </rect>
+     </property>
+    </widget>
+    <widget class="QLineEdit" name="ed_kinova_force_current_y">
+     <property name="geometry">
+      <rect>
+       <x>220</x>
+       <y>4</y>
+       <width>61</width>
+       <height>22</height>
+      </rect>
+     </property>
+    </widget>
+    <widget class="QLineEdit" name="ed_kinova_force_current_z">
+     <property name="geometry">
+      <rect>
+       <x>410</x>
+       <y>4</y>
+       <width>61</width>
+       <height>22</height>
+      </rect>
+     </property>
+    </widget>
+   </widget>
    <widget class="QWidget" name="tab_2">
     <attribute name="title">
      <string>SSD</string>
@@ -2241,7 +2451,27 @@
      </property>
     </widget>
    </widget>
+   <widget class="QWidget" name="tab_8">
+    <attribute name="title">
+     <string>Panel Model</string>
+    </attribute>
+    <widget class="QGraphicsView" name="view_panel_modeling">
+     <property name="geometry">
+      <rect>
+       <x>13</x>
+       <y>11</y>
+       <width>640</width>
+       <height>320</height>
+      </rect>
+     </property>
+    </widget>
+   </widget>
   </widget>
+  <zorder>tabWidget_3</zorder>
+  <zorder>view_valve_modeling</zorder>
+  <zorder>label_3</zorder>
+  <zorder>grbx_manipulation</zorder>
+  <zorder>tabWidget</zorder>
  </widget>
  <customwidgets>
   <customwidget>

@@ -456,6 +456,22 @@ bool CScript::InterpreteMissionScriptLine(QString _line, MISSION_SCRIPT* _missio
         else
             return false;
     }
+    if(_line.contains("KINOVA_ALIGN_TO_PANEL")){
+
+        if(InterpreteKinovaAlignToPanel(_line, _step_info))
+            return true;
+        else
+            return false;
+    }
+
+    if(_line.contains("KINOVA_FIT_TO_VALVE_POSE")){
+
+        if(InterpreteKinovaFitToValvePose(_line, _step_info))
+            return true;
+        else
+            return false;
+    }
+
     if(_line.contains("KINOVA_ROTATE_VALVE")){
 
         if(InterpreteKinovaRotateValveCtrl(_line, _step_info))
@@ -749,7 +765,7 @@ bool CScript::InterpreteVehicleParking(QString _line, STEP_INFO& _step_info){
 
     if(_line.contains("VEHICLE_PARKING_STRUCT")){
         if(_line.contains("velocity")){
-            int colone_index = _line.indexOf("=");
+//            int colone_index = _line.indexOf("=");
 //            _step_info.driving_option.parking_option = _line.mid(colone_index + 1).trimmed().toDouble();
             return true;
         }
@@ -862,8 +878,20 @@ bool CScript::InterpreteKinovaForceCheck(QString _line, STEP_INFO& _step_info){
             _step_info.manipulation_option.kinova_force_check_option.check_count = _line.mid(colone_index + 1).trimmed().toInt();
             return true;
         }
+
+        if(_line.contains("check_threshold")){
+            int colone_index = _line.indexOf("=");
+            _step_info.manipulation_option.kinova_force_check_option.check_threshold = _line.mid(colone_index + 1).trimmed().toInt();
+            return true;
+        }
     }
     else if(_line.contains("KINOVA_FORCE_CHECK_FUNCTION")){
+        int equal_index = _line.indexOf("=");
+
+        if(equal_index >= 0){
+            _step_info.manipulation_option.kinova_force_check_option.str_result_variable =
+                    _line.mid(0, equal_index - 1).trimmed();
+        }
         _step_info.function_index = MP_KINOVA_FORCE_CHECK;
     }
     else
@@ -919,6 +947,48 @@ bool CScript::InterpreteKinovaManipulate(QString _line, STEP_INFO& _step_info){
     }
     else
         return false;
+
+    return true;
+}
+
+bool CScript::InterpreteKinovaAlignToPanel(QString _line, STEP_INFO& _step_info){
+
+    if(_line.contains("KINOVA_ALIGN_TO_PANEL_FUNCTION")){
+        _step_info.function_index = MP_KINOVA_ALIGN_TO_PANEL;
+    }
+
+    return true;
+}
+
+bool CScript::InterpreteKinovaFitToValvePose(QString _line, STEP_INFO& _step_info){
+
+    if(_line.contains("KINOVA_FIT_TO_VALVE_POSE_STRUCT")){
+
+        if(_line.contains("valve_size")){
+            int colone_index = _line.indexOf("=");
+            _step_info.manipulation_option.kinova_fit_to_valve_pose.str_valve_size = _line.mid(colone_index + 1).trimmed();
+            return true;
+        }
+        if(_line.contains("valve_rotation_angle")){
+            int colone_index = _line.indexOf("=");
+            _step_info.manipulation_option.kinova_fit_to_valve_pose.str_rotation_angle = _line.mid(colone_index + 1).trimmed();
+            return true;
+        }
+        if(_line.contains("move_step")){
+            int colone_index = _line.indexOf("=");
+            _step_info.manipulation_option.kinova_fit_to_valve_pose.move_step = _line.mid(colone_index + 1).trimmed().toDouble();
+            return true;
+        }
+        if(_line.contains("angle_step")){
+            int colone_index = _line.indexOf("=");
+            _step_info.manipulation_option.kinova_fit_to_valve_pose.angle_step = _line.mid(colone_index + 1).trimmed().toDouble();
+            return true;
+        }
+    }
+
+    if(_line.contains("KINOVA_FIT_TO_VALVE_POSE_FUNCTION")){
+        _step_info.function_index = MP_KINOVA_FIT_TO_VALVE_POSE;
+    }
 
     return true;
 }
@@ -993,6 +1063,16 @@ bool CScript::InterpreteWrenchRecognition(QString _line, STEP_INFO& _step_info){
         if(_line.contains("valve_size")){
             int colone_index = _line.indexOf("=");
             _step_info.manipulation_option.wrench_recognition_option.str_valve_size = _line.mid(colone_index + 1).trimmed();
+            return true;
+        }
+        if(_line.contains("num_of_wrench")){
+            int colone_index = _line.indexOf("=");
+            _step_info.manipulation_option.wrench_recognition_option.str_num_of_wrench = _line.mid(colone_index + 1).trimmed();
+            return true;
+        }
+        if(_line.contains("loop_count")){
+            int colone_index = _line.indexOf("=");
+            _step_info.manipulation_option.wrench_recognition_option.loop_count = _line.mid(colone_index + 1).trimmed().toInt();
             return true;
         }
     }
@@ -1072,14 +1152,25 @@ bool CScript::InterpreteGripperValveSizeRecog(QString _line, STEP_INFO& _step_in
         }
     }
     else if(_line.contains("VALVE_SIZE_RECOG_FUNCTION")){
+        _step_info.function_index = MP_GRIPPER_VALVE_SIZE_RECOG;
+    }
+    else if(_line.contains("VALVE_SIZE_RECOG_GET_SIZE")){
 
         int equal_index = _line.indexOf("=");
 
         if(equal_index >= 0){
-            _step_info.manipulation_option.gripper_kinova_valve_recog_option.str_result_variable =
+            _step_info.manipulation_option.gripper_kinova_valve_recog_option.str_size_result_variable =
                     _line.mid(0, equal_index - 1).trimmed();
         }
-        _step_info.function_index = MP_GRIPPER_VALVE_SIZE_RECOG;
+    }
+    else if(_line.contains("VALVE_SIZE_RECOG_GET_ANGLE")){
+
+        int equal_index = _line.indexOf("=");
+
+        if(equal_index >= 0){
+            _step_info.manipulation_option.gripper_kinova_valve_recog_option.str_rotation_result_variable =
+                    _line.mid(0, equal_index - 1).trimmed();
+        }
     }
     else
         return false;
@@ -1594,6 +1685,33 @@ bool CScript::SetIntVariable(QString _str_variable, MISSION_SCRIPT& _mission_scr
     return false;
 }
 
+bool CScript::SetDoubleVariable(QString _str_variable, MISSION_SCRIPT& _mission_script, double _value){
+
+    //Check Local Int Value
+    vector<SCRIPT_DOUBLE>::iterator iter;
+    for( iter = _mission_script.vec_lc_double.begin();
+         iter != _mission_script.vec_lc_double.end();
+         iter++){
+
+        if((*iter).variable_name == _str_variable){
+            (*iter).double_value = _value;
+            return true;
+        }
+    }
+    //Check Global Int Value
+    for( iter = mvec_global_double.begin();
+         iter != mvec_global_double.end();
+         iter++){
+
+        if((*iter).variable_name == _str_variable){
+            (*iter).double_value = _value;
+            return true;
+        }
+    }
+
+    return false;
+}
+
 bool CScript::SetBoolVariable(QString _str_variable, MISSION_SCRIPT& _mission_script, bool _result){
 
     //Check Local Bool Value
@@ -1656,7 +1774,7 @@ int CScript::InterpreteIntVariable(QString _line, MISSION_SCRIPT _mission_script
         }
     }
 
-    return 0;
+    return UNDEFINE_VARIABLE;
 }
 
 bool CScript::InterpreteBoolVariable(QString _line, MISSION_SCRIPT _mission_script/*For Local Variable*/){
@@ -1719,6 +1837,163 @@ bool CScript::InterpreteBoolVariable(QString _line, MISSION_SCRIPT _mission_scri
     return false;
 }
 
+bool CScript::InterpreteSignOfInequality(bool &_fl_result, QString _line, MISSION_SCRIPT _mission_script/*For Local Variable*/){
+
+    QString str_variable;
+    QString str_value;
+
+    int variable_int = 0;
+    double variable_double = 0;
+
+    int value_int = 0;
+    double value_double = 0;
+
+    int sign_of_inequality_1 = 0;//==
+    int sign_of_inequality_2 = 0;//>
+    int sign_of_inequality_3 = 0;//<
+    int sign_of_inequality_4 = 0;//!=
+
+    sign_of_inequality_1 = _line.indexOf("==");
+    sign_of_inequality_2 = _line.indexOf(">");
+    sign_of_inequality_3 = _line.indexOf("<");
+    sign_of_inequality_4 = _line.indexOf("!=");
+
+    if(sign_of_inequality_1 >= 0){//==
+
+        str_value = _line.mid(sign_of_inequality_1 + 2/*Because, != is 2 character*/);
+        str_variable = _line.mid(0, sign_of_inequality_1 - 1);
+
+        variable_int = InterpreteIntVariable(str_variable,_mission_script);
+        variable_double = InterpreteDoubleVariable(str_variable,_mission_script);
+
+        if(variable_int != UNDEFINE_VARIABLE){
+            value_int = str_value.toInt();
+
+            if(variable_int == value_int){
+                _fl_result = true;
+                return true;
+            }
+            else{
+                _fl_result = false;
+                return true;
+            }
+        }
+        else if(variable_double != UNDEFINE_VARIABLE){
+            value_double = str_value.toDouble();
+
+            if(variable_double == value_double){
+                _fl_result = true;
+                return true;
+            }
+            else{
+                _fl_result = false;
+                return true;
+            }
+        }
+    }
+    else if(sign_of_inequality_2 >= 0){// >
+
+        str_value = _line.mid(sign_of_inequality_2 + 1);
+        str_variable = _line.mid(0, sign_of_inequality_2 - 1);
+
+        variable_int = InterpreteIntVariable(str_variable,_mission_script);
+        variable_double = InterpreteDoubleVariable(str_variable,_mission_script);
+
+        if(variable_int != UNDEFINE_VARIABLE){
+            value_int = str_value.toInt();
+
+            if(variable_int > value_int){
+                _fl_result = true;
+                return true;
+            }
+            else{
+                _fl_result = false;
+                return true;
+            }
+        }
+        else if(variable_double != UNDEFINE_VARIABLE){
+            value_double = str_value.toDouble();
+
+            if(variable_double > value_double){
+                _fl_result = true;
+                return true;
+            }
+            else{
+                _fl_result = false;
+                return true;
+            }
+        }
+    }
+    else if(sign_of_inequality_3 >= 0){// <
+
+        str_value = _line.mid(sign_of_inequality_3 + 1);
+        str_variable = _line.mid(0, sign_of_inequality_3 - 1);
+
+        variable_int = InterpreteIntVariable(str_variable,_mission_script);
+        variable_double = InterpreteDoubleVariable(str_variable,_mission_script);
+
+        if(variable_int != UNDEFINE_VARIABLE){
+            value_int = str_value.toInt();
+
+            if(variable_int < value_int){
+                _fl_result = true;
+                return true;
+            }
+            else{
+                _fl_result = false;
+                return true;
+            }
+        }
+        else if(variable_double != UNDEFINE_VARIABLE){
+            value_double = str_value.toDouble();
+
+            if(variable_double < value_double){
+                _fl_result = true;
+                return true;
+            }
+            else{
+                _fl_result = false;
+                return true;
+            }
+        }
+    }
+    else if(sign_of_inequality_4 >= 0){// !=
+
+        str_value = _line.mid(sign_of_inequality_4 + 2/*Because, != is 2 character*/);
+        str_variable = _line.mid(0, sign_of_inequality_4 - 1);
+
+        variable_int = InterpreteIntVariable(str_variable,_mission_script);
+        variable_double = InterpreteDoubleVariable(str_variable,_mission_script);
+
+        if(variable_int != UNDEFINE_VARIABLE){
+            value_int = str_value.toInt();
+
+            if(variable_int != value_int){
+                _fl_result = true;
+                return true;
+            }
+            else{
+                _fl_result = false;
+                return true;
+            }
+        }
+        else if(variable_double != UNDEFINE_VARIABLE){
+            value_double = str_value.toDouble();
+
+            if(variable_double != value_double){
+                _fl_result = true;
+                return true;
+            }
+            else{
+                _fl_result = false;
+                return true;
+            }
+        }
+    }
+
+    return false;
+}
+
 double CScript::InterpreteDoubleVariable(QString _line, MISSION_SCRIPT _mission_script/*For Local Variable*/){
 
     QString str_option;
@@ -1748,7 +2023,7 @@ double CScript::InterpreteDoubleVariable(QString _line, MISSION_SCRIPT _mission_
         }
     }
 
-    return 0;
+    return UNDEFINE_VARIABLE;
 }
 
 //----------------------------------------------------------------
@@ -1831,7 +2106,20 @@ bool CScript::MissionPlayer(){
             if(mpary_mission_script[i].step_vecor.at(j).fl_condition_if_flag){
                 bool fl_condition = false;
 
-                fl_condition = InterpreteBoolVariable(mpary_mission_script[i].step_vecor.at(j).str_if, mpary_mission_script[i]);
+                if(
+                        mpary_mission_script[i].step_vecor.at(j).str_if.contains("==") ||
+                        mpary_mission_script[i].step_vecor.at(j).str_if.contains(">") ||
+                        mpary_mission_script[i].step_vecor.at(j).str_if.contains("<") ||
+                        mpary_mission_script[i].step_vecor.at(j).str_if.contains("!=")
+                        ){
+                    if(!InterpreteSignOfInequality(fl_condition, mpary_mission_script[i].step_vecor.at(j).str_if, mpary_mission_script[i])){
+                        std::cout << "Fail to Interprete Sign of Inequality!!" << std::endl;
+                        continue;
+                    }
+                }
+
+                else
+                    fl_condition = InterpreteBoolVariable(mpary_mission_script[i].step_vecor.at(j).str_if, mpary_mission_script[i]);
 
                 if(!fl_condition){
                     if(mpary_mission_script[i].step_vecor.at(j).fl_condition_else_flag){
@@ -1934,6 +2222,9 @@ bool CScript::MissionPlayer(){
             }
 
             if(mpary_mission_script[i].step_vecor.at(j).function_index == MP_KINOVA_FORCE_CONTROL){
+
+                mpary_mission_script[i].step_vecor.at(j).manipulation_option.kinova_force_option.fl_kinova_force_ctrl_sensing_option = false;
+
                 mpc_manipulation->SetManipulationOption(mpary_mission_script[i].step_vecor.at(j).manipulation_option.kinova_force_option);
                 mpc_manipulation->SelectMainFunction(MANIPUL_INX_KINOVA_FORCE_CLRL);
 
@@ -1944,13 +2235,24 @@ bool CScript::MissionPlayer(){
 
                 function_result = mpc_manipulation->GetMainFunctionResult();
                 SetBoolVariable(variable_name,mpary_mission_script[i],function_result);
+                mpc_manipulation->SetMainFunctionResult(false);
             }
 
             if(mpary_mission_script[i].step_vecor.at(j).function_index == MP_KINOVA_FORCE_CHECK){
+
+                mpary_mission_script[i].step_vecor.at(j).manipulation_option.kinova_force_check_option.fl_kinova_force_sensing_option = false;
+
                 mpc_manipulation->SetManipulationOption(mpary_mission_script[i].step_vecor.at(j).manipulation_option.kinova_force_check_option);
                 mpc_manipulation->SelectMainFunction(MANIPUL_INX_KINOVA_FORCE_CHECK);
 
                 while(mpc_manipulation->isRunning());
+
+                bool function_result = false;
+                QString variable_name = mpary_mission_script[i].step_vecor.at(j).manipulation_option.kinova_force_check_option.str_result_variable;
+
+                function_result = mpc_manipulation->GetMainFunctionResult();
+                SetBoolVariable(variable_name,mpary_mission_script[i],function_result);
+                mpc_manipulation->SetMainFunctionResult(false);
             }
 
             if(mpary_mission_script[i].step_vecor.at(j).function_index == MP_GRIPPER_FORCE_CONTROL){
@@ -1972,11 +2274,23 @@ bool CScript::MissionPlayer(){
 
                 while(mpc_manipulation->isRunning());
 
-                int valve_size = mpc_manipulation->GetValveSizeRecogResult();
-                QString variable_name = mpary_mission_script[i].step_vecor.at(j).manipulation_option.gripper_kinova_valve_recog_option.str_result_variable;
+                int valve_size = mpc_manipulation->GetGripperKinovaValveRecogOption().valve_size;
+                double valve_rotation_angle = mpc_manipulation->GetGripperKinovaValveRecogOption().valve_rotation_angle;
 
-                SetIntVariable(variable_name, mpary_mission_script[i], valve_size);
+                QString size_variable_name = mpary_mission_script[i].step_vecor.at(j).manipulation_option.gripper_kinova_valve_recog_option.str_size_result_variable;
+                QString rotation_variable_name = mpary_mission_script[i].step_vecor.at(j).manipulation_option.gripper_kinova_valve_recog_option.str_rotation_result_variable;
+
+                SetIntVariable(size_variable_name, mpary_mission_script[i], valve_size);
+                SetDoubleVariable(rotation_variable_name, mpary_mission_script[i], valve_rotation_angle);
+
                 mpc_manipulation->SetValveSizeRecogResult(0);
+            }
+
+            if(mpary_mission_script[i].step_vecor.at(j).function_index == MP_KINOVA_ALIGN_TO_PANEL){
+
+                mpc_manipulation->SelectMainFunction(MANIPUL_INX_KINOVA_ALIGN_TO_PANEL);
+
+                while(mpc_manipulation->isRunning());
             }
 
             if(mpary_mission_script[i].step_vecor.at(j).function_index == MP_KINOVA_MANIPULATE){
@@ -1987,12 +2301,41 @@ bool CScript::MissionPlayer(){
                 while(mpc_manipulation->isRunning());
             }
 
+            if(mpary_mission_script[i].step_vecor.at(j).function_index == MP_KINOVA_FIT_TO_VALVE_POSE){
+
+                int valve_size = 0;
+                double rotation_angle = 0;
+
+                QString str_valve_size = 0;
+                QString str_rotation_angle = 0;
+                str_valve_size =
+                        mpary_mission_script[i].step_vecor.at(j).manipulation_option.kinova_fit_to_valve_pose.str_valve_size;
+                str_rotation_angle =
+                        mpary_mission_script[i].step_vecor.at(j).manipulation_option.kinova_fit_to_valve_pose.str_rotation_angle;
+
+                valve_size = InterpreteIntVariable(str_valve_size, mpary_mission_script[i]);
+                rotation_angle = InterpreteDoubleVariable(str_rotation_angle, mpary_mission_script[i]);
+
+                mpary_mission_script[i].step_vecor.at(j).manipulation_option.kinova_fit_to_valve_pose.valve_size
+                        = valve_size;
+                mpary_mission_script[i].step_vecor.at(j).manipulation_option.kinova_fit_to_valve_pose.valve_rotation_angle
+                        = rotation_angle;
+
+                mpc_manipulation->SetManipulationOption(mpary_mission_script[i].step_vecor.at(j).manipulation_option.kinova_fit_to_valve_pose);
+                mpc_manipulation->SelectMainFunction(MANIPUL_INX_KINOVA_FIT_TO_VALVE);
+
+                while(mpc_manipulation->isRunning());
+            }
+
             if(mpary_mission_script[i].step_vecor.at(j).function_index == MP_WRENCH_RECOGNITION){
 
                 int valve_size = InterpreteIntVariable(mpary_mission_script[i].step_vecor.at(j).manipulation_option.wrench_recognition_option.str_valve_size,
                                                         mpary_mission_script[i]);
+                int num_of_wrench = InterpreteIntVariable(mpary_mission_script[i].step_vecor.at(j).manipulation_option.wrench_recognition_option.str_num_of_wrench,
+                                                        mpary_mission_script[i]);
 
                 mpary_mission_script[i].step_vecor.at(j).manipulation_option.wrench_recognition_option.valve_size = valve_size;
+                mpary_mission_script[i].step_vecor.at(j).manipulation_option.wrench_recognition_option.num_of_wrench = num_of_wrench;
 
                 mpc_manipulation->SetManipulationOption(mpary_mission_script[i].step_vecor.at(j).manipulation_option.wrench_recognition_option);
                 mpc_manipulation->SelectMainFunction(MANIPUL_INX_WRENCH_RECOGNITION);
