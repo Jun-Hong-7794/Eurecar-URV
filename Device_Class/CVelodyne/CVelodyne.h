@@ -198,6 +198,12 @@ signals:
 
 };
 
+typedef struct PanelPointInfo{
+    double x;
+    double y;
+}panel_point_info;
+
+
 #endif // CVELODYNE_H
 
 

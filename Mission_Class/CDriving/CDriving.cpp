@@ -356,6 +356,24 @@ int CDriving::GetParkingControl(vector<double> _waypoint_error)
 // Main Function
 //----------------------------------------------------------------
 
+int CDriving::VelGen(double _dist_error)
+{
+    int velocity=0;
+    if(_dist_error >DECEL_START_DIST)
+    {
+        velocity= (mpc_vehicle->GetVel() + ACCEL_RATE);
+        if(velocity > MAX_VEL)
+            velocity = MAX_VEL;
+    }
+    else
+    {
+        velocity= (mpc_vehicle->GetVel() + DECEL_RATE);
+        if(velocity < MIN_VEL)
+            velocity = MIN_VEL;
+    }
+    return velocity;
+}
+
 bool CDriving::DriveToPanel(){
 
     DRIVING_STRUCT driving_struct;
@@ -399,15 +417,14 @@ bool CDriving::DriveToPanel(){
         case 4: // turn right
             driving_struct.direction = UGV_move_right;
             driving_struct.velocity =100;
-            cout << "turn right" << endl;
             break;
         case 1: // go forward
             driving_struct.direction = UGV_move_forward;
-            driving_struct.velocity =100;
+            driving_struct.velocity =this->VelGen(way_point_error.at(1));
             break;
         case 2: // go backward
             driving_struct.direction = UGV_move_backward;
-            driving_struct.velocity =100;
+            driving_struct.velocity =this->VelGen(way_point_error.at(1));
             break;
         default:
             driving_struct.direction = UGV_move_backward;
@@ -426,8 +443,28 @@ bool CDriving::DriveToPanel(){
 
     Sleep(5000);
 
-    //heading compensate before parking
+//    //heading compensate before parking
 
+
+    // Get panel points
+    panel_point_info panel_point_array[6];
+
+    do{
+        cout << "Get panelpoints!" << endl;
+        driving_struct.direction = UGV_move_backward;
+        driving_struct.velocity =100;
+        mpc_vehicle->Move(driving_struct.direction, driving_struct.velocity);
+        for(int i = 0; i < 6;i++)
+        {
+            panel_point_array[i].x = mpc_velodyne->GetPCL()->panelpoint_cloud->points[i].x;
+            panel_point_array[i].y = mpc_velodyne->GetPCL()->panelpoint_cloud->points[i].y;
+        }
+
+    }while((panel_point_array[0].x == 0) && (panel_point_array[1].x == 0) );
+
+    driving_struct.direction = UGV_move_backward;
+    driving_struct.velocity =0;
+    mpc_vehicle->Move(driving_struct.direction, driving_struct.velocity);
 
     double dist_arr[6] ={0,0,0,0,0,0};
     double min_dist = 1000000.;
@@ -438,14 +475,14 @@ bool CDriving::DriveToPanel(){
 
     for(int i=0; i<6; i++)
     {
-        dist_arr[i] = 100*(mpc_velodyne->GetPCL()->panelpoint_cloud->points[i].x * mpc_velodyne->GetPCL()->panelpoint_cloud->points[i].x + mpc_velodyne->GetPCL()->panelpoint_cloud->points[i].y * mpc_velodyne->GetPCL()->panelpoint_cloud->points[i].y);
+        dist_arr[i] = 100*(panel_point_array[i].x * panel_point_array[i].x + panel_point_array[i].y * panel_point_array[i].y);
 
         if(dist_arr[i] < min_dist)
         {
             min_dist = dist_arr[i];
             min_dist_point_index = i;
         }
-        if(mpc_velodyne->GetPCL()->panelpoint_cloud->points[i].y < 0 )
+        if(panel_point_array[i].y < 0 )
             panel_left_cnt = panel_left_cnt + 1;
         else
             panel_right_cnt = panel_right_cnt + 1;
@@ -467,20 +504,12 @@ bool CDriving::DriveToPanel(){
         cout << "all panel left"<< endl;
         if(min_dist_point_index == 5 )
         {
-            double empty_check = 0;
-            do{
-                empty_check = mpc_velodyne->GetPCL()->panelpoint_cloud->points[0].y;
-            }while(empty_check == 0);
-            rotate_rad = atan(abs(mpc_velodyne->GetPCL()->panelpoint_cloud->points[0].y - mpc_velodyne->GetPCL()->panelpoint_cloud->points[min_dist_point_index].y) / abs(mpc_velodyne->GetPCL()->panelpoint_cloud->points[0].x - mpc_velodyne->GetPCL()->panelpoint_cloud->points[min_dist_point_index].x));
+            rotate_rad = atan(abs(panel_point_array[0].y - panel_point_array[min_dist_point_index].y) / abs(panel_point_array[0].x - panel_point_array[min_dist_point_index].x));
         }
         else
         {
             cout << "all panel left and not in index 5"<< endl;
-            double empty_check = 0;
-            do{
-                empty_check = mpc_velodyne->GetPCL()->panelpoint_cloud->points[0].y;
-            }while(empty_check == 0);
-            rotate_rad = atan(abs(mpc_velodyne->GetPCL()->panelpoint_cloud->points[min_dist_point_index+1].y - mpc_velodyne->GetPCL()->panelpoint_cloud->points[min_dist_point_index].y) / abs(mpc_velodyne->GetPCL()->panelpoint_cloud->points[min_dist_point_index+1].x - mpc_velodyne->GetPCL()->panelpoint_cloud->points[min_dist_point_index].x));
+            rotate_rad = atan(abs(panel_point_array[min_dist_point_index+1].y - panel_point_array[min_dist_point_index].y) / abs(panel_point_array[min_dist_point_index+1].x - panel_point_array[min_dist_point_index].x));
         }
     }
     else if(panel_right_cnt == 6)
@@ -488,20 +517,12 @@ bool CDriving::DriveToPanel(){
         cout << "all panel right"<< endl;
         if(min_dist_point_index == 5 )
         {
-            double empty_check = 0;
-            do{
-                empty_check = mpc_velodyne->GetPCL()->panelpoint_cloud->points[0].y;
-            }while(empty_check == 0);
-            rotate_rad = 0.5 * PI - atan(abs(mpc_velodyne->GetPCL()->panelpoint_cloud->points[0].y - mpc_velodyne->GetPCL()->panelpoint_cloud->points[min_dist_point_index].y) / abs(mpc_velodyne->GetPCL()->panelpoint_cloud->points[0].x - mpc_velodyne->GetPCL()->panelpoint_cloud->points[min_dist_point_index].x));
+            rotate_rad = 0.5 * PI - atan(abs(panel_point_array[0].y - panel_point_array[min_dist_point_index].y) / abs(panel_point_array[0].x - panel_point_array[min_dist_point_index].x));
         }
         else
         {
             cout << "all panel right and not in index 5"<< endl;
-            double empty_check = 0;
-            do{
-                empty_check = mpc_velodyne->GetPCL()->panelpoint_cloud->points[0].y;
-            }while(empty_check == 0);
-            rotate_rad = 0.5 * PI - atan(abs(mpc_velodyne->GetPCL()->panelpoint_cloud->points[min_dist_point_index+1].y - mpc_velodyne->GetPCL()->panelpoint_cloud->points[min_dist_point_index].y) / abs(mpc_velodyne->GetPCL()->panelpoint_cloud->points[min_dist_point_index+1].x - mpc_velodyne->GetPCL()->panelpoint_cloud->points[min_dist_point_index].x));
+            rotate_rad = 0.5 * PI - atan(abs(panel_point_array[min_dist_point_index+1].y - panel_point_array[min_dist_point_index].y) / abs(panel_point_array[min_dist_point_index+1].x - panel_point_array[min_dist_point_index].x));
         }
     }
     else
@@ -509,54 +530,39 @@ bool CDriving::DriveToPanel(){
         if(min_dist_point_index == 5)
         {
             cout << "in index 5 on the right"<< endl;
-            if( mpc_velodyne->GetPCL()->panelpoint_cloud->points[min_dist_point_index].y < (0 ))
+            if( panel_point_array[min_dist_point_index].y < (0 ))
             {
-                double empty_check = 0;
-                do{
-                    empty_check = mpc_velodyne->GetPCL()->panelpoint_cloud->points[0].y;
-                }while(empty_check == 0);
-                rotate_rad = atan(abs(mpc_velodyne->GetPCL()->panelpoint_cloud->points[0].y - mpc_velodyne->GetPCL()->panelpoint_cloud->points[min_dist_point_index].y) / abs(mpc_velodyne->GetPCL()->panelpoint_cloud->points[0].x - mpc_velodyne->GetPCL()->panelpoint_cloud->points[min_dist_point_index].x));
+                rotate_rad = atan(abs(panel_point_array[0].y - panel_point_array[min_dist_point_index].y) / abs(panel_point_array[0].x - panel_point_array[min_dist_point_index].x));
             }
             else
             {
                 cout << "in index 5 on the left"<< endl;
-                double empty_check = 0;
-                do{
-                    empty_check = mpc_velodyne->GetPCL()->panelpoint_cloud->points[0].y;
-                }while(empty_check == 0);
-                rotate_rad = 0.5 * PI - atan(abs(mpc_velodyne->GetPCL()->panelpoint_cloud->points[min_dist_point_index].y - mpc_velodyne->GetPCL()->panelpoint_cloud->points[min_dist_point_index-1].y) / abs(mpc_velodyne->GetPCL()->panelpoint_cloud->points[min_dist_point_index].x - mpc_velodyne->GetPCL()->panelpoint_cloud->points[min_dist_point_index-1].x));
+                rotate_rad = 0.5 * PI - atan(abs(panel_point_array[min_dist_point_index].y - panel_point_array[min_dist_point_index-1].y) / abs(panel_point_array[min_dist_point_index].x - panel_point_array[min_dist_point_index-1].x));
             }
         }
         else
         {
-            if( mpc_velodyne->GetPCL()->panelpoint_cloud->points[min_dist_point_index].y < (0 ) )
+            if( panel_point_array[min_dist_point_index].y < (0 ) )
             {
                 cout << "not in index 5 and which is on the right"<< endl;
-                double empty_check = 0;
-                do{
-                    empty_check = mpc_velodyne->GetPCL()->panelpoint_cloud->points[0].y;
-                }while(empty_check == 0);
-                rotate_rad = atan(abs(mpc_velodyne->GetPCL()->panelpoint_cloud->points[min_dist_point_index+1].y - mpc_velodyne->GetPCL()->panelpoint_cloud->points[min_dist_point_index].y) / abs(mpc_velodyne->GetPCL()->panelpoint_cloud->points[min_dist_point_index+1].x - mpc_velodyne->GetPCL()->panelpoint_cloud->points[min_dist_point_index].x));
+                rotate_rad = atan(abs(panel_point_array[min_dist_point_index+1].y - panel_point_array[min_dist_point_index].y) / abs(panel_point_array[min_dist_point_index+1].x - panel_point_array[min_dist_point_index].x));
             }
 
             else
             {
                 cout << "not in index 5 and which is on the left"<< endl;
-                double empty_check = 0;
-                do{
-                    empty_check = mpc_velodyne->GetPCL()->panelpoint_cloud->points[0].y;
-                }while(empty_check == 0);
-                rotate_rad = 0.5 * PI - atan(abs(mpc_velodyne->GetPCL()->panelpoint_cloud->points[min_dist_point_index].y - mpc_velodyne->GetPCL()->panelpoint_cloud->points[min_dist_point_index-1].y) / abs(mpc_velodyne->GetPCL()->panelpoint_cloud->points[min_dist_point_index].x - mpc_velodyne->GetPCL()->panelpoint_cloud->points[min_dist_point_index-1].x));
+                rotate_rad = 0.5 * PI - atan(abs(panel_point_array[min_dist_point_index].y - panel_point_array[min_dist_point_index-1].y) / abs(panel_point_array[min_dist_point_index].x - panel_point_array[min_dist_point_index-1].x));
             }
         }
     }
 
     // Get final parking heading value --------------------------------------------------------------------------------------------------------------
     //
+
     double panel_final_parking_vec_angle = 0;
     do{
-        double panel_final_parking_vec_x = mpc_velodyne->GetPCL()->panelpoint_cloud->points[1].x - mpc_velodyne->GetPCL()->panelpoint_cloud->points[0].x;
-        double panel_final_parking_vec_y = mpc_velodyne->GetPCL()->panelpoint_cloud->points[1].y - mpc_velodyne->GetPCL()->panelpoint_cloud->points[0].y;
+        double panel_final_parking_vec_x = panel_point_array[1].x - panel_point_array[0].x;
+        double panel_final_parking_vec_y = panel_point_array[1].y - panel_point_array[0].y;
         panel_final_parking_vec_angle = atan2(panel_final_parking_vec_y,panel_final_parking_vec_x);
         if(panel_final_parking_vec_angle < 0)
         {
@@ -594,6 +600,8 @@ bool CDriving::DriveToPanel(){
     {
         final_parking_heading -= 2*PI;
     }
+    cout << "final parking heading : " << final_parking_heading << " , current heading : " << current_ugv_heading << endl;
+
 
 //    cout <<"final parking heading : " << final_parking_heading << endl;
 //    cout <<"current heading : " << current_ugv_heading << endl;
@@ -817,33 +825,64 @@ bool CDriving::ParkingFrontPanel(){
                 }
                 else// front or back
                 {
-                    double current_ugv_heading = -(mpc_velodyne->GetIMUData()).at(2);
+                    double current_ugv_heading = (mpc_velodyne->GetIMUData()).at(2);
 
                     if(current_ugv_heading < 0)
                     {
                         current_ugv_heading += 2*PI;
                     }
 
+                    double final_parking_heading_min = (final_parking_heading - 0.8);
+                    double final_parking_heading_max = (final_parking_heading + 0.8);
 
-                    if( (current_ugv_heading > (final_parking_heading - 0.8)) && (current_ugv_heading < (final_parking_heading + 0.8)))
+                    if (final_parking_heading_min < 0)
                     {
-                        front_heading_range_satisfiled = true;
-                        front_center_margin = 0.0;
+                        final_parking_heading_min += 2*PI;
+                    }
+                    else if (final_parking_heading_min > 2*PI)
+                    {
+                        final_parking_heading_min -= 2*PI;
+                    }
+
+                    if (final_parking_heading_max < 0)
+                    {
+                        final_parking_heading_max += 2*PI;
+                    }
+                    else if (final_parking_heading_max > 2*PI)
+                    {
+                        final_parking_heading_max -= 2*PI;
+                    }
+
+
+                    if(final_parking_heading_max > final_parking_heading_min)
+                    {
+                        if( (current_ugv_heading > final_parking_heading_min ) && (current_ugv_heading < final_parking_heading_max))
+                        {
+                            front_heading_range_satisfiled = true;
+                            front_center_margin = 0.0;
+                        }
+                        else
+                        {
+
+                            front_heading_range_satisfiled = false;
+                            front_center_margin = 1.0;
+                        }
                     }
                     else
                     {
+                        if( ((current_ugv_heading > final_parking_heading_min ) && (current_ugv_heading < 2*PI )) ||  ((current_ugv_heading < final_parking_heading_max) && (current_ugv_heading >= 0)))
+                        {
+                            front_heading_range_satisfiled = true;
+                            front_center_margin = 0.0;
+                        }
+                        else
+                        {
 
-                        front_heading_range_satisfiled = false;
-                        front_center_margin = 0.8;
+                            front_heading_range_satisfiled = false;
+                            front_center_margin = 1.0;
+                        }
                     }
 
-//                    if(front_heading_range_satisfiled == false)
-//                    {
-//                        front_center_margin = 0.8;
-//                    }
-
-
-//                    double panel_center_to_origin_x = -(detected_panel_info.at(3) - front_center_margin);
                     double panel_center_to_origin_x = -detected_panel_info.at(3);
                     double panel_center_to_origin_y = -detected_panel_info.at(4);
 

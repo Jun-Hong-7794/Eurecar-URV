@@ -203,7 +203,14 @@ bool CVelodyne::RunVelodyne(){
             mpc_pcl->cloud->points.resize(VELODYNE_LASERS_NUM*VELODYNE_TOTAL_PACKET_NUMBER*VELODYNE_BOLCKS_NUM);
             mpc_pcl->waypoint_cloud->clear();
             mpc_pcl->waypoint_cloud->points.resize(way_point_panel_around.size());
+
             mpc_pcl->panelpoint_cloud->points.resize(6);
+
+            for(int i = 0;i < mpc_pcl->panelpoint_cloud->points.size();i++)
+            {
+                mpc_pcl->panelpoint_cloud->points[i].x = 0;
+                mpc_pcl->panelpoint_cloud->points[i].y = 0;
+            }
 
             point_index = 0;
             panel_point_index = 0;
@@ -428,7 +435,8 @@ bool CVelodyne::RunVelodyne(){
 
                 waypoint_y = mean_panel_y;
 
-                mpc_pcl->viewer->updatePointCloud(mpc_pcl->cloud,"cloud");
+                if(mpc_pcl->cloud->points.size() != 0)
+                    mpc_pcl->viewer->updatePointCloud(mpc_pcl->cloud,"cloud");
 
                 fl_parser_complete = true;
 
@@ -503,7 +511,8 @@ bool CVelodyne::RunVelodyne(){
 
                     lrf_find_panel = false;
 
-                    mpc_pcl->viewer->updatePointCloud(mpc_pcl->cloud,"cloud");
+                    if(mpc_pcl->cloud->points.size() != 0)
+                        mpc_pcl->viewer->updatePointCloud(mpc_pcl->cloud,"cloud");
 
                     fl_parser_complete = true;
 
@@ -534,7 +543,8 @@ bool CVelodyne::RunVelodyne(){
                 lrf_slope_norm_x = coeff_lrf[3];
                 lrf_slope_norm_y = coeff_lrf[4];
 
-                mpc_pcl->viewer->updatePointCloud(ransac_result_lrf,"lrf_cloud");
+                if(ransac_result_lrf->points.size() != 0)
+                    mpc_pcl->viewer->updatePointCloud(ransac_result_lrf,"lrf_cloud");
 
 
             }
@@ -545,7 +555,8 @@ bool CVelodyne::RunVelodyne(){
 
             if((max_clustering_result->points.size() < 2) || (max_clustering_result1->points.size() < 2))
             {
-                mpc_pcl->viewer->updatePointCloud(mpc_pcl->cloud,"cloud");
+                if(mpc_pcl->cloud->points.size() != 0)
+                    mpc_pcl->viewer->updatePointCloud(mpc_pcl->cloud,"cloud");
                 find_panel_point = false;
             }
             else
@@ -584,7 +595,8 @@ bool CVelodyne::RunVelodyne(){
 
                 if(final->points.size() == 0 || final1->points.size() == 0)
                 {
-                    mpc_pcl->viewer->updatePointCloud(mpc_pcl->cloud,"cloud");
+                    if(mpc_pcl->cloud->points.size() != 0)
+                        mpc_pcl->viewer->updatePointCloud(mpc_pcl->cloud,"cloud");
 
                     fl_parser_complete = true;
 
@@ -655,7 +667,8 @@ bool CVelodyne::RunVelodyne(){
 
                 if( coeff.rows() != 6 || coeff1.rows() != 6)
                 {
-                    mpc_pcl->viewer->updatePointCloud(mpc_pcl->cloud,"cloud");
+                    if(mpc_pcl->cloud->points.size() != 0)
+                        mpc_pcl->viewer->updatePointCloud(mpc_pcl->cloud,"cloud");
 
                     fl_parser_complete = true;
 
@@ -683,7 +696,8 @@ bool CVelodyne::RunVelodyne(){
                 if ((coeff[3] == 0) || (coeff1[3] == 0))
                 {
 
-                    mpc_pcl->viewer->updatePointCloud(mpc_pcl->cloud,"cloud");
+                    if(mpc_pcl->cloud->points.size() != 0)
+                        mpc_pcl->viewer->updatePointCloud(mpc_pcl->cloud,"cloud");
 
                     fl_parser_complete = true;
 
@@ -1635,10 +1649,17 @@ bool CVelodyne::RunVelodyne(){
                 }
 
                 (*final) += (*final1);
-                mpc_pcl->viewer->updatePointCloud(final,"cloud");
-                mpc_pcl->viewer->updatePointCloud(mpc_pcl->cloud,"cloud");
-                mpc_pcl->viewer->updatePointCloud(mpc_pcl->waypoint_cloud ,"waypoint_cloud");
-                mpc_pcl->viewer->updatePointCloud(mpc_pcl->panelpoint_cloud,"panelpoint_cloud");
+                if(final->points.size() != 0)
+                    mpc_pcl->viewer->updatePointCloud(final,"cloud");
+
+                if(mpc_pcl->cloud->points.size() != 0)
+                    mpc_pcl->viewer->updatePointCloud(mpc_pcl->cloud,"cloud");
+
+                if(mpc_pcl->waypoint_cloud->points.size() != 0)
+                    mpc_pcl->viewer->updatePointCloud(mpc_pcl->waypoint_cloud ,"waypoint_cloud");
+
+                if(mpc_pcl->panelpoint_cloud->points.size() != 0)
+                    mpc_pcl->viewer->updatePointCloud(mpc_pcl->panelpoint_cloud,"panelpoint_cloud");
 
             }
 
@@ -1799,7 +1820,7 @@ std::vector<double> CVelodyne::GetIMUData()
     vector<double> imu_euler;
     do{
         imu_euler = mpc_imu->GetEulerAngles();
-    }while(imu_euler.size() != 3);
+    }while((imu_euler.size() != 3) || ((imu_euler.at(0) == 0) && (imu_euler.at(1) == 0) && (imu_euler.at(2) == 0)));
 
     return imu_euler;
 }

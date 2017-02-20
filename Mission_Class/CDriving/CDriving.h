@@ -37,6 +37,12 @@
 #define DRIVE_INX_LRF_VEHICLE_ANGLE    3
 #define DRIVE_INX_LRF_VEHICLE_HORIZEN  4
 
+#define MAX_VEL 200
+#define MIN_VEL 80
+#define ACCEL_RATE 5
+#define DECEL_RATE -8
+#define DECEL_START_DIST 1.8
+
 class CDriving:public QThread{
     Q_OBJECT
 
@@ -140,6 +146,7 @@ public:
     bool DriveToPanel();
     bool ParkingFrontPanel();
     bool AttitudeEstimation();
+    int VelGen(double);
 
     bool LRFVehicleHorizenControl();
     bool LRFVehicleAngleControl();

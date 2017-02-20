@@ -49,22 +49,32 @@ bool CVehicle::Move(int _dir, int _vel){
 
     switch (_dir) {
     case UGV_move_forward:
+        m_vel = _vel;
+        m_dir = UGV_move_forward;
         rst__left_side = mc_device.SetCommand(UGV_DEF_GO,1,_vel*(1.1));
         rst_right_side = mc_device.SetCommand(UGV_DEF_GO,2,_vel*(-1.1));
         break;
     case UGV_move_backward:
+        m_vel = _vel;
+        m_dir = UGV_move_backward;
         rst__left_side = mc_device.SetCommand(UGV_DEF_GO,2,_vel*(1.1));
         rst_right_side = mc_device.SetCommand(UGV_DEF_GO,1,_vel*(-1.1));
         break;
     case UGV_move_left:
+        m_vel = _vel;
+        m_dir = UGV_move_left;
         rst__left_side = mc_device.SetCommand(UGV_DEF_GO,1,_vel*(-2.2));
         rst_right_side = mc_device.SetCommand(UGV_DEF_GO,2,_vel*(-2.2));
         break;
     case UGV_move_right:
+        m_vel = _vel;
+        m_dir = UGV_move_right;
         rst__left_side = mc_device.SetCommand(UGV_DEF_GO,1,_vel*(2.2));
         rst_right_side = mc_device.SetCommand(UGV_DEF_GO,2,_vel*(2.2));
         break;
     case UGV_move_differ_left:
+        m_vel = _vel;
+        m_dir = UGV_move_differ_left;
         rst__left_side = mc_device.SetCommand(UGV_DEF_GO,1,_vel*(-1.8));
         rst_right_side = mc_device.SetCommand(UGV_DEF_GO,2,_vel*(-3));
         break;
@@ -110,6 +120,11 @@ bool CVehicle::ActiveMagnet(bool _on_off){
 void CVehicle::CheckVolt(){
     int main_bat = 2;
     m_battery = mc_device.GetValue(UGV_DEF_VOLTS,main_bat);
+}
+
+int CVehicle::GetVel()
+{
+    return m_vel;
 }
 
 
