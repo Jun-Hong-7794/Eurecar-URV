@@ -202,6 +202,7 @@ typedef struct _Kinova_Force_Check_Struct{
     double force_threshold_z;
 
     int check_count;
+    int check_threshold;
 
 }KINOVA_FORCE_CHECK_STRUCT;
 
@@ -316,6 +317,7 @@ typedef struct _Wrench_Recognition{
     //Setting
     int valve_size;
     int num_of_wrench;
+    int loop_count;
     QString str_valve_size;
     QString str_num_of_wrench;
 

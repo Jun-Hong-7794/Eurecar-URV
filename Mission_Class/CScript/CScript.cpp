@@ -878,6 +878,12 @@ bool CScript::InterpreteKinovaForceCheck(QString _line, STEP_INFO& _step_info){
             _step_info.manipulation_option.kinova_force_check_option.check_count = _line.mid(colone_index + 1).trimmed().toInt();
             return true;
         }
+
+        if(_line.contains("check_threshold")){
+            int colone_index = _line.indexOf("=");
+            _step_info.manipulation_option.kinova_force_check_option.check_threshold = _line.mid(colone_index + 1).trimmed().toInt();
+            return true;
+        }
     }
     else if(_line.contains("KINOVA_FORCE_CHECK_FUNCTION")){
         int equal_index = _line.indexOf("=");
@@ -1062,6 +1068,11 @@ bool CScript::InterpreteWrenchRecognition(QString _line, STEP_INFO& _step_info){
         if(_line.contains("num_of_wrench")){
             int colone_index = _line.indexOf("=");
             _step_info.manipulation_option.wrench_recognition_option.str_num_of_wrench = _line.mid(colone_index + 1).trimmed();
+            return true;
+        }
+        if(_line.contains("loop_count")){
+            int colone_index = _line.indexOf("=");
+            _step_info.manipulation_option.wrench_recognition_option.loop_count = _line.mid(colone_index + 1).trimmed().toInt();
             return true;
         }
     }

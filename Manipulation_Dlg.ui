@@ -1798,9 +1798,30 @@
      <height>271</height>
     </rect>
    </property>
+   <property name="font">
+    <font>
+     <weight>75</weight>
+     <bold>true</bold>
+    </font>
+   </property>
    <property name="currentIndex">
     <number>0</number>
    </property>
+   <widget class="QWidget" name="tab_7">
+    <attribute name="title">
+     <string>Panel Model</string>
+    </attribute>
+    <widget class="QGraphicsView" name="view_panel_modeling_2">
+     <property name="geometry">
+      <rect>
+       <x>4</x>
+       <y>2</y>
+       <width>320</width>
+       <height>240</height>
+      </rect>
+     </property>
+    </widget>
+   </widget>
    <widget class="QWidget" name="tab_lrf">
     <attribute name="title">
      <string>LRF</string>
@@ -1849,7 +1870,7 @@
     </font>
    </property>
    <property name="currentIndex">
-    <number>2</number>
+    <number>4</number>
    </property>
    <widget class="QWidget" name="tab">
     <attribute name="title">
@@ -2430,7 +2451,27 @@
      </property>
     </widget>
    </widget>
+   <widget class="QWidget" name="tab_8">
+    <attribute name="title">
+     <string>Panel Model</string>
+    </attribute>
+    <widget class="QGraphicsView" name="view_panel_modeling">
+     <property name="geometry">
+      <rect>
+       <x>13</x>
+       <y>11</y>
+       <width>640</width>
+       <height>320</height>
+      </rect>
+     </property>
+    </widget>
+   </widget>
   </widget>
+  <zorder>tabWidget_3</zorder>
+  <zorder>view_valve_modeling</zorder>
+  <zorder>label_3</zorder>
+  <zorder>grbx_manipulation</zorder>
+  <zorder>tabWidget</zorder>
  </widget>
  <customwidgets>
   <customwidget>

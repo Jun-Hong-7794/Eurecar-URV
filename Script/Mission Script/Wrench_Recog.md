@@ -7,6 +7,10 @@ global_int gi_wrench_hanger_index = 3
 
 # Title: Valve Recognition
 
+## Step0: Align to Panel
+
+KINOVA_ALIGN_TO_PANEL_FUNCTION()
+
 ## Step0: Kinova Arm Up
 
 KINOVA_MANIPULATE_STRUCT.x = ==
@@ -109,6 +113,7 @@ A_Sleep(500)
 ## Step6: Wrench Recognition
 
 WRENCH_RECOGNITION_STRUCT.num_of_wrench = 6
+WRENCH_RECOGNITION_STRUCT.loop_count = 50
 /*WRENCH_RECOGNITION_STRUCT.valve_size = gi_valve_size
 WRENCH_RECOGNITION_STRUCT.valve_size = 16
 gi_wrench_hanger_index = WRENCH_RECOGNITION_FUNCTION()
@@ -116,7 +121,10 @@ gi_wrench_hanger_index = WRENCH_RECOGNITION_FUNCTION()
 A_Sleep(500)
 
 ## Step13: Align to Panel
+IF(gi_wrench_hanger_index != -1)
 
 KINOVA_ALIGN_TO_PANEL_FUNCTION()
+
+ELSE(GoTo: 0)
 
 ##########################################_MISSION_END_##########################################

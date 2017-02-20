@@ -33,6 +33,11 @@ Manipulation_Dlg::Manipulation_Dlg(CManipulation* _pc_manipulation, QWidget *par
 
     mp_valve_image_grahicscene = new QGraphicsScene(QRectF(0, 0, valve_view_width, valve_view_height), 0);
 
+    int panel_view_width  = ui->view_panel_modeling->geometry().width();
+    int panel_view_height = ui->view_panel_modeling->geometry().height();
+
+    mp_panel_image_grahicscene = new QGraphicsScene(QRectF(0, 0, panel_view_width, panel_view_height), 0);
+
     //Button Connetion
     connect(ui->bt_kinova_init, SIGNAL(clicked()), this, SLOT(SlotButtonKinovaInit()));
 
@@ -88,6 +93,7 @@ Manipulation_Dlg::Manipulation_Dlg(CManipulation* _pc_manipulation, QWidget *par
     connect(mpc_manipulation, SIGNAL(SignalKinovaForceVector(CartesianPosition)), this, SLOT(SlotEditeKinovaForceVector(CartesianPosition)));
     connect(mpc_manipulation, SIGNAL(SignalKinovaForceVector(CartesianPosition)), this, SLOT(SlotKinovaForceVectorData(CartesianPosition)));
 
+    connect(mpc_manipulation, SIGNAL(SignalKinovaForceCheckOption(KINOVA_FORCE_CHECK_STRUCT)), this, SLOT(SlotSetForceGraphThresh(KINOVA_FORCE_CHECK_STRUCT)));
 
     connect(mpc_manipulation, SIGNAL(SignalLRFHorizentDistance(LRF_VEHICLE_HORIZEN_STRUCT)), this, SLOT(SlotLRFHorizentDistance(LRF_VEHICLE_HORIZEN_STRUCT)));
 
@@ -109,6 +115,7 @@ Manipulation_Dlg::Manipulation_Dlg(CManipulation* _pc_manipulation, QWidget *par
     connect(mpc_manipulation, SIGNAL(SignalCameraImage(cv::Mat)), this, SLOT(SlotViewCameraImage(cv::Mat)));
     connect(mpc_manipulation, SIGNAL(SignalSegnetImage(cv::Mat)), this, SLOT(SlotViewSegnetImage(cv::Mat)));
     connect(mpc_manipulation, SIGNAL(SignalValveImage(cv::Mat)), this, SLOT(SlotValveImage(cv::Mat)));
+    connect(mpc_manipulation, SIGNAL(SignalPanelImage(cv::Mat)), this, SLOT(SlotPanelImage(cv::Mat)));
 
     connect(mpc_manipulation, SIGNAL(SignalValveSizeData(QVector<double>,QVector<double>,int)),
             this, SLOT(SlotValveSizeData(QVector<double>,QVector<double>,int)));
@@ -266,7 +273,8 @@ Manipulation_Dlg::Manipulation_Dlg(CManipulation* _pc_manipulation, QWidget *par
     mpc_manipulation->ValveSizeDataModelInit(y_22, 22);
     mpc_manipulation->ValveSizeDataModelInit(y_24, 24);
 
-    mpc_manipulation->ValveModeling(16,0);
+    mpc_manipulation->ValveModeling(19,30);
+    mpc_manipulation->PanelModeling(19,280,380,-2);
 }
 
 Manipulation_Dlg::~Manipulation_Dlg()
@@ -465,6 +473,15 @@ void Manipulation_Dlg::SlotEditeKinovaForceVector(CartesianPosition _force_vecto
     ui->ed_kinova_force_yaw->setText(QString::number(_force_vector.Coordinates.ThetaX, 'f', 4));
 
     return;
+}
+
+void Manipulation_Dlg::SlotSetForceGraphThresh(KINOVA_FORCE_CHECK_STRUCT _kinova_force_option){
+
+    ui->ed_kinova_force_thresh_x->setText(QString::number(_kinova_force_option.force_threshold_x));
+    ui->ed_kinova_force_thresh_y->setText(QString::number(_kinova_force_option.force_threshold_y));
+    ui->ed_kinova_force_thresh_z->setText(QString::number(_kinova_force_option.force_threshold_z));
+
+    SlotButtonKinovaSetForceThreshData();
 }
 
 void Manipulation_Dlg::SlotEditeLRFKinovaAngleStruct(LRF_KINOVA_ANGLE_CTRL_STRUCT _lrf_kinova_option){
@@ -974,6 +991,11 @@ void Manipulation_Dlg::SlotViewLRFImage(cv::Mat _image){
 void Manipulation_Dlg::SlotValveImage(cv::Mat _image){
 
     Display_Image(_image,mp_valve_image_grahicscene,ui->view_valve_modeling);
+}
+
+void Manipulation_Dlg::SlotPanelImage(cv::Mat _image){
+
+    Display_Image(_image,mp_panel_image_grahicscene,ui->view_panel_modeling);
 }
 
 QImage Manipulation_Dlg::Mat2QImage(cv::Mat src){

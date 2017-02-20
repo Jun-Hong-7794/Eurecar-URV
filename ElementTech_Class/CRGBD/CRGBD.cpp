@@ -76,7 +76,7 @@ void CRGBD::GetLRFInfo(double &_slope, double &_distance, double _s_deg, double 
 
     long* lrf_distance = new long[number_of_point];
 
-    int line_eq_num_of_samples = 5;
+    int line_eq_num_of_samples = 2;
     std::vector<LINE_PARAM> optimal_line_eq_vec;
 
     for(int i = 0; i < line_eq_num_of_samples; i++){
@@ -169,6 +169,29 @@ void CRGBD::GetHorizenDistance(double _inlier_distance,double& _horizen_distance
     return;
 }
 
+void CRGBD::LocalizationOnPanel(LOCALIZATION_INFO_ON_PANEL &_info, double _s_deg/*deg*/, double _e_deg/*deg*/, int _inlier_dst/*mm*/){
+
+    //Convert to Original Coordinate
+    int s_lrf_index = (int)((_s_deg + 45) / ANGLE_RESOLUTION);
+    int e_lrf_index = (int)((_e_deg + 45) / ANGLE_RESOLUTION);
+
+    int number_of_point = e_lrf_index - s_lrf_index + 1;
+
+    long* lrf_distance = new long[number_of_point];
+
+    std::vector<POINT_PARAM> point_vec;
+    if(!mpc_lrf->GetLRFData(mary_lrf_distance)){
+        std::cout << "LRF : GetLRFData Error" << std::endl;
+        delete[] lrf_distance;
+        return;
+    }
+    else{
+        memcpy(lrf_distance, &mary_lrf_distance[s_lrf_index], sizeof(long)*(number_of_point));
+    }
+
+    delete[] lrf_distance;
+}
+
 cv::Mat CRGBD::GetSegnetImage(cv::Mat _org_img){
 
     cv::Mat segnet_image;
@@ -253,7 +276,7 @@ LINE_PARAM CRGBD::EstimateLineEquation(std::vector<POINT_PARAM>& _point_vec){
 
     double line_max_count = 0;
 
-    double line_inlier_standard = 7;
+    double line_inlier_standard = 4;
 
     for(unsigned int i = 0; i < line_eq_vector.size(); i++){
 

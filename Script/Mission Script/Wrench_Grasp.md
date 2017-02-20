@@ -5,6 +5,35 @@
 /*<
 # Title: Valve Recognition
 
+global_bool gb_froce_check = false;
+
+
+## Step0: Align to Panel
+
+KINOVA_ALIGN_TO_PANEL_FUNCTION()
+
+## Step1: Grasp(For Align Center)
+IF(gb_froce_check)
+
+GRIPPER_FORCE_CTRL_STRUCT.pose_1 = 1700
+GRIPPER_FORCE_CTRL_STRUCT.pose_2 = 1700
+GRIPPER_FORCE_CTRL_STRUCT.force_threshold = 130
+
+GRIPPER_FORCE_CTRL_FUNCTION()
+
+A_Sleep(2000)
+
+## Step2: Grasp(For Align Center)
+IF(gb_froce_check)
+
+GRIPPER_FORCE_CTRL_STRUCT.pose_1 = 2300
+GRIPPER_FORCE_CTRL_STRUCT.pose_2 = 2300
+GRIPPER_FORCE_CTRL_STRUCT.force_threshold = -2
+
+GRIPPER_FORCE_CTRL_FUNCTION()
+
+A_Sleep(2000)
+
 ## Step0: Kinova Arm Up
 
 KINOVA_MANIPULATE_STRUCT.x = ==
@@ -182,11 +211,13 @@ KINOVA_FORCE_CHECK_STRUCT.force_threshold_x = 0
 KINOVA_FORCE_CHECK_STRUCT.force_threshold_y = 0
 KINOVA_FORCE_CHECK_STRUCT.force_threshold_z = 6.5
 
-KINOVA_FORCE_CHECK_STRUCT.check_count = 20
+KINOVA_FORCE_CHECK_STRUCT. = check_threshold = 75
+KINOVA_FORCE_CHECK_STRUCT.check_count = 100
 
-KINOVA_FORCE_CHECK_FUNCTION()
+gb_froce_check = KINOVA_FORCE_CHECK_FUNCTION()
 
 ## Step8: Grasp2
+IF(gb_froce_check)
 
 GRIPPER_FORCE_CTRL_STRUCT.pose_1 = 1700
 GRIPPER_FORCE_CTRL_STRUCT.pose_2 = 1700
@@ -195,6 +226,8 @@ GRIPPER_FORCE_CTRL_STRUCT.force_threshold = 130
 GRIPPER_FORCE_CTRL_FUNCTION()
 
 A_Sleep(2000)
+
+ELSE(GoTo: 0)
 
 ## Step9: Align to Panel
 

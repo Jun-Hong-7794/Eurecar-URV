@@ -25,6 +25,8 @@ CManipulation::CManipulation(CLRF *_p_mani_lrf, CCamera *_p_camera, CKinova *_p_
     m_valve_size_result = 0;
     m_valve_size_graph_index = 0;
 
+    m_mat_panel_model = cv::Mat::zeros(640,1280,CV_8UC3);
+
     connect(mpc_kinova, SIGNAL(SignalKinovaPosition(CartesianPosition)), this, SIGNAL(SignalKinovaPosition(CartesianPosition)));
     connect(mpc_rgb_d, SIGNAL(SignalLRFMapImage(cv::Mat)), this, SIGNAL(SignalLRFImage(cv::Mat)));
     connect(mpc_camera, SIGNAL(SignalCameraImage(cv::Mat)), this, SIGNAL(SignalCameraImage(cv::Mat)));
@@ -35,6 +37,8 @@ CManipulation::CManipulation(CLRF *_p_mani_lrf, CCamera *_p_camera, CKinova *_p_
     connect(mpc_gripper, SIGNAL(SignalEditeGripperStatus(GRIPPER_STATUS)), this, SIGNAL(SignalEditeGripperStatus(GRIPPER_STATUS)));
 
     connect(mpc_kinova, SIGNAL(SignalKinovaForce(CartesianPosition)), this, SIGNAL(SignalEditeGripperStatus(GRIPPER_STATUS)));
+
+    MakePanelModel(19,3);
 }
 
 
@@ -900,6 +904,7 @@ cv::Mat CManipulation::ValveModeling(int _valve_size, double _rotation_angle){
     cv::Point point_text_angle(30,80);
 
     int diagonal_distance = 150;
+
     double diagonal_angle_1 = RGBD_D2R * (((-1)*_rotation_angle) + 45); // For point_1
     double diagonal_angle_2 = RGBD_D2R * (90 + (((-1)*_rotation_angle) + 45)); // For point_2
 
@@ -923,25 +928,150 @@ cv::Mat CManipulation::ValveModeling(int _valve_size, double _rotation_angle){
     point_4.x = point_c.x + (diagonal_distance) * cos(diagonal_angle_2);
     point_4.y = point_c.y - (diagonal_distance) * sin(diagonal_angle_2);
 
-    cv::line(mat_valve, point_x_axis_s,point_x_axis_e,cv::Scalar(255,255,255));
-    cv::line(mat_valve, point_y_axis_s,point_y_axis_e,cv::Scalar(255,255,255));
+    cv::line(mat_valve, point_x_axis_s,point_x_axis_e,cv::Scalar(255,255,255), 3);
+    cv::line(mat_valve, point_y_axis_s,point_y_axis_e,cv::Scalar(255,255,255), 3);
 
-    cv::line(mat_valve, point_1,point_2,cv::Scalar(255,0,0));
-    cv::line(mat_valve, point_2,point_3,cv::Scalar(0,255,0));
-    cv::line(mat_valve, point_3,point_4,cv::Scalar(0,0,255));
-    cv::line(mat_valve, point_1,point_4,cv::Scalar(0,255,255));
+    cv::line(mat_valve, point_1,point_2,cv::Scalar(255,0,0), 3);
+    cv::line(mat_valve, point_2,point_3,cv::Scalar(0,255,0), 3);
+    cv::line(mat_valve, point_3,point_4,cv::Scalar(0,0,255), 3);
+    cv::line(mat_valve, point_1,point_4,cv::Scalar(0,255,255),3);
 
     cv::circle(mat_valve, point_c,5,cv::Scalar(0,0,255));
 
     QString str_valve_size = "Valve Size: " + QString::number(_valve_size) + "mm";
     QString str_rotation_ang = "Angle: " + QString::number(_rotation_angle) + "deg";
 
-    cv::putText(mat_valve, str_valve_size.toStdString(), point_text_size, 2, 1,cv::Scalar(255,255,255));
-    cv::putText(mat_valve, str_rotation_ang.toStdString(), point_text_angle, 2, 1,cv::Scalar(255,255,255));
+    cv::putText(mat_valve, str_valve_size.toStdString(), point_text_size, 2, 1,cv::Scalar(255,255,255), 2);
+    cv::putText(mat_valve, str_rotation_ang.toStdString(), point_text_angle, 2, 1,cv::Scalar(255,255,255), 2);
 
     emit SignalValveImage(mat_valve);
 
     return mat_valve;
+}
+
+void CManipulation::MakePanelModel(int _valve_size, int _wrench_index){
+
+    mtx_panel_model.lock();
+    {
+        // 1 mm / 1 pixel
+        int margin_w = 140;//0 ~ panel
+        int margin_h = 140;//
+
+        int margin_wrench = 50;//
+
+        int valve_center = 345;//valve_location
+
+        cv::Point point_1(margin_w,0);
+        cv::Point point_2(m_mat_panel_model.cols - margin_w - 1,0);
+        cv::Point point_3(m_mat_panel_model.cols - margin_w - 1,margin_h);
+        cv::Point point_4(margin_w,margin_h);
+
+        cv::Point point_panel_center(639,margin_h);
+
+        cv::Point point_valve_s(margin_w + valve_center - (int)(_valve_size / 2)/*half of valve size*/ ,margin_h);
+        cv::Point point_valve_c(margin_w + valve_center + 0/*valve center position*/,margin_h);
+        cv::Point point_valve_e(margin_w + valve_center + (int)(_valve_size / 2)/*half of valve size*/ ,margin_h);
+
+        cv::Point point_wrench_1((point_3.x - 300) + margin_wrench * 0, margin_h);
+        cv::Point point_wrench_2((point_3.x - 300) + margin_wrench * 1, margin_h);
+        cv::Point point_wrench_3((point_3.x - 300) + margin_wrench * 2, margin_h);
+        cv::Point point_wrench_4((point_3.x - 300) + margin_wrench * 3, margin_h);
+        cv::Point point_wrench_5((point_3.x - 300) + margin_wrench * 4, margin_h);
+        cv::Point point_wrench_6((point_3.x - 300) + margin_wrench * 5, margin_h);
+
+        cv::line(m_mat_panel_model, point_1,point_4,cv::Scalar(255,255,255),3);
+        cv::line(m_mat_panel_model, point_2,point_3,cv::Scalar(255,255,255),3);
+        cv::line(m_mat_panel_model, point_3,point_4,cv::Scalar(255,255,255),3);
+
+        cv::circle(m_mat_panel_model, point_panel_center,5,cv::Scalar(0,0,255),5);
+
+        cv::line(m_mat_panel_model, point_valve_s,cv::Point(point_valve_s.x, 0),cv::Scalar(255,0,0),2);
+        cv::line(m_mat_panel_model, point_valve_e,cv::Point(point_valve_e.x, 0),cv::Scalar(255,0,0),2);
+
+        cv::circle(m_mat_panel_model, point_valve_c,5,cv::Scalar(255,0,0),3);
+
+        if(_wrench_index == 1)
+            cv::circle(m_mat_panel_model, point_wrench_1,5,cv::Scalar(255,255,0),3);
+        else
+            cv::circle(m_mat_panel_model, point_wrench_1,5,cv::Scalar(0,255,255),3);
+
+        if(_wrench_index == 2)
+            cv::circle(m_mat_panel_model, point_wrench_2,5,cv::Scalar(255,255,0),3);
+        else
+            cv::circle(m_mat_panel_model, point_wrench_2,5,cv::Scalar(0,255,255),3);
+
+        if(_wrench_index == 3)
+            cv::circle(m_mat_panel_model, point_wrench_3,5,cv::Scalar(255,255,0),3);
+        else
+            cv::circle(m_mat_panel_model, point_wrench_3,5,cv::Scalar(0,255,255),3);
+
+        if(_wrench_index == 4)
+            cv::circle(m_mat_panel_model, point_wrench_4,5,cv::Scalar(255,255,0),3);
+        else
+            cv::circle(m_mat_panel_model, point_wrench_4,5,cv::Scalar(0,255,255),3);
+
+        if(_wrench_index == 5)
+            cv::circle(m_mat_panel_model, point_wrench_5,5,cv::Scalar(255,255,0),3);
+        else
+            cv::circle(m_mat_panel_model, point_wrench_5,5,cv::Scalar(0,255,255),3);
+
+        if(_wrench_index == 6)
+            cv::circle(m_mat_panel_model, point_wrench_6,5,cv::Scalar(255,255,0),3);
+        else
+            cv::circle(m_mat_panel_model, point_wrench_6,5,cv::Scalar(0,255,255),3);
+    }
+    mtx_panel_model.unlock();
+
+}
+
+cv::Mat CManipulation::GetPanelModel(){
+
+    cv::Mat mat_panel = cv::Mat::zeros(640,1280,CV_8UC3);
+
+    mtx_panel_model.lock();
+    {
+        mat_panel = m_mat_panel_model.clone();
+    }
+    mtx_panel_model.unlock();
+
+    return mat_panel;
+}
+
+void CManipulation::PanelModeling(int _valve_size, int _virtical_dst/*mm*/, int _horizen_dst/*mm*/, double _angle/*deg*/){
+
+    int margin_w = 140;//0 ~ panel
+    int margin_h = 140;//
+
+    cv::Mat mat_panel = GetPanelModel();
+    cv::Point point_lrf_center(margin_w + _horizen_dst, _virtical_dst + margin_h);
+
+    QString str_valve_size = "Valve Size: " + QString::number(_valve_size) + " mm";
+
+    QString str_v_distance = "V Distance: " + QString::number(_virtical_dst) + " mm";
+    QString str_h_distance = "H Distance: " + QString::number(_horizen_dst) + " mm";
+
+    QString str_heading_error = "Heading Error: " + QString::number(_angle) + " Deg";
+
+    cv::Point point_text_size(30,520);
+    cv::Point point_text_v_distance(30,550);
+    cv::Point point_text_h_distance(30,580);
+    cv::Point point_text_heading_error(30,610);
+
+    cv::putText(mat_panel, str_valve_size.toStdString(), point_text_size, 2, 1,cv::Scalar(255,255,255), 2);
+    cv::putText(mat_panel, str_v_distance.toStdString(), point_text_v_distance, 2, 1,cv::Scalar(255,255,255), 2);
+    cv::putText(mat_panel, str_h_distance.toStdString(), point_text_h_distance, 2, 1,cv::Scalar(255,255,255), 2);
+    cv::putText(mat_panel, str_heading_error.toStdString(), point_text_heading_error, 2, 1,cv::Scalar(255,255,255), 2);
+
+    cv::circle(mat_panel, point_lrf_center,10,cv::Scalar(0,255,0),5);
+
+    cv::Point point_lrf_c_to_v_panel(point_lrf_center.x, point_lrf_center.y - _virtical_dst);
+    cv::Point point_lrf_c_to_theta_panel(point_lrf_center.x + tan(RGBD_D2R*_angle) * (point_lrf_center.y - _virtical_dst),
+                                         point_lrf_center.y - _virtical_dst);
+
+    cv::arrowedLine(mat_panel, point_lrf_center, point_lrf_c_to_v_panel, cv::Scalar(0,255,0), 3);
+    cv::arrowedLine(mat_panel, point_lrf_center, point_lrf_c_to_theta_panel, cv::Scalar(0,0,255), 3);
+
+    emit SignalPanelImage(mat_panel);
 }
 
 //----------------------------------------------------------------
@@ -1473,8 +1603,13 @@ bool CManipulation::KinovaForceCheck(){
         return false;
 
     int check_count = 0;
+    int check_x = 0;
+    int check_y = 0;
+    int check_z = 0;
 
     KINOVA_FORCE_CHECK_STRUCT kinova_force_check = GetKinovaForceCheckOption();
+
+    emit SignalKinovaForceCheckOption(kinova_force_check);
 
     do{
         CartesianPosition cartesian_pos = mpc_kinova->KinovaGetCartesianForce();
@@ -1491,8 +1626,10 @@ bool CManipulation::KinovaForceCheck(){
             if(fabs(cartesian_pos.Coordinates.X) > kinova_force_check.force_threshold_x){//Over Threshold X axis force
                 if(GetKinovaForceCheckOption().fl_kinova_force_sensing_option)
                     continue;
-                else
-                    return true;
+                else{
+                    check_x++;
+//                    return true;
+                }
             }
         }
 
@@ -1500,8 +1637,10 @@ bool CManipulation::KinovaForceCheck(){
             if(fabs(cartesian_pos.Coordinates.Y) > kinova_force_check.force_threshold_y){//Over Threshold Y axis force
                 if(GetKinovaForceCheckOption().fl_kinova_force_sensing_option)
                     continue;
-                else
-                    return true;
+                else{
+                    check_y++;
+//                    return true;
+                }
             }
         }
 
@@ -1509,14 +1648,31 @@ bool CManipulation::KinovaForceCheck(){
             if(fabs(cartesian_pos.Coordinates.Z) > kinova_force_check.force_threshold_z){//Over Threshold Z axis force
                 if(GetKinovaForceCheckOption().fl_kinova_force_sensing_option)
                     continue;
-                else
+                else{
+                    check_z++;
                     return true;
+                }
             }
         }
 
         check_count++;
+
+        msleep(30);
     }
     while(true);
+
+    if(kinova_force_check.force_threshold_x != 0){
+        if(check_x >= kinova_force_check.check_threshold)
+            return true;
+    }
+    if(kinova_force_check.force_threshold_y != 0){
+        if(check_y >= kinova_force_check.check_threshold)
+            return true;
+    }
+    if(kinova_force_check.force_threshold_z != 0){
+        if(check_z >= kinova_force_check.check_threshold)
+            return true;
+    }
 
     return false;
 }
@@ -1763,13 +1919,22 @@ bool CManipulation::WrenchRecognition(){
 //    mpc_rgb_d->SSD~~~
     bb_info = mpc_ssd->GetSSDImage(camera_image);
 
-    while(bb_info.size() != 6)
+    int loop_count = 0;
+
+    while(bb_info.size() != wrench_recognition.num_of_wrench)
     {
+        if(loop_count > wrench_recognition.loop_count){
+            wrench_recognition.wrench_location = -1;
+            SetManipulationOption(wrench_recognition);
+            return false;
+        }
         mpc_camera->GetCameraImage(camera_image);
         msleep(300);
 
         bb_info = mpc_ssd->GetSSDImage(camera_image);
         msleep(300);
+
+        loop_count++;
     }
 
     for(vector<vector<int>>::iterator it = bb_info.begin();it < bb_info.end();++it)

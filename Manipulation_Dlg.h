@@ -96,6 +96,7 @@ private:// Graphic Scene
     QGraphicsScene *mp_lrf_image_grahicscene;
 
     QGraphicsScene *mp_valve_image_grahicscene;
+    QGraphicsScene *mp_panel_image_grahicscene;
 
 public://Display Image to Qt Graphicview
     QImage Mat2QImage(cv::Mat src);
@@ -198,8 +199,35 @@ public slots:
     //Valve Modeling
     void SlotValveImage(cv::Mat _image);
 
+    //Panel Modeling
+    void SlotPanelImage(cv::Mat _image);
+
+    //Force Graph
+    void SlotSetForceGraphThresh(KINOVA_FORCE_CHECK_STRUCT);
+
     //LRF
     void SlotViewLRFImage(cv::Mat _image);
 };
 
 #endif // MANIPULATION_DLG_H
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

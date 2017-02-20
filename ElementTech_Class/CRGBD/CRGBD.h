@@ -19,6 +19,15 @@
 #define RGBD_D2R (RGBD_PI / 180.0)
 #define RGBD_R2D (180.0/RGBD_PI)
 
+typedef struct _Localizaion_Info_On_Panel{
+
+    int vertical_dst;
+    int horizen__dst;
+
+    double angle;//Deg
+
+}LOCALIZATION_INFO_ON_PANEL;
+
 class CRGBD: public QThread{
             Q_OBJECT
 protected:
@@ -64,6 +73,8 @@ public:
     void GetLRFInfo(double &_slope, double &_distance, double _s_deg = 10, double _e_deg = 170, int _inlier_lrf_dst = 800/*mm*/);
     void GetHorizenDistance(double _inlier_distance,double& _horizen_distance, double& _s_inlier_deg, double& _e_inlier_deg,
                             double& _virt_s_deg, double& _virt_e_deg, double _s_deg = 20, double _e_deg = 160, int _sampling_loop = 1);
+
+    void LocalizationOnPanel(LOCALIZATION_INFO_ON_PANEL &_info, double _s_deg = 10/*deg*/, double _e_deg = 170/*deg*/, int _inlier_dst = 1100/*mm*/);
 
     cv::Mat GetSegnetImage(cv::Mat _org_img);
 

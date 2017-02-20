@@ -66,6 +66,9 @@ private:
     bool fl_main_fnc_result;
     bool fl_kinova_force_ctrl_result;
 
+    cv::Mat m_mat_panel_model;
+    QMutex mtx_panel_model;
+
     LRF_KINOVA_VERTICAL_CTRL_STRUCT mstruct_lrf_kinova_vertical;
     QMutex mxt_lrf_kinova_vertical;
 
@@ -153,6 +156,10 @@ public:
     int DataAnalisys(QVector<double> _data);//For Valve Recognition, Result: 16 ~ 24(16mm, 17mm, 18mm, 19mm, 22mm, 24mm)
 
     cv::Mat ValveModeling(int _valve_size, double _rotation_angle);
+
+    void MakePanelModel(int _valve_size, int _wrench_index);
+    cv::Mat GetPanelModel();
+    void PanelModeling(int _valve_size, int _virtical_dst/*mm*/, int _horizen_dst/*mm*/, double _angle/*deg*/);
     //-------------------------------------------------
     // Dvice Class Initialize(Connect) Function
     //-------------------------------------------------
@@ -281,6 +288,7 @@ private:
 signals:
     void SignalKinovaPosition(CartesianPosition);
     void SignalKinovaForceVector(CartesianPosition);
+    void SignalKinovaForceCheckOption(KINOVA_FORCE_CHECK_STRUCT);
 
     void SignalLRFKinovaAngleStruct(LRF_KINOVA_ANGLE_CTRL_STRUCT);
     void SignalLRFKinovaHorizenStruct(LRF_KINOVA_HORIZEN_CTRL_STRUCT);
@@ -293,6 +301,7 @@ signals:
     void SignalSegnetImage(cv::Mat);
 
     void SignalValveImage(cv::Mat);
+    void SignalPanelImage(cv::Mat);
 
     void SignalEditeGripperStatus(GRIPPER_STATUS);
 };
