@@ -10,6 +10,7 @@
 #include <string>
 #include <iostream>
 #include <vector>
+#include <QMutex>
 
 #define MIP_SDK_GX4_25_IMU_STANDARD_MODE  0x01
 #define MIP_SDK_GX4_25_IMU_DIRECT_MODE	  0x02
@@ -37,6 +38,8 @@ public:
     vector<double> GetEulerAngles();
     bool IsIMUInit();
 private:
+
+    QMutex mtx_imu;
 
     bool imu_init = false;
     //--------------------------------------------------

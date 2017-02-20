@@ -49,24 +49,24 @@ bool CVehicle::Move(int _dir, int _vel){
 
     switch (_dir) {
     case UGV_move_forward:
-        rst__left_side = mc_device.SetCommand(UGV_DEF_GO,1,_vel);
-        rst_right_side = mc_device.SetCommand(UGV_DEF_GO,2,_vel*(-1));
+        rst__left_side = mc_device.SetCommand(UGV_DEF_GO,1,_vel*(1.1));
+        rst_right_side = mc_device.SetCommand(UGV_DEF_GO,2,_vel*(-1.1));
         break;
     case UGV_move_backward:
-        rst__left_side = mc_device.SetCommand(UGV_DEF_GO,2,_vel);
-        rst_right_side = mc_device.SetCommand(UGV_DEF_GO,1,_vel*(-1));
+        rst__left_side = mc_device.SetCommand(UGV_DEF_GO,2,_vel*(1.1));
+        rst_right_side = mc_device.SetCommand(UGV_DEF_GO,1,_vel*(-1.1));
         break;
     case UGV_move_left:
-        rst__left_side = mc_device.SetCommand(UGV_DEF_GO,1,_vel*(-2));
-        rst_right_side = mc_device.SetCommand(UGV_DEF_GO,2,_vel*(-2));
+        rst__left_side = mc_device.SetCommand(UGV_DEF_GO,1,_vel*(-2.2));
+        rst_right_side = mc_device.SetCommand(UGV_DEF_GO,2,_vel*(-2.2));
         break;
     case UGV_move_right:
-        rst__left_side = mc_device.SetCommand(UGV_DEF_GO,1,_vel*(2));
-        rst_right_side = mc_device.SetCommand(UGV_DEF_GO,2,_vel*(2));
+        rst__left_side = mc_device.SetCommand(UGV_DEF_GO,1,_vel*(2.2));
+        rst_right_side = mc_device.SetCommand(UGV_DEF_GO,2,_vel*(2.2));
         break;
     case UGV_move_differ_left:
-        rst__left_side = mc_device.SetCommand(UGV_DEF_GO,1,_vel*(-1.2));
-        rst_right_side = mc_device.SetCommand(UGV_DEF_GO,2,_vel*(-2));
+        rst__left_side = mc_device.SetCommand(UGV_DEF_GO,1,_vel*(-1.8));
+        rst_right_side = mc_device.SetCommand(UGV_DEF_GO,2,_vel*(-3));
         break;
     default:
         break;

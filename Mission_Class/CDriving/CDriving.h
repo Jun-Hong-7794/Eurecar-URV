@@ -62,6 +62,18 @@ private:
     QMutex mxt_lrf_vehicle;
     QMutex mxt_lrf_vehicle_angle;
 
+
+    // ugv info variables
+    double ugv_heading = 0.0;
+    double final_parking_heading = -PI;
+
+    double panel_slope_norm_x = 0.0;
+    double panel_slope_norm_y = 0.0;
+    double panel_way_x = 0.0;
+    double panel_way_y = 0.0;
+    bool parking_short = true;
+
+
 private:
     //-------------------------------------------------
     // Device Class
@@ -74,6 +86,8 @@ private:
     CVehicle* mpc_vehicle;
     CVelodyne* mpc_velodyne;
     CRGBD* mpc_rgb_d;
+
+
 
 public:
 
@@ -124,11 +138,16 @@ public:
     // Drive Class Main Function
     //-------------------------------------------------
     bool DriveToPanel();
-    bool  ParkingFrontPanel();
+    bool ParkingFrontPanel();
+    bool AttitudeEstimation();
+
     bool LRFVehicleHorizenControl();
     bool LRFVehicleAngleControl();
 
+
     int GetPanelHeadingError();
+
+    vector<double> GetParkingStatus();
 
 signals:
     void SignalVelodyneParser(bool _parser_complete);
