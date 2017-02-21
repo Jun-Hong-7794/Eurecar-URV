@@ -212,6 +212,18 @@ bool CManipulation::GetHorizenDistance(double _inlier_distance,double& _horizen_
     return true;
 }
 
+bool CManipulation::LocalizationOnPanel(int _mode, double _s_deg/*deg*/,
+                         double _e_deg/*deg*/, int _inlier_dst/*mm*/, int _current_v_dst/*mm, for const mode*/, double _current_ang/*deg for const mode*/){
+
+    LOCALIZATION_INFO_ON_PANEL info;
+
+    mpc_rgb_d->LocalizationOnPanel(info, _mode, _s_deg, _e_deg, _inlier_dst, _current_v_dst,_current_ang);
+
+    PanelModeling(19, info.vertical_dst, info.horizen__dst, info.angle);
+
+    return true;
+}
+
 //Camera
 bool CManipulation::InitCamera(){
 
@@ -404,8 +416,37 @@ bool CManipulation::SelectMainFunction(int _fnc_index_){
         return true;
     }
 
+    else if(_fnc_index_ == SENSING_LRF_PANEL_LOCALIZATION){
+        m_main_fnc_index = SENSING_LRF_PANEL_LOCALIZATION;;
+        this->start();
+
+        return true;
+    }
+
     else
         return false;
+}
+
+void CManipulation::SetManipulationOption(LRF_SENSING_INFO_STRUCT _manipulation_option){
+
+    mxt_lrf_sensing_info.lock();
+    {
+        mstruct_lrf_sensing_info = _manipulation_option;
+    }
+    mxt_lrf_sensing_info.unlock();
+}
+
+LRF_SENSING_INFO_STRUCT CManipulation::GetLRFSensingInfo(){
+
+    LRF_SENSING_INFO_STRUCT lrf_sensing_info_struct;
+
+    mxt_lrf_sensing_info.lock();
+    {
+        lrf_sensing_info_struct = mstruct_lrf_sensing_info;
+    }
+    mxt_lrf_sensing_info.unlock();
+
+    return lrf_sensing_info_struct;
 }
 
 void CManipulation::SetManipulationOption(LRF_KINOVA_VERTICAL_CTRL_STRUCT _lrf_kinova_option){
@@ -1394,6 +1435,92 @@ bool CManipulation::LRFKinovaHorizenControl(){
     return true;
 }
 
+//----------------------------------------------------------------
+// LRF New Version
+//----------------------------------------------------------------
+
+bool CManipulation::LRFLocalizationOnPanel(){
+
+    LRF_SENSING_INFO_STRUCT sensing_info = GetLRFSensingInfo();
+
+    LOCALIZATION_INFO_ON_PANEL info;
+
+
+    int v_dst = 0;
+    int h_dst = 0;
+
+    double angle = 0;
+
+    while(sensing_info.fl_lrf_sensing){
+
+        v_dst = 0;
+        h_dst = 0;
+
+        angle = 0;
+
+        for(int i = 0; i < 3; i++){
+            sensing_info = GetLRFSensingInfo();
+
+            mpc_rgb_d->LocalizationOnPanel(info, sensing_info.mode, sensing_info.s_deg, sensing_info.e_deg,
+                                           sensing_info.inlier_distance, sensing_info.current_dst, sensing_info.current_ang);
+
+            if(info.vertical_dst > 500){
+                info.vertical_dst = 500;
+            }
+            if(info.vertical_dst < 0){
+                info.vertical_dst = 0;
+            }
+
+            if(info.horizen__dst > 1000){
+                info.horizen__dst = 1000;
+            }
+            if(info.horizen__dst < 0){
+                info.horizen__dst = 0;
+            }
+
+            v_dst += info.vertical_dst;
+            h_dst += info.horizen__dst;
+            angle += info.angle;
+        }
+
+        v_dst /= 3;
+        h_dst /= 3;
+        angle /= 3;
+
+        PanelModeling(19, v_dst, h_dst, angle);
+//        PanelModeling(19, info.vertical_dst, info.horizen__dst, info.angle);
+
+        msleep(30);
+    }
+
+    return true;
+}
+
+bool CManipulation::LRFK_VCtrl(){
+
+    return true;
+}
+
+bool CManipulation::LRFK_HCtrl(){
+
+    return true;
+}
+
+bool CManipulation::LRFK_ACtrl(){
+
+    return true;
+}
+
+bool CManipulation::LRFV_ACtrl(){
+
+    return true;
+}
+
+bool CManipulation::LRFV_HCtrl(){
+
+    return true;
+}
+
 bool CManipulation::LRFKinovaWrenchLocationMove(){
 
     LRF_KINOVA_WRENCH_LOCATION_STRUCT lrf_kinova_struct = GetLRFKinovaWrenchLocationOption();
@@ -1523,6 +1650,9 @@ bool CManipulation::KinovaForceCtrl(){
 
         if(kinova_force_ctrl.force_threshold_x != 0){
 
+            if(position_threshold > fabs(kinova_force_ctrl.position_limit_x - current_pos.Coordinates.X))
+                return false;
+
             if(kinova_force_ctrl.force_threshold_x > 0){
                 if(cartesian_pos.Coordinates.X > kinova_force_ctrl.force_threshold_x){//Over Threshold X axis force
                     if(GetKinovaForceCtrlOption().fl_kinova_force_ctrl_sensing_option)
@@ -1539,13 +1669,12 @@ bool CManipulation::KinovaForceCtrl(){
                         break;
                 }
             }
-
-            if(position_threshold > fabs(kinova_force_ctrl.position_limit_x - current_pos.Coordinates.X))
-                return false;
         }
 
         if(kinova_force_ctrl.force_threshold_y != 0){
 
+            if(position_threshold > fabs(kinova_force_ctrl.position_limit_y - current_pos.Coordinates.Y))
+                return false;
             if(kinova_force_ctrl.force_threshold_y > 0){
                 if(cartesian_pos.Coordinates.Y > kinova_force_ctrl.force_threshold_y){//Over Threshold X axis force
                     if(GetKinovaForceCtrlOption().fl_kinova_force_ctrl_sensing_option)
@@ -1562,12 +1691,13 @@ bool CManipulation::KinovaForceCtrl(){
                         break;
                 }
             }
-            if(position_threshold > fabs(kinova_force_ctrl.position_limit_y - current_pos.Coordinates.Y))
-                return false;
+
         }
 
         if(kinova_force_ctrl.force_threshold_z != 0){
 
+            if(position_threshold > fabs(kinova_force_ctrl.position_limit_z - current_pos.Coordinates.Z))
+                return false;
             if(kinova_force_ctrl.force_threshold_z > 0){
                 if(cartesian_pos.Coordinates.Z > kinova_force_ctrl.force_threshold_z){//Over Threshold X axis force
                     if(GetKinovaForceCtrlOption().fl_kinova_force_ctrl_sensing_option)
@@ -1584,8 +1714,6 @@ bool CManipulation::KinovaForceCtrl(){
                         break;
                 }
             }
-            if(position_threshold > fabs(kinova_force_ctrl.position_limit_z - current_pos.Coordinates.Z))
-                return false;
         }
 
         mpc_kinova->KinovaMoveUnitStep(kinova_force_ctrl.move_step_x, kinova_force_ctrl.move_step_y, kinova_force_ctrl.move_step_z);
@@ -1614,6 +1742,8 @@ bool CManipulation::KinovaForceCheck(){
     do{
         CartesianPosition cartesian_pos = mpc_kinova->KinovaGetCartesianForce();
         emit SignalKinovaForceVector(cartesian_pos);
+
+        msleep(30);
 
         if(check_count > kinova_force_check.check_count){
             if(GetKinovaForceCheckOption().fl_kinova_force_sensing_option)
@@ -1656,8 +1786,6 @@ bool CManipulation::KinovaForceCheck(){
         }
 
         check_count++;
-
-        msleep(30);
     }
     while(true);
 
@@ -2052,6 +2180,8 @@ void CManipulation::run(){
     case MANIPUL_INX_KINOVA_ALIGN_TO_PANEL:
         KinovaAlignPanel();
         break;
+    case SENSING_LRF_PANEL_LOCALIZATION:
+        LRFLocalizationOnPanel();
     default:
         break;
 

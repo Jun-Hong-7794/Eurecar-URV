@@ -122,7 +122,7 @@ bool CKinova::InitKinova(){
         //We use only one kinova arm, So list number is always '0'.
         Kinova_SetActiveDevice(m_kinova_list[0]);
 
-        if(m_kinova_list[0].DeviceType != 1){
+        if(m_kinova_list[0].DeviceType != 3){
             Kinova_CloseAPI();
             return false;
         }

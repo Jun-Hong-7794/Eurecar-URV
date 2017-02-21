@@ -67,6 +67,7 @@ Manipulation_Dlg::Manipulation_Dlg(CManipulation* _pc_manipulation, QWidget *par
     connect(ui->bt_gripper_force_ctrl, SIGNAL(clicked()), this, SLOT(SlotButtonEEffectorLoadCheckIter()));
     connect(ui->bt_lrf_horizent_distance, SIGNAL(clicked()), this, SLOT(SlotButtonHorizenDistance()));
 
+    connect(ui->bt_panel_localization, SIGNAL(clicked()), this, SLOT(SlotButtonPanelLocalization()));
 
     connect(ui->bt_end_effector_grasp_2, SIGNAL(clicked()), this, SLOT(SlotButtonEEffectorGrasp()));
     connect(ui->bt_end_effector_present_pos_check, SIGNAL(clicked()), this, SLOT(SlotButtonEEffectorPoseCheck()));
@@ -420,7 +421,7 @@ void Manipulation_Dlg::SlotButtonKinovaBaseRotate(){
 
  void Manipulation_Dlg::SlotButtonKinovaSetForceThreshData(){
 
-     int current_graph = 0;
+//     int current_graph = 0;
 
      QString force_x;
      QString force_y;
@@ -439,11 +440,12 @@ void Manipulation_Dlg::SlotButtonKinovaBaseRotate(){
      mtx_kinova_force_vector_graph.lock();
      {
          SetValveSizeData(ui->graph_kinova_force_plot_x, mqvec_kinova_force_thresh_time,
-                          mqvec_kinova_force_thresh_x, mqvec_kinova_force_x_data_x, mqvec_kinova_force_x_data_y, current_graph, 0, "X_Thresh");
+                          mqvec_kinova_force_thresh_x, 1, "X_Thresh");
          SetValveSizeData(ui->graph_kinova_force_plot_y, mqvec_kinova_force_thresh_time,
-                          mqvec_kinova_force_thresh_y, mqvec_kinova_force_y_data_x, mqvec_kinova_force_y_data_y, current_graph, 0, "Y_Thresh");
+                          mqvec_kinova_force_thresh_y, 1, "X_Thresh");
          SetValveSizeData(ui->graph_kinova_force_plot_z, mqvec_kinova_force_thresh_time,
-                          mqvec_kinova_force_thresh_z, mqvec_kinova_force_z_data_x, mqvec_kinova_force_z_data_y, current_graph, 0, "Z_Thresh");
+                          mqvec_kinova_force_thresh_z, 1, "X_Thresh");
+
      }
      mtx_kinova_force_vector_graph.unlock();
 
@@ -661,6 +663,57 @@ void Manipulation_Dlg::SlotButtonHorizenDistance(){
 
         double avr = (inlier_s_deg + inlier_e_deg) / 2;
         ui->ed_lrf_horizen_deg_avr->setText(QString::number(avr, 'f', 3));
+    }
+}
+
+void Manipulation_Dlg::SlotButtonPanelLocalization(){
+
+    int mode = 0x0000;
+    LRF_SENSING_INFO_STRUCT info;
+
+    if(mpc_manipulation->isRunning()){
+        info.fl_lrf_sensing = false;
+        mpc_manipulation->SetManipulationOption(info);
+
+        ui->bt_panel_localization->setText("Localization");
+        return;
+    }
+    else{
+        info.fl_lrf_sensing = true;
+
+        if(ui->rd_panel_local_rough->isChecked()){
+            mode |= L_M_ROUGH;
+        }
+        else if(ui->rd_panel_local_precise->isChecked()){
+            mode |= L_M_PRECISE;
+
+            if(ui->rd_panel_local_dir_left->isChecked()){
+                mode |= L_M_DIR_LEFT;
+            }
+            else if(ui->rd_panel_local_dir_right->isChecked()){
+                mode |= L_M_DIR_RIGHT;
+            }
+
+            if(ui->rd_panel_local_value_constant->isChecked()){
+                mode |= L_M_VALUE_CONSTANT;
+            }
+            else if(ui->rd_panel_local_value_RANSAC->isChecked()){
+                mode |= L_M_VALUE_RANSAC;
+            }
+        }
+
+        info.mode = mode;
+
+        info.s_deg = ui->ed_panel_local_s_deg->text().toInt();
+        info.e_deg = ui->ed_panel_local_e_deg->text().toInt();
+        info.inlier_distance = ui->ed_panel_local_inlier->text().toInt();
+
+        info.current_dst = ui->ed_panel_local_const_dst->text().toInt();
+        info.current_ang = ui->ed_panel_local_const_ang->text().toInt();
+
+        mpc_manipulation->SetManipulationOption(info);
+        mpc_manipulation->SelectMainFunction(SENSING_LRF_PANEL_LOCALIZATION);
+        ui->bt_panel_localization->setText("OFF");
     }
 }
 
@@ -1057,8 +1110,6 @@ void Manipulation_Dlg::SlotValveSizeData(QVector<double> _x, QVector<double> _y,
 
 void Manipulation_Dlg::SlotKinovaForceVectorData(CartesianPosition _force_vector){
 
-    int current_graph = 0;
-
     if(mqvec_kinova_force_data_x.size() > 30){
         mqvec_kinova_force_data_x.pop_back();
         mqvec_kinova_force_data_y.pop_back();
@@ -1075,18 +1126,18 @@ void Manipulation_Dlg::SlotKinovaForceVectorData(CartesianPosition _force_vector
     mqvec_kinova_force_data_y.push_front(_force_vector.Coordinates.Y);
     mqvec_kinova_force_data_z.push_front(_force_vector.Coordinates.Z);
 
-    ui->ed_kinova_force_current_x->setText(QString::number(_force_vector.Coordinates.X));
-    ui->ed_kinova_force_current_y->setText(QString::number(_force_vector.Coordinates.Y));
-    ui->ed_kinova_force_current_z->setText(QString::number(_force_vector.Coordinates.Z));
+    ui->ed_kinova_force_current_x->setText(QString::number(_force_vector.Coordinates.X, 'f', 4));
+    ui->ed_kinova_force_current_y->setText(QString::number(_force_vector.Coordinates.Y, 'f', 4));
+    ui->ed_kinova_force_current_z->setText(QString::number(_force_vector.Coordinates.Z, 'f', 4));
 
     mtx_kinova_force_vector_graph.lock();
     {
         SetValveSizeData(ui->graph_kinova_force_plot_x, mqvec_kinova_force_data_time,
-                         mqvec_kinova_force_data_x, mqvec_kinova_force_x_data_x, mqvec_kinova_force_x_data_y, current_graph, 0, "Force_X");
+                         mqvec_kinova_force_data_x, 0, "Force_X");
         SetValveSizeData(ui->graph_kinova_force_plot_y, mqvec_kinova_force_data_time,
-                         mqvec_kinova_force_data_y, mqvec_kinova_force_y_data_x, mqvec_kinova_force_y_data_y, current_graph, 0, "Force_Y");
+                         mqvec_kinova_force_data_y, 0, "Force_Y");
         SetValveSizeData(ui->graph_kinova_force_plot_z, mqvec_kinova_force_data_time,
-                         mqvec_kinova_force_data_z, mqvec_kinova_force_z_data_x, mqvec_kinova_force_z_data_y, current_graph, 0, "Force_Z");
+                         mqvec_kinova_force_data_z, 0, "Force_Z");
     }
     mtx_kinova_force_vector_graph.unlock();
 }
@@ -1100,6 +1151,24 @@ int Manipulation_Dlg::GetValveSizeAnalGraphCurrentIndex(){
 
     return m_valve_anal_graph_num;
 }
+void Manipulation_Dlg::SetValveSizeData(QCustomPlot* _plot,
+                      QVector<double> _x, QVector<double> _y,
+                      int _graph_index, QString _data_name){
+
+    int color_index = _graph_index - (_graph_index / 12)*12 + 7;
+
+    _plot->graph(_graph_index)->setPen(QPen(Qt::GlobalColor(color_index)));
+    if(_data_name != "Empty"){
+        _plot->graph(_graph_index)->setName("Graph" + QString::number(_graph_index) + ": " + _data_name);
+    }
+    else{
+        _plot->graph(_graph_index)->setName("Graph" + QString::number(_graph_index) + ": New Data");
+    }
+    _plot->graph(_graph_index)->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ssDisc, 5));
+    _plot->graph(_graph_index)->setData(_x, _y);
+    _plot->replot();
+
+}
 
 void Manipulation_Dlg::SetValveSizeData(QCustomPlot* _plot, QVector<double> _x, QVector<double> _y,
                                         QVector<QVector<double>>& _contain_x,QVector<QVector<double>>& _contain_y,
@@ -1112,8 +1181,8 @@ void Manipulation_Dlg::SetValveSizeData(QCustomPlot* _plot, QVector<double> _x, 
         _contain_y.push_back(_y);
     }
 
-//    _contain_x[_graph_index] = _x;
-//    _contain_y[_graph_index] = _y;
+    _contain_x[_graph_index] = _x;
+    _contain_y[_graph_index] = _y;
 
     int color_index = _graph_index - (_graph_index / 12)*12 + 7;
 

@@ -110,6 +110,9 @@ public:
                           QVector<double> _input_x, QVector<double> _input_y,
                           QVector<QVector<double>>& _contain_x,QVector<QVector<double>>& _contain_y,
                           int& _current_index, int _graph_index, QString _data_name = "Empty");
+    void SetValveSizeData(QCustomPlot* _plot,
+                          QVector<double> _input_x, QVector<double> _input_y,
+                          int _graph_index, QString _data_name = "Empty");
 
 public slots:
     //-------------------------------------------------
@@ -144,6 +147,8 @@ public slots:
     void SlotButtonLRFOn();
     void SlotButtonGetLRFInfo();
     void SlotButtonHorizenDistance();
+
+    void SlotButtonPanelLocalization();
 
     //Camera
     void SlotButtonCameraOn();
