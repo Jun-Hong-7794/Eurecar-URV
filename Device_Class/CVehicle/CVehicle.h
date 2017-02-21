@@ -49,6 +49,7 @@ public:
     void CheckVolt();
 
     bool ActiveMagnet(bool _on_off);
+    int GetVel();
 
 };
 

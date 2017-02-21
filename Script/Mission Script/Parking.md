@@ -3,9 +3,9 @@
 /* This Script is for 2107 MBZIRC Challenge2
 /*
 
-# Title: Valve Recognition
+# Title: Parking
 
-## Step0: Vehicle Angle Control(Using LRF)
+## Step0: Panel Detection
 
 VEHICLE_PARKING_FUNCTION()
 

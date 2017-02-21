@@ -567,11 +567,13 @@ vector<double> CIMU::GetEulerAngles()
 {
 
     #ifdef FILTER_MODE
+    mtx_imu.lock();
     while(mip_3dm_cmd_poll_filter(&device_interface, MIP_3DM_POLLING_ENABLE_ACK_NACK, data_stream_format_num_entries, data_stream_format_descriptors) != MIP_INTERFACE_OK){}
-
+    Sleep(10);
     imu_roll = curr_filter_angles.roll;
     imu_pitch = curr_filter_angles.pitch;
     imu_yaw = curr_filter_angles.yaw;
+    mtx_imu.unlock();
     #else
     while(mip_3dm_cmd_poll_ahrs(&device_interface, MIP_3DM_POLLING_ENABLE_ACK_NACK, data_stream_format_num_entries, data_stream_format_descriptors) != MIP_INTERFACE_OK){}
     imu_roll = curr_angles.roll;

@@ -37,6 +37,12 @@
 #define DRIVE_INX_LRF_VEHICLE_ANGLE    3
 #define DRIVE_INX_LRF_VEHICLE_HORIZEN  4
 
+#define MAX_VEL 200
+#define MIN_VEL 80
+#define ACCEL_RATE 5
+#define DECEL_RATE -8
+#define DECEL_START_DIST 1.8
+
 class CDriving:public QThread{
     Q_OBJECT
 
@@ -62,6 +68,18 @@ private:
     QMutex mxt_lrf_vehicle;
     QMutex mxt_lrf_vehicle_angle;
 
+
+    // ugv info variables
+    double ugv_heading = 0.0;
+    double final_parking_heading = -PI;
+
+    double panel_slope_norm_x = 0.0;
+    double panel_slope_norm_y = 0.0;
+    double panel_way_x = 0.0;
+    double panel_way_y = 0.0;
+    bool parking_short = true;
+
+
 private:
     //-------------------------------------------------
     // Device Class
@@ -74,6 +92,8 @@ private:
     CVehicle* mpc_vehicle;
     CVelodyne* mpc_velodyne;
     CRGBD* mpc_rgb_d;
+
+
 
 public:
 
@@ -124,11 +144,17 @@ public:
     // Drive Class Main Function
     //-------------------------------------------------
     bool DriveToPanel();
-    bool  ParkingFrontPanel();
+    bool ParkingFrontPanel();
+    bool AttitudeEstimation();
+    int VelGen(double);
+
     bool LRFVehicleHorizenControl();
     bool LRFVehicleAngleControl();
 
+
     int GetPanelHeadingError();
+
+    vector<double> GetParkingStatus();
 
 signals:
     void SignalVelodyneParser(bool _parser_complete);

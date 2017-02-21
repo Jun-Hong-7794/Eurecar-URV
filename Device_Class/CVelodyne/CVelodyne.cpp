@@ -203,7 +203,14 @@ bool CVelodyne::RunVelodyne(){
             mpc_pcl->cloud->points.resize(VELODYNE_LASERS_NUM*VELODYNE_TOTAL_PACKET_NUMBER*VELODYNE_BOLCKS_NUM);
             mpc_pcl->waypoint_cloud->clear();
             mpc_pcl->waypoint_cloud->points.resize(way_point_panel_around.size());
+
             mpc_pcl->panelpoint_cloud->points.resize(6);
+
+            for(int i = 0;i < mpc_pcl->panelpoint_cloud->points.size();i++)
+            {
+                mpc_pcl->panelpoint_cloud->points[i].x = 0;
+                mpc_pcl->panelpoint_cloud->points[i].y = 0;
+            }
 
             point_index = 0;
             panel_point_index = 0;
@@ -292,11 +299,14 @@ bool CVelodyne::RunVelodyne(){
                         {
                             if((firing_vertical_angle[k] == 0.0))
                             {
-                                sum_panel_x += mpc_pcl->cloud->points[point_index].x ;
-                                sum_panel_y += mpc_pcl->cloud->points[point_index].y ;
-                                sum_dist += mpc_pcl->m_dist_data[k][(j + i*VELODYNE_BOLCKS_NUM)]*0.001;
+                                if(!((mpc_pcl->cloud->points[point_index].x == 0)&& (mpc_pcl->cloud->points[point_index].y == 0) && (mpc_pcl->cloud->points[point_index].z == 0)))
+                                {
+                                    sum_panel_x += mpc_pcl->cloud->points[point_index].x ;
+                                    sum_panel_y += mpc_pcl->cloud->points[point_index].y ;
+                                    sum_dist += mpc_pcl->m_dist_data[k][(j + i*VELODYNE_BOLCKS_NUM)]*0.001;
+                                    panel_point_index++;
+                                }
 
-                                panel_point_index++;
 
                                 adjacent_dist = std::sqrt(std::pow(mpc_pcl->cloud->points[point_index].x - past_point_x,2) + std::pow(mpc_pcl->cloud->points[point_index].y - past_point_y,2) + std::pow(mpc_pcl->cloud->points[point_index].z - past_point_z,2)) ;
 
@@ -325,6 +335,8 @@ bool CVelodyne::RunVelodyne(){
                                     }
                                     else
                                     {
+
+
                                         if(clustering_member_count < clustering_count_tolerence)
                                         {
                                             (*inliers).indices.erase((*inliers).indices.end()-clustering_member_count, (*inliers).indices.end());
@@ -393,9 +405,12 @@ bool CVelodyne::RunVelodyne(){
                 }
             }
 
-            mean_panel_x = sum_panel_x/(double)(panel_point_index+1.0);
-            mean_panel_y = sum_panel_y/(double)(panel_point_index+1.0);
-            mean_dist = sum_dist/(double)(panel_point_index+1.0);
+            if(panel_point_index != 0)
+            {
+                mean_panel_x = sum_panel_x/(double)(panel_point_index);
+                mean_panel_y = sum_panel_y/(double)(panel_point_index);
+                mean_dist = sum_dist/(double)(panel_point_index);
+            }
 
             eifilter.setInputCloud(mpc_pcl->cloud);
             eifilter.setIndices(inliers);
@@ -420,7 +435,8 @@ bool CVelodyne::RunVelodyne(){
 
                 waypoint_y = mean_panel_y;
 
-                mpc_pcl->viewer->updatePointCloud(mpc_pcl->cloud,"cloud");
+                if(mpc_pcl->cloud->points.size() != 0)
+                    mpc_pcl->viewer->updatePointCloud(mpc_pcl->cloud,"cloud");
 
                 fl_parser_complete = true;
 
@@ -495,7 +511,8 @@ bool CVelodyne::RunVelodyne(){
 
                     lrf_find_panel = false;
 
-                    mpc_pcl->viewer->updatePointCloud(mpc_pcl->cloud,"cloud");
+                    if(mpc_pcl->cloud->points.size() != 0)
+                        mpc_pcl->viewer->updatePointCloud(mpc_pcl->cloud,"cloud");
 
                     fl_parser_complete = true;
 
@@ -507,7 +524,6 @@ bool CVelodyne::RunVelodyne(){
 
                     mtx_pcl_class.unlock();
 
-                    usleep(30);
                     prev_deg = deg;
 
                     if (count >= VELODYNE_TOTAL_PACKET_NUMBER){
@@ -527,7 +543,8 @@ bool CVelodyne::RunVelodyne(){
                 lrf_slope_norm_x = coeff_lrf[3];
                 lrf_slope_norm_y = coeff_lrf[4];
 
-                mpc_pcl->viewer->updatePointCloud(ransac_result_lrf,"lrf_cloud");
+                if(ransac_result_lrf->points.size() != 0)
+                    mpc_pcl->viewer->updatePointCloud(ransac_result_lrf,"lrf_cloud");
 
 
             }
@@ -538,7 +555,8 @@ bool CVelodyne::RunVelodyne(){
 
             if((max_clustering_result->points.size() < 2) || (max_clustering_result1->points.size() < 2))
             {
-                mpc_pcl->viewer->updatePointCloud(mpc_pcl->cloud,"cloud");
+                if(mpc_pcl->cloud->points.size() != 0)
+                    mpc_pcl->viewer->updatePointCloud(mpc_pcl->cloud,"cloud");
                 find_panel_point = false;
             }
             else
@@ -577,7 +595,8 @@ bool CVelodyne::RunVelodyne(){
 
                 if(final->points.size() == 0 || final1->points.size() == 0)
                 {
-                    mpc_pcl->viewer->updatePointCloud(mpc_pcl->cloud,"cloud");
+                    if(mpc_pcl->cloud->points.size() != 0)
+                        mpc_pcl->viewer->updatePointCloud(mpc_pcl->cloud,"cloud");
 
                     fl_parser_complete = true;
 
@@ -603,7 +622,7 @@ bool CVelodyne::RunVelodyne(){
                 }
 
                 // Calculate ransac mean
-                for(int i = 0; i < final->points.size();i++)
+                for(unsigned int i = 0; i < final->points.size();i++)
                 {
                     ransac_line_sum_x += final->points[i].x;
                     ransac_line_sum_y += final->points[i].y;
@@ -615,7 +634,7 @@ bool CVelodyne::RunVelodyne(){
                 // Calculate maximum distance
 
                 double maximum_dist_from_ransac_mean = 0;
-                for(int i = 0; i < final->points.size();i++)
+                for(unsigned int i = 0; i < final->points.size();i++)
                 {
                     double dist_from_ransac_mean = sqrt((ransac_line_mean_x - final->points[i].x)*(ransac_line_mean_x - final->points[i].x) + (ransac_line_mean_y - final->points[i].y)*(ransac_line_mean_y - final->points[i].y));
                     if (maximum_dist_from_ransac_mean < dist_from_ransac_mean)
@@ -624,7 +643,7 @@ bool CVelodyne::RunVelodyne(){
                     }
                 }
 
-                for(int i = 0; i < final1->points.size();i++)
+                for(unsigned int i = 0; i < final1->points.size();i++)
                 {
                     ransac_line1_sum_x += final1->points[i].x;
                     ransac_line1_sum_y += final1->points[i].y;
@@ -637,7 +656,7 @@ bool CVelodyne::RunVelodyne(){
                 // Calculate maximum distance
 
                 double maximum_dist1_from_ransac_mean = 0;
-                for(int i = 0; i < final1->points.size();i++)
+                for(unsigned int i = 0; i < final1->points.size();i++)
                 {
                     double dist_from1_ransac_mean = sqrt((ransac_line1_mean_x - final1->points[i].x)*(ransac_line1_mean_x - final1->points[i].x) + (ransac_line1_mean_y - final1->points[i].y)*(ransac_line1_mean_y - final1->points[i].y));
                     if (maximum_dist1_from_ransac_mean < dist_from1_ransac_mean)
@@ -648,7 +667,8 @@ bool CVelodyne::RunVelodyne(){
 
                 if( coeff.rows() != 6 || coeff1.rows() != 6)
                 {
-                    mpc_pcl->viewer->updatePointCloud(mpc_pcl->cloud,"cloud");
+                    if(mpc_pcl->cloud->points.size() != 0)
+                        mpc_pcl->viewer->updatePointCloud(mpc_pcl->cloud,"cloud");
 
                     fl_parser_complete = true;
 
@@ -676,7 +696,8 @@ bool CVelodyne::RunVelodyne(){
                 if ((coeff[3] == 0) || (coeff1[3] == 0))
                 {
 
-                    mpc_pcl->viewer->updatePointCloud(mpc_pcl->cloud,"cloud");
+                    if(mpc_pcl->cloud->points.size() != 0)
+                        mpc_pcl->viewer->updatePointCloud(mpc_pcl->cloud,"cloud");
 
                     fl_parser_complete = true;
 
@@ -705,12 +726,13 @@ bool CVelodyne::RunVelodyne(){
 
                 if (((2.0*maximum_dist_from_ransac_mean) > 0.8) && ((2.0*maximum_dist_from_ransac_mean) < 1.2)) // front or back
                 {
-                    find_panel_point = true;
+
                     if( (coeff[3]*coeff1[3] + coeff[4]*coeff1[4]) > 0.5) // 0ch and 10.67 ch is parrell
                     {
 
                         double line_distance = abs(-(coeff[4]/coeff[3])*ransac_line1_mean_x + ransac_line1_mean_y - b)/sqrt((coeff[4]/coeff[3])*(coeff[4]/coeff[3]) + 1);
 
+                        find_panel_point = true;
                         if(line_distance > 0.2) // front side
                         {
                             if (coeff[3] != 0)
@@ -748,7 +770,7 @@ bool CVelodyne::RunVelodyne(){
                                     double transform_delta_x_for_matching = matching_point1_x;
                                     double transform_delta_y_for_matching = matching_point1_y;
 
-                                    for(int i = 0;i<mpc_pcl->panelpoint_cloud->points.size();i++)
+                                    for(unsigned int i = 0;i<mpc_pcl->panelpoint_cloud->points.size();i++)
                                     {
                                         double transform_result_x = (prior_panel_points[i][0] + transform_delta_x_for_prior)*cos(transform_delta_angle) - (prior_panel_points[i][1] + transform_delta_y_for_prior)*sin(transform_delta_angle) + transform_delta_x_for_matching;
                                         double transform_result_y = (prior_panel_points[i][0] + transform_delta_x_for_prior)*sin(transform_delta_angle) + (prior_panel_points[i][1] + transform_delta_y_for_prior)*cos(transform_delta_angle) + transform_delta_y_for_matching;
@@ -759,10 +781,18 @@ bool CVelodyne::RunVelodyne(){
                                         mpc_pcl->panelpoint_cloud->points[i].r = 255;
                                         mpc_pcl->panelpoint_cloud->points[i].g = 255;
                                         mpc_pcl->panelpoint_cloud->points[i].b = 255;
+
+
+//                                        //test
+//                                        cout << "merong" << endl;
+//                                        cout << transform_result_x << endl;
+//                                        cout << transform_result_y << endl;
+
+
                                     }
 
 
-                                    for(int i = 0;i<mpc_pcl->waypoint_cloud->points.size();i++)
+                                    for(unsigned int i = 0;i<mpc_pcl->waypoint_cloud->points.size();i++)
                                     {
                                         double transform_result_x = ((way_point_panel_around.at(i)).at(0) + transform_delta_x_for_prior)*cos(transform_delta_angle) - ((way_point_panel_around.at(i)).at(1) + transform_delta_y_for_prior)*sin(transform_delta_angle) + transform_delta_x_for_matching;
                                         double transform_result_y = ((way_point_panel_around.at(i)).at(0) + transform_delta_x_for_prior)*sin(transform_delta_angle) + ((way_point_panel_around.at(i)).at(1) + transform_delta_y_for_prior)*cos(transform_delta_angle) + transform_delta_y_for_matching;
@@ -786,7 +816,7 @@ bool CVelodyne::RunVelodyne(){
                                     }
 
 
-                                    for(int i = 0; i < mpc_pcl->waypoint_cloud->points.size()-1;i++)
+                                    for(unsigned int i = 0; i < mpc_pcl->waypoint_cloud->points.size()-1;i++)
                                     {
                                         double panel_core_to_way1_x = mpc_pcl->waypoint_cloud->points[i].x - panel_core_transform_result_x;
                                         double panel_core_to_way1_y = mpc_pcl->waypoint_cloud->points[i].y - panel_core_transform_result_y;
@@ -824,7 +854,7 @@ bool CVelodyne::RunVelodyne(){
                                     }
 
 
-                                    for(int i = 1; i < mpc_pcl->waypoint_cloud->points.size();i++)
+                                    for(unsigned int i = 1; i < mpc_pcl->waypoint_cloud->points.size();i++)
                                     {
                                         if(i < (current_waypoint_index+1))
                                         {
@@ -877,7 +907,7 @@ bool CVelodyne::RunVelodyne(){
                                     double transform_delta_x_for_matching = matching_point1_x;
                                     double transform_delta_y_for_matching = matching_point1_y;
 
-                                    for(int i = 0;i<mpc_pcl->panelpoint_cloud->points.size();i++)
+                                    for(unsigned int i = 0;i<mpc_pcl->panelpoint_cloud->points.size();i++)
                                     {
                                         double transform_result_x = (prior_panel_points[i][0] + transform_delta_x_for_prior)*cos(transform_delta_angle) - (prior_panel_points[i][1] + transform_delta_y_for_prior)*sin(transform_delta_angle) + transform_delta_x_for_matching;
                                         double transform_result_y = (prior_panel_points[i][0] + transform_delta_x_for_prior)*sin(transform_delta_angle) + (prior_panel_points[i][1] + transform_delta_y_for_prior)*cos(transform_delta_angle) + transform_delta_y_for_matching;
@@ -888,10 +918,15 @@ bool CVelodyne::RunVelodyne(){
                                         mpc_pcl->panelpoint_cloud->points[i].r = 255;
                                         mpc_pcl->panelpoint_cloud->points[i].g = 255;
                                         mpc_pcl->panelpoint_cloud->points[i].b = 255;
+
+                                        //test
+//                                        cout << "merong" << endl;
+//                                        cout << transform_result_x << endl;
+//                                        cout << transform_result_y << endl;
                                     }
 
 
-                                    for(int i = 0;i<mpc_pcl->waypoint_cloud->points.size();i++)
+                                    for(unsigned int i = 0;i<mpc_pcl->waypoint_cloud->points.size();i++)
                                     {
                                         double transform_result_x = ((way_point_panel_around.at(i)).at(0) + transform_delta_x_for_prior)*cos(transform_delta_angle) - ((way_point_panel_around.at(i)).at(1) + transform_delta_y_for_prior)*sin(transform_delta_angle) + transform_delta_x_for_matching;
                                         double transform_result_y = ((way_point_panel_around.at(i)).at(0) + transform_delta_x_for_prior)*sin(transform_delta_angle) + ((way_point_panel_around.at(i)).at(1) + transform_delta_y_for_prior)*cos(transform_delta_angle) + transform_delta_y_for_matching;
@@ -919,7 +954,7 @@ bool CVelodyne::RunVelodyne(){
                                     }
 
 
-                                    for(int i = 0; i < mpc_pcl->waypoint_cloud->points.size()-1;i++)
+                                    for(unsigned int i = 0; i < mpc_pcl->waypoint_cloud->points.size()-1;i++)
                                     {
                                         double panel_core_to_way1_x = mpc_pcl->waypoint_cloud->points[i].x - panel_core_transform_result_x;
                                         double panel_core_to_way1_y = mpc_pcl->waypoint_cloud->points[i].y - panel_core_transform_result_y;
@@ -957,7 +992,7 @@ bool CVelodyne::RunVelodyne(){
                                     }
 
 
-                                    for(int i = 1; i < mpc_pcl->waypoint_cloud->points.size();i++)
+                                    for(unsigned int i = 1; i < mpc_pcl->waypoint_cloud->points.size();i++)
                                     {
                                         if(i < (current_waypoint_index+1))
                                         {
@@ -1028,7 +1063,7 @@ bool CVelodyne::RunVelodyne(){
                                     double transform_delta_x_for_matching = matching_point1_x;
                                     double transform_delta_y_for_matching = matching_point1_y;
 
-                                    for(int i = 0;i<mpc_pcl->panelpoint_cloud->points.size();i++)
+                                    for(unsigned int i = 0;i<mpc_pcl->panelpoint_cloud->points.size();i++)
                                     {
                                         double transform_result_x = (prior_panel_points[i][0] + transform_delta_x_for_prior)*cos(transform_delta_angle) - (prior_panel_points[i][1] + transform_delta_y_for_prior)*sin(transform_delta_angle) + transform_delta_x_for_matching;
                                         double transform_result_y = (prior_panel_points[i][0] + transform_delta_x_for_prior)*sin(transform_delta_angle) + (prior_panel_points[i][1] + transform_delta_y_for_prior)*cos(transform_delta_angle) + transform_delta_y_for_matching;
@@ -1039,9 +1074,15 @@ bool CVelodyne::RunVelodyne(){
                                         mpc_pcl->panelpoint_cloud->points[i].r = 255;
                                         mpc_pcl->panelpoint_cloud->points[i].g = 255;
                                         mpc_pcl->panelpoint_cloud->points[i].b = 255;
+
+//                                        //test
+//                                        cout << "merong" << endl;
+//                                        cout << transform_result_x << endl;
+//                                        cout << transform_result_y << endl;
+
                                     }
 
-                                    for(int i = 0;i<mpc_pcl->waypoint_cloud->points.size();i++)
+                                    for(unsigned int i = 0;i<mpc_pcl->waypoint_cloud->points.size();i++)
                                     {
                                         double transform_result_x = ((way_point_panel_around.at(i)).at(0) + transform_delta_x_for_prior)*cos(transform_delta_angle) - ((way_point_panel_around.at(i)).at(1) + transform_delta_y_for_prior)*sin(transform_delta_angle) + transform_delta_x_for_matching;
                                         double transform_result_y = ((way_point_panel_around.at(i)).at(0) + transform_delta_x_for_prior)*sin(transform_delta_angle) + ((way_point_panel_around.at(i)).at(1) + transform_delta_y_for_prior)*cos(transform_delta_angle) + transform_delta_y_for_matching;
@@ -1068,7 +1109,7 @@ bool CVelodyne::RunVelodyne(){
                                     }
 
 
-                                    for(int i = 0; i < mpc_pcl->waypoint_cloud->points.size()-1;i++)
+                                    for(unsigned int i = 0; i < mpc_pcl->waypoint_cloud->points.size()-1;i++)
                                     {
                                         double panel_core_to_way1_x = mpc_pcl->waypoint_cloud->points[i].x - panel_core_transform_result_x;
                                         double panel_core_to_way1_y = mpc_pcl->waypoint_cloud->points[i].y - panel_core_transform_result_y;
@@ -1106,7 +1147,7 @@ bool CVelodyne::RunVelodyne(){
                                     }
 
 
-                                    for(int i = 1; i < mpc_pcl->waypoint_cloud->points.size();i++)
+                                    for(unsigned int i = 1; i < mpc_pcl->waypoint_cloud->points.size();i++)
                                     {
                                         if(i < (current_waypoint_index+1))
                                         {
@@ -1159,7 +1200,7 @@ bool CVelodyne::RunVelodyne(){
                                     double transform_delta_x_for_matching = matching_point1_x;
                                     double transform_delta_y_for_matching = matching_point1_y;
 
-                                    for(int i = 0;i<mpc_pcl->panelpoint_cloud->points.size();i++)
+                                    for(unsigned int i = 0;i<mpc_pcl->panelpoint_cloud->points.size();i++)
                                     {
                                         double transform_result_x = (prior_panel_points[i][0] + transform_delta_x_for_prior)*cos(transform_delta_angle) - (prior_panel_points[i][1] + transform_delta_y_for_prior)*sin(transform_delta_angle) + transform_delta_x_for_matching;
                                         double transform_result_y = (prior_panel_points[i][0] + transform_delta_x_for_prior)*sin(transform_delta_angle) + (prior_panel_points[i][1] + transform_delta_y_for_prior)*cos(transform_delta_angle) + transform_delta_y_for_matching;
@@ -1170,10 +1211,15 @@ bool CVelodyne::RunVelodyne(){
                                         mpc_pcl->panelpoint_cloud->points[i].r = 255;
                                         mpc_pcl->panelpoint_cloud->points[i].g = 255;
                                         mpc_pcl->panelpoint_cloud->points[i].b = 255;
+
+//                                        //test
+//                                        cout << "merong" << endl;
+//                                        cout << transform_result_x << endl;
+//                                        cout << transform_result_y << endl;
                                     }
 
 
-                                    for(int i = 0;i<mpc_pcl->waypoint_cloud->points.size();i++)
+                                    for(unsigned int i = 0;i<mpc_pcl->waypoint_cloud->points.size();i++)
                                     {
                                         double transform_result_x = ((way_point_panel_around.at(i)).at(0) + transform_delta_x_for_prior)*cos(transform_delta_angle) - ((way_point_panel_around.at(i)).at(1) + transform_delta_y_for_prior)*sin(transform_delta_angle) + transform_delta_x_for_matching;
                                         double transform_result_y = ((way_point_panel_around.at(i)).at(0) + transform_delta_x_for_prior)*sin(transform_delta_angle) + ((way_point_panel_around.at(i)).at(1) + transform_delta_y_for_prior)*cos(transform_delta_angle) + transform_delta_y_for_matching;
@@ -1200,7 +1246,7 @@ bool CVelodyne::RunVelodyne(){
                                     }
 
 
-                                    for(int i = 0; i < mpc_pcl->waypoint_cloud->points.size()-1;i++)
+                                    for(unsigned int i = 0; i < mpc_pcl->waypoint_cloud->points.size()-1;i++)
                                     {
                                         double panel_core_to_way1_x = mpc_pcl->waypoint_cloud->points[i].x - panel_core_transform_result_x;
                                         double panel_core_to_way1_y = mpc_pcl->waypoint_cloud->points[i].y - panel_core_transform_result_y;
@@ -1238,7 +1284,7 @@ bool CVelodyne::RunVelodyne(){
                                     }
 
 
-                                    for(int i = 1; i < mpc_pcl->waypoint_cloud->points.size();i++)
+                                    for(unsigned int i = 1; i < mpc_pcl->waypoint_cloud->points.size();i++)
                                     {
                                         if(i < (current_waypoint_index+1))
                                         {
@@ -1265,7 +1311,7 @@ bool CVelodyne::RunVelodyne(){
                     }
                     else
                     {
-
+                        find_panel_point = false;
                     }
 
                 }
@@ -1331,7 +1377,7 @@ bool CVelodyne::RunVelodyne(){
                                 double transform_delta_x_for_matching = matching_point1_x;
                                 double transform_delta_y_for_matching = matching_point1_y;
 
-                                for(int i = 0;i<mpc_pcl->panelpoint_cloud->points.size();i++)
+                                for(unsigned int i = 0;i<mpc_pcl->panelpoint_cloud->points.size();i++)
                                 {
                                     double transform_result_x = (prior_panel_points[i][0] + transform_delta_x_for_prior)*cos(transform_delta_angle) - (prior_panel_points[i][1] + transform_delta_y_for_prior)*sin(transform_delta_angle) + transform_delta_x_for_matching;
                                     double transform_result_y = (prior_panel_points[i][0] + transform_delta_x_for_prior)*sin(transform_delta_angle) + (prior_panel_points[i][1] + transform_delta_y_for_prior)*cos(transform_delta_angle) + transform_delta_y_for_matching;
@@ -1342,9 +1388,16 @@ bool CVelodyne::RunVelodyne(){
                                     mpc_pcl->panelpoint_cloud->points[i].r = 255;
                                     mpc_pcl->panelpoint_cloud->points[i].g = 255;
                                     mpc_pcl->panelpoint_cloud->points[i].b = 255;
+
+
+//                                    //test
+//                                    cout << "merong" << endl;
+//                                    cout << transform_result_x << endl;
+//                                    cout << transform_result_y << endl;
+
                                 }
 
-                                for(int i = 0;i<mpc_pcl->waypoint_cloud->points.size();i++)
+                                for(unsigned int i = 0;i<mpc_pcl->waypoint_cloud->points.size();i++)
                                 {
                                     double transform_result_x = ((way_point_panel_around.at(i)).at(0) + transform_delta_x_for_prior)*cos(transform_delta_angle) - ((way_point_panel_around.at(i)).at(1) + transform_delta_y_for_prior)*sin(transform_delta_angle) + transform_delta_x_for_matching;
                                     double transform_result_y = ((way_point_panel_around.at(i)).at(0) + transform_delta_x_for_prior)*sin(transform_delta_angle) + ((way_point_panel_around.at(i)).at(1) + transform_delta_y_for_prior)*cos(transform_delta_angle) + transform_delta_y_for_matching;
@@ -1372,7 +1425,7 @@ bool CVelodyne::RunVelodyne(){
                                 }
 
 
-                                for(int i = 0; i < mpc_pcl->waypoint_cloud->points.size()-1;i++)
+                                for(unsigned int i = 0; i < mpc_pcl->waypoint_cloud->points.size()-1;i++)
                                 {
                                     double panel_core_to_way1_x = mpc_pcl->waypoint_cloud->points[i].x - panel_core_transform_result_x;
                                     double panel_core_to_way1_y = mpc_pcl->waypoint_cloud->points[i].y - panel_core_transform_result_y;
@@ -1409,7 +1462,7 @@ bool CVelodyne::RunVelodyne(){
                                     }
                                 }
 
-                                for(int i = 1; i < mpc_pcl->waypoint_cloud->points.size();i++)
+                                for(unsigned int i = 1; i < mpc_pcl->waypoint_cloud->points.size();i++)
                                 {
                                     if(i < (current_waypoint_index+1))
                                     {
@@ -1476,7 +1529,7 @@ bool CVelodyne::RunVelodyne(){
                                 double transform_delta_x_for_matching = matching_point1_x;
                                 double transform_delta_y_for_matching = matching_point1_y;
 
-                                for(int i = 0;i<mpc_pcl->panelpoint_cloud->points.size();i++)
+                                for(unsigned int i = 0;i<mpc_pcl->panelpoint_cloud->points.size();i++)
                                 {
                                     double transform_result_x = (prior_panel_points[i][0] + transform_delta_x_for_prior)*cos(transform_delta_angle) - (prior_panel_points[i][1] + transform_delta_y_for_prior)*sin(transform_delta_angle) + transform_delta_x_for_matching;
                                     double transform_result_y = (prior_panel_points[i][0] + transform_delta_x_for_prior)*sin(transform_delta_angle) + (prior_panel_points[i][1] + transform_delta_y_for_prior)*cos(transform_delta_angle) + transform_delta_y_for_matching;
@@ -1487,10 +1540,16 @@ bool CVelodyne::RunVelodyne(){
                                     mpc_pcl->panelpoint_cloud->points[i].r = 255;
                                     mpc_pcl->panelpoint_cloud->points[i].g = 255;
                                     mpc_pcl->panelpoint_cloud->points[i].b = 255;
+
+
+//                                    //test
+//                                    cout << "merong" << endl;
+//                                    cout << transform_result_x << endl;
+//                                    cout << transform_result_y << endl;
                                 }
 
 
-                                for(int i = 0;i<mpc_pcl->waypoint_cloud->points.size();i++)
+                                for(unsigned int i = 0;i<mpc_pcl->waypoint_cloud->points.size();i++)
                                 {
                                     double transform_result_x = ((way_point_panel_around.at(i)).at(0) + transform_delta_x_for_prior)*cos(transform_delta_angle) - ((way_point_panel_around.at(i)).at(1) + transform_delta_y_for_prior)*sin(transform_delta_angle) + transform_delta_x_for_matching;
                                     double transform_result_y = ((way_point_panel_around.at(i)).at(0) + transform_delta_x_for_prior)*sin(transform_delta_angle) + ((way_point_panel_around.at(i)).at(1) + transform_delta_y_for_prior)*cos(transform_delta_angle) + transform_delta_y_for_matching;
@@ -1517,7 +1576,7 @@ bool CVelodyne::RunVelodyne(){
                                 }
 
 
-                                for(int i = 0; i < mpc_pcl->waypoint_cloud->points.size()-1;i++)
+                                for(unsigned int i = 0; i < mpc_pcl->waypoint_cloud->points.size()-1;i++)
                                 {
                                     double panel_core_to_way1_x = mpc_pcl->waypoint_cloud->points[i].x - panel_core_transform_result_x;
                                     double panel_core_to_way1_y = mpc_pcl->waypoint_cloud->points[i].y - panel_core_transform_result_y;
@@ -1557,7 +1616,7 @@ bool CVelodyne::RunVelodyne(){
 
 
 
-                                for(int i = 1; i < mpc_pcl->waypoint_cloud->points.size();i++)
+                                for(unsigned int i = 1; i < mpc_pcl->waypoint_cloud->points.size();i++)
                                 {
                                     if(i < (current_waypoint_index+1))
                                     {
@@ -1590,10 +1649,17 @@ bool CVelodyne::RunVelodyne(){
                 }
 
                 (*final) += (*final1);
-                mpc_pcl->viewer->updatePointCloud(final,"cloud");
-                mpc_pcl->viewer->updatePointCloud(mpc_pcl->cloud,"cloud");
-                mpc_pcl->viewer->updatePointCloud(mpc_pcl->waypoint_cloud ,"waypoint_cloud");
-                mpc_pcl->viewer->updatePointCloud(mpc_pcl->panelpoint_cloud,"panelpoint_cloud");
+                if(final->points.size() != 0)
+                    mpc_pcl->viewer->updatePointCloud(final,"cloud");
+
+                if(mpc_pcl->cloud->points.size() != 0)
+                    mpc_pcl->viewer->updatePointCloud(mpc_pcl->cloud,"cloud");
+
+                if(mpc_pcl->waypoint_cloud->points.size() != 0)
+                    mpc_pcl->viewer->updatePointCloud(mpc_pcl->waypoint_cloud ,"waypoint_cloud");
+
+                if(mpc_pcl->panelpoint_cloud->points.size() != 0)
+                    mpc_pcl->viewer->updatePointCloud(mpc_pcl->panelpoint_cloud,"panelpoint_cloud");
 
             }
 
@@ -1675,8 +1741,10 @@ bool CVelodyne::SetLRFDataToPCL(long *_lrf_data,int _num_of_points)
     mpc_pcl->lrf_cloud->clear();
     for(int i = 0;i<_num_of_points;i++)
     {
-        if(_lrf_data[i] <= 2000)
+        if((_lrf_data[i] <= 2500)&& (_lrf_data[i] >= 30))
         {
+
+
             pcl::PointXYZRGBA point_lrf;
             point_lrf.x = -(_lrf_data[i]*cos(0.25/180.0*PI*i)*0.001-0.35);
             point_lrf.y = -(_lrf_data[i]*sin(0.25/180.0*PI*i)*0.001+0.25);
@@ -1727,13 +1795,19 @@ void CVelodyne::SetVelodyneMode(VELODYNE_MODE _mode)
     velodyne_mode = _mode;
     if(velodyne_mode == VELODYNE_MODE_DRIVING)
     {
-        velodyne_range = velodyne_range_driving;
+//        velodyne_range = velodyne_range_driving;
+        velodyne_range = 6.0;
     }
     else
     {
         velodyne_range = velodyne_range_parking;
     }
     mtx_pcl_class.unlock();
+}
+
+bool CVelodyne::IsPanelFound()
+{
+    return find_panel_point;
 }
 
 bool CVelodyne::GetLRFPanelFindStatus()
@@ -1743,7 +1817,27 @@ bool CVelodyne::GetLRFPanelFindStatus()
 
 std::vector<double> CVelodyne::GetIMUData()
 {
+    vector<double> imu_euler;
+    do{
+        imu_euler = mpc_imu->GetEulerAngles();
+    }while((imu_euler.size() != 3) || ((imu_euler.at(0) == 0) && (imu_euler.at(1) == 0) && (imu_euler.at(2) == 0)));
+
     return imu_euler;
+}
+
+double* CVelodyne::GetPanelPoint_x()
+{
+    return panel_point_x;
+}
+
+double* CVelodyne::GetPanelPoint_y()
+{
+    return panel_point_y;
+}
+
+int CVelodyne::GetCurrentWaypointIndex()
+{
+    return current_waypoint_index;
 }
 
 //----------------------------------------------------------------
