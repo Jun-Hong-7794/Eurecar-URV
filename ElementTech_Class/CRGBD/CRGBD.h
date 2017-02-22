@@ -19,6 +19,15 @@
 #define RGBD_D2R (RGBD_PI / 180.0)
 #define RGBD_R2D (180.0/RGBD_PI)
 
+// _mode: 0x1000(Rough mode), 0x2x0x(Precise mode-LEFT)
+//                            0xx0x1(LEFT), 0xx0x1(RIGHT) 0xx1xx(Constant Mode), 0xx2xx(RANSAC Mode)
+#define L_M_ROUGH               0x1200 // Basically Using RANSAC.
+#define L_M_PRECISE             0x2000
+#define L_M_DIR_LEFT            0x0001
+#define L_M_DIR_RIGHT           0x0002
+#define L_M_VALUE_CONSTANT      0x0100
+#define L_M_VALUE_RANSAC        0x0200
+
 typedef struct _Localizaion_Info_On_Panel{
 
     int vertical_dst;
@@ -74,7 +83,9 @@ public:
     void GetHorizenDistance(double _inlier_distance,double& _horizen_distance, double& _s_inlier_deg, double& _e_inlier_deg,
                             double& _virt_s_deg, double& _virt_e_deg, double _s_deg = 20, double _e_deg = 160, int _sampling_loop = 1);
 
-    void LocalizationOnPanel(LOCALIZATION_INFO_ON_PANEL &_info, double _s_deg = 10/*deg*/, double _e_deg = 170/*deg*/, int _inlier_dst = 1100/*mm*/);
+    // _mode: 0x1000(Rough mode), 0x2x01(Precise mode-LEFT), 0x2x02(Precise mode-Righ), 0xx1xx(Constant Mode), 0xx2xx(RANSAC Mode)
+    void LocalizationOnPanel(LOCALIZATION_INFO_ON_PANEL &_info,int _mode, double _s_deg = 10/*deg*/,
+                             double _e_deg = 170/*deg*/, int _inlier_dst = 1100/*mm*/, int _current_v_dst = 270/*mm, for const mode*/, double _current_ang = 0/*deg for const mode*/);
 
     cv::Mat GetSegnetImage(cv::Mat _org_img);
 

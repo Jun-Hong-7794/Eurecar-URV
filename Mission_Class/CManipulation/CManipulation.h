@@ -42,8 +42,10 @@
 #define MANIPUL_INX_LRF_K_VEHICLE_HORIZEN_CTRL  13
 #define MANIPUL_INX_LRF_K_VEHICLE_ANGLE_CTRL    14
 
-#define MANIPUL_INX_KINOVA_ALIGN_TO_PANEL      15
-#define MANIPUL_INX_KINOVA_FIT_TO_VALVE        16
+#define MANIPUL_INX_KINOVA_ALIGN_TO_PANEL       15
+#define MANIPUL_INX_KINOVA_FIT_TO_VALVE         16
+
+#define SENSING_LRF_PANEL_LOCALIZATION          17
 
 class CManipulation:public QThread{
     Q_OBJECT
@@ -68,6 +70,9 @@ private:
 
     cv::Mat m_mat_panel_model;
     QMutex mtx_panel_model;
+
+    LRF_SENSING_INFO_STRUCT mstruct_lrf_sensing_info;
+    QMutex mxt_lrf_sensing_info;
 
     LRF_KINOVA_VERTICAL_CTRL_STRUCT mstruct_lrf_kinova_vertical;
     QMutex mxt_lrf_kinova_vertical;
@@ -189,6 +194,9 @@ public:
     bool GetLRFInfo(double &_slope, double &_distance, double _s_deg, double _e_deg);
     bool GetHorizenDistance(double _inlier_distance,double& _horizen_distance, double& _s_inlier_deg, double& _e_inlier_deg,
                                    double& _virt_s_deg, double& _virt_e_deg, double _s_deg, double _e_deg, int _sampling_loop);
+
+    bool LocalizationOnPanel(int _mode, double _s_deg = 10/*deg*/, double _e_deg = 170/*deg*/,
+                             int _inlier_dst = 1100/*mm*/, int _current_v_dst = 270/*mm, for const mode*/, double _current_ang = 0/*deg for const mode*/);
     //Camera
     bool InitCamera();
     void CloseCamera();
@@ -218,6 +226,13 @@ public:
 public:
     bool SelectMainFunction(int _fnc_index_);
 
+    //-------------------------------------------------
+    // Sensor Test Function
+    //-------------------------------------------------
+    void SetManipulationOption(LRF_SENSING_INFO_STRUCT _manipulation_option);
+    LRF_SENSING_INFO_STRUCT GetLRFSensingInfo();
+
+    //Main Function//
     void SetManipulationOption(LRF_KINOVA_VERTICAL_CTRL_STRUCT _manipulation_option);
     LRF_KINOVA_VERTICAL_CTRL_STRUCT GetLRFKinovaVerticalOption();
 
@@ -262,14 +277,38 @@ public:
 
 private:
     //-------------------------------------------------
+    // Sensor Test Function
+    //-------------------------------------------------
+    bool LRFLocalizationOnPanel();
+
+    //-------------------------------------------------
     // Main Function
     //-------------------------------------------------
+
+    /*LRF Ctrl Old Version*/
     bool LRFKinovaVerticalControl();
     bool LRFKinovaHorizenControl();
     bool LRFKinovaWrenchLocationMove();
 
     bool LRFVehicleAngleControl();
     bool LRFVehicleHorizenControl();
+
+    /*LRF Ctrl New Version*/
+
+    //LRFK_XXX=> Kinova
+    //LRFV_XXX=> Vehicle
+
+    //XXX_VControl => Vertical Control
+    //XXX_HControl => Horizen  Control
+    //XXX_AControl => Angle    Control
+
+    bool LRFK_VCtrl();
+    bool LRFK_HCtrl();
+    bool LRFK_ACtrl();
+
+    bool LRFV_ACtrl();
+    bool LRFV_HCtrl();
+    /*----------------------------*/
 
     bool KinovaForceCtrl();
     bool KinovaForceCheck();

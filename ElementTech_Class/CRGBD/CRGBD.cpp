@@ -36,7 +36,7 @@ bool CRGBD::RGB_DThreadSetting(int _function_index){
 void CRGBD::SegnetFunction(){
 
     cv::Mat camera_image;
-    cv::Mat segnet_image;
+//    cv::Mat segnet_image;
     vector<vector<int>> bb_info;
     while(fl_function_index == THREAD_SEGNET_INDEX){
         if(!mpc_camera->GetCameraImage(camera_image))
@@ -168,18 +168,39 @@ void CRGBD::GetHorizenDistance(double _inlier_distance,double& _horizen_distance
 
     return;
 }
-
-void CRGBD::LocalizationOnPanel(LOCALIZATION_INFO_ON_PANEL &_info, double _s_deg/*deg*/, double _e_deg/*deg*/, int _inlier_dst/*mm*/){
+void CRGBD::LocalizationOnPanel(LOCALIZATION_INFO_ON_PANEL &_info,int _mode,
+                                double _s_deg/*deg*/, double _e_deg/*deg*/, int _inlier_dst/*mm*/,
+                                int _current_v_dst/*mm, for const mode*/, double _current_ang/*deg for const mode*/){
 
     //Convert to Original Coordinate
+    int s_index = -1;
     int s_lrf_index = (int)((_s_deg + 45) / ANGLE_RESOLUTION);
     int e_lrf_index = (int)((_e_deg + 45) / ANGLE_RESOLUTION);
+
+    int s_inlier_inx = 0;
+    int e_inlier_inx = 0;
+
+    double s_inlier_deg = 0;
+    double e_inlier_deg = 0;
+
+    double horizen_distance = 0;
+
+    int current_v_dst = 0;
+    double current_ang = 0;
 
     int number_of_point = e_lrf_index - s_lrf_index + 1;
 
     long* lrf_distance = new long[number_of_point];
 
     std::vector<POINT_PARAM> point_vec;
+
+    std::vector<LINE_PARAM> optimal_line_eq_vec;
+
+    int sample_loop = 3;
+
+    int v_distance = 0;
+    double angle = 0;
+
     if(!mpc_lrf->GetLRFData(mary_lrf_distance)){
         std::cout << "LRF : GetLRFData Error" << std::endl;
         delete[] lrf_distance;
@@ -187,6 +208,49 @@ void CRGBD::LocalizationOnPanel(LOCALIZATION_INFO_ON_PANEL &_info, double _s_deg
     }
     else{
         memcpy(lrf_distance, &mary_lrf_distance[s_lrf_index], sizeof(long)*(number_of_point));
+
+        if((_mode & 0x0f00) == L_M_VALUE_RANSAC){
+                LINE_PARAM optimal_line_eq;
+                mpc_lrf->GetLRFData(mary_lrf_distance);
+
+                ClaculateLRFHeightDistance(lrf_distance, _s_deg, _e_deg, s_index, point_vec, _inlier_dst);
+
+                optimal_line_eq = EstimateLineEquation(point_vec);
+
+            current_v_dst = optimal_line_eq.Distance + 10/*offset*/;
+            current_ang = optimal_line_eq.yaw;
+        }
+        else if((_mode & 0x0f00) == L_M_VALUE_CONSTANT){
+            current_v_dst = _current_v_dst;
+            current_ang = _current_ang;
+        }
+
+        _info.vertical_dst = current_v_dst;
+        _info.angle = current_ang;
+
+        if((_mode & 0xf000) == L_M_ROUGH){// Only RANSAC Mode, s_deg: 10, e_deg: 170
+            std::vector<POINT_PARAM>::iterator iter_end = point_vec.end();
+            _info.horizen__dst =  (*iter_end).x;
+        }
+        else if((_mode & 0xf000) == L_M_PRECISE){
+
+            ClaculateHorizenDistance(point_vec, 800/*mm*/, horizen_distance, s_inlier_inx, e_inlier_inx);
+
+            s_inlier_deg = _s_deg + (s_inlier_inx + s_index) * (ANGLE_RESOLUTION);
+            e_inlier_deg = _s_deg + (e_inlier_inx + s_index) * (ANGLE_RESOLUTION); // s_deg is right
+
+            if((_mode & 0x000f) == L_M_DIR_LEFT){// s_deg: 90, e_deg: 170, Using e_inlier_inx
+                //Assume, always e_inlier_deg > 90
+                e_inlier_deg = (e_inlier_deg - 90);
+                _info.horizen__dst = fabs( tan((RGBD_D2R* e_inlier_deg))* current_v_dst );
+
+            }
+            else if((_mode & 0x000f) == L_M_DIR_RIGHT){// s_deg: 10, e_deg: 90, Using s_inlier_inx
+                //Assume, always s_inlier_deg < 90
+                s_inlier_deg = (90 - s_inlier_deg);
+                _info.horizen__dst = 1000/*mm, panel size*/ - fabs( tan((RGBD_D2R* s_inlier_deg))* current_v_dst );
+            }
+        }
     }
 
     delete[] lrf_distance;

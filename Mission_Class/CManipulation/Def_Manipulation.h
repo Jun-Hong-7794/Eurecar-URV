@@ -2,6 +2,23 @@
 #define DEF_MANIPULATION_H
 #include <QString>
 
+typedef struct _LRF_Sensing_Info_Struct{
+
+    bool fl_lrf_sensing;
+
+    int mode;
+
+    double s_deg;
+    double e_deg;
+
+    double inlier_distance;
+
+    //For Constant Mode
+    int current_dst;
+    int current_ang;
+
+}LRF_SENSING_INFO_STRUCT;
+
 typedef struct _LRF_Kinova_Angle_Ctrl_Struct{
 
     bool lrf_kinova_mission;
