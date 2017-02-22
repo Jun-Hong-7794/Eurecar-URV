@@ -90,6 +90,7 @@ public slots:
     void SlotButtonLRFManiSwitch();
     void SlotButtonLRFDriveSwitch();
     void SlotButtonGPSSwitch();
+    void SlotButtonGPSInitPosSwitch();
     void SlotButtonVehicleSwitch();
     void SlotButtonCameraSwitch();
     void SlotButtonVelodyneSwitch();

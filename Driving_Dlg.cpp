@@ -241,17 +241,13 @@ void Driving_Dlg::SlotVeloyneParser(bool _parser_complete){
     if(_parser_complete){
         ui->qvtk_velodyne_driving_dlg->update();
 
-        if(mpc_drivig->GetIMU()->IsIMUInit())
-        {
-            vector<double> imu_euler;
-            do{
-                imu_euler = mpc_drivig->GetIMU()->GetEulerAngles();
-            }while(imu_euler.size() != 3);
+        vector<double> imu_euler;
 
-            ui->ed_roll->setText(QString::fromStdString((std::to_string(imu_euler.at(0)*180.0/PI))));
-            ui->ed_pitch->setText(QString::fromStdString((std::to_string(imu_euler.at(1)*180.0/PI))));
-            ui->ed_yaw->setText(QString::fromStdString((std::to_string(imu_euler.at(2)*180.0/PI))));
-        }
+        imu_euler = mpc_drivig->GetGPS()->GetIMUEuler();
+
+        ui->ed_roll->setText(QString::fromStdString((std::to_string(imu_euler.at(0)*180.0/PI))));
+        ui->ed_pitch->setText(QString::fromStdString((std::to_string(imu_euler.at(1)*180.0/PI))));
+        ui->ed_yaw->setText(QString::fromStdString((std::to_string(imu_euler.at(2)*180.0/PI))));
     }
 }
 

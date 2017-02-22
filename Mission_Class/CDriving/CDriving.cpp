@@ -10,9 +10,8 @@ CDriving::CDriving(){
 
 }
 
-CDriving::CDriving(CIMU* _p_imu, CGPS* _p_gps, CLRF* _p_lrf, CCamera* _p_camera, CKinova* _p_kinova, CVehicle* _p_vehicle, CVelodyne* _p_velodyne){
+CDriving::CDriving(CGPS* _p_gps, CLRF* _p_lrf, CCamera* _p_camera, CKinova* _p_kinova, CVehicle* _p_vehicle, CVelodyne* _p_velodyne){
 
-    mpc_imu = _p_imu;
     mpc_gps = _p_gps;
     mpc_drive_lrf = _p_lrf;
     mpc_camera = _p_camera;
@@ -85,13 +84,13 @@ bool CDriving::IsVelodyneConnected(){
 //GPS
 bool CDriving::ConnectGPS()
 {
-    if(!mpc_gps->GpsInit())
-    {
-        std::cout << "Fail to Connection GPS" << std::endl;
-        return false;
-    }
-    else
-        return true;
+//    if(!mpc_gps->GpsInit())
+//    {
+//        std::cout << "Fail to Connection GPS" << std::endl;
+//        return false;
+//    }
+//    else
+//        return true;
 }
 bool CDriving::IsGPSConnected(){
     return mpc_gps->IsGPSConnected();
@@ -100,7 +99,7 @@ bool CDriving::IsGPSConnected(){
 void CDriving::SetInitGPSpoint()
 {
     mpc_gps->SetInitGPS();
-    mpc_gps->CalcGroundGpspoint();
+//    mpc_gps->CalcGroundGpspoint();
 }
 
 void CDriving::SetGroundGPS()
@@ -129,8 +128,8 @@ CPCL* CDriving::GetPCL(){
     return mpc_velodyne->GetPCL();
 }
 
-CIMU* CDriving::GetIMU(){
-    return mpc_imu;
+vector<double> CDriving::GetIMUEuler(){
+    return mpc_gps->GetIMUEuler();
 }
 
 CVelodyne* CDriving::GetVelodyne(){
@@ -494,7 +493,7 @@ bool CDriving::DriveToPanel(){
 
     vector<double> rec_imu_data;
     vector<double> rec_imu_data_tmp;
-    rec_imu_data = mpc_velodyne->GetIMUData();
+    rec_imu_data = mpc_gps->GetIMUEuler();
 
 
     double rotate_rad;
@@ -583,7 +582,7 @@ bool CDriving::DriveToPanel(){
 
     double final_parking_and_ugv_heading_differ = panel_final_parking_vec_angle - PI;
 
-    double current_ugv_heading = (mpc_velodyne->GetIMUData()).at(2);
+    double current_ugv_heading = (mpc_gps->GetIMUEuler()).at(2);
 
     if(current_ugv_heading < 0)
     {
@@ -621,7 +620,7 @@ bool CDriving::DriveToPanel(){
         cout << " abs(rotate_rad * 180 / pi) : " << abs(rotate_rad * 180 / PI) << endl;
         cout << " cur_heading : " << cur_heading_degree_tmp << endl;
 
-        rec_imu_data_tmp = mpc_velodyne->GetIMUData();
+        rec_imu_data_tmp = mpc_gps->GetIMUEuler();
         cur_heading_degree_tmp = rec_imu_data_tmp.at(2) * 180 / PI;
 
         driving_struct.direction = UGV_move_right;
@@ -825,7 +824,7 @@ bool CDriving::ParkingFrontPanel(){
                 }
                 else// front or back
                 {
-                    double current_ugv_heading = (mpc_velodyne->GetIMUData()).at(2);
+                    double current_ugv_heading = (mpc_gps->GetIMUEuler()).at(2);
 
                     if(current_ugv_heading < 0)
                     {
@@ -1086,7 +1085,7 @@ bool CDriving::AttitudeEstimation(){
     for(int i = 0; i < 10;i++)
     {
         while(!mpc_velodyne->IsPanelFound()) {}
-        rec_imu_data = mpc_velodyne->GetIMUData();
+        rec_imu_data = mpc_gps->GetIMUEuler();
 
         panel_front_vec_x = mpc_velodyne->GetPCL()->panelpoint_cloud->points[1].x - mpc_velodyne->GetPCL()->panelpoint_cloud->points[0].x;
         panel_front_vec_y = mpc_velodyne->GetPCL()->panelpoint_cloud->points[1].y - mpc_velodyne->GetPCL()->panelpoint_cloud->points[0].y;
@@ -1230,6 +1229,11 @@ bool CDriving::LRFVehicleAngleControl(){
     mpc_vehicle->Move(UGV_move_forward, 0);
 
     return true;
+}
+
+CGPS* CDriving::GetGPS()
+{
+    return mpc_gps;
 }
 
 //----------------------------------------------------------------

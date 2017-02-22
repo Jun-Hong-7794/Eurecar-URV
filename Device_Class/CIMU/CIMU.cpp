@@ -42,8 +42,20 @@ CIMU::~CIMU()
 
 }
 
-bool CIMU::IMUInit(string _comport)
+bool CIMU::IMUInit(string _comport, double _init_heading)
 {
+    // Set yaw bias -----------
+    if(_init_heading > 180.0)
+    {
+        _init_heading = _init_heading - 360.0;
+    }
+    else
+    {
+        _init_heading = _init_heading;
+    }
+
+    yaw_bias = _init_heading/180.0*3.1415926535;
+    // ------------------------
 
     com_port = atoi(_comport.c_str());
 
@@ -91,12 +103,53 @@ bool CIMU::IMUInit(string _comport)
 
 
 
-
-
     //Set device to external heading update mode
     heading_source = 0x0;
 
     while(mip_filter_heading_source(&device_interface, MIP_FUNCTION_SELECTOR_WRITE, &heading_source) != MIP_INTERFACE_OK){}
+
+
+
+//    ///
+//    //Capture Gyro Bias
+//    ///
+
+//    cout << "----------------------------------------------------------------------\n" << endl;
+//    cout << "Performing Gyro Bias capture.\nPlease keep device stationary during the 5 second gyro bias capture interval\n" << endl;
+//    cout << "----------------------------------------------------------------------\n\n" << endl;
+
+//    duration = 5000; //milliseconds
+
+//    while(mip_3dm_cmd_capture_gyro_bias(&device_interface, duration, bias_vector) != MIP_INTERFACE_OK){}
+
+//    printf("Gyro Bias Captured:\nbias_vector[0] = %f\nbias_vector[1] = %f\nbias_vector[2] = %f\n\n", bias_vector[0], bias_vector[1], bias_vector[2]);
+
+
+//    cout << "----------------------------------------------------------------------" << endl;
+//    cout << "Setting Gyro Bias Vector\n" << endl;
+//    cout << "----------------------------------------------------------------------" << endl;
+
+
+//    while(mip_3dm_cmd_gyro_bias(&device_interface, MIP_FUNCTION_SELECTOR_WRITE, bias_vector) != MIP_INTERFACE_OK){}
+
+
+
+    cout<<"Re-initializing filter (required for tare)\n\n"<<endl;
+
+    //Re-initialize the filter with euler_angle
+    angles[0] = angles[1] = angles[2] = 0;
+
+    while(mip_filter_set_init_attitude(&device_interface, angles) != MIP_INTERFACE_OK){}
+
+//    // Re-initialize the filter with magnetometer
+//    float declination = 0.0;
+
+//    while(mip_filter_set_init_attitude_from_ahrs(&device_interface, declination) != MIP_INTERFACE_OK) {}
+
+//    cout << "magneto init finshed!" << endl;
+    //Wait for Filter to re-establish running state
+    Sleep(5000);
+
 
     ///
     //Tare Orientation
@@ -106,16 +159,6 @@ bool CIMU::IMUInit(string _comport)
     cout<<"Performing Tare Orientation Command\n"<<endl;
     cout<<"----------------------------------------------------------------------\n\n"<<endl;
 
-    cout<<"Re-initializing filter (required for tare)\n\n"<<endl;
-
-
-    //Re-initialize the filter
-    angles[0] = angles[1] = angles[2] = 0;
-
-    while(mip_filter_set_init_attitude(&device_interface, angles) != MIP_INTERFACE_OK){}
-
-    //Wait for Filter to re-establish running state
-    Sleep(5000);
 
     //Cycle through axes combinations
     for(i=1; i<8; i++)
@@ -151,7 +194,7 @@ bool CIMU::IMUInit(string _comport)
              cout<<"\n\n"<<endl;
         }
 
-        Sleep(1000);
+        Sleep(100);
     }
 
 
@@ -168,34 +211,6 @@ bool CIMU::IMUInit(string _comport)
 
     //Enable the output of data statistics
     enable_data_stats_output = 1;
-
-
-
-//    ///
-//    //Angular Rate Zero Update Control
-//    ///
-
-//    cout<<"----------------------------------------------------------------------\n"<<endl;
-//    cout<<"Setting Zero Angular-Rate-Update threshold\n"<<endl;
-//    cout<<"----------------------------------------------------------------------\n\n"<<endl;
-
-//    zero_update_control.threshold = 0.05; // rads/s
-//    zero_update_control.enable = 1; //enable zero-angular-rate update
-
-//    //Set ZUPT parameters
-//    while(mip_filter_zero_angular_rate_update_control(&device_interface, MIP_FUNCTION_SELECTOR_WRITE, &zero_update_control) != MIP_INTERFACE_OK){}
-
-
-//    ///
-//    //Commanded Zero Angular-Rate Update
-//    ///
-
-//    cout<<"----------------------------------------------------------------------\n"<<endl;
-//    cout<<"Performing Commanded Zero-Angular-Rate Update\n"<<endl;
-//    cout<<"----------------------------------------------------------------------\n\n"<<endl;
-
-
-//    while(mip_filter_zero_angular_rate_update_control(&device_interface,MIP_FUNCTION_SELECTOR_LOAD_DEFAULT,NULL) != MIP_INTERFACE_OK){}
 
     #ifdef FILTER_MODE
     ///
@@ -566,20 +581,25 @@ u16 CIMU::Mip3dmCmdHwSpecificImuDeviceStatus(mip_interface *_device_interface, u
 vector<double> CIMU::GetEulerAngles()
 {
 
-    #ifdef FILTER_MODE
+#ifdef FILTER_MODE
+
     mtx_imu.lock();
-    while(mip_3dm_cmd_poll_filter(&device_interface, MIP_3DM_POLLING_ENABLE_ACK_NACK, data_stream_format_num_entries, data_stream_format_descriptors) != MIP_INTERFACE_OK){}
+
+    while(mip_3dm_cmd_poll_filter(&device_interface, MIP_3DM_POLLING_ENABLE_ACK_NACK, data_stream_format_num_entries, data_stream_format_descriptors)){}
     Sleep(10);
+
     imu_roll = curr_filter_angles.roll;
     imu_pitch = curr_filter_angles.pitch;
-    imu_yaw = curr_filter_angles.yaw;
+    imu_yaw = curr_filter_angles.yaw + yaw_bias;
+
     mtx_imu.unlock();
-    #else
+
+#else
     while(mip_3dm_cmd_poll_ahrs(&device_interface, MIP_3DM_POLLING_ENABLE_ACK_NACK, data_stream_format_num_entries, data_stream_format_descriptors) != MIP_INTERFACE_OK){}
     imu_roll = curr_angles.roll;
     imu_pitch = curr_angles.pitch;
     imu_yaw = curr_angles.yaw;
-    #endif
+#endif
 
     vector<double> return_vec;
     return_vec.push_back(imu_roll);

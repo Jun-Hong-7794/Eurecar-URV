@@ -75,6 +75,8 @@ struct Ground_Bodypoint // calculated body coordinate using current gps position
     double angle_lefttop;
     double angle_righttop;
     double angle_right;
+
+
 };
 
 #endif // GPS_STRUCT_H

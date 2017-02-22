@@ -29,12 +29,18 @@ using namespace std;
 void FilterPacketCallback(void *_user_ptr, u8 *_packet, u16 _packet_size, u8 _callback_type);
 void AhrsPacketCallback(void *_user_ptr, u8 *_packet, u16 _packet_size, u8 _callback_type);
 
+//void Sleep(int x)
+//{
+//    usleep(x*1000.0);
+//}
+
+
 class CIMU {
 public:
     CIMU();
     ~CIMU();
 
-    bool IMUInit(string _comport);
+    bool IMUInit(string _comport, double _init_heading);
     vector<double> GetEulerAngles();
     bool IsIMUInit();
 private:
@@ -103,6 +109,8 @@ private:
     double imu_roll = 0.0;
     double imu_pitch = 0.0;
     double imu_yaw = 0.0;
+
+    double yaw_bias = 0.0;
 
     //Hardware specific status functions
     u16 Mip3dmCmdHwSpecificDeviceStatus(mip_interface *_device_interface, u16 _model_number, u8 _status_selector, u8 *_response_buffer);

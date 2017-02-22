@@ -51,7 +51,7 @@ protected:
 
 public:
     CDriving();
-    CDriving(CIMU* _p_imu, CGPS* _p_gps, CLRF* _p_lrf, CCamera* _p_camera, CKinova* _p_kinova, CVehicle* _p_vehicle, CVelodyne* _p_velodyne);
+    CDriving(CGPS* _p_gps, CLRF* _p_lrf, CCamera* _p_camera, CKinova* _p_kinova, CVehicle* _p_vehicle, CVelodyne* _p_velodyne);
 
     ~CDriving();
 private:
@@ -84,7 +84,6 @@ private:
     //-------------------------------------------------
     // Device Class
     //-------------------------------------------------
-    CIMU* mpc_imu;
     CGPS* mpc_gps;
     CLRF* mpc_drive_lrf;
     CCamera* mpc_camera;
@@ -114,8 +113,9 @@ public:
 
     void PCLInit();
     CPCL* GetPCL();
+    CGPS* GetGPS();
 
-    CIMU* GetIMU();
+    vector<double> GetIMUEuler();
 
     CVelodyne* GetVelodyne();
 

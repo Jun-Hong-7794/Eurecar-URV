@@ -299,6 +299,7 @@ bool CVelodyne::RunVelodyne(){
                     }
                 }
             }
+            
             point_index = 0;
 
             double past_point_x = .0;

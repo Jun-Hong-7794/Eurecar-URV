@@ -39,7 +39,7 @@ protected:
 
 public:
     CVelodyne();
-    CVelodyne(CIMU* _p_imu, CGPS* _p_gps);
+    CVelodyne(CGPS* _p_gps);
 
     ~CVelodyne();
 
@@ -48,11 +48,6 @@ private:
     // PCL Class
     CPCL* mpc_pcl;
     QMutex mtx_pcl;
-
-    // IMU Class
-    CIMU* mpc_imu;
-    vector<double> imu_euler;
-
 
     //GPS Class
     CGPS* mpc_gps;
@@ -130,6 +125,11 @@ private:
 
     bool lrf_find_panel = false;
 
+    // GPS collaboration
+    vector<cv::Point2f> ground_point;
+
+
+
     int velodyne_range = 100.0;
     VELODYNE_MODE velodyne_mode = VELODYNE_MODE_DRIVING;
 
@@ -168,9 +168,6 @@ public:
 
     void SetVelodyneMode(VELODYNE_MODE _mode);
 
-    // Get IMU data
-    std::vector<double> GetIMUData();
-
     //Get panel point
     double* GetPanelPoint_x();
     double* GetPanelPoint_y();
@@ -180,6 +177,9 @@ public:
 
     //calc ground gps points to body coordiante
 //    Ground_Bodypoint GetGroundGPS_Body();
+
+
+    void viewer_update_geofence(pcl::visualization::PCLVisualizer& viewer);
 
 public:
     //PCL
@@ -202,6 +202,7 @@ typedef struct PanelPointInfo{
     double x;
     double y;
 }panel_point_info;
+
 
 
 #endif // CVELODYNE_H
