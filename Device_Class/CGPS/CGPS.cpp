@@ -96,30 +96,16 @@ double CGPS::GetInitHeading()
 
 void CGPS::SetInitGPS()
 {
-//    fl_gps_rx = false;
+    m_inital_gpspoint.lat = m_cur_gpspoint.lat;
+    m_inital_gpspoint.lon = m_cur_gpspoint.lon;
 
-//    do
-//    {
-//        GpsUpdate();
-//    }while(fl_gps_rx == false);
 
-//    m_inital_gpspoint.lat = m_mstr_pvt.lat_deg_em7 / 10000000.0;
-//    m_inital_gpspoint.lon = m_mstr_pvt.lon_deg_em7 / 10000000.0;
-//    m_inital_gpspoint.height = m_mstr_pvt.height_mm;
+//    m_inital_gpspoint.lat = 37.3535;
+//    m_inital_gpspoint.lon = 127.4949;
 
-//    m_inital_gpspoint.lat = m_cur_gpspoint.lat / 10000000.0;
-//    m_inital_gpspoint.lon = m_cur_gpspoint.lon / 10000000.0;
+    double tmp = mpc_imu->GetEulerAngles().at(2);
 
-    m_inital_gpspoint.lat = 37.3535;
-    m_inital_gpspoint.lon = 127.4949;
-
-//    double tmp = mpc_imu->GetEulerAngles().at(2);
-    double tmp = 1;
-
-    if(tmp < 0)
-        tmp = tmp + 2*PI;
-
-    m_init_heading = tmp * 180 / PI;
+    m_init_heading = tmp * 180.0 / PI;
 }
 
 Gpspoint CGPS::GetInitGPS()
@@ -177,36 +163,43 @@ vector<cv::Point2f> CGPS::CalcBodypoint_Ground()
         cout << "initial heading value is not set"<<endl;
     }
 
-    double dist =0.;
 
     Gpspoint test_init;
     Gpspoint test_cur;
 
-    test_init.lat = 37.26;
-    test_init.lon = 127.59;
+//    test_init.lat = 37.26;
+//    test_init.lon = 127.59;
 
-    test_cur.lat = 37.26;
-    test_cur.lon = 127.59;
+//    test_cur.lat = 37.26;
+//    test_cur.lon = 127.58999;
 
-//    dist = DistCalc_Gps2Gps(m_inital_gpspoint,m_cur_gpspoint);
+    double dist =0.;
+    dist = DistCalc_Gps2Gps(m_inital_gpspoint,m_cur_gpspoint);
 
     double bearing=0;
-//    bearing = BearingCalc_Gps2Gps(m_inital_gpspoint,m_cur_gpspoint);
+    bearing = BearingCalc_Gps2Gps(m_inital_gpspoint,m_cur_gpspoint);
 
-    dist = DistCalc_Gps2Gps(test_init,test_cur);
-    bearing = BearingCalc_Gps2Gps(test_init,test_cur);
+//    dist = DistCalc_Gps2Gps(test_init,test_cur);
+//    bearing = BearingCalc_Gps2Gps(test_init,test_cur);
 
     double shift_x,shift_y =0;
 
-    shift_x = dist * sin((cur_heading + bearing) * PI / 180);
-    shift_y = dist * cos((cur_heading + bearing) * PI / 180);
+    shift_x = (dist*1000.0) * cos((-m_init_heading + bearing) * PI / 180);
+    shift_y = (dist*1000.0) * sin((-m_init_heading + bearing) * PI / 180);
 
-//    double rotate_angle_degree = cur_heading - m_init_heading;
-    double rotate_angle_degree = cur_heading - 0;
+    cout << "dist : " << dist << endl;
+    cout << "shift x : " << shift_x << endl;
+    cout << "shift y : " << shift_y << endl;
+    cout << "cur : "<<setprecision(20) << m_cur_gpspoint.lat << endl;
+    cout << "cur : "<<setprecision(20) << m_cur_gpspoint.lon << endl;
+    cout << "init : "<<setprecision(20) << m_inital_gpspoint.lat << endl;
+    cout << "init : "<<setprecision(20) << m_inital_gpspoint.lon << endl;
+
+    double rotate_angle_degree = cur_heading - m_init_heading;
+//    double rotate_angle_degree = cur_heading - 0;
     rotate_angle_rad = rotate_angle_degree * PI / 180;
 
     cv::Point2f ground[4]; //order : left lefttop righttop right
-
 
 //    vector<cv::Point2f> ground_rotated; //order : left lefttop righttop right
     ground_rotated.resize(4);
@@ -227,7 +220,7 @@ vector<cv::Point2f> CGPS::CalcBodypoint_Ground()
 
     for(int i=0; i<4; i++)
     {
-        ground_rotated[i].x = ground[i].x * cos(rotate_angle_rad) - ground[i].y * sin(rotate_angle_rad) - shift_x;
+        ground_rotated[i].x = ground[i].x * cos(rotate_angle_rad) - ground[i].y * sin(rotate_angle_rad) + shift_x;
         ground_rotated[i].y = ground[i].x * sin(rotate_angle_rad) + ground[i].y * cos(rotate_angle_rad) - shift_y;
     }
 
@@ -276,6 +269,7 @@ bool CGPS::CheckSum(unsigned char* _rxbuff,int _data_buffer_N)
     }
     else
     {
+//        return true;
         return false;
     }
 }
@@ -294,7 +288,7 @@ bool CGPS::RxParse2Data(unsigned char _msg_id, unsigned char *_rxbuff)
         }
         else
         {
-            cout << "data error" << endl;
+            cout << "data id 1 checksum error" << endl;
             fl_gps_rx = false;
             return false;
         }
@@ -304,25 +298,28 @@ bool CGPS::RxParse2Data(unsigned char _msg_id, unsigned char *_rxbuff)
         if(CGPS::CheckSum(_rxbuff,92))
         {
             cout << "data id 7" << endl;
+            memset(&m_mstr_pvt,0, sizeof(m_mstr_pvt)); // data + checksum -> 92
             memcpy(&m_mstr_pvt,&_rxbuff[6], sizeof(m_mstr_pvt)); // data + checksum -> 92
-//            m_cur_gpspoint.lat = m_mstr_pvt.lat_deg_em7 / 10000000.0;
-//            m_cur_gpspoint.lon = m_mstr_pvt.lon_deg_em7 / 10000000.0;
+            m_cur_gpspoint.lat = (long double)m_mstr_pvt.lat_deg_em7 / (long double)(10000000.0000000);
+            m_cur_gpspoint.lon = (long double)m_mstr_pvt.lon_deg_em7 / (long double)(10000000.0000000);
 
-            m_cur_gpspoint.lat = 37.3535;
-            m_cur_gpspoint.lon = 127.4949;
+//            cout << setprecision(20) << "lat : " << m_mstr_pvt.lat_deg_em7<<endl;
+//            cout << setprecision(20) << "lon : " << m_mstr_pvt.lon_deg_em7<< endl;
+//            m_cur_gpspoint.lat = 37.3535;
+//            m_cur_gpspoint.lon = 127.4949;
             fl_gps_rx = true;
             return true;
         }
         else
         {
-            cout << "data error" << endl;
+            cout << "data id 7 checksum error" << endl;
             fl_gps_rx = false;
             return false;
         }
     }
     else
     {
-        cout << "data error" << endl;
+        cout << "id error" << endl;
         fl_gps_rx = false;
         return false;
     }
@@ -337,17 +334,20 @@ bool CGPS::GpsUpdate()
 {
     if(port->isOpen())
     {
-        bool ret = port->waitForReadyRead(100);
+        bool ret = port->waitForReadyRead(1000);
 
 //        cout << "GPS Thread id : " << QThread::currentThreadId()<<endl;
         if (ret)
         {
-            m_recvData = port->readAll();
+            QByteArray m_recvData1 = port->readAll();
             cout << "error"<< endl;
 
             std::string start_index = std::to_string(char(0xb5)) + std::to_string(char(0x62));
-            QList<QByteArray> list = m_recvData.split('\r\n');
-            QList<QByteArray> list2 = list[0].split(0xb5);
+//            QList<QByteArray> list = m_recvData1.split('\r\n');
+//            QList<QByteArray> list2 = list[0].split(0xb5);
+
+
+            QList<QByteArray> list2 = m_recvData1.split(char(0xb5));
 
             if(list2.length() > 1)
             {
@@ -355,11 +355,12 @@ bool CGPS::GpsUpdate()
 
                 unsigned char Rxbuffer[list2[1].size()];
 
+                memset(Rxbuffer,0,list2[1].size());
                 memcpy(Rxbuffer,(list2[1].data()),list2[1].size());
 
                 if(Rxbuffer[0] != 0xb5 || Rxbuffer[1] != 0x62 || Rxbuffer[2] != 0x01) // check sync char1,2 & msg class 1
                 {
-                    cout << "error"<< endl;
+                    cout << "flag error"<< endl;
                     fl_gps_rx = false;
                 }
                 else
@@ -369,7 +370,7 @@ bool CGPS::GpsUpdate()
             }
             else
             {
-                cout << "error"<< endl;
+                cout << "flag error"<< endl;
                 fl_gps_rx = false;
             }
 
@@ -411,6 +412,7 @@ void CGPS::run()
     while(running_command)
     {
         GpsUpdate();
+
         msleep(30);
         port->flush();
     }

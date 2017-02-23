@@ -44,13 +44,6 @@ CGPS* CVelodyne::GetGPS(){
     return mpc_gps;
 }
 
-//Ground_Bodypoint CVelodyne::GetGroundGPS_Body()
-//{
-//    return mpc_gps->m_ground_bodypoints;
-//}
-
-
-
 void CVelodyne::PCLInitialize(){
     mtx_pcl_class.lock();
     {
@@ -180,18 +173,14 @@ bool CVelodyne::RunVelodyne(){
         if (deg < prev_deg){
             mtx_pcl_class.lock();
 
-
             //calc ground body - dist/angle
             ground_point = mpc_gps->CalcBodypoint_Ground();
-
-//            ground_point.resize(4);
 
             vector<pcl::PointXYZRGBA> ground_point_pcl_vec;
 
             mpc_pcl->mission_boundary_cloud->points.clear();
             for(int i =0; i < ground_point.size();i++)
             {
-//                cout << " ground point size : " << ground_point.size() << endl;
                 pcl::PointXYZRGBA ground_point_tmp;
                 ground_point_tmp.x = (ground_point.at(i)).x;
                 ground_point_tmp.y = (ground_point.at(i)).y;
@@ -299,6 +288,7 @@ bool CVelodyne::RunVelodyne(){
                     }
                 }
             }
+
             point_index = 0;
 
             double past_point_x = .0;

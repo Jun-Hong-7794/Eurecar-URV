@@ -51,9 +51,9 @@ struct StrDef_UBX_NAV_POSECEF // ECEF Position Solution from Ublox GNSS Module
 
 struct Gpspoint
 {
-    double lat;
-    double lon;
-    double height;
+    long double lat;
+    long double lon;
+    long double height;
 };
 
 struct Ground_Gpspoint
