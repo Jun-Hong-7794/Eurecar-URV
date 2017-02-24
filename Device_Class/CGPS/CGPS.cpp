@@ -103,8 +103,9 @@ void CGPS::SetInitGPS()
 //    m_inital_gpspoint.lat = 37.3535;
 //    m_inital_gpspoint.lon = 127.4949;
 
-    double tmp = mpc_imu->GetEulerAngles().at(2);
+//    double tmp = mpc_imu->GetEulerAngles().at(2);
 
+    double tmp = 0;
     m_init_heading = tmp * 180.0 / PI;
 }
 
@@ -152,8 +153,9 @@ double CGPS::BearingCalc_Gps2Gps(Gpspoint _cur_point, Gpspoint _target_point)
 vector<cv::Point2f> CGPS::CalcBodypoint_Ground()
 {
 
-    double cur_heading = mpc_imu->GetEulerAngles().at(2);
+//    double cur_heading = mpc_imu->GetEulerAngles().at(2);
 
+    double cur_heading = 0;
     cur_heading = (1.0) * cur_heading * 180.0 / PI;
 
     if(m_init_heading != 0)
@@ -162,16 +164,6 @@ vector<cv::Point2f> CGPS::CalcBodypoint_Ground()
     {
         cout << "initial heading value is not set"<<endl;
     }
-
-
-    Gpspoint test_init;
-    Gpspoint test_cur;
-
-//    test_init.lat = 37.26;
-//    test_init.lon = 127.59;
-
-//    test_cur.lat = 37.26;
-//    test_cur.lon = 127.58999;
 
     double dist =0.;
     dist = DistCalc_Gps2Gps(m_inital_gpspoint,m_cur_gpspoint);
@@ -377,7 +369,7 @@ bool CGPS::GpsUpdate()
         }
     }
 
-    m_cur_heading_rad = mpc_imu->GetEulerAngles();
+//    m_cur_heading_rad = mpc_imu->GetEulerAngles();
 
     double tmp_cur_heading = m_cur_heading_rad.at(2);
     if(tmp_cur_heading < 0)

@@ -9,6 +9,23 @@ CVelodyne::CVelodyne(){
     fl_parser_complete = false;
     fl_velodyne_thread = false;
 
+//    //left
+//    ground_point.at(0).x = 0;
+//    ground_point.at(0).y = -45;
+
+//    //lefttop
+//    ground_point.at(1).x = -60;
+//    ground_point.at(1).y = -45;
+
+//    //righttop
+//    ground_point.at(2).x = -60;
+//    ground_point.at(2).y = 45;
+
+//    //right
+//    ground_point.at(3).x = 0;
+//    ground_point.at(3).y = 45;
+
+
     mpc_pcl = new CPCL;
 }
 
@@ -17,6 +34,22 @@ CVelodyne::CVelodyne(CGPS* _p_gps){
     fl_velodyne_init = false;
     fl_parser_complete = false;
     fl_velodyne_thread = false;
+
+//    //left
+//    ground_point.at(0).x = 0;
+//    ground_point.at(0).y = -45;
+
+//    //lefttop
+//    ground_point.at(1).x = -60;
+//    ground_point.at(1).y = -45;
+
+//    //righttop
+//    ground_point.at(2).x = -60;
+//    ground_point.at(2).y = 45;
+
+//    //right
+//    ground_point.at(3).x = 0;
+//    ground_point.at(3).y = 45;
 
     mpc_pcl = new CPCL;
     mpc_gps = _p_gps;
@@ -117,6 +150,95 @@ bool CVelodyne::IsVelodyneConneted(){
     return fl_velodyne_thread;
 }
 
+//vector<cv::Point2f> CVelodyne::CalcGroundBodyPoint_IMU()
+//{
+//    // current location and heading are needed
+//    double cur_heading = mpc_imu->GetEulerAngles().at(2);
+
+//    cur_heading = (1.0) * cur_heading * 180.0 / PI;
+
+//    double dist =0.;
+//    // dist calc from cur pos to init pos
+
+//    double bearing=0;
+//    // bearing calc from cur pos to init pos
+
+
+//    double shift_x,shift_y =0;
+
+//    shift_x = (dist*1000.0) * cos((cur_heading + bearing) * PI / 180);
+//    shift_y = (dist*1000.0) * sin((cur_heading + bearing) * PI / 180);
+
+//    double rotate_angle_degree = cur_heading;
+//    rotate_angle_rad = rotate_angle_degree * PI / 180;
+
+//    vector<cv::Point2f> ground_rotated; //order : left lefttop righttop right
+
+
+
+//    //////////////////////////////////// test distance ////////////////////////////////////
+//    double test_ratio = 0.1;
+
+//    //left
+//    ground_point.at(0).x = 0 *test_ratio;
+//    ground_point.at(0).y = -45 *test_ratio;
+
+//    //lefttop
+//    ground_point.at(1).x = -60 *test_ratio;
+//    ground_point.at(1).y = -45 *test_ratio;
+
+//    //righttop
+//    ground_point.at(2).x = -60 *test_ratio;
+//    ground_point.at(2).y = 45 *test_ratio;
+
+//    //right
+//    ground_point.at(3).x = 0 *test_ratio;
+//    ground_point.at(3).y = 45 *test_ratio;
+//    ///////////////////////////////////////////////////////////////////////////////////////
+
+
+
+//    for(int i=0; i<4; i++)
+//    {
+//        ground_rotated[i].x = ground_point[i].x * cos(rotate_angle_rad) - ground_point[i].y * sin(rotate_angle_rad) + shift_x;
+//        ground_rotated[i].y = ground_point[i].x * sin(rotate_angle_rad) + ground_point[i].y * cos(rotate_angle_rad) - shift_y;
+//    }
+
+//    return ground_rotated;
+
+
+//}
+//bool CVelodyne::CheckInBoundary_IMU(vector<cv::Point2f> _ground_point, double _obj_x, double _obj_y)
+//{
+//    cv::Point2f CheckReferPoint[4];
+
+//    double cur_heading = mpc_imu->GetEulerAngles().at(2);
+
+//    for(int i = 0; i < 4 ;i++)
+//    {
+//        CheckReferPoint[i].x = _ground_point[i].x*cos(-cur_heading) - _ground_point[i].y*sin(-cur_heading);
+//        CheckReferPoint[i].y = _ground_point[i].x*sin(-cur_heading) + _ground_point[i].y*cos(-cur_heading);
+//    }
+
+//    double rotate_object_x = _obj_x * cos(-cur_heading) - _obj_y * sin(-cur_heading);
+//    double rotate_object_y = _obj_x * sin(-cur_heading) + _obj_y * cos(-cur_heading);
+
+//    double x_min,x_max,y_min,y_max;
+
+//    y_min = (CheckReferPoint[0].y > CheckReferPoint[3].y ? CheckReferPoint[3].y : CheckReferPoint[0].y);
+//    y_max = (CheckReferPoint[0].y < CheckReferPoint[3].y ? CheckReferPoint[3].y : CheckReferPoint[0].y);
+//    x_min = (CheckReferPoint[3].x > CheckReferPoint[2].x ? CheckReferPoint[2].x : CheckReferPoint[3].x);
+//    x_max = (CheckReferPoint[3].x < CheckReferPoint[2].x ? CheckReferPoint[2].x : CheckReferPoint[3].x);
+
+//    if(rotate_object_x < x_max && rotate_object_x > x_min && rotate_object_y < y_max && rotate_object_y > y_min )
+//        return true;
+//    else
+//        return false;
+//}
+
+
+
+
 bool CVelodyne::RunVelodyne(){
 
     if(!fl_velodyne_init){
@@ -124,10 +246,10 @@ bool CVelodyne::RunVelodyne(){
         return false;
     }
 
-    if(!mpc_gps->IsGPSConnected()){
-        std::cout << "GPS Init First!" << std::endl;
-//        return false;
-    }
+//    if(!mpc_gps->IsGPSConnected()){
+//        std::cout << "GPS Init First!" << std::endl;
+////        return false;
+//    }
 
     UINT count = 0;
     WORD rotation = 0;
@@ -173,26 +295,26 @@ bool CVelodyne::RunVelodyne(){
         if (deg < prev_deg){
             mtx_pcl_class.lock();
 
-            //calc ground body - dist/angle
-            ground_point = mpc_gps->CalcBodypoint_Ground();
+//            //calc ground body - dist/angle
+//            ground_point = CalcGroundBodyPoint_IMU();
 
-            vector<pcl::PointXYZRGBA> ground_point_pcl_vec;
+//            vector<pcl::PointXYZRGBA> ground_point_pcl_vec;
 
-            mpc_pcl->mission_boundary_cloud->points.clear();
-            for(int i =0; i < ground_point.size();i++)
-            {
-                pcl::PointXYZRGBA ground_point_tmp;
-                ground_point_tmp.x = (ground_point.at(i)).x;
-                ground_point_tmp.y = (ground_point.at(i)).y;
-                ground_point_tmp.z = 0;
-                ground_point_tmp.r = 255;
-                ground_point_tmp.g = 0;
-                ground_point_tmp.b = 0;
-                ground_point_pcl_vec.push_back(ground_point_tmp);
-                mpc_pcl->mission_boundary_cloud->points.push_back(ground_point_tmp);
-            }
+//            mpc_pcl->mission_boundary_cloud->points.clear();
+//            for(int i =0; i < ground_point.size();i++)
+//            {
+//                pcl::PointXYZRGBA ground_point_tmp;
+//                ground_point_tmp.x = (ground_point.at(i)).x;
+//                ground_point_tmp.y = (ground_point.at(i)).y;
+//                ground_point_tmp.z = 0;
+//                ground_point_tmp.r = 255;
+//                ground_point_tmp.g = 0;
+//                ground_point_tmp.b = 0;
+//                ground_point_pcl_vec.push_back(ground_point_tmp);
+//                mpc_pcl->mission_boundary_cloud->points.push_back(ground_point_tmp);
+//            }
 
-            mpc_pcl->viewer->updatePointCloud(mpc_pcl->mission_boundary_cloud,"mission_boundary_cloud");
+//            mpc_pcl->viewer->updatePointCloud(mpc_pcl->mission_boundary_cloud,"mission_boundary_cloud");
 
 
             sum_panel_x = 0.0;
@@ -268,20 +390,23 @@ bool CVelodyne::RunVelodyne(){
                             minimum_z = mpc_pcl->cloud->points[point_index].z;
 
                         }
-                        else{
-                            if ( mpc_gps->CheckInBoundary(ground_point, mpc_pcl->cloud->points[point_index].x, mpc_pcl->cloud->points[point_index].y))
-                            {
-                                mpc_pcl->cloud->points[point_index].r = 0;
-                                mpc_pcl->cloud->points[point_index].g = 0;
-                                mpc_pcl->cloud->points[point_index].b = 255;
-                            }
-                            else
-                            {
-                                mpc_pcl->cloud->points[point_index].r = 255;
-                                mpc_pcl->cloud->points[point_index].g = 255;
-                                mpc_pcl->cloud->points[point_index].b = 255;
-                            }
-                        }
+
+                        mpc_pcl->cloud->points[point_index].r = 0;
+                        mpc_pcl->cloud->points[point_index].g = 0;
+                        mpc_pcl->cloud->points[point_index].b = 255;
+
+//                        if(CheckInBoundary_IMU(ground_point, mpc_pcl->cloud->points[point_index].x, mpc_pcl->cloud->points[point_index].y))
+//                        {
+//                            mpc_pcl->cloud->points[point_index].r = 0;
+//                            mpc_pcl->cloud->points[point_index].g = 0;
+//                            mpc_pcl->cloud->points[point_index].b = 255;
+//                        }
+//                        else
+//                        {
+//                            mpc_pcl->cloud->points[point_index].r = 255;
+//                            mpc_pcl->cloud->points[point_index].g = 255;
+//                            mpc_pcl->cloud->points[point_index].b = 255;
+//                        }
 
 
                         point_index++;
@@ -1775,12 +1900,13 @@ void CVelodyne::SetVelodyneMode(VELODYNE_MODE _mode)
     velodyne_mode = _mode;
     if(velodyne_mode == VELODYNE_MODE_DRIVING)
     {
-//        velodyne_range = velodyne_range_driving;
-        velodyne_range = 6.0;
+        velodyne_range = velodyne_range_driving;
+        velodyne_range = 100.0;
     }
     else
     {
         velodyne_range = velodyne_range_parking;
+        velodyne_range = 3.0;
     }
     mtx_pcl_class.unlock();
 }

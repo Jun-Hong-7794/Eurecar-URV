@@ -31,6 +31,15 @@ mip_ahrs_delta_velocity curr_ahrs_delta_velocity;
 //FILTER
 mip_filter_attitude_euler_angles curr_filter_angles;
 
+mip_filter_linear_acceleration curr_linear_accel;
+
+timeval curtime;
+
+unsigned long past_time = 0;
+unsigned long current_time = 0;
+double time_lapsed = 0.0;
+
+double x_vel = 0.0;
 
 CIMU::CIMU()
 {
@@ -39,7 +48,7 @@ CIMU::CIMU()
 
 CIMU::~CIMU()
 {
-
+    imu_init = false;
 }
 
 bool CIMU::IMUInit(string _comport, double _init_heading)
@@ -159,7 +168,6 @@ bool CIMU::IMUInit(string _comport, double _init_heading)
     cout<<"Performing Tare Orientation Command\n"<<endl;
     cout<<"----------------------------------------------------------------------\n\n"<<endl;
 
-
     //Cycle through axes combinations
     for(i=1; i<8; i++)
     {
@@ -212,6 +220,27 @@ bool CIMU::IMUInit(string _comport, double _init_heading)
     //Enable the output of data statistics
     enable_data_stats_output = 1;
 
+
+    ///
+    //Setup the AHRS datastream format
+    ///
+
+
+    cout<<"----------------------------------------------------------------------\n"<<endl;
+    cout<<"Setting the AHRS message format\n"<<endl;
+    cout<<"----------------------------------------------------------------------\n\n"<<endl;
+
+//    data_stream_format_descriptors[0] = MIP_AHRS_DATA_TIME_STAMP_GPS;
+    data_stream_format_descriptors_ahrs[0] = MIP_AHRS_DATA_ACCEL_SCALED;
+
+//    data_stream_format_decimation[0]  = 0x64;
+    data_stream_format_decimation_ahrs[0]  = 0x32;
+
+    data_stream_format_num_entries_ahrs = 1;
+
+    while(mip_3dm_cmd_ahrs_message_format(&device_interface, MIP_FUNCTION_SELECTOR_WRITE, &data_stream_format_num_entries_ahrs, data_stream_format_descriptors_ahrs, data_stream_format_decimation_ahrs) != MIP_INTERFACE_OK){}
+
+
     #ifdef FILTER_MODE
     ///
     //Setup the FILTER datastream format
@@ -222,10 +251,12 @@ bool CIMU::IMUInit(string _comport, double _init_heading)
     cout<<"----------------------------------------------------------------------\n\n"<<endl;
 
     data_stream_format_descriptors[0] = MIP_FILTER_DATA_ATT_EULER_ANGLES;
+    data_stream_format_descriptors[1] = MIP_FILTER_DATA_LINEAR_ACCELERATION;
 
     data_stream_format_decimation[0]  = 0x32;
+    data_stream_format_decimation[1]  = 0x32;
 
-    data_stream_format_num_entries = 1;
+    data_stream_format_num_entries = 2;
 
     while(mip_3dm_cmd_filter_message_format(&device_interface, MIP_FUNCTION_SELECTOR_WRITE, &data_stream_format_num_entries,
                           data_stream_format_descriptors, data_stream_format_decimation) != MIP_INTERFACE_OK){}
@@ -252,10 +283,13 @@ bool CIMU::IMUInit(string _comport, double _init_heading)
     while(mip_3dm_cmd_ahrs_message_format(&device_interface, MIP_FUNCTION_SELECTOR_WRITE, &data_stream_format_num_entries, data_stream_format_descriptors, data_stream_format_decimation) != MIP_INTERFACE_OK){}
     #endif
 
+    imu_init = true;
+
+
+    this->start(QThread::TimeCriticalPriority);
 
     cout<<"*************IMU Initialization finished!************"<<endl;
 
-    imu_init = true;
     return true;
 
 }
@@ -438,6 +472,15 @@ void FilterPacketCallback(void *_user_ptr, u8 *_packet, u16 _packet_size, u8 _ca
 
         }break;
 
+        case MIP_FILTER_DATA_LINEAR_ACCELERATION:
+        {
+            memcpy(&curr_linear_accel, field_data, sizeof(mip_filter_linear_acceleration));
+
+            mip_filter_linear_acceleration_byteswap(&curr_linear_accel);
+
+        }break;
+
+
        default: break;
        }
        }
@@ -578,39 +621,77 @@ u16 CIMU::Mip3dmCmdHwSpecificImuDeviceStatus(mip_interface *_device_interface, u
     return MIP_INTERFACE_OK;
 }
 
-vector<double> CIMU::GetEulerAngles()
+void CIMU::GetEulerAngles()
 {
 
 #ifdef FILTER_MODE
 
     mtx_imu.lock();
 
+    gettimeofday(&curtime,NULL);
+
     while(mip_3dm_cmd_poll_filter(&device_interface, MIP_3DM_POLLING_ENABLE_ACK_NACK, data_stream_format_num_entries, data_stream_format_descriptors)){}
-    Sleep(10);
 
-    imu_roll = curr_filter_angles.roll;
-    imu_pitch = curr_filter_angles.pitch;
-    imu_yaw = curr_filter_angles.yaw + yaw_bias;
 
-    mtx_imu.unlock();
+    while(mip_3dm_cmd_poll_ahrs(&device_interface, MIP_3DM_POLLING_ENABLE_ACK_NACK, data_stream_format_num_entries_ahrs, data_stream_format_descriptors_ahrs) != MIP_INTERFACE_OK){}
 
 #else
     while(mip_3dm_cmd_poll_ahrs(&device_interface, MIP_3DM_POLLING_ENABLE_ACK_NACK, data_stream_format_num_entries, data_stream_format_descriptors) != MIP_INTERFACE_OK){}
-    imu_roll = curr_angles.roll;
-    imu_pitch = curr_angles.pitch;
-    imu_yaw = curr_angles.yaw;
 #endif
 
-    vector<double> return_vec;
-    return_vec.push_back(imu_roll);
-    return_vec.push_back(imu_pitch);
-    return_vec.push_back(imu_yaw);
+    unsigned long current_time = curtime.tv_sec*(uint64_t)1000000+curtime.tv_usec;
+    if(past_time != 0)
+        time_lapsed = (double)(current_time - past_time)*0.000001;
+    past_time = current_time;
+
+//    x_vel += time_lapsed*curr_ahrs_delta_velocity.delta_velocity[0];
+    x_vel += time_lapsed*curr_ahrs_accel.scaled_accel[0]*9.8;
+    cout << x_vel<<endl;
 
 
-    return return_vec;
+    if(!((curr_filter_angles.roll == 0) && (curr_filter_angles.pitch == 0) && (curr_filter_angles.yaw == 0)))
+    {
+        imu_roll = curr_filter_angles.roll;
+        imu_pitch = curr_filter_angles.pitch;
+        imu_yaw = curr_filter_angles.yaw + yaw_bias;
+
+        vector<double> euler_vec;
+        euler_vec.push_back(imu_roll);
+        euler_vec.push_back(imu_pitch);
+        euler_vec.push_back(imu_yaw);
+
+        emit SignalIMUEuler(euler_vec);
+    }
+
+    if(curr_linear_accel.valid_flags == 1)
+    {
+        emit SignalIMULinearAccel(curr_linear_accel);
+    }
+
+    emit SignalIMUDeltaVelocity(curr_ahrs_delta_velocity);
+
+
+    mtx_imu.unlock();
+
 }
+
+void CIMU::IMUClose()
+{
+    imu_init = false;
+//    mip_interface_close(device_interface);
+}
+
 
 bool CIMU::IsIMUInit()
 {
     return imu_init;
+}
+
+void CIMU::run()
+{
+    while(imu_init)
+    {
+        GetEulerAngles();
+//        Sleep(10);
+    }
 }

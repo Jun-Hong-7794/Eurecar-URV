@@ -37,7 +37,7 @@ EurecarURV_Dlg::EurecarURV_Dlg(QWidget *parent) :
     //-------------------------------------------------
 
     //Driving Class Initialize
-    mpc_drivig = new CDriving(mpc_gps, mpc_drive_lrf, mpc_camera, mpc_kinova, mpc_vehicle, mpc_velodyne);
+    mpc_drivig = new CDriving(mpc_imu, mpc_gps, mpc_drive_lrf, mpc_camera, mpc_kinova, mpc_vehicle, mpc_velodyne);
 
     //Manipulation Class Initialize
     mpc_manipulation = new CManipulation(mpc_mani__lrf, mpc_camera, mpc_kinova, mpc_vehicle, mpc_velodyne, mpc_gripper, mpc_ssd);

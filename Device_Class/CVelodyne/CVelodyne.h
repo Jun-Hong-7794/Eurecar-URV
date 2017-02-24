@@ -125,12 +125,11 @@ private:
 
     bool lrf_find_panel = false;
 
-    // GPS collaboration
     vector<cv::Point2f> ground_point;
 
 
 
-    int velodyne_range = 100.0;
+    double velodyne_range = 100.0;
     VELODYNE_MODE velodyne_mode = VELODYNE_MODE_DRIVING;
 
     bool RunVelodyne();
@@ -180,6 +179,10 @@ public:
 
 
     void viewer_update_geofence(pcl::visualization::PCLVisualizer& viewer);
+
+//    // Velodyne with IMU
+//    vector<cv::Point2f> CalcGroundBodyPoint_IMU();
+//    bool CheckInBoundary_IMU(vector<cv::Point2f> _ground_point, double _obj_x, double _obj_y);
 
 public:
     //PCL
