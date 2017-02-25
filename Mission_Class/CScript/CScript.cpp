@@ -823,11 +823,30 @@ bool CScript::InterpreteVehicleParking(QString _line, STEP_INFO& _step_info){
 bool CScript::InterpreteKinovaForceCtrl(QString _line, STEP_INFO& _step_info){
 
     if(_line.contains("KINOVA_FORCE_CTRL_STRUCT")){
-        if(_line.contains("step_count")){
+
+        if(_line.contains("mode")){
+            int colone_index = _line.indexOf("=");
+            _step_info.manipulation_option.kinova_force_option.threshold_mode = _line.mid(colone_index + 1).trimmed().toInt();
+            return true;
+        }
+
+        else if(_line.contains("step_count")){
             int colone_index = _line.indexOf("=");
             _step_info.manipulation_option.kinova_force_option.step_count = _line.mid(colone_index + 1).trimmed().toDouble();
             return true;
         }
+
+        else if(_line.contains("force_range_s")){
+            int colone_index = _line.indexOf("=");
+            _step_info.manipulation_option.kinova_force_option.force_range_s = _line.mid(colone_index + 1).trimmed().toDouble();
+            return true;
+        }
+        else if(_line.contains("force_range_e")){
+            int colone_index = _line.indexOf("=");
+            _step_info.manipulation_option.kinova_force_option.force_range_e = _line.mid(colone_index + 1).trimmed().toDouble();
+            return true;
+        }
+
         else if(_line.contains("force_threshold_x")){
             int colone_index = _line.indexOf("=");
             _step_info.manipulation_option.kinova_force_option.force_threshold_x = _line.mid(colone_index + 1).trimmed().toDouble();
@@ -1182,9 +1201,6 @@ bool CScript::InterpreteGripperValveSizeRecog(QString _line, STEP_INFO& _step_in
             return true;
         }
     }
-    else if(_line.contains("VALVE_SIZE_RECOG_FUNCTION")){
-        _step_info.function_index = MP_GRIPPER_VALVE_SIZE_RECOG;
-    }
     else if(_line.contains("VALVE_SIZE_RECOG_GET_SIZE")){
 
         int equal_index = _line.indexOf("=");
@@ -1202,6 +1218,9 @@ bool CScript::InterpreteGripperValveSizeRecog(QString _line, STEP_INFO& _step_in
             _step_info.manipulation_option.gripper_kinova_valve_recog_option.str_rotation_result_variable =
                     _line.mid(0, equal_index - 1).trimmed();
         }
+    }
+    else if(_line.contains("VALVE_SIZE_RECOG_FUNCTION")){
+        _step_info.function_index = MP_GRIPPER_VALVE_SIZE_RECOG;
     }
     else
         return false;
@@ -2762,7 +2781,7 @@ bool CScript::MissionPlayer(){
                 while(mpc_manipulation->isRunning());
 
                 int valve_size = mpc_manipulation->GetGripperKinovaValveRecogOption().valve_size;
-                double valve_rotation_angle = mpc_manipulation->GetGripperKinovaValveRecogOption().valve_rotation_angle;
+                double valve_rotation_angle = mpc_manipulation->GetValveRotationRecogResult();
 
                 QString size_variable_name = mpary_mission_script[i].step_vecor.at(j).manipulation_option.gripper_kinova_valve_recog_option.str_size_result_variable;
                 QString rotation_variable_name = mpary_mission_script[i].step_vecor.at(j).manipulation_option.gripper_kinova_valve_recog_option.str_rotation_result_variable;

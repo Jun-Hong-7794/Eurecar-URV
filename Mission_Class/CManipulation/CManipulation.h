@@ -75,6 +75,7 @@ private:
     int m_valve_size_graph_index;
 
     int m_valve_size_result;
+    double m_valve_rotation_result;
 
     bool fl_main_fnc_result;
     bool fl_kinova_force_ctrl_result;
@@ -260,6 +261,9 @@ public:
 
     int GetValveSizeRecogResult();
     void SetValveSizeRecogResult(int _result);
+
+    double GetValveRotationRecogResult();
+    void SetValveRotationRecogResult(double _result);
 
     void SetForceCheckThread(bool _data);
 

@@ -1132,11 +1132,6 @@ cv::Mat CManipulation::ValveModeling(int _valve_size, double _rotation_angle){
     // (212 / 2) * root(2) = 150 => Diagonal
     // _rotation_angle + 45 => Between (Center point to Diagonal point)vector and x-axis angle
 
-    if(_rotation_angle > 90){
-        _rotation_angle -= 180;
-        _rotation_angle *= (-1);
-    }
-
     cv::Point point_1;//Left Top
     cv::Point point_2;//Right Top
     cv::Point point_3;//Right Bot
@@ -1343,6 +1338,15 @@ int CManipulation::GetValveSizeRecogResult(){
 
 void CManipulation::SetValveSizeRecogResult(int _result){
     m_valve_size_result = _result;
+}
+
+double CManipulation::GetValveRotationRecogResult(){
+
+    return m_valve_rotation_result;
+}
+
+void CManipulation::SetValveRotationRecogResult(double _result){
+    m_valve_rotation_result = _result;
 }
 
 //----------------------------------------------------------------
@@ -2152,7 +2156,7 @@ bool CManipulation::KinovaForceCtrl(){
         return false;
 
     int step_count = 0;
-    double position_threshold = 0.03;
+    double position_threshold = 0.005;
 
     KINOVA_FORCE_CTRL_STRUCT kinova_force_ctrl = GetKinovaForceCtrlOption();
 
@@ -2177,19 +2181,21 @@ bool CManipulation::KinovaForceCtrl(){
                 return false;
 
             if(kinova_force_ctrl.force_threshold_x > 0){
-                if(cartesian_pos.Coordinates.X > kinova_force_ctrl.force_threshold_x){//Over Threshold X axis force
-                    if(GetKinovaForceCtrlOption().fl_kinova_force_ctrl_sensing_option)
-                        continue;
-                    else
+                if(mode == 1){//Bigger Than
+                    if(kinova_force_ctrl.force_threshold_x < fabs(cartesian_pos.Coordinates.X)){
                         break;
+                    }
                 }
-            }
-            if(kinova_force_ctrl.force_threshold_x < 0){
-                if(cartesian_pos.Coordinates.X < kinova_force_ctrl.force_threshold_x){//Over Threshold X axis force
-                    if(GetKinovaForceCtrlOption().fl_kinova_force_ctrl_sensing_option)
-                        continue;
-                    else
+                else if(mode == 2){//Smaller Than
+                    if(kinova_force_ctrl.force_threshold_x > fabs(cartesian_pos.Coordinates.X)){
                         break;
+                    }
+                }
+                else if(mode == 3){//Range
+                    if((kinova_force_ctrl.force_threshold_x > kinova_force_ctrl.force_range_s) &&
+                            (kinova_force_ctrl.force_threshold_x > kinova_force_ctrl.force_range_e)){//Range
+                        break;
+                    }
                 }
             }
         }
@@ -2198,20 +2204,23 @@ bool CManipulation::KinovaForceCtrl(){
 
             if(position_threshold > fabs(kinova_force_ctrl.position_limit_y - current_pos.Coordinates.Y))
                 return false;
+
             if(kinova_force_ctrl.force_threshold_y > 0){
-                if(cartesian_pos.Coordinates.Y > kinova_force_ctrl.force_threshold_y){//Over Threshold X axis force
-                    if(GetKinovaForceCtrlOption().fl_kinova_force_ctrl_sensing_option)
-                        continue;
-                    else
+                if(mode == 1){//Bigger Than
+                    if(kinova_force_ctrl.force_threshold_y < fabs(cartesian_pos.Coordinates.Y)){
                         break;
+                    }
                 }
-            }
-            if(kinova_force_ctrl.force_threshold_y < 0){
-                if(cartesian_pos.Coordinates.Y < kinova_force_ctrl.force_threshold_y){//Over Threshold X axis force
-                    if(GetKinovaForceCtrlOption().fl_kinova_force_ctrl_sensing_option)
-                        continue;
-                    else
+                else if(mode == 2){//Smaller Than
+                    if(kinova_force_ctrl.force_threshold_y > fabs(cartesian_pos.Coordinates.Y)){
                         break;
+                    }
+                }
+                else if(mode == 3){//Range
+                    if((kinova_force_ctrl.force_threshold_y > kinova_force_ctrl.force_range_s) &&
+                            (kinova_force_ctrl.force_threshold_y > kinova_force_ctrl.force_range_e)){//Range
+                        break;
+                    }
                 }
             }
 
@@ -2221,20 +2230,23 @@ bool CManipulation::KinovaForceCtrl(){
 
             if(position_threshold > fabs(kinova_force_ctrl.position_limit_z - current_pos.Coordinates.Z))
                 return false;
+
             if(kinova_force_ctrl.force_threshold_z > 0){
-                if(cartesian_pos.Coordinates.Z > kinova_force_ctrl.force_threshold_z){//Over Threshold X axis force
-                    if(GetKinovaForceCtrlOption().fl_kinova_force_ctrl_sensing_option)
-                        continue;
-                    else
+                if(mode == 1){//Bigger Than
+                    if(kinova_force_ctrl.force_threshold_z < fabs(cartesian_pos.Coordinates.Z)){
                         break;
+                    }
                 }
-            }
-            if(kinova_force_ctrl.force_threshold_z < 0){
-                if(cartesian_pos.Coordinates.Z < kinova_force_ctrl.force_threshold_z){//Over Threshold X axis force
-                    if(GetKinovaForceCtrlOption().fl_kinova_force_ctrl_sensing_option)
-                        continue;
-                    else
+                else if(mode == 2){//Smaller Than
+                    if(kinova_force_ctrl.force_threshold_z > fabs(cartesian_pos.Coordinates.Z)){
                         break;
+                    }
+                }
+                else if(mode == 3){//Range
+                    if((kinova_force_ctrl.force_threshold_z > kinova_force_ctrl.force_range_s) &&
+                            (kinova_force_ctrl.force_threshold_z > kinova_force_ctrl.force_range_e)){//Range
+                        break;
+                    }
                 }
             }
         }
@@ -2371,6 +2383,56 @@ bool CManipulation::KinovaFitToValvePose(){
     if(!mpc_kinova->IsKinovaInitialized())
         return false;
 
+    double added_x_value = 0;
+    double valve_rotation_angle = 0;
+    int valve_size = kinova_fit_to_valve_optio.valve_size;
+
+    valve_rotation_angle = kinova_fit_to_valve_optio.valve_rotation_angle + 45;
+
+    if(valve_rotation_angle == 0){
+        added_x_value = (valve_size * sqrt(2.0)) / 2;
+
+        int num_move = (int)(added_x_value / kinova_fit_to_valve_optio.move_step);
+
+        std::cout << "x_value : " << added_x_value << std::endl;
+        std::cout << "rotation angle : " << valve_rotation_angle << std::endl;
+
+        std::cout << "Angle zero. Right num_move: " << num_move << std::endl;
+
+        for(int i = 0; i < num_move; i++){
+            mpc_kinova->KinovaMoveUnitStepRi();
+            msleep(500);
+        }
+        return true;
+    }
+
+    else if(valve_rotation_angle < 90)
+        added_x_value = ((valve_size * sqrt(2.0)) / 2) * cos(RGBD_D2R * valve_rotation_angle);
+    else
+        added_x_value = (-1) * ((valve_size * sqrt(2.0)) / 2) * cos(RGBD_D2R * (180 - valve_rotation_angle));
+
+    std::cout << "x_value : " << added_x_value << std::endl;
+    std::cout << "rotation angle : " << valve_rotation_angle << std::endl;
+
+    if(added_x_value > 0){
+        int num_move = (int)(added_x_value / kinova_fit_to_valve_optio.move_step);
+        std::cout << "Left num_move: " << num_move << std::endl;
+
+        for(int i = 0; i < num_move; i++){
+            mpc_kinova->KinovaMoveUnitStepLe();
+            msleep(500);
+        }
+    }
+
+    if(added_x_value < 0){
+        int num_move = (int)(fabs(added_x_value) / kinova_fit_to_valve_optio.move_step);
+        std::cout << "Right num_move: " << num_move << std::endl;
+
+        for(int i = 0; i < num_move; i++){
+            mpc_kinova->KinovaMoveUnitStepRi();
+            msleep(500);
+        }
+    }
 
     return true;
 }
@@ -2512,22 +2574,36 @@ bool CManipulation::GripperKinovaValveSizeRecognition(){
     DataSort(vec_gripper_data);
 
     //Minimum Diff Index * (Step Rotation Angle)
-    gripper_kinova_valve_recog.rotation_angle =
+    double rotation_angle =
             (vec_gripper_data.at(0).x * (KINOVA_PI / grasp_trial) * (180 / KINOVA_PI) /*Rad to Deg*/);
+
+    //    gripper_kinova_valve_recog.rotation_angle =
+//    (vec_gripper_data.at(0).x * (KINOVA_PI / grasp_trial) * (180 / KINOVA_PI) /*Rad to Deg*/);
+
+    gripper_kinova_valve_recog.rotation_angle = rotation_angle;
 
     //Find Valve Size
     int valve_size_recog = DataAnalisys(DataSort(gripper_data_y));
 
     gripper_kinova_valve_recog.valve_size = valve_size_recog;
 
-    SetManipulationOption(gripper_kinova_valve_recog);
+    std::cout << "Rotation Angle: " << rotation_angle << std::endl;
+
+    if(rotation_angle > 90){
+        rotation_angle -= 180;
+        rotation_angle *= (-1);
+    }
 
     SetValveSizeRecogResult(valve_size_recog);
+    SetValveRotationRecogResult(rotation_angle);
 
     cv::Mat valve_model;
     valve_model = ValveModeling(gripper_kinova_valve_recog.valve_size, gripper_kinova_valve_recog.rotation_angle);
 
+    SetManipulationOption(gripper_kinova_valve_recog);
+
     std::cout << "Valve Size: " << valve_size_recog << std::endl;
+    std::cout << "Rotation Angle: " << gripper_kinova_valve_recog.rotation_angle << std::endl;
 
     return true;
 }

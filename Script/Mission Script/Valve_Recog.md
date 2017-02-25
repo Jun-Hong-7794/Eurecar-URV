@@ -32,7 +32,7 @@ LRF_V_ANGLE_CTRL_FUNCTION()
 
 LRF_K_VERTICAL_CTRL_STRUCT.mode = 2
 
-LRF_K_VERTICAL_CTRL_STRUCT.only_sensing_moving = true
+LRF_K_VERTICAL_CTRL_STRUCT.only_sensing_moving = false
 
 LRF_K_VERTICAL_CTRL_STRUCT.desired_v_dst = 240
 LRF_K_VERTICAL_CTRL_STRUCT.error = 2
@@ -123,7 +123,7 @@ LRF_K_HORIZEN_CTRL_STRUCT.mode = 2
 
 LRF_K_HORIZEN_CTRL_STRUCT.only_sensing_moving = false
 
-LRF_K_HORIZEN_CTRL_STRUCT.desired_h_dst = 345
+LRF_K_HORIZEN_CTRL_STRUCT.desired_h_dst = 335
 
 LRF_K_HORIZEN_CTRL_STRUCT.error = 2
 
@@ -158,6 +158,8 @@ A_Sleep(500)
 ## Step7: Kinova Force Control(Go Forward)
 
 KINOVA_FORCE_CTRL_STRUCT.step_count = 100
+
+KINOVA_FORCE_CTRL_STRUCT.mode = 1
 
 KINOVA_FORCE_CTRL_STRUCT.force_threshold = 0
 KINOVA_FORCE_CTRL_STRUCT.force_threshold_x = 6
@@ -216,7 +218,7 @@ A_Sleep(2000)
 
 GRIPPER_FORCE_CTRL_STRUCT.pose_1 = 2500
 GRIPPER_FORCE_CTRL_STRUCT.pose_2 = 2800
-GRIPPER_FORCE_CTRL_STRUCT.forece_threshold = 130
+GRIPPER_FORCE_CTRL_STRUCT.forece_threshold = -2
 
 GRIPPER_FORCE_CTRL_FUNCTION()
 
