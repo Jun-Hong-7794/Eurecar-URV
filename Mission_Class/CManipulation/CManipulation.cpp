@@ -25,6 +25,8 @@ CManipulation::CManipulation(CLRF *_p_mani_lrf, CCamera *_p_camera, CKinova *_p_
     m_valve_size_result = 0;
     m_valve_size_graph_index = 0;
 
+    m_valve_size = 19;
+
     m_mat_panel_model = cv::Mat::zeros(640,1280,CV_8UC3);
 
     connect(mpc_kinova, SIGNAL(SignalKinovaPosition(CartesianPosition)), this, SIGNAL(SignalKinovaPosition(CartesianPosition)));
@@ -77,9 +79,7 @@ bool CManipulation::KinovaAlignPanel(){
     if(!InitKinova())
         return false;
 
-    if(!mpc_kinova->IsKinovaInitPosition())
-        if(!KinovaInitMotion())
-            return false;
+    msleep(500);
 
     mpc_kinova->KinovaAlignToPanel();
 
@@ -305,6 +305,29 @@ bool CManipulation::GripperPresentLoad(uint16_t& _load){
     return true;
 }
 
+bool CManipulation::InitRotator(char* _device_port){
+
+    if(!mpc_gripper->InitRotator(_device_port))
+        return false;
+
+    return true;
+}
+
+bool CManipulation::CloseRotator(){
+
+    mpc_gripper->CloseRotator();
+
+    return true;
+}
+
+bool CManipulation::RotatorGoThePose(int _step){
+
+    if(!mpc_gripper->RotatorGoToThePosition(_step))
+        return false;
+
+    return true;
+}
+
 //----------------------------------------------------------------
 // Option Function
 //----------------------------------------------------------------
@@ -326,6 +349,14 @@ bool CManipulation::SelectMainFunction(int _fnc_index_){
 
         return true;
     }
+
+    if(_fnc_index_ == MANIPUL_INX_LRF_K_ANGLE_CTRL){
+        m_main_fnc_index = MANIPUL_INX_LRF_K_ANGLE_CTRL;
+        this->start();
+
+        return true;
+    }
+
     if(_fnc_index_ == MANIPUL_INX_LRF_K_VEHICLE_HORIZEN_CTRL){
         m_main_fnc_index = MANIPUL_INX_LRF_K_VEHICLE_HORIZEN_CTRL;
         this->start();
@@ -416,8 +447,36 @@ bool CManipulation::SelectMainFunction(int _fnc_index_){
         return true;
     }
 
+    else if(_fnc_index_ == MANIPUL_INX_LRF_K_VERTIVAL_CTRL){
+        m_main_fnc_index = MANIPUL_INX_LRF_K_VERTIVAL_CTRL;
+        this->start();
+
+        return true;
+    }
+
+    else if(_fnc_index_ == MANIPUL_INX_LRF_K_HORIZEN_CTRL){
+        m_main_fnc_index = MANIPUL_INX_LRF_K_HORIZEN_CTRL;
+        this->start();
+
+        return true;
+    }
+
+    else if(_fnc_index_ == MANIPUL_INX_LRF_V_ANGLE_CTRL){
+        m_main_fnc_index = MANIPUL_INX_LRF_V_ANGLE_CTRL;
+        this->start();
+
+        return true;
+    }
+
+    else if(_fnc_index_ == MANIPUL_INX_LRF_V_HORIZEN_CTRL){
+        m_main_fnc_index = MANIPUL_INX_LRF_V_HORIZEN_CTRL;
+        this->start();
+
+        return true;
+    }
+
     else if(_fnc_index_ == SENSING_LRF_PANEL_LOCALIZATION){
-        m_main_fnc_index = SENSING_LRF_PANEL_LOCALIZATION;;
+        m_main_fnc_index = SENSING_LRF_PANEL_LOCALIZATION;
         this->start();
 
         return true;
@@ -448,6 +507,122 @@ LRF_SENSING_INFO_STRUCT CManipulation::GetLRFSensingInfo(){
 
     return lrf_sensing_info_struct;
 }
+
+/*LRF Ctrl New Version*/
+//---------------Kinova---------------//
+void CManipulation::SetManipulationOption(LRF_K_V_CTRL_STRUCT _manipulation_option){
+
+    mxt_lrf_k_v_ctrl .lock();
+    {
+        mstruct_lrf_k_v_ctrl = _manipulation_option;
+    }
+    mxt_lrf_k_v_ctrl.unlock();
+}
+
+LRF_K_V_CTRL_STRUCT CManipulation::GetLRFKVerticalCtrlOption(){
+
+    LRF_K_V_CTRL_STRUCT lrf_kinova_struct;
+
+    mxt_lrf_k_v_ctrl .lock();
+    {
+        lrf_kinova_struct = mstruct_lrf_k_v_ctrl;
+    }
+    mxt_lrf_k_v_ctrl.unlock();
+
+    return lrf_kinova_struct;
+}
+
+void CManipulation::SetManipulationOption(LRF_K_H_CTRL_STRUCT _manipulation_option){
+
+    mxt_lrf_k_h_ctrl .lock();
+    {
+        mstruct_lrf_k_h_ctrl = _manipulation_option;
+    }
+    mxt_lrf_k_h_ctrl.unlock();
+}
+
+LRF_K_H_CTRL_STRUCT CManipulation::GetLRFKHorizenCtrlOption(){
+
+    LRF_K_H_CTRL_STRUCT lrf_kinova_struct;
+
+    mxt_lrf_k_h_ctrl .lock();
+    {
+       lrf_kinova_struct = mstruct_lrf_k_h_ctrl;
+    }
+    mxt_lrf_k_h_ctrl.unlock();
+
+    return lrf_kinova_struct;
+}
+
+void CManipulation::SetManipulationOption(LRF_K_A_CTRL_STRUCT _manipulation_option){
+
+    mxt_lrf_k_a_ctrl .lock();
+    {
+       mstruct_lrf_k_a_ctrl = _manipulation_option;
+    }
+    mxt_lrf_k_a_ctrl.unlock();
+}
+
+LRF_K_A_CTRL_STRUCT CManipulation::GetLRFKAngleCtrlOption(){
+
+    LRF_K_A_CTRL_STRUCT lrf_kinova_struct;
+
+    mxt_lrf_k_a_ctrl .lock();
+    {
+       lrf_kinova_struct = mstruct_lrf_k_a_ctrl;
+    }
+    mxt_lrf_k_a_ctrl.unlock();
+
+    return lrf_kinova_struct;
+}
+
+//---------------Vehicle---------------//
+void CManipulation::SetManipulationOption(LRF_V_A_CTRL_STRUCT _manipulation_option){
+
+    mxt_lrf_v_a_ctrl .lock();
+    {
+       mstruct_lrf_v_a_ctrl = _manipulation_option;
+    }
+    mxt_lrf_v_a_ctrl.unlock();
+}
+
+LRF_V_A_CTRL_STRUCT CManipulation::GetLRFVAngleCtrlOption(){
+
+    LRF_V_A_CTRL_STRUCT lrf_kinova_struct;
+
+    mxt_lrf_v_a_ctrl .lock();
+    {
+       lrf_kinova_struct = mstruct_lrf_v_a_ctrl;
+    }
+    mxt_lrf_v_a_ctrl.unlock();
+
+    return lrf_kinova_struct;
+}
+
+void CManipulation::SetManipulationOption(LRF_V_H_CTRL_STRUCT _manipulation_option){
+
+    mxt_lrf_v_h_ctrl .lock();
+    {
+        mstruct_lrf_v_h_ctrl = _manipulation_option;
+    }
+    mxt_lrf_v_h_ctrl.unlock();
+}
+
+LRF_V_H_CTRL_STRUCT CManipulation::GetLRFVHorizenCtrlOption(){
+
+    LRF_V_H_CTRL_STRUCT lrf_kinova_struct;
+
+    mxt_lrf_v_h_ctrl .lock();
+    {
+       lrf_kinova_struct = mstruct_lrf_v_h_ctrl;
+    }
+    mxt_lrf_v_h_ctrl.unlock();
+
+    return lrf_kinova_struct;
+}
+
+//////////////////////////////////////////////////////////
+
 
 void CManipulation::SetManipulationOption(LRF_KINOVA_VERTICAL_CTRL_STRUCT _lrf_kinova_option){
 
@@ -537,8 +712,6 @@ LRF_K_VEHICLE_HORIZEN_STRUCT CManipulation::GetLRFVehicleHorizenOption(){
 
     return lrf_kinova_struct;
 }
-
-
 
 
 void CManipulation::SetManipulationOption(LRF_KINOVA_WRENCH_LOCATION_STRUCT _manipulation_option){
@@ -849,8 +1022,8 @@ QVector<double> CManipulation::DataSort(QVector<double> _data){
 
 void CManipulation::DataSort(std::vector<GRIPPER_DATA>& _data){
 
-    for(int i = 0; i < _data.size(); i++){
-        for(int j = i; j < _data.size(); j++){
+    for(unsigned int i = 0; i < _data.size(); i++){
+        for(unsigned int j = i; j < _data.size(); j++){
 
             if(_data.at(i).y > _data.at(j).y){
 
@@ -928,6 +1101,11 @@ cv::Mat CManipulation::ValveModeling(int _valve_size, double _rotation_angle){
     // 212 x 212(pixel unit) = valve size on Mat
     // (212 / 2) * root(2) = 150 => Diagonal
     // _rotation_angle + 45 => Between (Center point to Diagonal point)vector and x-axis angle
+
+    if(_rotation_angle > 90){
+        _rotation_angle -= 180;
+        _rotation_angle *= (-1);
+    }
 
     cv::Point point_1;//Left Top
     cv::Point point_2;//Right Top
@@ -1107,7 +1285,7 @@ void CManipulation::PanelModeling(int _valve_size, int _virtical_dst/*mm*/, int 
 
     cv::Point point_lrf_c_to_v_panel(point_lrf_center.x, point_lrf_center.y - _virtical_dst);
     cv::Point point_lrf_c_to_theta_panel(point_lrf_center.x + tan(RGBD_D2R*_angle) * (point_lrf_center.y - _virtical_dst),
-                                         point_lrf_center.y - _virtical_dst);
+                                         (point_lrf_center.y - 50));
 
     cv::arrowedLine(mat_panel, point_lrf_center, point_lrf_c_to_v_panel, cv::Scalar(0,255,0), 3);
     cv::arrowedLine(mat_panel, point_lrf_center, point_lrf_c_to_theta_panel, cv::Scalar(0,0,255), 3);
@@ -1234,7 +1412,7 @@ bool CManipulation::LRFVehicleAngleControl(){
 
     }while(true);
 
-    mpc_vehicle->Move(UGV_move_forward, 0);
+//    mpc_vehicle->Move(UGV_move_forward, 0);
 
     return true;
 }
@@ -1254,15 +1432,15 @@ bool CManipulation::LRFVehicleHorizenControl(){
             return false;
     }
 
-    int count = 0;
+//    int count = 0;
 
     do{
         int direction = 0;
         double current_a_inlier_deg = 0;
-        double current_a_virtual_deg = 0;
+//        double current_a_virtual_deg = 0;
 
         double a_deg_boundary = 0;
-        double a_deg_virtual_boundary = 0;
+//        double a_deg_virtual_boundary = 0;
 
         double horizen_distance = 0;
 
@@ -1276,10 +1454,10 @@ bool CManipulation::LRFVehicleHorizenControl(){
                                       s_virture_deg, e_virture_deg, lrf_vehicle.s_deg, lrf_vehicle.e_deg);
 
         current_a_inlier_deg = (s_inlier_deg + e_inlier_deg) / 2;
-        current_a_virtual_deg = (s_virture_deg + e_virture_deg) / 2;;
+//        current_a_virtual_deg = (s_virture_deg + e_virture_deg) / 2;;
 
         a_deg_boundary = lrf_vehicle.desired_avr_inlier_deg - current_a_inlier_deg;
-        a_deg_virtual_boundary = lrf_vehicle.desired_avr_inlier_deg - current_a_virtual_deg;
+//        a_deg_virtual_boundary = lrf_vehicle.desired_avr_inlier_deg - current_a_virtual_deg;
 
         lrf_vehicle.horizen_distance = horizen_distance;
 
@@ -1310,7 +1488,7 @@ bool CManipulation::LRFVehicleHorizenControl(){
             mpc_vehicle->Move(direction, lrf_vehicle.velocity);
         }
 
-        count = 0;
+//        count = 0;s
 
     }while(true);
 
@@ -1498,25 +1676,337 @@ bool CManipulation::LRFLocalizationOnPanel(){
 
 bool CManipulation::LRFK_VCtrl(){
 
+    LRF_K_V_CTRL_STRUCT lrf_kinova_struct = GetLRFKVerticalCtrlOption();
+
+    if(!mpc_lrf->IsLRFOn())
+        return false;
+    if(!mpc_kinova->IsKinovaInitialized())
+        return false;
+
+    //-----------------------------------------------
+    // First of all, Big Move. And Then, Precise Move
+    //-----------------------------------------------
+    LOCALIZATION_INFO_ON_PANEL info;
+
+    mpc_rgb_d->LocalizationOnPanel(info, lrf_kinova_struct.lrf_info_struct.mode,
+                                   lrf_kinova_struct.lrf_info_struct.s_deg,lrf_kinova_struct.lrf_info_struct.e_deg,
+                                   lrf_kinova_struct.lrf_info_struct.inlier_distance);
+
+    PanelModeling(m_valve_size, info.vertical_dst, info.horizen__dst, info.angle);
+
+    int error_dst =
+            lrf_kinova_struct.desired_v_dst - info.vertical_dst;
+
+    CartesianPosition position;
+
+    double error_dst_m = ((double)error_dst) * 0.001;
+
+    if(lrf_kinova_struct.fl_only_sensing_moving){
+        mpc_kinova->Kinova_GetCartesianPosition(position);
+
+        if(error_dst > 0){
+            position.Coordinates.X -= fabs(error_dst_m);
+            mpc_kinova->KinovaDoManipulate(position, 2);
+        }
+        else{
+            position.Coordinates.X += fabs(error_dst_m);
+            mpc_kinova->KinovaDoManipulate(position, 2);
+        }
+    }
+
+    //-----------------------------------------------
+    // Precise Move
+    //-----------------------------------------------
+    msleep(1000);
+    do{
+        mpc_rgb_d->LocalizationOnPanel(info, lrf_kinova_struct.lrf_info_struct.mode,
+                                       lrf_kinova_struct.lrf_info_struct.s_deg,lrf_kinova_struct.lrf_info_struct.e_deg,
+                                       lrf_kinova_struct.lrf_info_struct.inlier_distance);
+
+        PanelModeling(m_valve_size, info.vertical_dst, info.horizen__dst, info.angle);
+
+        error_dst = lrf_kinova_struct.desired_v_dst - info.vertical_dst;
+        error_dst_m = ((double)error_dst) * 0.001;
+
+        if(lrf_kinova_struct.error > fabs(error_dst)){
+            break;
+        }
+
+        if(error_dst_m > 0){
+            mpc_kinova->KinovaMoveUnitStepBw();
+        }
+        else if(error_dst_m < 0){
+            mpc_kinova->KinovaMoveUnitStepFw();
+        }
+
+        if(lrf_kinova_struct.loop_sleep != 0)
+            msleep(lrf_kinova_struct.loop_sleep/*msec*/);
+    }
+    while(true);
+
     return true;
 }
 
 bool CManipulation::LRFK_HCtrl(){
+
+    LRF_K_H_CTRL_STRUCT lrf_kinova_struct = GetLRFKHorizenCtrlOption();
+
+    if(!mpc_lrf->IsLRFOn())
+        return false;
+    if(!mpc_kinova->IsKinovaInitialized())
+        return false;
+
+    if(lrf_kinova_struct.desired_h_location == 0){
+
+        switch(lrf_kinova_struct.wrench_hanger_index){
+
+        case 1:
+            lrf_kinova_struct.desired_h_location = lrf_kinova_struct.wrench_location_1;
+            break;
+        case 2:
+            lrf_kinova_struct.desired_h_location = lrf_kinova_struct.wrench_location_2;
+            break;
+        case 3:
+            lrf_kinova_struct.desired_h_location = lrf_kinova_struct.wrench_location_3;
+            break;
+        case 4:
+            lrf_kinova_struct.desired_h_location = lrf_kinova_struct.wrench_location_4;
+            break;
+        case 5:
+            lrf_kinova_struct.desired_h_location = lrf_kinova_struct.wrench_location_5;
+            break;
+        case 6:
+            lrf_kinova_struct.desired_h_location = lrf_kinova_struct.wrench_location_6;
+            break;
+        }
+
+        MakePanelModel(m_valve_size,lrf_kinova_struct.wrench_hanger_index);
+    }
+
+    //-----------------------------------------------
+    // First of all, Big Move. And Then, Precise Move
+    //-----------------------------------------------
+    LOCALIZATION_INFO_ON_PANEL info;
+
+    mpc_rgb_d->LocalizationOnPanel(info, lrf_kinova_struct.lrf_info_struct.mode,
+                                   lrf_kinova_struct.lrf_info_struct.s_deg,lrf_kinova_struct.lrf_info_struct.e_deg,
+                                   lrf_kinova_struct.lrf_info_struct.inlier_distance);
+
+    PanelModeling(m_valve_size, info.vertical_dst, info.horizen__dst, info.angle);
+
+    int error_dst =
+            lrf_kinova_struct.desired_h_location - info.horizen__dst;
+
+    CartesianPosition position;
+    double error_dst_m = ((double)error_dst) * 0.001;
+
+    if(lrf_kinova_struct.fl_only_sensing_moving){
+        mpc_kinova->Kinova_GetCartesianPosition(position);
+
+        if(error_dst > 0){
+            position.Coordinates.Y -= fabs(error_dst_m);
+            mpc_kinova->KinovaDoManipulate(position, 2);
+        }
+        else{
+            position.Coordinates.Y += fabs(error_dst_m);
+            mpc_kinova->KinovaDoManipulate(position, 2);
+        }
+    }
+
+    //-----------------------------------------------
+    // Precise Move
+    //-----------------------------------------------
+    do{
+        mpc_rgb_d->LocalizationOnPanel(info, lrf_kinova_struct.lrf_info_struct.mode,
+                                       lrf_kinova_struct.lrf_info_struct.s_deg,lrf_kinova_struct.lrf_info_struct.e_deg,
+                                       lrf_kinova_struct.lrf_info_struct.inlier_distance);
+
+        PanelModeling(m_valve_size, info.vertical_dst, info.horizen__dst, info.angle);
+
+        error_dst = lrf_kinova_struct.desired_h_location - info.horizen__dst;
+        error_dst_m = ((double)error_dst) * 0.001;
+
+        if(lrf_kinova_struct.error > fabs(error_dst)){
+            break;
+        }
+
+        if(error_dst_m > 0){
+            mpc_kinova->KinovaMoveUnitStepRi();
+        }
+        else if(error_dst_m < 0){
+            mpc_kinova->KinovaMoveUnitStepLe();
+        }
+
+        if(lrf_kinova_struct.loop_sleep != 0)
+            msleep(lrf_kinova_struct.loop_sleep/*msec*/);
+
+    }
+    while(true);
 
     return true;
 }
 
 bool CManipulation::LRFK_ACtrl(){
 
+    LRF_K_A_CTRL_STRUCT lrf_kinova_struct = GetLRFKAngleCtrlOption();
+
+    if(!mpc_lrf->IsLRFOn())
+        return false;
+    if(!mpc_kinova->IsKinovaInitialized())
+        return false;
+    if(!mpc_gripper->IsRotatorInit())
+        return false;
+
+    LOCALIZATION_INFO_ON_PANEL info;
+
+    mpc_rgb_d->LocalizationOnPanel(info, lrf_kinova_struct.lrf_info_struct.mode,
+                                   lrf_kinova_struct.lrf_info_struct.s_deg,lrf_kinova_struct.lrf_info_struct.e_deg,
+                                   lrf_kinova_struct.lrf_info_struct.inlier_distance);
+
+    PanelModeling(m_valve_size, info.vertical_dst, info.horizen__dst, info.angle);
+
+    do{
+        int direction = 0;
+
+        double slope_error = 0;
+
+        mpc_rgb_d->LocalizationOnPanel(info, lrf_kinova_struct.lrf_info_struct.mode,
+                                       lrf_kinova_struct.lrf_info_struct.s_deg,lrf_kinova_struct.lrf_info_struct.e_deg,
+                                       lrf_kinova_struct.lrf_info_struct.inlier_distance);
+
+        PanelModeling(m_valve_size, info.vertical_dst, info.horizen__dst, info.angle);
+
+        slope_error = lrf_kinova_struct.desired_angle - info.angle;
+
+        if(lrf_kinova_struct.error > fabs(slope_error)){
+            break;
+        }
+
+        if(slope_error < 0){//CCW (+)
+            direction += (int)((DXL_PRO_STEP_PER_DEGREE) * lrf_kinova_struct.unit_deg);
+        }
+        else{//CW (-)
+            direction -= (int)((DXL_PRO_STEP_PER_DEGREE) * lrf_kinova_struct.unit_deg);
+        }
+
+        mpc_gripper->RotatorGoToRelPosition(direction);
+        msleep(500);
+
+    }while(true);
+
     return true;
 }
 
 bool CManipulation::LRFV_ACtrl(){
 
+    LRF_V_A_CTRL_STRUCT lrf_vehicle_struct = GetLRFVAngleCtrlOption();
+
+    if(!mpc_lrf->IsLRFOn())
+        return false;
+    if(!mpc_kinova->IsKinovaInitialized())
+        return false;
+    if(!mpc_vehicle->IsConnected())
+        return false;
+
+    LOCALIZATION_INFO_ON_PANEL info;
+
+    mpc_rgb_d->LocalizationOnPanel(info, lrf_vehicle_struct.lrf_info_struct.mode,
+                                   lrf_vehicle_struct.lrf_info_struct.s_deg,lrf_vehicle_struct.lrf_info_struct.e_deg,
+                                   lrf_vehicle_struct.lrf_info_struct.inlier_distance);
+
+    PanelModeling(m_valve_size, info.vertical_dst, info.horizen__dst, info.angle);
+
+    do{
+        int direction = 0;
+
+        double slope_error = 0;
+
+        mpc_rgb_d->LocalizationOnPanel(info, lrf_vehicle_struct.lrf_info_struct.mode,
+                                       lrf_vehicle_struct.lrf_info_struct.s_deg,lrf_vehicle_struct.lrf_info_struct.e_deg,
+                                       lrf_vehicle_struct.lrf_info_struct.inlier_distance);
+
+        PanelModeling(m_valve_size, info.vertical_dst, info.horizen__dst, info.angle);
+
+        slope_error = lrf_vehicle_struct.desired_angle - info.angle;
+
+        if(lrf_vehicle_struct.error > fabs(slope_error)){
+            break;
+        }
+
+        if(slope_error < 0){
+            direction = UGV_move_left;
+        }
+        else{
+            direction = UGV_move_right;
+        }
+
+        mpc_vehicle->Move(direction, lrf_vehicle_struct.velocity);
+        msleep(500);
+
+    }while(true);
+
     return true;
 }
 
 bool CManipulation::LRFV_HCtrl(){
+
+    LRF_V_H_CTRL_STRUCT lrf_vehicle_struct = GetLRFVHorizenCtrlOption();
+
+    if(!mpc_lrf->IsLRFOn())
+        return false;
+    if(!mpc_kinova->IsKinovaInitialized())
+        return false;
+    if(!mpc_vehicle->IsConnected())
+        return false;
+
+    LOCALIZATION_INFO_ON_PANEL info;
+
+    mpc_rgb_d->LocalizationOnPanel(info, lrf_vehicle_struct.lrf_info_struct.mode,
+                                   lrf_vehicle_struct.lrf_info_struct.s_deg,lrf_vehicle_struct.lrf_info_struct.e_deg,
+                                   lrf_vehicle_struct.lrf_info_struct.inlier_distance);
+
+    PanelModeling(m_valve_size, info.vertical_dst, info.horizen__dst, info.angle);
+
+    double error_dst_m = 0;
+
+    int error_dst =
+            lrf_vehicle_struct.desired_h_location - info.horizen__dst;
+
+
+    int direction = 0;
+
+    //-----------------------------------------------
+    // Precise Move
+    //-----------------------------------------------
+    do{
+        mpc_rgb_d->LocalizationOnPanel(info, lrf_vehicle_struct.lrf_info_struct.mode,
+                                       lrf_vehicle_struct.lrf_info_struct.s_deg,lrf_vehicle_struct.lrf_info_struct.e_deg,
+                                       lrf_vehicle_struct.lrf_info_struct.inlier_distance);
+
+        PanelModeling(m_valve_size, info.vertical_dst, info.horizen__dst, info.angle);
+
+        error_dst = lrf_vehicle_struct.desired_h_location - info.horizen__dst;
+        error_dst_m = ((double)error_dst) * 0.001;
+
+        if(lrf_vehicle_struct.error > fabs(error_dst)){
+            mpc_vehicle->Move(direction, 0);
+            break;
+        }
+
+        if(error_dst_m > 0){
+            direction = UGV_move_forward;
+        }
+        else if(error_dst_m < 0){
+            direction = UGV_move_backward;
+        }
+
+        mpc_vehicle->Move(direction, lrf_vehicle_struct.velocity);
+
+        if(lrf_vehicle_struct.loop_sleep != 0)
+            msleep(lrf_vehicle_struct.loop_sleep/*msec*/);
+
+    }
+    while(true);
 
     return true;
 }
@@ -1616,15 +2106,6 @@ bool CManipulation::LRFKinovaWrenchLocationMove(){
         count = 0;
     }
     while(true);
-
-//    if(lrf_kinova_struct.wrench_hanger_index != 0){
-//        CartesianPosition position;
-//        position = mpc_kinova->KinovaGetPosition();
-
-//        position.Coordinates.Y -= (0.05) * (lrf_kinova_struct.wrench_hanger_index - 1);
-
-//        mpc_kinova->KinovaDoManipulate(position,2,20);
-//    }
 
     return true;
 }
@@ -1903,11 +2384,11 @@ bool CManipulation::GripperKinovaValveSizeRecognition(){
 
         gripper_status = mpc_gripper->GetGripperStatus();
 
-        if(gripper_status.present_pose_1 < 1750){
+        if(gripper_status.present_pose_1 < grasp_pose_1 + 5){
             fl_gripper_1_not_reach = true;
         }
 
-        if(gripper_status.present_pose_2 < 1750){
+        if(gripper_status.present_pose_2 < grasp_pose_2 + 5){
             fl_gripper_2_not_reach = true;
         }
 
@@ -1916,18 +2397,28 @@ bool CManipulation::GripperKinovaValveSizeRecognition(){
             double y_step = 0;
             double z_step = 0;
 
-            if(fl_gripper_1_not_reach && !fl_gripper_2_not_reach){
+            if(!fl_gripper_1_not_reach && fl_gripper_2_not_reach){
                 y_step = 2*VEL * cos(roll_angle);
                 z_step = 2*VEL * sin(roll_angle);
             }
-            else if(!fl_gripper_1_not_reach && fl_gripper_2_not_reach){
+            else if(fl_gripper_1_not_reach && !fl_gripper_2_not_reach){
                 y_step = (-1) * 2*VEL * cos(roll_angle);
                 z_step = (-1) * 2*VEL * sin(roll_angle);
             }
+            else if(fl_gripper_1_not_reach && fl_gripper_2_not_reach){
+                std::cout << "1 and 2 not reched to valve" << std::endl;
 
-            mpc_gripper->GripperGoToThePositionLoadCheck(release_pose_1, release_pose_2, force_threshold);
+                i -= 1;
+                if(i < 0) i = 0;
+
+                continue;
+            }
+
+            mpc_gripper->GripperGoToThePositionLoadCheck(release_pose_1, release_pose_2, -2);
+            msleep(300);
 
             mpc_kinova->KinovaMoveUnitStep(0, y_step, z_step);
+            msleep(500);
 
             current_pose = mpc_kinova->KinovaGetPosition();
             mpc_kinova->KinovaDoManipulate(current_pose, 2);
@@ -1940,6 +2431,7 @@ bool CManipulation::GripperKinovaValveSizeRecognition(){
 
             continue;
         }
+
 
         diff_pose_1 = fabs(gripper_status.present_pose_1 - grasp_pose_1);
         diff_pose_2 = fabs(gripper_status.present_pose_2 - grasp_pose_2);
@@ -1959,8 +2451,14 @@ bool CManipulation::GripperKinovaValveSizeRecognition(){
         mpc_gripper->GripperGoToThePositionLoadCheck(release_pose_1, release_pose_2, force_threshold);
 
         // KINOVA_PI / grasp_trial => if(i == grasp_trial) => Half Rotation
-        roll_angle += (KINOVA_PI / grasp_trial);
-        current_pose.Coordinates.ThetaZ += (KINOVA_PI / grasp_trial);
+        if((grasp_trial/2) > (i) ){
+            roll_angle += (KINOVA_PI / grasp_trial);
+            current_pose.Coordinates.ThetaZ += (KINOVA_PI / grasp_trial);
+        }
+        else{
+            roll_angle -= (KINOVA_PI / grasp_trial);
+            current_pose.Coordinates.ThetaZ -= (KINOVA_PI / grasp_trial);
+        }
         mpc_kinova->KinovaDoManipulate(current_pose, 3);
     };
 
@@ -1969,6 +2467,9 @@ bool CManipulation::GripperKinovaValveSizeRecognition(){
     mpc_gripper->GripperGoToThePositionLoadCheck(2300, 2300, -2);
 
     msleep(1000);
+
+    if(vec_gripper_data.size() == 0)
+        return false;
 
     //Find Min Diff & Valve Rotation Angle
     DataSort(vec_gripper_data);
@@ -2049,7 +2550,7 @@ bool CManipulation::WrenchRecognition(){
 
     int loop_count = 0;
 
-    while(bb_info.size() != wrench_recognition.num_of_wrench)
+    while(bb_info.size() != (unsigned int)wrench_recognition.num_of_wrench)
     {
         if(loop_count > wrench_recognition.loop_count){
             wrench_recognition.wrench_location = -1;
@@ -2135,6 +2636,22 @@ void CManipulation::run(){
 
     switch (m_main_fnc_index){
 
+    /*New LRF Kinova Control*/
+    case MANIPUL_INX_LRF_K_VERTIVAL_CTRL:
+        LRFK_VCtrl();
+        break;
+    case MANIPUL_INX_LRF_K_HORIZEN_CTRL:
+        LRFK_HCtrl();
+        break;
+    case MANIPUL_INX_LRF_K_ANGLE_CTRL:
+        LRFK_ACtrl();
+        break;
+
+    case MANIPUL_INX_LRF_V_HORIZEN_CTRL:
+        LRFV_HCtrl();
+        break;
+
+    /*Old LRF Kinova Control*/
     case MANIPUL_INX_LRF_KINOVA_VERTIVAL_CTRL:
         LRFKinovaVerticalControl();
         break;

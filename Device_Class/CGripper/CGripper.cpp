@@ -4,6 +4,8 @@ CGripper::CGripper()
 {
     fl_init_dynamixel = false;
     fl_torque = false;
+
+    fl_port_status = false;
 }
 
 CGripper::~CGripper()
@@ -20,7 +22,7 @@ bool CGripper::InitDynamixel(char* _device_port){
     mtx_dmx_handle.lock();
     {
         mp_portHandler = dynamixel::PortHandler::getPortHandler(_device_port);
-        mp_packetHandler = dynamixel::PacketHandler::getPacketHandler(PROTOCOL_VERSION);
+        mp_packetHandler = dynamixel::PacketHandler::getPacketHandler(PROTOCOL_MX_VERSION);
 
         // Open port
         if (mp_portHandler->openPort()){
@@ -89,6 +91,7 @@ void CGripper::CloseDynamixel(){
     mtx_dmx_handle.unlock();
 
     fl_init_dynamixel = false;
+    fl_port_status = false;
     printf("Close the Port!\n");
 
 }
@@ -386,6 +389,10 @@ uint16_t CGripper::DynamixelPresentLoad(){
 //
 //----------------------------------------------------------------
 
+bool CGripper::IsPortOpend(){
+    return fl_port_status;
+}
+
 bool CGripper::IsGripperInit(){
     if(!fl_init_gripper) return false;
     return true;
@@ -397,13 +404,59 @@ bool CGripper::IsGripperTorqueOn(){
     return true;
 }
 
-bool CGripper::InitGripper(char* _device_port){
+bool CGripper::IsRotatorInit(){
+
+    return fl_init_rotator;
+}
+
+bool CGripper::IsRotatorTorqueOn(){
+
+    return fl_torque_rotator;
+}
+
+
+bool CGripper::RotatorPortInit(char* _device_port){
+
+    mp_rotator_portHandler = dynamixel::PortHandler::getPortHandler(_device_port);
+    mp_rotator_packetHandler = dynamixel::PacketHandler::getPacketHandler(PROTOCOL_PR_VERSION);
+
+    mp_pro_groupBulkRead_pos = new dynamixel::GroupBulkRead(mp_rotator_portHandler, mp_rotator_packetHandler);
+    mp_pro_groupBulkRead_tor = new dynamixel::GroupBulkRead(mp_rotator_portHandler, mp_rotator_packetHandler);
+
+    // Open port
+    if (mp_rotator_portHandler->openPort()){
+        printf("Succeeded to open the port!\n");
+    }
+    else{
+        printf("Failed to open the port!\n");
+        printf("Press any key to terminate...\n");
+        getchar();
+        return false;
+    }
+
+    // Set port baudrate
+    if (mp_rotator_portHandler->setBaudRate(BAUDRATE)){
+        printf("Succeeded to change the baudrate!\n");
+    }
+    else{
+        printf("Failed to change the baudrate!\n");
+        printf("Press any key to terminate...\n");
+        getchar();
+        return false;
+    }
+
+    fl_port_status = true;
+
+    return true;
+}
+
+bool CGripper::GripperPortInit(char* _device_port){
 
     mp_gripper_portHandler = dynamixel::PortHandler::getPortHandler(_device_port);
-    mp_gripper_packetHandler = dynamixel::PacketHandler::getPacketHandler(PROTOCOL_VERSION);
+    mp_gripper_packetHandler = dynamixel::PacketHandler::getPacketHandler(PROTOCOL_MX_VERSION);
 
-    mp_groupBulkRead_pos = new dynamixel::GroupBulkRead(mp_gripper_portHandler, mp_gripper_packetHandler);
-    mp_groupBulkRead_tor = new dynamixel::GroupBulkRead(mp_gripper_portHandler, mp_gripper_packetHandler);
+    mp_mx_groupBulkRead_pos = new dynamixel::GroupBulkRead(mp_gripper_portHandler, mp_gripper_packetHandler);
+    mp_mx_groupBulkRead_tor = new dynamixel::GroupBulkRead(mp_gripper_portHandler, mp_gripper_packetHandler);
 
     // Open port
     if (mp_gripper_portHandler->openPort()){
@@ -427,42 +480,237 @@ bool CGripper::InitGripper(char* _device_port){
         return false;
     }
 
+    fl_port_status = true;
+
+    return true;
+}
+
+//------------------------------------------------
+//
+// Rotator /*Dynamixel Pro*/
+//
+//------------------------------------------------
+
+bool CGripper::InitRotator(char* _device_port){
+
+    if(fl_init_rotator)
+        return true;
+
+    if(!RotatorPortInit(_device_port))
+        return false;
+
+    dxl_goal_position = DXL_PR_INITIAL_POSITION_VALUE;
+
+
+    //ID - 3 Torque ON /*Dynamixel Pro*/
+    RotatorTorque(true);
+
+    //ID - 3 Present Poisition Setting
+    dxl_addparam_result = mp_pro_groupBulkRead_pos->addParam(DXL3_ID, ADDR_PR_PRESENT_POSITION, LEN_PR_PRESENT_POSITION);
+    if(dxl_addparam_result != true)
+    {
+        fprintf(stderr, "[ID:%03d] groupBulkRead DXL3 present position addparam failed\n", DXL3_ID);
+        return false;
+    }
+
+    //ID - 3 Goal Speed Setting
+    dxl_comm_result = mp_rotator_packetHandler->write4ByteTxRx(mp_rotator_portHandler, DXL3_ID, ADDR_PR_GOAL_SPEED, DXL_PR_GOAL_SPEED, &dxl_error);
+
+    if(dxl_comm_result != COMM_SUCCESS)
+        mp_rotator_packetHandler->printTxRxResult(dxl_comm_result);
+
+    else if(dxl_error != 0)
+        mp_rotator_packetHandler->printRxPacketError(dxl_error);
+
+    //ID - 3 Goal Positoin Setting
+    dxl_comm_result = mp_rotator_packetHandler->write4ByteTxRx(mp_rotator_portHandler, DXL3_ID, ADDR_PR_GOAL_POSITION, dxl_goal_position/*+DXL1_OFFSET*/, &dxl_error);
+
+    if(dxl_comm_result != COMM_SUCCESS)
+        mp_rotator_packetHandler->printTxRxResult(dxl_comm_result);
+    else if(dxl_error != 0)
+        mp_rotator_packetHandler->printRxPacketError(dxl_error);
+
+    dxl_comm_result = mp_pro_groupBulkRead_pos->txRxPacket();
+
+    //ID - 3 Connection Check
+    if(dxl_comm_result != COMM_SUCCESS)
+        mp_rotator_packetHandler->printTxRxResult(dxl_comm_result);
+
+    dxl_getdata_result = mp_pro_groupBulkRead_pos->isAvailable(DXL3_ID, ADDR_PR_PRESENT_POSITION, LEN_PR_PRESENT_POSITION);
+
+    if(!dxl_getdata_result)
+        fprintf(stderr, "[ID:%03d] groupBulkRead DXL3 present position getdata failed", DXL3_ID);
+
+    //ID - 3 Read Position
+    dxl3_present_position = mp_pro_groupBulkRead_pos->getData(DXL3_ID, ADDR_PR_PRESENT_POSITION, LEN_PR_PRESENT_POSITION);
+
+    fl_init_rotator = true;
+
+    return true;
+}
+
+void CGripper::CloseRotator(){
+
+    GripperTorque(false);
+    RotatorTorque(false);
+
+    mp_gripper_portHandler->closePort();
+
+    fl_init_gripper= false;
+    fl_port_status = false;
+
+    fl_init_rotator = false;
+    fl_torque_rotator = false;
+}
+
+bool CGripper::RotatorTorque(bool _onoff){
+
+    if(_onoff){
+        if(fl_torque_rotator) return false;
+
+        //ID - 3 Torque Setting
+        dxl_comm_result = mp_rotator_packetHandler->write1ByteTxRx(mp_rotator_portHandler, DXL3_ID, ADDR_PR_TORQUE_ENABLE, TORQUE_ENABLE, &dxl_error);
+
+        if(dxl_comm_result != COMM_SUCCESS)
+            mp_rotator_packetHandler->printTxRxResult(dxl_comm_result);
+        else if(dxl_error != 0)
+            mp_rotator_packetHandler->printTxRxResult(dxl_error);
+        else
+            printf("Dynamixel#%d has been successfully connected \n", DXL3_ID);
+
+        fl_torque_rotator = true;
+    }
+    else{
+        if(!fl_torque_rotator) return false;
+
+        //ID - 3 Torque Setting
+        dxl_comm_result = mp_rotator_packetHandler->write1ByteTxRx(mp_rotator_portHandler, DXL3_ID, ADDR_PR_TORQUE_ENABLE, TORQUE_DISABLE, &dxl_error);
+        if(dxl_comm_result != COMM_SUCCESS)
+            mp_rotator_packetHandler->printTxRxResult(dxl_comm_result);
+        else if(dxl_error != 0)
+            mp_rotator_packetHandler->printTxRxResult(dxl_error);
+        else
+            printf("Dynamixel#%d has been successfully connected \n", DXL3_ID);
+
+        fl_torque_rotator = false;
+    }
+
+    return true;
+}
+
+bool CGripper::RotatorGoToThePosition(int _step){ // Go to The Position
+
+    int is_moving = 0;
+
+    if(!fl_init_rotator)
+        return false;
+
+    m_dxl_pro_goal_position = _step;
+    dxl_comm_result = mp_rotator_packetHandler->write4ByteTxRx(mp_rotator_portHandler, DXL3_ID, ADDR_PR_GOAL_POSITION, m_dxl_pro_goal_position/*+DXL1_OFFSET*/, &dxl_error);
+
+    if(dxl_comm_result != COMM_SUCCESS)
+        mp_rotator_packetHandler->printTxRxResult(dxl_comm_result);
+
+    else if(dxl_error != 0)
+        mp_rotator_packetHandler->printRxPacketError(dxl_error);
+
+    do{
+        is_moving = mp_pro_groupBulkRead_pos->getData(DXL3_ID, ADDR_PR_IS_MOVING, LEN_PR_IS_MOVING);
+
+    }while(is_moving > 0);
+
+
+    return true;
+}
+
+bool CGripper::RotatorGoToRelPosition(int _step){ // Go to Relative Position From Present Position
+
+    int is_moving = 0;
+    dxl3_present_position = mp_pro_groupBulkRead_pos->getData(DXL3_ID, ADDR_PR_PRESENT_POSITION, LEN_PR_PRESENT_POSITION);
+
+    dxl3_present_position = dxl3_present_position + _step;
+
+    dxl_comm_result = mp_rotator_packetHandler->write4ByteTxRx(mp_rotator_portHandler, DXL3_ID, ADDR_PR_GOAL_POSITION, dxl3_present_position/*+DXL1_OFFSET*/, &dxl_error);
+
+    if(dxl_comm_result != COMM_SUCCESS)
+        mp_rotator_packetHandler->printTxRxResult(dxl_comm_result);
+
+    else if(dxl_error != 0)
+        mp_rotator_packetHandler->printRxPacketError(dxl_error);
+
+    do{
+        is_moving = mp_pro_groupBulkRead_pos->getData(DXL3_ID, ADDR_PR_IS_MOVING, LEN_PR_IS_MOVING);
+
+    }while(is_moving > 0);
+
+    msleep(300);
+
+    return true;
+}
+
+//------------------------------------------------
+//
+// Gripper /*Dynamixel MX28 & 64*/
+//
+//------------------------------------------------
+
+bool CGripper::InitGripper(char* _device_port){
+
     fl_torque_gripper = false;
+
+    if(!GripperPortInit(_device_port))
+        return false;
+
+    //ID - 1,2 Torque ON
     GripperTorque(true);
+
     dxl_goal_position = DXL_INITIAL_POSITION_VALUE;
 
-    dxl_addparam_result = mp_groupBulkRead_pos->addParam(DXL1_ID, ADDR_MX_PRESENT_POSITION, LEN_MX_PRESENT_POSITION);
+    //ID - 1 Present Poisition Setting
+    dxl_addparam_result = mp_mx_groupBulkRead_pos->addParam(DXL1_ID, ADDR_MX_PRESENT_POSITION, LEN_MX_PRESENT_POSITION);
     if(dxl_addparam_result != true)
     {
         fprintf(stderr, "[ID:%03d] groupBulkRead DXL1 present position addparam failed\n", DXL1_ID);
         return false;
     }
-    dxl_addparam_result = mp_groupBulkRead_pos->addParam(DXL2_ID, ADDR_MX_PRESENT_POSITION, LEN_MX_PRESENT_POSITION);
+    //ID - 2 Present Poisition Setting
+    dxl_addparam_result = mp_mx_groupBulkRead_pos->addParam(DXL2_ID, ADDR_MX_PRESENT_POSITION, LEN_MX_PRESENT_POSITION);
     if(dxl_addparam_result != true)
     {
         fprintf(stderr, "[ID:%03d] groupBulkRead DXL2 present position addparam failed\n", DXL2_ID);
         return false;
     }
-    dxl_addparam_result = mp_groupBulkRead_tor->addParam(DXL1_ID, ADDR_MX_PRESENT_LOAD, LEN_MX_PRESENT_LOAD);
+
+    //ID - 1 Present Load Setting
+    dxl_addparam_result = mp_mx_groupBulkRead_tor->addParam(DXL1_ID, ADDR_MX_PRESENT_LOAD, LEN_MX_PRESENT_LOAD);
     if(dxl_addparam_result != true)
     {
         fprintf(stderr, "[ID:%03d] groupBulkRead DXL1 present load addparam failed\n", DXL1_ID);
         return false;
     }
-    dxl_addparam_result = mp_groupBulkRead_tor->addParam(DXL2_ID, ADDR_MX_PRESENT_LOAD, LEN_MX_PRESENT_LOAD);
+    //ID - 2 Present Load Setting
+    dxl_addparam_result = mp_mx_groupBulkRead_tor->addParam(DXL2_ID, ADDR_MX_PRESENT_LOAD, LEN_MX_PRESENT_LOAD);
     if(dxl_addparam_result != true)
     {
         fprintf(stderr, "[ID:%03d] groupBulkRead DXL2 present load addparam failed\n", DXL2_ID);
         return false;
     }
 
+    //ID - 1 Goal Speed Setting
     dxl_comm_result = mp_gripper_packetHandler->write2ByteTxRx(mp_gripper_portHandler, DXL1_ID, ADDR_MX_GOAL_SPEED, DXL_GOAL_VELOCITY_VALUE, &dxl_error);
+
     if(dxl_comm_result != COMM_SUCCESS) mp_gripper_packetHandler->printTxRxResult(dxl_comm_result);
-    else if(dxl_error != 0) mp_gripper_packetHandler->printRxPacketError(dxl_error);
-    dxl_comm_result = mp_gripper_packetHandler->write2ByteTxRx(mp_gripper_portHandler, DXL2_ID, ADDR_MX_GOAL_SPEED, DXL_GOAL_VELOCITY_VALUE, &dxl_error);
-    if(dxl_comm_result != COMM_SUCCESS) mp_gripper_packetHandler->printTxRxResult(dxl_comm_result);
+
     else if(dxl_error != 0) mp_gripper_packetHandler->printRxPacketError(dxl_error);
 
+    //ID - 2 Goal Speed Setting
+    dxl_comm_result = mp_gripper_packetHandler->write2ByteTxRx(mp_gripper_portHandler, DXL2_ID, ADDR_MX_GOAL_SPEED, DXL_GOAL_VELOCITY_VALUE, &dxl_error);
+
+    if(dxl_comm_result != COMM_SUCCESS) mp_gripper_packetHandler->printTxRxResult(dxl_comm_result);
+
+    else if(dxl_error != 0) mp_gripper_packetHandler->printRxPacketError(dxl_error);
+
+    //ID - 1 Goal Positoin Setting
     dxl_comm_result = mp_gripper_packetHandler->write2ByteTxRx(mp_gripper_portHandler, DXL1_ID, ADDR_MX_GOAL_POSITION, dxl_goal_position/*+DXL1_OFFSET*/, &dxl_error);
 
     if(dxl_comm_result != COMM_SUCCESS)
@@ -470,6 +718,7 @@ bool CGripper::InitGripper(char* _device_port){
     else if(dxl_error != 0)
         mp_gripper_packetHandler->printRxPacketError(dxl_error);
 
+    //ID - 2 Goal Positoin Setting
     dxl_comm_result = mp_gripper_packetHandler->write2ByteTxRx(mp_gripper_portHandler, DXL2_ID, ADDR_MX_GOAL_POSITION, dxl_goal_position, &dxl_error);
 
     if(dxl_comm_result != COMM_SUCCESS)
@@ -477,84 +726,124 @@ bool CGripper::InitGripper(char* _device_port){
     else if(dxl_error != 0)
         mp_gripper_packetHandler->printRxPacketError(dxl_error);
 
+
     fl_init_gripper = true;
 
-    dxl_comm_result = mp_groupBulkRead_pos->txRxPacket();
+    dxl_comm_result = mp_mx_groupBulkRead_pos->txRxPacket();
+
+    //ID - 1 Connection Check
     if(dxl_comm_result != COMM_SUCCESS) mp_gripper_packetHandler->printTxRxResult(dxl_comm_result);
-    dxl_getdata_result = mp_groupBulkRead_pos->isAvailable(DXL1_ID, ADDR_MX_PRESENT_POSITION, LEN_MX_PRESENT_POSITION);
-    if(!dxl_getdata_result) fprintf(stderr, "[ID:%03d] groupBulkRead DXL1 present position getdata failed", DXL1_ID);
-    dxl_getdata_result = mp_groupBulkRead_pos->isAvailable(DXL2_ID, ADDR_MX_PRESENT_POSITION, LEN_MX_PRESENT_POSITION);
+    dxl_getdata_result = mp_mx_groupBulkRead_pos->isAvailable(DXL1_ID, ADDR_MX_PRESENT_POSITION, LEN_MX_PRESENT_POSITION);
+
     if(!dxl_getdata_result) fprintf(stderr, "[ID:%03d] groupBulkRead DXL2 present position getdata failed", DXL2_ID);
-    dxl1_present_position = mp_groupBulkRead_pos->getData(DXL1_ID, ADDR_MX_PRESENT_POSITION, LEN_MX_PRESENT_POSITION);
-    dxl2_present_position = mp_groupBulkRead_pos->getData(DXL2_ID, ADDR_MX_PRESENT_POSITION, LEN_MX_PRESENT_POSITION);
+
+    //ID - 2 Connection Check
+    if(!dxl_getdata_result) fprintf(stderr, "[ID:%03d] groupBulkRead DXL1 present position getdata failed", DXL1_ID);
+    dxl_getdata_result = mp_mx_groupBulkRead_pos->isAvailable(DXL2_ID, ADDR_MX_PRESENT_POSITION, LEN_MX_PRESENT_POSITION);
+
+    if(!dxl_getdata_result) fprintf(stderr, "[ID:%03d] groupBulkRead DXL2 present position getdata failed", DXL2_ID);
+
+    //ID - 1 Read Position
+    dxl1_present_position = mp_mx_groupBulkRead_pos->getData(DXL1_ID, ADDR_MX_PRESENT_POSITION, LEN_MX_PRESENT_POSITION);
+    //ID - 2 Read Position
+    dxl2_present_position = mp_mx_groupBulkRead_pos->getData(DXL2_ID, ADDR_MX_PRESENT_POSITION, LEN_MX_PRESENT_POSITION);
 
     return true;
 }
 
 void CGripper::CloseGripper(){
+
     GripperTorque(false);
+    RotatorTorque(false);
+
     mp_gripper_portHandler->closePort();
+
     fl_init_gripper= false;
+    fl_port_status = false;
+
+    fl_init_rotator = false;
+    fl_torque_rotator = false;
 }
 
 bool CGripper::GripperTorque(bool _onoff){
 
     if(_onoff){
         if(fl_torque_gripper) return false;
+
+        //ID - 1 Torque Setting
         dxl_comm_result = mp_gripper_packetHandler->write1ByteTxRx(mp_gripper_portHandler, DXL1_ID, ADDR_MX_TORQUE_ENABLE, TORQUE_ENABLE, &dxl_error);
-        if(dxl_comm_result != COMM_SUCCESS) mp_gripper_packetHandler->printTxRxResult(dxl_comm_result);
-        else if(dxl_error != 0) mp_gripper_packetHandler->printTxRxResult(dxl_error);
-        else printf("Dynamixel#%d has been successfully connected \n", DXL1_ID);
+
+        if(dxl_comm_result != COMM_SUCCESS)
+            mp_gripper_packetHandler->printTxRxResult(dxl_comm_result);
+        else if(dxl_error != 0)
+            mp_gripper_packetHandler->printTxRxResult(dxl_error);
+        else
+            printf("Dynamixel#%d has been successfully connected \n", DXL1_ID);
+
+        //ID - 2 Torque Setting
         dxl_comm_result = mp_gripper_packetHandler->write1ByteTxRx(mp_gripper_portHandler, DXL2_ID, ADDR_MX_TORQUE_ENABLE, TORQUE_ENABLE, &dxl_error);
-        if(dxl_comm_result != COMM_SUCCESS) mp_gripper_packetHandler->printTxRxResult(dxl_comm_result);
-        else if(dxl_error != 0) mp_gripper_packetHandler->printTxRxResult(dxl_error);
-        else printf("Dynamixel#%d has been successfully connected \n", DXL2_ID);
+
+        if(dxl_comm_result != COMM_SUCCESS)
+            mp_gripper_packetHandler->printTxRxResult(dxl_comm_result);
+        else if(dxl_error != 0)
+            mp_gripper_packetHandler->printTxRxResult(dxl_error);
+        else
+            printf("Dynamixel#%d has been successfully connected \n", DXL2_ID);
+
         fl_torque_gripper = true;
     }
     else{
         if(!fl_torque_gripper) return false;
+
+        //ID - 1 Torque Setting
         dxl_comm_result = mp_gripper_packetHandler->write1ByteTxRx(mp_gripper_portHandler, DXL1_ID, ADDR_MX_TORQUE_ENABLE, TORQUE_DISABLE, &dxl_error);
-        if(dxl_comm_result != COMM_SUCCESS) mp_gripper_packetHandler->printTxRxResult(dxl_comm_result);
-        else if(dxl_error != 0) mp_gripper_packetHandler->printTxRxResult(dxl_error);
+        if(dxl_comm_result != COMM_SUCCESS)
+            mp_gripper_packetHandler->printTxRxResult(dxl_comm_result);
+        else if(dxl_error != 0)
+            mp_gripper_packetHandler->printTxRxResult(dxl_error);
+
+        //ID - 2 Torque Setting
         dxl_comm_result = mp_gripper_packetHandler->write1ByteTxRx(mp_gripper_portHandler, DXL2_ID, ADDR_MX_TORQUE_ENABLE, TORQUE_DISABLE, &dxl_error);
-        if(dxl_comm_result != COMM_SUCCESS) mp_gripper_packetHandler->printTxRxResult(dxl_comm_result);
-        else if(dxl_error != 0) mp_gripper_packetHandler->printTxRxResult(dxl_error);
+        if(dxl_comm_result != COMM_SUCCESS)
+            mp_gripper_packetHandler->printTxRxResult(dxl_comm_result);
+        else if(dxl_error != 0)
+            mp_gripper_packetHandler->printTxRxResult(dxl_error);
+
         fl_torque_gripper = false;
     }
+
     return true;
 }
 
 bool CGripper::GripperGoToThePosition(int _degree){ // Go to The Position
 
-    dynamixel::GroupBulkRead groupBulkRead_pos(mp_gripper_portHandler, mp_gripper_packetHandler);
-    dynamixel::GroupBulkRead groupBulkRead_tor(mp_gripper_portHandler, mp_gripper_packetHandler);
-
-    dxl_comm_result = mp_groupBulkRead_pos->txRxPacket();
+    dxl_comm_result = mp_mx_groupBulkRead_pos->txRxPacket();
 
     if(dxl_comm_result != COMM_SUCCESS)
         mp_gripper_packetHandler->printTxRxResult(dxl_comm_result);
 
-    dxl_getdata_result = mp_groupBulkRead_pos->isAvailable(DXL1_ID, ADDR_MX_PRESENT_POSITION, LEN_MX_PRESENT_POSITION);
+    dxl_getdata_result = mp_mx_groupBulkRead_pos->isAvailable(DXL1_ID, ADDR_MX_PRESENT_POSITION, LEN_MX_PRESENT_POSITION);
 
     if(!dxl_getdata_result)
         fprintf(stderr, "[ID:%03d] groupBulkRead DXL1 present position getdata failed", DXL1_ID);
 
-    dxl_getdata_result = mp_groupBulkRead_pos->isAvailable(DXL2_ID, ADDR_MX_PRESENT_POSITION, LEN_MX_PRESENT_POSITION);
+    dxl_getdata_result = mp_mx_groupBulkRead_pos->isAvailable(DXL2_ID, ADDR_MX_PRESENT_POSITION, LEN_MX_PRESENT_POSITION);
 
     if(!dxl_getdata_result)
         fprintf(stderr, "[ID:%03d] groupBulkRead DXL2 present position getdata failed", DXL2_ID);
 
-    dxl1_present_position = mp_groupBulkRead_pos->getData(DXL1_ID, ADDR_MX_PRESENT_POSITION, LEN_MX_PRESENT_POSITION);
+    dxl1_present_position = mp_mx_groupBulkRead_pos->getData(DXL1_ID, ADDR_MX_PRESENT_POSITION, LEN_MX_PRESENT_POSITION);
 //    dxl1_present_position -= DXL1_OFFSET;
-    dxl2_present_position = mp_groupBulkRead_pos->getData(DXL2_ID, ADDR_MX_PRESENT_POSITION, LEN_MX_PRESENT_POSITION);
+    dxl2_present_position = mp_mx_groupBulkRead_pos->getData(DXL2_ID, ADDR_MX_PRESENT_POSITION, LEN_MX_PRESENT_POSITION);
 
     int i = 0;
 //    int previous = 0;
     int cnt = 0;
 
     if(_degree >= (dxl1_present_position+dxl2_present_position)/2){// When Release Gripper....
+
         dxl_goal_position = _degree;
-        dxl_comm_result = mp_gripper_packetHandler->write2ByteTxRx(mp_gripper_portHandler, DXL1_ID, ADDR_MX_GOAL_POSITION, dxl_goal_position+DXL1_OFFSET, &dxl_error);
+        dxl_comm_result = mp_gripper_packetHandler->write2ByteTxRx(mp_gripper_portHandler, DXL1_ID, ADDR_MX_GOAL_POSITION, dxl_goal_position/*+DXL1_OFFSET*/, &dxl_error);
 
         if(dxl_comm_result != COMM_SUCCESS)
             mp_gripper_packetHandler->printTxRxResult(dxl_comm_result);
@@ -594,42 +883,42 @@ bool CGripper::GripperGoToThePosition(int _degree){ // Go to The Position
             else if(dxl_error != 0)
                 mp_gripper_packetHandler->printRxPacketError(dxl_error);
 
-            dxl_comm_result = mp_groupBulkRead_pos->txRxPacket();
+            dxl_comm_result = mp_mx_groupBulkRead_pos->txRxPacket();
 
             if(dxl_comm_result != COMM_SUCCESS)
                 mp_gripper_packetHandler->printTxRxResult(dxl_comm_result);
 
-            dxl_getdata_result = mp_groupBulkRead_pos->isAvailable(DXL1_ID, ADDR_MX_PRESENT_POSITION, LEN_MX_PRESENT_POSITION);
+            dxl_getdata_result = mp_mx_groupBulkRead_pos->isAvailable(DXL1_ID, ADDR_MX_PRESENT_POSITION, LEN_MX_PRESENT_POSITION);
 
             if(!dxl_getdata_result)
                 fprintf(stderr, "[ID:%03d] groupBulkRead DXL1 present position getdata failed", DXL1_ID);
 
-            dxl_getdata_result = mp_groupBulkRead_pos->isAvailable(DXL2_ID, ADDR_MX_PRESENT_POSITION, LEN_MX_PRESENT_POSITION);
+            dxl_getdata_result = mp_mx_groupBulkRead_pos->isAvailable(DXL2_ID, ADDR_MX_PRESENT_POSITION, LEN_MX_PRESENT_POSITION);
 
             if(!dxl_getdata_result)
                 fprintf(stderr, "[ID:%03d] groupBulkRead DXL2 present position getdata failed", DXL2_ID);
 
-            dxl1_present_position = mp_groupBulkRead_pos->getData(DXL1_ID, ADDR_MX_PRESENT_POSITION, LEN_MX_PRESENT_POSITION);
+            dxl1_present_position = mp_mx_groupBulkRead_pos->getData(DXL1_ID, ADDR_MX_PRESENT_POSITION, LEN_MX_PRESENT_POSITION);
 //            dxl1_present_position -= DXL1_OFFSET;
-            dxl2_present_position = mp_groupBulkRead_pos->getData(DXL2_ID, ADDR_MX_PRESENT_POSITION, LEN_MX_PRESENT_POSITION);
+            dxl2_present_position = mp_mx_groupBulkRead_pos->getData(DXL2_ID, ADDR_MX_PRESENT_POSITION, LEN_MX_PRESENT_POSITION);
 
-            dxl_comm_result = mp_groupBulkRead_tor->txRxPacket();
+            dxl_comm_result = mp_mx_groupBulkRead_tor->txRxPacket();
 
             if(dxl_comm_result != COMM_SUCCESS)
                 mp_gripper_packetHandler->printTxRxResult(dxl_comm_result);
 
-            dxl_getdata_result = mp_groupBulkRead_tor->isAvailable(DXL1_ID, ADDR_MX_PRESENT_LOAD, LEN_MX_PRESENT_LOAD);
+            dxl_getdata_result = mp_mx_groupBulkRead_tor->isAvailable(DXL1_ID, ADDR_MX_PRESENT_LOAD, LEN_MX_PRESENT_LOAD);
 
             if(!dxl_getdata_result)
                 fprintf(stderr, "[ID:%03d] groupBulkRead DXL1 present load getdata failed", DXL1_ID);
 
-            dxl_getdata_result = mp_groupBulkRead_tor->isAvailable(DXL2_ID, ADDR_MX_PRESENT_LOAD, LEN_MX_PRESENT_LOAD);
+            dxl_getdata_result = mp_mx_groupBulkRead_tor->isAvailable(DXL2_ID, ADDR_MX_PRESENT_LOAD, LEN_MX_PRESENT_LOAD);
 
             if(!dxl_getdata_result)
                 fprintf(stderr, "[ID:%03d] groupBulkRead DXL2 present load getdata failed", DXL2_ID);
 
-            dxl1_present_load= mp_groupBulkRead_tor->getData(DXL1_ID, ADDR_MX_PRESENT_LOAD, LEN_MX_PRESENT_LOAD);
-            dxl2_present_load= mp_groupBulkRead_tor->getData(DXL2_ID, ADDR_MX_PRESENT_LOAD, LEN_MX_PRESENT_LOAD);
+            dxl1_present_load= mp_mx_groupBulkRead_tor->getData(DXL1_ID, ADDR_MX_PRESENT_LOAD, LEN_MX_PRESENT_LOAD);
+            dxl2_present_load= mp_mx_groupBulkRead_tor->getData(DXL2_ID, ADDR_MX_PRESENT_LOAD, LEN_MX_PRESENT_LOAD);
 
             std::cout<<"dxl1 present load: " << dxl1_present_load<< "\t dxl2 present load: " << dxl2_present_load<< std::endl;
             std::cout<<"dxl1 present angle: " << dxl1_present_position << "\t dxl2 present angle : " << dxl2_present_position << std::endl;
@@ -1051,20 +1340,20 @@ SINE_EQ_PARAM CGripper::EstimateSineEquation(std::vector<GRIPPER_DATA>& _gripper
         sine_eq_vector.push_back(sine_equation_parameter);
     }
 
-    double sine_parm_a = 0.0;
-    double sine_parm_b = 0.0;
-    double sine_parm_c = 0.0;
-    double sine_parm_d = 0.0;
+//    double sine_parm_a = 0.0;
+//    double sine_parm_b = 0.0;
+//    double sine_parm_c = 0.0;
+//    double sine_parm_d = 0.0;
 
     double inlier_standard = 7;
 
     //Calculate Inlier Point Within inlier_standard
     for(unsigned int i = 0; i < sine_eq_vector.size(); i++){
 
-        sine_parm_a = sine_eq_vector.at(i).a;
-        sine_parm_b = sine_eq_vector.at(i).b;
-        sine_parm_c = sine_eq_vector.at(i).c;
-        sine_parm_d = sine_eq_vector.at(i).d;
+//        sine_parm_a = sine_eq_vector.at(i).a;
+//        sine_parm_b = sine_eq_vector.at(i).b;
+//        sine_parm_c = sine_eq_vector.at(i).c;
+//        sine_parm_d = sine_eq_vector.at(i).d;
 
         for(unsigned int j = 0; j < sine_eq_vector.size(); j++){
 

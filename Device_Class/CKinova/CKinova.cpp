@@ -122,7 +122,9 @@ bool CKinova::InitKinova(){
         //We use only one kinova arm, So list number is always '0'.
         Kinova_SetActiveDevice(m_kinova_list[0]);
 
-        if(m_kinova_list[0].DeviceType != 3){
+        //MICO-2 = 1
+        //JACO-2 = 3
+        if(m_kinova_list[0].DeviceType != 1){
             Kinova_CloseAPI();
             return false;
         }
@@ -153,9 +155,10 @@ void CKinova::KinovaInitMotion(){
     if(!fl_kinova_init)
         return;
 
-    Kinova_MoveHome();
-    fl_kinova_init_position = true;
+    int kinova_move = 0;
+    kinova_move = Kinova_MoveHome();
 
+    fl_kinova_init_position = true;
 
     emit SignalKinovaPosition(KinovaGetPosition());
 }
@@ -660,20 +663,31 @@ void CKinova::Kinova_Do_Wrench_Scan(double _kinova_rel_pos){
 
 void CKinova::KinovaAlignToPanel(){
 
+    KinovaInitMotion();
+    msleep(500);
+
     Kinova_EraseAllTrajectories();
 
-    KinovaInitMotion();
     TrajectoryPoint desired_point;
     desired_point.InitStruct();
 
-    desired_point.Position.CartesianPosition.X = 0.1797; //0.38487;
-    desired_point.Position.CartesianPosition.Y = -0.2992; //0.22056;
-    desired_point.Position.CartesianPosition.Z = 0.3900; //0.28821 + _param2*0.01;
-    desired_point.Position.CartesianPosition.ThetaZ = -1.1;//0.2535;
-    desired_point.Position.CartesianPosition.ThetaY = 1.57;//+m_base_frame_rot*KINOVA_PI/180;
-    desired_point.Position.CartesianPosition.ThetaX = 1.57; //1.39 0.2535
+    desired_point.Position.CartesianPosition.X = 0.1801; //0.38487;
+    desired_point.Position.CartesianPosition.Y = -0.2961; //0.22056;
+    desired_point.Position.CartesianPosition.Z = 0.3877; //0.28821 + _param2*0.01;
+    desired_point.Position.CartesianPosition.ThetaZ = 2.1517;//-1.1;//0.2535;
+    desired_point.Position.CartesianPosition.ThetaY = 1.5575;//+m_base_frame_rot*KINOVA_PI/180;
+    desired_point.Position.CartesianPosition.ThetaX = -2.2821; //1.39 0.2535
+
+//    desired_point.Position.CartesianPosition.X = 0.1797; //0.38487;
+//    desired_point.Position.CartesianPosition.Y = -0.2992; //0.22056;
+//    desired_point.Position.CartesianPosition.Z = 0.3900; //0.28821 + _param2*0.01;
+//    desired_point.Position.CartesianPosition.ThetaZ = -0.0656;//-1.1;//0.2535;
+//    desired_point.Position.CartesianPosition.ThetaY = 1.57;//+m_base_frame_rot*KINOVA_PI/180;
+//    desired_point.Position.CartesianPosition.ThetaX = 1.57; //1.39 0.2535
 
     Kinova_SendBasicTrajectory(desired_point);
+
+    msleep(1000);
 
     initialAngle = 0;
 
@@ -853,14 +867,14 @@ bool CKinova::KinovaDoManipulate(CartesianPosition _desired_position,int _mode, 
 
         while(error>thresh && count < 5)
         {
-            if(_force_threshold != 0){
-                if(KinovaGetCartesianForce().Coordinates.X > _force_threshold)
-                    break;
-                if(KinovaGetCartesianForce().Coordinates.Y > _force_threshold)
-                    break;
-                if(KinovaGetCartesianForce().Coordinates.Z > _force_threshold)
-                    break;
-            }
+//            if(_force_threshold != 0){
+//                if(KinovaGetCartesianForce().Coordinates.X > _force_threshold)
+//                    break;
+//                if(KinovaGetCartesianForce().Coordinates.Y > _force_threshold)
+//                    break;
+//                if(KinovaGetCartesianForce().Coordinates.Z > _force_threshold)
+//                    break;
+//            }
 
             if(fabs(error-error_old)<thresh2 && error0>error)
             {

@@ -19,6 +19,92 @@ typedef struct _LRF_Sensing_Info_Struct{
 
 }LRF_SENSING_INFO_STRUCT;
 
+// LRF - KINOVA
+typedef struct _LRFK_VCtrl_Struct{
+
+    bool fl_only_sensing_moving;
+
+    int desired_v_dst;
+
+    double error;
+
+    int loop_sleep; /*msec*/
+
+    LRF_SENSING_INFO_STRUCT lrf_info_struct;
+
+}LRF_K_V_CTRL_STRUCT;
+
+typedef struct _LRFK_HCtrl_Struct{
+
+    bool fl_only_sensing_moving;
+
+    int desired_h_location;
+
+    QString wrench_hanger_index_str/*1~6*/;
+    int wrench_hanger_index/*1~6*/;
+
+    int wrench_location_1/*mm*/;
+    int wrench_location_2/*mm*/;
+    int wrench_location_3/*mm*/;
+    int wrench_location_4/*mm*/;
+    int wrench_location_5/*mm*/;
+    int wrench_location_6/*mm*/;
+
+    int error;
+
+    int loop_sleep; /*msec*/
+
+    LRF_SENSING_INFO_STRUCT lrf_info_struct;
+
+}LRF_K_H_CTRL_STRUCT;
+
+typedef struct _LRFK_ACtrl_Struct{
+
+    bool fl_only_sensing_option;
+
+    double desired_angle;
+
+    double unit_deg;
+
+    double error;
+
+    int loop_sleep;
+
+    LRF_SENSING_INFO_STRUCT lrf_info_struct;
+
+}LRF_K_A_CTRL_STRUCT;
+//---------------------------------
+
+// LRF - Vehicle
+typedef struct _LRFV_ACtrl_Struct{
+
+    double desired_angle;
+
+    double error;
+
+    double velocity;
+
+    int loop_sleep;
+
+    LRF_SENSING_INFO_STRUCT lrf_info_struct;
+
+}LRF_V_A_CTRL_STRUCT;
+
+typedef struct _LRFV_HCtrl_Struct{
+
+    int desired_h_location;
+
+    double error;
+
+    double velocity;
+
+    int loop_sleep;
+
+    LRF_SENSING_INFO_STRUCT lrf_info_struct;
+
+}LRF_V_H_CTRL_STRUCT;
+//---------------------------------
+
 typedef struct _LRF_Kinova_Angle_Ctrl_Struct{
 
     bool lrf_kinova_mission;
@@ -345,6 +431,20 @@ typedef struct _Wrench_Recognition{
 }WRENCH_RECOGNITION;
 
 typedef struct _Manipulation_Option{
+
+    /*New LRF Kinova Control*/
+    // Kinova
+    LRF_K_V_CTRL_STRUCT lrf_k_v_ctrl_struct;
+
+    LRF_K_H_CTRL_STRUCT lrf_k_h_ctrl_struct;
+
+    LRF_K_A_CTRL_STRUCT lrf_k_a_ctrl_struct;
+
+    // Vehicle
+    LRF_V_H_CTRL_STRUCT lrf_v_h_ctrl_struct;
+
+    LRF_V_A_CTRL_STRUCT lrf_v_a_ctrl_struct;
+    //--------------------------------------
 
     LRF_KINOVA_VERTICAL_CTRL_STRUCT lrf_kinova_vertical_option;
 

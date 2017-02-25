@@ -163,6 +163,10 @@ public slots:
     void SlotButtonGripperGrasp();
     void SlotButtonGripperTorqueOn();
 
+    //Rotator
+    void SlotButtonRotatorRotate();
+    void SlotButtonRotatorConnection();
+
     //Valve Recognition
     void SlotButtonGraphClear();
     void SlotButtonSaveGraphData();

@@ -129,6 +129,15 @@ private:
     bool InterpreteGripperMagnetCtrl(QString _line, STEP_INFO& _step_info);
     bool InterpreteGripperValveSizeRecog(QString _line, STEP_INFO& _step_info);
 
+    /*New LRF Kinova Control*/
+    bool InterpreteLRFKVerticalCtrl(QString _line, STEP_INFO& _step_info);
+    bool InterpreteLRFKHorizenCtrl(QString _line, STEP_INFO& _step_info);
+    bool InterpreteLRFKAngleCtrl(QString _line, STEP_INFO& _step_info);
+
+    bool InterpreteLRFVAngleCtrl(QString _line, STEP_INFO& _step_info);
+    bool InterpreteLRFVHorizenCtrl(QString _line, STEP_INFO& _step_info);
+
+    /*Old LRF Kinova Control*/
     bool InterpreteLRFKinovaVerticalCtrl(QString _line, STEP_INFO& _step_info);
     bool InterpreteLRFKinovaHorizenCtrl(QString _line, STEP_INFO& _step_info);
 

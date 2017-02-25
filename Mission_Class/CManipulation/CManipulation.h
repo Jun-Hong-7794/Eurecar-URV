@@ -26,9 +26,20 @@
 //-------------------------------------------------
 // Definetion
 //-------------------------------------------------
+
+/*New LRF Kinova Control*/
+#define MANIPUL_INX_LRF_K_VERTIVAL_CTRL    19
+#define MANIPUL_INX_LRF_K_HORIZEN_CTRL     20
+#define MANIPUL_INX_LRF_K_ANGLE_CTRL       21
+
+#define MANIPUL_INX_LRF_V_HORIZEN_CTRL     22
+#define MANIPUL_INX_LRF_V_ANGLE_CTRL       23
+
+/*Old LRF Kinova Control*/
 #define MANIPUL_INX_LRF_KINOVA_VERTIVAL_CTRL    1
 #define MANIPUL_INX_LRF_KINOVA_HORIZEN_CTRL     2
 #define MANIPUL_INX_LRF_KINOVA_ANGLE_CTRL       3
+
 #define MANIPUL_INX_KINOVA_FORCE_CLRL           4
 #define MANIPUL_INX_KINOVA_FORCE_CHECK          5
 #define MANIPUL_INX_GRIPPER_FORCE_CLRL          6
@@ -68,8 +79,29 @@ private:
     bool fl_main_fnc_result;
     bool fl_kinova_force_ctrl_result;
 
+    int m_valve_size;
+
     cv::Mat m_mat_panel_model;
     QMutex mtx_panel_model;
+
+    //---------------Kinova---------------//
+
+    LRF_K_V_CTRL_STRUCT mstruct_lrf_k_v_ctrl;
+    QMutex mxt_lrf_k_v_ctrl;
+
+    LRF_K_H_CTRL_STRUCT mstruct_lrf_k_h_ctrl;
+    QMutex mxt_lrf_k_h_ctrl;
+
+    LRF_K_A_CTRL_STRUCT mstruct_lrf_k_a_ctrl;
+    QMutex mxt_lrf_k_a_ctrl;
+
+    //---------------Vehicle---------------//
+    LRF_V_H_CTRL_STRUCT mstruct_lrf_v_h_ctrl;
+    QMutex mxt_lrf_v_h_ctrl;
+
+    LRF_V_A_CTRL_STRUCT mstruct_lrf_v_a_ctrl;
+    QMutex mxt_lrf_v_a_ctrl;
+    ////////////////////////////////////////
 
     LRF_SENSING_INFO_STRUCT mstruct_lrf_sensing_info;
     QMutex mxt_lrf_sensing_info;
@@ -214,6 +246,12 @@ public:
     bool GripperPresentPose(uint16_t& _pose);
     bool GripperPresentLoad(uint16_t& _load);
 
+    //Rotator
+    bool InitRotator(char* _device_port = (char *)"/dev/ttyUSB0");
+    bool CloseRotator();
+
+    bool RotatorGoThePose(int _step);
+
 public:
     bool GetMainFunctionResult();
     void SetMainFunctionResult(bool _result);
@@ -233,6 +271,25 @@ public:
     LRF_SENSING_INFO_STRUCT GetLRFSensingInfo();
 
     //Main Function//
+    /*LRF Ctrl New Version*/
+    //---------------Kinova---------------//
+    void SetManipulationOption(LRF_K_V_CTRL_STRUCT _manipulation_option);
+    LRF_K_V_CTRL_STRUCT GetLRFKVerticalCtrlOption();
+
+    void SetManipulationOption(LRF_K_H_CTRL_STRUCT _manipulation_option);
+    LRF_K_H_CTRL_STRUCT GetLRFKHorizenCtrlOption();
+
+    void SetManipulationOption(LRF_K_A_CTRL_STRUCT _manipulation_option);
+    LRF_K_A_CTRL_STRUCT GetLRFKAngleCtrlOption();
+
+    //---------------Vehicle---------------//
+    void SetManipulationOption(LRF_V_A_CTRL_STRUCT _manipulation_option);
+    LRF_V_A_CTRL_STRUCT GetLRFVAngleCtrlOption();
+
+    void SetManipulationOption(LRF_V_H_CTRL_STRUCT _manipulation_option);
+    LRF_V_H_CTRL_STRUCT GetLRFVHorizenCtrlOption();
+    /////////////////////////////////////////
+
     void SetManipulationOption(LRF_KINOVA_VERTICAL_CTRL_STRUCT _manipulation_option);
     LRF_KINOVA_VERTICAL_CTRL_STRUCT GetLRFKinovaVerticalOption();
 

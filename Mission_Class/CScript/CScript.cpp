@@ -503,6 +503,49 @@ bool CScript::InterpreteMissionScriptLine(QString _line, MISSION_SCRIPT* _missio
             return false;
     }
 
+
+    // New
+    if(_line.contains("LRF_K_VERTICAL_CTRL")){
+
+        if(InterpreteLRFKVerticalCtrl(_line, _step_info))
+            return true;
+        else
+            return false;
+    }
+
+    if(_line.contains("LRF_K_HORIZEN_CTRL")){
+
+        if(InterpreteLRFKHorizenCtrl(_line, _step_info))
+            return true;
+        else
+            return false;
+    }
+
+    if(_line.contains("LRF_K_ANGLE_CTRL")){
+
+        if(InterpreteLRFKAngleCtrl(_line, _step_info))
+            return true;
+        else
+            return false;
+    }
+
+    if(_line.contains("LRF_V_ANGLE_CTRL")){
+
+        if(InterpreteLRFVAngleCtrl(_line, _step_info))
+            return true;
+        else
+            return false;
+    }
+
+    if(_line.contains("LRF_V_HORIZEN_CTRL")){
+
+        if(InterpreteLRFVHorizenCtrl(_line, _step_info))
+            return true;
+        else
+            return false;
+    }
+
+    // Old
     if(_line.contains("LRF_KINOVA_VERTICAL_CTRL")){
 
         if(InterpreteLRFKinovaVerticalCtrl(_line, _step_info))
@@ -1093,18 +1136,6 @@ bool CScript::InterpreteWrenchRecognition(QString _line, STEP_INFO& _step_info){
 
 bool CScript::InterpreteGripperValveSizeRecog(QString _line, STEP_INFO& _step_info){
 
-//    double grasp_pose_1;
-//    double grasp_pose_2;
-//    double release_pose_1;
-//    double release_pose_2;
-//    double force_threshold;
-//    double unit_rotation_angle;// CW: > 0, CCW: < 0
-
-//    int trial;//Recomand 36trial
-//    double rotation_angle;//Recomand 180deg
-
-//    int inlier_error;
-
     if(_line.contains("VALVE_SIZE_RECOG_STRUCT")){
 
         if(_line.contains("grasp_pose_1")){
@@ -1285,6 +1316,384 @@ bool CScript::InterpreteLRFVehicleHorizenCtrl(QString _line, STEP_INFO& _step_in
     }
     else if(_line.contains("LRF_VEHICLE_HORIZEN_CTRL_FUNCTION")){
         _step_info.function_index = MP_LRF_K_VEHICLE_HORIZEN_CONTROL;
+    }
+    else
+        return false;
+
+    return true;
+}
+
+//--------------------------------
+//New LRF Kinova Vertical Control
+//--------------------------------
+
+bool CScript::InterpreteLRFKVerticalCtrl(QString _line, STEP_INFO& _step_info){
+
+    if(_line.contains("LRF_K_VERTICAL_CTRL_STRUCT")){
+
+        if(_line.contains("mode")){
+            int colone_index = _line.indexOf("=");
+
+            if(_line.mid(colone_index + 1).trimmed().toInt() == 1){
+                _step_info.manipulation_option.lrf_k_v_ctrl_struct.lrf_info_struct.mode = L_M_ROUGH;
+            }
+            if(_line.mid(colone_index + 1).trimmed().toInt() == 2){
+                _step_info.manipulation_option.lrf_k_v_ctrl_struct.lrf_info_struct.mode = (L_M_PRECISE | L_M_DIR_LEFT | L_M_VALUE_RANSAC);
+            }
+            if(_line.mid(colone_index + 1).trimmed().toInt() == 3){
+                _step_info.manipulation_option.lrf_k_v_ctrl_struct.lrf_info_struct.mode = (L_M_PRECISE | L_M_DIR_RIGHT | L_M_VALUE_RANSAC);
+            }
+            return true;
+        }
+
+        if(_line.contains("desired_v_dst")){
+            int colone_index = _line.indexOf("=");
+            _step_info.manipulation_option.lrf_k_v_ctrl_struct.desired_v_dst = _line.mid(colone_index + 1).trimmed().toDouble();
+            return true;
+        }
+        if(_line.contains("error")){
+            int colone_index = _line.indexOf("=");
+            _step_info.manipulation_option.lrf_k_v_ctrl_struct.error = _line.mid(colone_index + 1).trimmed().toDouble();
+            return true;
+        }
+        if(_line.contains("s_deg")){
+            int colone_index = _line.indexOf("=");
+            _step_info.manipulation_option.lrf_k_v_ctrl_struct.lrf_info_struct
+                    .s_deg = _line.mid(colone_index + 1).trimmed().toDouble();
+            return true;
+        }
+        if(_line.contains("e_deg")){
+            int colone_index = _line.indexOf("=");
+            _step_info.manipulation_option.lrf_k_v_ctrl_struct.lrf_info_struct
+                    .e_deg = _line.mid(colone_index + 1).trimmed().toDouble();
+            return true;
+        }
+        if(_line.contains("inlier_lrf_dst")){
+            int colone_index = _line.indexOf("=");
+            _step_info.manipulation_option.lrf_k_v_ctrl_struct.lrf_info_struct
+                    .inlier_distance = _line.mid(colone_index + 1).trimmed().toDouble();
+            return true;
+        }
+        if(_line.contains("loop_sleep")){
+            int colone_index = _line.indexOf("=");
+            _step_info.manipulation_option.lrf_k_v_ctrl_struct.loop_sleep = _line.mid(colone_index + 1).trimmed().toInt();
+            return true;
+        }
+        if(_line.contains("only_sensing_moving")){
+
+            int colone_index = _line.indexOf("=");
+
+            QString str_option;
+            str_option = _line.mid(colone_index + 1).trimmed();
+
+            if(str_option.contains("true"))
+                _step_info.manipulation_option.lrf_k_v_ctrl_struct.fl_only_sensing_moving  = true;
+            else
+                _step_info.manipulation_option.lrf_k_v_ctrl_struct.fl_only_sensing_moving  = false;
+
+            return true;
+        }
+    }
+    else if(_line.contains("LRF_K_VERTICAL_CTRL_FUNCTION")){
+        _step_info.function_index = MP_LRF_K_VERTIVAL_CONTROL;
+    }
+    else
+        return false;
+
+    return true;
+}
+
+bool CScript::InterpreteLRFKHorizenCtrl(QString _line, STEP_INFO& _step_info){
+
+    if(_line.contains("LRF_K_HORIZEN_CTRL_STRUCT")){
+
+        if(_line.contains("mode")){
+            int colone_index = _line.indexOf("=");
+            if(_line.mid(colone_index + 1).trimmed().toInt() == 1){
+                _step_info.manipulation_option.lrf_k_h_ctrl_struct.lrf_info_struct.mode = L_M_ROUGH;
+            }
+            if(_line.mid(colone_index + 1).trimmed().toInt() == 2){
+                _step_info.manipulation_option.lrf_k_h_ctrl_struct.lrf_info_struct.mode = (L_M_PRECISE | L_M_DIR_LEFT | L_M_VALUE_RANSAC);
+            }
+            if(_line.mid(colone_index + 1).trimmed().toInt() == 3){
+                _step_info.manipulation_option.lrf_k_h_ctrl_struct.lrf_info_struct.mode = (L_M_PRECISE | L_M_DIR_RIGHT | L_M_VALUE_RANSAC);
+            }
+            return true;
+        }
+
+        if(_line.contains("wrench_hanger_index")){
+            int colone_index = _line.indexOf("=");
+            _step_info.manipulation_option.lrf_k_h_ctrl_struct.wrench_hanger_index_str = _line.mid(colone_index + 1).trimmed();
+            return true;
+        }
+        if(_line.contains("wrench_location_1")){
+            int colone_index = _line.indexOf("=");
+            _step_info.manipulation_option.lrf_k_h_ctrl_struct.wrench_location_1 = _line.mid(colone_index + 1).trimmed().toDouble();
+            return true;
+        }
+        if(_line.contains("wrench_location_2")){
+            int colone_index = _line.indexOf("=");
+            _step_info.manipulation_option.lrf_k_h_ctrl_struct.wrench_location_2 = _line.mid(colone_index + 1).trimmed().toDouble();
+            return true;
+        }
+        if(_line.contains("wrench_location_3")){
+            int colone_index = _line.indexOf("=");
+            _step_info.manipulation_option.lrf_k_h_ctrl_struct.wrench_location_3 = _line.mid(colone_index + 1).trimmed().toDouble();
+            return true;
+        }
+        if(_line.contains("wrench_location_4")){
+            int colone_index = _line.indexOf("=");
+            _step_info.manipulation_option.lrf_k_h_ctrl_struct.wrench_location_4 = _line.mid(colone_index + 1).trimmed().toDouble();
+            return true;
+        }
+        if(_line.contains("wrench_location_5")){
+            int colone_index = _line.indexOf("=");
+            _step_info.manipulation_option.lrf_k_h_ctrl_struct.wrench_location_5 = _line.mid(colone_index + 1).trimmed().toDouble();
+            return true;
+        }
+        if(_line.contains("wrench_location_6")){
+            int colone_index = _line.indexOf("=");
+            _step_info.manipulation_option.lrf_k_h_ctrl_struct.wrench_location_6 = _line.mid(colone_index + 1).trimmed().toDouble();
+            return true;
+        }
+
+        if(_line.contains("desired_h_dst")){
+            int colone_index = _line.indexOf("=");
+            _step_info.manipulation_option.lrf_k_h_ctrl_struct.desired_h_location = _line.mid(colone_index + 1).trimmed().toDouble();
+            return true;
+        }
+        if(_line.contains("error")){
+            int colone_index = _line.indexOf("=");
+            _step_info.manipulation_option.lrf_k_h_ctrl_struct.error = _line.mid(colone_index + 1).trimmed().toDouble();
+            return true;
+        }
+        if(_line.contains("s_deg")){
+            int colone_index = _line.indexOf("=");
+            _step_info.manipulation_option.lrf_k_h_ctrl_struct.lrf_info_struct
+                    .s_deg = _line.mid(colone_index + 1).trimmed().toDouble();
+            return true;
+        }
+        if(_line.contains("e_deg")){
+            int colone_index = _line.indexOf("=");
+            _step_info.manipulation_option.lrf_k_h_ctrl_struct.lrf_info_struct
+                    .e_deg = _line.mid(colone_index + 1).trimmed().toDouble();
+            return true;
+        }
+        if(_line.contains("inlier_lrf_dst")){
+            int colone_index = _line.indexOf("=");
+            _step_info.manipulation_option.lrf_k_h_ctrl_struct.lrf_info_struct
+                    .inlier_distance = _line.mid(colone_index + 1).trimmed().toDouble();
+            return true;
+        }
+        if(_line.contains("loop_sleep")){
+            int colone_index = _line.indexOf("=");
+            _step_info.manipulation_option.lrf_k_h_ctrl_struct.loop_sleep = _line.mid(colone_index + 1).trimmed().toInt();
+            return true;
+        }
+    }
+    else if(_line.contains("LRF_K_HORIZEN_CTRL_FUNCTION")){
+        _step_info.function_index = MP_LRF_K_HORIZEN_CONTROL;
+    }
+    else
+        return false;
+
+    return true;
+}
+
+bool CScript::InterpreteLRFKAngleCtrl(QString _line, STEP_INFO& _step_info){
+
+    if(_line.contains("LRF_K_ANGLE_CTRL_STRUCT")){
+
+        if(_line.contains("mode")){
+            int colone_index = _line.indexOf("=");
+            if(_line.mid(colone_index + 1).trimmed().toInt() == 1){
+                _step_info.manipulation_option.lrf_k_a_ctrl_struct.lrf_info_struct.mode = L_M_ROUGH;
+            }
+            if(_line.mid(colone_index + 1).trimmed().toInt() == 2){
+                _step_info.manipulation_option.lrf_k_a_ctrl_struct.lrf_info_struct.mode = (L_M_PRECISE | L_M_DIR_LEFT | L_M_VALUE_RANSAC);
+            }
+            if(_line.mid(colone_index + 1).trimmed().toInt() == 3){
+                _step_info.manipulation_option.lrf_k_a_ctrl_struct.lrf_info_struct.mode = (L_M_PRECISE | L_M_DIR_RIGHT | L_M_VALUE_RANSAC);
+            }
+            return true;
+        }
+
+        if(_line.contains("desired_angle")){
+            int colone_index = _line.indexOf("=");
+            _step_info.manipulation_option.lrf_k_a_ctrl_struct.desired_angle = _line.mid(colone_index + 1).trimmed().toDouble();
+            return true;
+        }
+        if(_line.contains("error")){
+            int colone_index = _line.indexOf("=");
+            _step_info.manipulation_option.lrf_k_a_ctrl_struct.error = _line.mid(colone_index + 1).trimmed().toDouble();
+            return true;
+        }
+        if(_line.contains("s_deg")){
+            int colone_index = _line.indexOf("=");
+            _step_info.manipulation_option.lrf_k_a_ctrl_struct.lrf_info_struct
+                    .s_deg = _line.mid(colone_index + 1).trimmed().toDouble();
+            return true;
+        }
+        if(_line.contains("e_deg")){
+            int colone_index = _line.indexOf("=");
+            _step_info.manipulation_option.lrf_k_a_ctrl_struct.lrf_info_struct
+                    .e_deg = _line.mid(colone_index + 1).trimmed().toDouble();
+            return true;
+        }
+        if(_line.contains("inlier_lrf_dst")){
+            int colone_index = _line.indexOf("=");
+            _step_info.manipulation_option.lrf_k_a_ctrl_struct.lrf_info_struct
+                    .inlier_distance = _line.mid(colone_index + 1).trimmed().toDouble();
+            return true;
+        }
+        if(_line.contains("loop_sleep")){
+            int colone_index = _line.indexOf("=");
+            _step_info.manipulation_option.lrf_k_a_ctrl_struct.loop_sleep = _line.mid(colone_index + 1).trimmed().toInt();
+            return true;
+        }
+        if(_line.contains("unit_deg")){
+            int colone_index = _line.indexOf("=");
+            _step_info.manipulation_option.lrf_k_a_ctrl_struct.unit_deg = _line.mid(colone_index + 1).trimmed().toDouble();
+            return true;
+        }
+
+    }
+    else if(_line.contains("LRF_K_ANGLE_CTRL_FUNCTION")){
+        _step_info.function_index = MP_LRF_K_ANGLE_CONTROL;
+    }
+    else
+        return false;
+
+    return true;
+}
+
+bool CScript::InterpreteLRFVAngleCtrl(QString _line, STEP_INFO& _step_info){
+
+    if(_line.contains("LRF_V_ANGLE_CTRL_STRUCT")){
+
+        if(_line.contains("mode")){
+            int colone_index = _line.indexOf("=");
+            if(_line.mid(colone_index + 1).trimmed().toInt() == 1){
+                _step_info.manipulation_option.lrf_v_a_ctrl_struct.lrf_info_struct.mode = L_M_ROUGH;
+            }
+            if(_line.mid(colone_index + 1).trimmed().toInt() == 2){
+                _step_info.manipulation_option.lrf_v_a_ctrl_struct.lrf_info_struct.mode = (L_M_PRECISE | L_M_DIR_LEFT | L_M_VALUE_RANSAC);
+            }
+            if(_line.mid(colone_index + 1).trimmed().toInt() == 3){
+                _step_info.manipulation_option.lrf_v_a_ctrl_struct.lrf_info_struct.mode = (L_M_PRECISE | L_M_DIR_RIGHT | L_M_VALUE_RANSAC);
+            }
+            return true;
+        }
+
+        if(_line.contains("desired_angle")){
+            int colone_index = _line.indexOf("=");
+            _step_info.manipulation_option.lrf_v_a_ctrl_struct.desired_angle = _line.mid(colone_index + 1).trimmed().toDouble();
+            return true;
+        }
+        if(_line.contains("error")){
+            int colone_index = _line.indexOf("=");
+            _step_info.manipulation_option.lrf_v_a_ctrl_struct.error = _line.mid(colone_index + 1).trimmed().toDouble();
+            return true;
+        }
+        if(_line.contains("s_deg")){
+            int colone_index = _line.indexOf("=");
+            _step_info.manipulation_option.lrf_v_a_ctrl_struct.lrf_info_struct
+                    .s_deg = _line.mid(colone_index + 1).trimmed().toDouble();
+            return true;
+        }
+        if(_line.contains("e_deg")){
+            int colone_index = _line.indexOf("=");
+            _step_info.manipulation_option.lrf_v_a_ctrl_struct.lrf_info_struct
+                    .e_deg = _line.mid(colone_index + 1).trimmed().toDouble();
+            return true;
+        }
+        if(_line.contains("inlier_lrf_dst")){
+            int colone_index = _line.indexOf("=");
+            _step_info.manipulation_option.lrf_v_a_ctrl_struct.lrf_info_struct
+                    .inlier_distance = _line.mid(colone_index + 1).trimmed().toDouble();
+            return true;
+        }
+        if(_line.contains("loop_sleep")){
+            int colone_index = _line.indexOf("=");
+            _step_info.manipulation_option.lrf_v_a_ctrl_struct.loop_sleep = _line.mid(colone_index + 1).trimmed().toInt();
+            return true;
+        }
+        if(_line.contains("velocity")){
+            int colone_index = _line.indexOf("=");
+            _step_info.manipulation_option.lrf_v_a_ctrl_struct.velocity = _line.mid(colone_index + 1).trimmed().toInt();
+            return true;
+        }
+
+    }
+    else if(_line.contains("LRF_V_ANGLE_CTRL_FUNCTION")){
+        _step_info.function_index = MP_LRF_V_ANGLE_CONTROL;
+    }
+    else
+        return false;
+
+    return true;
+}
+
+bool CScript::InterpreteLRFVHorizenCtrl(QString _line, STEP_INFO& _step_info){
+
+    if(_line.contains("LRF_V_HORIZEN_CTRL_STRUCT")){
+
+        if(_line.contains("mode")){
+            int colone_index = _line.indexOf("=");
+            if(_line.mid(colone_index + 1).trimmed().toInt() == 1){
+                _step_info.manipulation_option.lrf_v_h_ctrl_struct.lrf_info_struct.mode = L_M_ROUGH;
+            }
+            if(_line.mid(colone_index + 1).trimmed().toInt() == 2){
+                _step_info.manipulation_option.lrf_v_h_ctrl_struct.lrf_info_struct.mode = (L_M_PRECISE | L_M_DIR_LEFT | L_M_VALUE_RANSAC);
+            }
+            if(_line.mid(colone_index + 1).trimmed().toInt() == 3){
+                _step_info.manipulation_option.lrf_v_h_ctrl_struct.lrf_info_struct.mode = (L_M_PRECISE | L_M_DIR_RIGHT | L_M_VALUE_RANSAC);
+            }
+            return true;
+        }
+
+        if(_line.contains("desired_h_dst")){
+            int colone_index = _line.indexOf("=");
+            _step_info.manipulation_option.lrf_v_h_ctrl_struct.desired_h_location = _line.mid(colone_index + 1).trimmed().toDouble();
+            return true;
+        }
+        if(_line.contains("error")){
+            int colone_index = _line.indexOf("=");
+            _step_info.manipulation_option.lrf_v_h_ctrl_struct.error = _line.mid(colone_index + 1).trimmed().toDouble();
+            return true;
+        }
+        if(_line.contains("s_deg")){
+            int colone_index = _line.indexOf("=");
+            _step_info.manipulation_option.lrf_v_h_ctrl_struct.lrf_info_struct
+                    .s_deg = _line.mid(colone_index + 1).trimmed().toDouble();
+            return true;
+        }
+        if(_line.contains("e_deg")){
+            int colone_index = _line.indexOf("=");
+            _step_info.manipulation_option.lrf_v_h_ctrl_struct.lrf_info_struct
+                    .e_deg = _line.mid(colone_index + 1).trimmed().toDouble();
+            return true;
+        }
+        if(_line.contains("inlier_lrf_dst")){
+            int colone_index = _line.indexOf("=");
+            _step_info.manipulation_option.lrf_v_h_ctrl_struct.lrf_info_struct
+                    .inlier_distance = _line.mid(colone_index + 1).trimmed().toDouble();
+            return true;
+        }
+        if(_line.contains("loop_sleep")){
+            int colone_index = _line.indexOf("=");
+            _step_info.manipulation_option.lrf_v_h_ctrl_struct.loop_sleep = _line.mid(colone_index + 1).trimmed().toInt();
+            return true;
+        }
+        if(_line.contains("velocity")){
+            int colone_index = _line.indexOf("=");
+            _step_info.manipulation_option.lrf_v_h_ctrl_struct.velocity = _line.mid(colone_index + 1).trimmed().toInt();
+            return true;
+        }
+
+    }
+    else if(_line.contains("LRF_V_HORIZEN_CTRL_FUNCTION")){
+        _step_info.function_index = MP_LRF_V_HORIZEN_CONTROL;
     }
     else
         return false;
@@ -2179,6 +2588,52 @@ bool CScript::MissionPlayer(){
 
                 while(mpc_manipulation->isRunning());
             }
+
+            /*New LRF Kinova - Vehicle Control*/
+            if(mpary_mission_script[i].step_vecor.at(j).function_index == MP_LRF_K_VERTIVAL_CONTROL){
+                mpc_manipulation->SetManipulationOption(mpary_mission_script[i].step_vecor.at(j).manipulation_option.lrf_k_v_ctrl_struct);
+                mpc_manipulation->SelectMainFunction(MANIPUL_INX_LRF_K_VERTIVAL_CTRL);
+
+                while(mpc_manipulation->isRunning());
+            }
+
+            if(mpary_mission_script[i].step_vecor.at(j).function_index == MP_LRF_K_HORIZEN_CONTROL){
+                int wrench_index = 0;
+                QString str_index;
+                str_index = mpary_mission_script[i].step_vecor.at(j).manipulation_option.lrf_k_h_ctrl_struct.wrench_hanger_index_str;
+
+                wrench_index = InterpreteIntVariable(str_index, mpary_mission_script[i]);
+
+                mpary_mission_script[i].step_vecor.at(j).manipulation_option.lrf_k_h_ctrl_struct.wrench_hanger_index =
+                        wrench_index;
+
+                mpc_manipulation->SetManipulationOption(mpary_mission_script[i].step_vecor.at(j).manipulation_option.lrf_k_h_ctrl_struct);
+                mpc_manipulation->SelectMainFunction(MANIPUL_INX_LRF_K_HORIZEN_CTRL);
+
+                while(mpc_manipulation->isRunning());
+            }
+
+            if(mpary_mission_script[i].step_vecor.at(j).function_index == MP_LRF_K_ANGLE_CONTROL){
+                mpc_manipulation->SetManipulationOption(mpary_mission_script[i].step_vecor.at(j).manipulation_option.lrf_k_a_ctrl_struct);
+                mpc_manipulation->SelectMainFunction(MANIPUL_INX_LRF_K_ANGLE_CTRL);
+
+                while(mpc_manipulation->isRunning());
+            }
+
+            if(mpary_mission_script[i].step_vecor.at(j).function_index == MP_LRF_V_ANGLE_CONTROL){
+                mpc_manipulation->SetManipulationOption(mpary_mission_script[i].step_vecor.at(j).manipulation_option.lrf_v_a_ctrl_struct);
+                mpc_manipulation->SelectMainFunction(MANIPUL_INX_LRF_V_ANGLE_CTRL);
+
+                while(mpc_manipulation->isRunning());
+            }
+
+            if(mpary_mission_script[i].step_vecor.at(j).function_index == MP_LRF_V_HORIZEN_CONTROL){
+                mpc_manipulation->SetManipulationOption(mpary_mission_script[i].step_vecor.at(j).manipulation_option.lrf_v_h_ctrl_struct);
+                mpc_manipulation->SelectMainFunction(MANIPUL_INX_LRF_V_HORIZEN_CTRL);
+
+                while(mpc_manipulation->isRunning());
+            }
+            //-------------------------------------------------------------------------------------------------------------------------------------------
 
             if(mpary_mission_script[i].step_vecor.at(j).function_index == MP_LRF_KINOVA_VERTIVAL_CONTROL){
                 mpc_manipulation->SetManipulationOption(mpary_mission_script[i].step_vecor.at(j).manipulation_option.lrf_kinova_vertical_option);

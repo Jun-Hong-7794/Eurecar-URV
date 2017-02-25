@@ -27,6 +27,14 @@
 
 
 //Manipulation
+/*New LRF Kinova Control*/
+#define MP_LRF_K_VERTIVAL_CONTROL            0x2017
+#define MP_LRF_K_HORIZEN_CONTROL             0x2018
+#define MP_LRF_K_ANGLE_CONTROL               0x2019
+
+#define MP_LRF_V_HORIZEN_CONTROL             0x2020
+#define MP_LRF_V_ANGLE_CONTROL               0x2021
+
 #define MP_KINOVA_FORCE_CONTROL              0x2001
 #define MP_KINOVA_FORCE_CHECK                0x2002
 
@@ -38,6 +46,7 @@
 #define MP_KINOVA_MANIPULATE                 0x2006
 #define MP_KINOVA_ROTATE_VALVE               0x2007
 
+/*Old LRF Kinova Control*/
 #define MP_LRF_KINOVA_VERTIVAL_CONTROL       0x2008
 #define MP_LRF_KINOVA_HORIZEN_CONTROL        0x2009
 #define MP_LRF_KINOVA_ANGLE_CONTROL          0x2010
