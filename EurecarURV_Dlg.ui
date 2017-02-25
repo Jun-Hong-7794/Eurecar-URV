@@ -616,6 +616,49 @@
        <string>Kinova Reset</string>
       </property>
      </widget>
+     <widget class="QLabel" name="label_11">
+      <property name="geometry">
+       <rect>
+        <x>120</x>
+        <y>200</y>
+        <width>101</width>
+        <height>16</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <weight>75</weight>
+        <bold>true</bold>
+       </font>
+      </property>
+      <property name="text">
+       <string>Initial heading</string>
+      </property>
+     </widget>
+     <widget class="QLineEdit" name="ed_init_heading">
+      <property name="geometry">
+       <rect>
+        <x>125</x>
+        <y>215</y>
+        <width>91</width>
+        <height>22</height>
+       </rect>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="bt_gps_init_pos">
+      <property name="geometry">
+       <rect>
+        <x>120</x>
+        <y>250</y>
+        <width>101</width>
+        <height>41</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Set initial 
+pose</string>
+      </property>
+     </widget>
     </widget>
     <widget class="QWidget" name="tab_path">
      <attribute name="title">

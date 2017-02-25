@@ -7,6 +7,8 @@
 
 CGPS::CGPS()
 {
+    mpc_imu = new CIMU;
+
     m_mstr_pvt = {};
     m_mstr_posecef = {};
 
@@ -23,11 +25,18 @@ CGPS::CGPS()
     m_inital_gpspoint.lon = -1;
     m_inital_gpspoint.height = -1;
 
+    m_cur_gpspoint.lat = -1;
+    m_cur_gpspoint.lon = -1;
+    m_cur_gpspoint.height = -1;
+
     fl_gps_rx = false;
 }
 
 CGPS::~CGPS()
 {
+    running_command = false;
+    this->exit();
+
     port->close();
     if(port->isOpen())
         std::cout << "GPS port close error" << std::endl;
@@ -35,9 +44,9 @@ CGPS::~CGPS()
         delete port;
 }
 
-bool CGPS::GpsInit()
+bool CGPS::GpsInit(string _port)
 {
-    port->setPortName("/dev/ttyACM0"); //need to be change
+    port->setPortName(_port.c_str()); //need to be change
 
     port->setBaudRate(QSerialPort::Baud9600);
     port->setDataBits(QSerialPort::Data8);
@@ -51,6 +60,7 @@ bool CGPS::GpsInit()
     if(port->isOpen())
     {
         std::cout << "gps port open and init success" << std::endl;
+        this->start();
         return true;
     }
     else
@@ -67,11 +77,9 @@ bool CGPS::IsGPSConnected()
     else
         return false;
 }
-
-
 void CGPS::SetGroundGPS()
 {
-    m_ground_gpspoints = CalcGroundGpspoint();
+//    m_ground_gpspoints = CalcGroundGpspoint();
 }
 void CGPS::SetCurrentHeading()
 {
@@ -81,10 +89,6 @@ double CGPS::GetCurrentHeading()
 {
     return m_cur_heading;
 }
-void CGPS::SetInitHeading()
-{
-    m_init_heading = 0;
-}
 double CGPS::GetInitHeading()
 {
     return m_init_heading;
@@ -92,64 +96,22 @@ double CGPS::GetInitHeading()
 
 void CGPS::SetInitGPS()
 {
-    fl_gps_rx = false;
+    m_inital_gpspoint.lat = m_cur_gpspoint.lat;
+    m_inital_gpspoint.lon = m_cur_gpspoint.lon;
 
-    do
-    {
-        GpsUpdate();
 
-        m_inital_gpspoint.lat = m_mstr_pvt.lat_deg_em7 / 10000000.0;
-        m_inital_gpspoint.lon = m_mstr_pvt.lon_deg_em7 / 10000000.0;
-        m_inital_gpspoint.height = m_mstr_pvt.height_mm;
-    }while(fl_gps_rx == true);
+//    m_inital_gpspoint.lat = 37.3535;
+//    m_inital_gpspoint.lon = 127.4949;
 
-    std::cout << std::setprecision(20) <<  m_inital_gpspoint.lat << " " << std::setprecision(20) << m_inital_gpspoint.lon << std::endl;
+//    double tmp = mpc_imu->GetEulerAngles().at(2);
+
+    double tmp = 0;
+    m_init_heading = tmp * 180.0 / PI;
 }
 
 Gpspoint CGPS::GetInitGPS()
 {
     return m_inital_gpspoint;
-}
-
-Ground_Gpspoint CGPS::CalcGroundGpspoint()
-{
-    m_ground_gpspoints.left = CalcGpspoint(m_init_heading,-90,0.045,m_inital_gpspoint);
-    m_ground_gpspoints.lefttop = CalcGpspoint(m_init_heading,-36.86989,0.075,m_inital_gpspoint);
-    m_ground_gpspoints.righttop = CalcGpspoint(m_init_heading,36.86989,0.075,m_inital_gpspoint);
-    m_ground_gpspoints.right = CalcGpspoint(m_init_heading,90,0.045,m_inital_gpspoint);
-
-    std::cout << m_ground_gpspoints.left.lat << ", " << m_ground_gpspoints.left.lon << std::endl;
-    std::cout << m_ground_gpspoints.lefttop.lat << ", " << m_ground_gpspoints.lefttop.lon << std::endl;
-    std::cout << m_ground_gpspoints.righttop.lat << ", " << m_ground_gpspoints.righttop.lon << std::endl;
-    std::cout << m_ground_gpspoints.right.lat << ", " << m_ground_gpspoints.right.lon << std::endl;
-
-    return m_ground_gpspoints;
-}
-
-Gpspoint CGPS::CalcGpspoint(double _cur_heading,double _relative_bearing, double dist, Gpspoint _cur_gps_point)
-{
-    const double radiusEarthKilometres = 6371.01;
-    double distRatio = dist / radiusEarthKilometres;
-    double distRatioSine = sin(distRatio);
-    double distRatioCosine = cos(distRatio);
-
-    double startLatRad = _cur_gps_point.lat * PI / 180;
-    double startLonRad = _cur_gps_point.lon * PI / 180;
-
-    double startLatCos = cos(startLatRad);
-    double startLatSin = sin(startLatRad);
-
-    double initialBearingRadians = (_cur_heading + _relative_bearing)* PI / 180; // current gps heading + velodyne relative bearing
-
-    double endLatRads = asin((startLatSin * distRatioCosine) + (startLatCos * distRatioSine * cos(initialBearingRadians)));
-
-    double endLonRads = startLonRad + atan2(sin(initialBearingRadians) * distRatioSine * startLatCos, distRatioCosine - startLatSin * sin(endLatRads));
-
-    Gpspoint end_point;
-    end_point.lat = (endLatRads) * 180 / PI; // degree
-    end_point.lon = (endLonRads) * 180 / PI;
-
-    return end_point;
 }
 
 double CGPS::DistCalc_Gps2Gps(Gpspoint _cur_point, Gpspoint _target_point)
@@ -188,34 +150,100 @@ double CGPS::BearingCalc_Gps2Gps(Gpspoint _cur_point, Gpspoint _target_point)
     return bearing;
 }
 
-Ground_Bodypoint CGPS::CalcBodypoint_Ground()
+vector<cv::Point2f> CGPS::CalcBodypoint_Ground()
 {
-    Gpspoint _cur_point = m_cur_gpspoint;
-    double _cur_heading =0 ;
-    double _init_heading = m_init_heading;
-    Ground_Gpspoint _gps_ground = m_ground_gpspoints;
 
-    double dheading = _cur_heading - _init_heading;
+//    double cur_heading = mpc_imu->GetEulerAngles().at(2);
 
-    m_ground_bodypoints.dist_left = DistCalc_Gps2Gps(_cur_point, _gps_ground.left);
-    m_ground_bodypoints.angle_left = fmod(BearingCalc_Gps2Gps(_cur_point, _gps_ground.left) + _cur_heading, 360.0);
+    double cur_heading = 0;
+    cur_heading = (1.0) * cur_heading * 180.0 / PI;
 
+    if(m_init_heading != 0)
+        double cur_heading_diff = -(cur_heading - m_init_heading);
+    else
+    {
+        cout << "initial heading value is not set"<<endl;
+    }
 
-    m_ground_bodypoints.dist_lefttop = DistCalc_Gps2Gps(_cur_point, _gps_ground.lefttop);
-    m_ground_bodypoints.angle_lefttop = fmod(BearingCalc_Gps2Gps(_cur_point, _gps_ground.lefttop) + _cur_heading, 360.0);
+    double dist =0.;
+    dist = DistCalc_Gps2Gps(m_inital_gpspoint,m_cur_gpspoint);
 
-    m_ground_bodypoints.dist_righttop = DistCalc_Gps2Gps(_cur_point, _gps_ground.righttop);
-    m_ground_bodypoints.angle_righttop = fmod(BearingCalc_Gps2Gps(_cur_point, _gps_ground.righttop) + _cur_heading, 360.0);
+    double bearing=0;
+    bearing = BearingCalc_Gps2Gps(m_inital_gpspoint,m_cur_gpspoint);
 
-    m_ground_bodypoints.dist_right = DistCalc_Gps2Gps(_cur_point, _gps_ground.right);
-    m_ground_bodypoints.angle_right = fmod(BearingCalc_Gps2Gps(_cur_point, _gps_ground.right) + _cur_heading, 360.0);
+//    dist = DistCalc_Gps2Gps(test_init,test_cur);
+//    bearing = BearingCalc_Gps2Gps(test_init,test_cur);
 
-    return m_ground_bodypoints;
+    double shift_x,shift_y =0;
+
+    shift_x = (dist*1000.0) * cos((-m_init_heading + bearing) * PI / 180);
+    shift_y = (dist*1000.0) * sin((-m_init_heading + bearing) * PI / 180);
+
+    cout << "dist : " << dist << endl;
+    cout << "shift x : " << shift_x << endl;
+    cout << "shift y : " << shift_y << endl;
+    cout << "cur : "<<setprecision(20) << m_cur_gpspoint.lat << endl;
+    cout << "cur : "<<setprecision(20) << m_cur_gpspoint.lon << endl;
+    cout << "init : "<<setprecision(20) << m_inital_gpspoint.lat << endl;
+    cout << "init : "<<setprecision(20) << m_inital_gpspoint.lon << endl;
+
+    double rotate_angle_degree = cur_heading - m_init_heading;
+//    double rotate_angle_degree = cur_heading - 0;
+    rotate_angle_rad = rotate_angle_degree * PI / 180;
+
+    cv::Point2f ground[4]; //order : left lefttop righttop right
+
+//    vector<cv::Point2f> ground_rotated; //order : left lefttop righttop right
+    ground_rotated.resize(4);
+
+    double test_ratio = 0.1;
+
+    ground[0].x = 0 *test_ratio;
+    ground[0].y =-45 *test_ratio;
+
+    ground[1].x = -60 *test_ratio;
+    ground[1].y = -45 *test_ratio;
+
+    ground[2].x =-60 *test_ratio;
+    ground[2].y =45 *test_ratio;
+
+    ground[3].x = 0 *test_ratio;
+    ground[3].y = 45 *test_ratio;
+
+    for(int i=0; i<4; i++)
+    {
+        ground_rotated[i].x = ground[i].x * cos(rotate_angle_rad) - ground[i].y * sin(rotate_angle_rad) + shift_x;
+        ground_rotated[i].y = ground[i].x * sin(rotate_angle_rad) + ground[i].y * cos(rotate_angle_rad) - shift_y;
+    }
+
+    return ground_rotated;
 }
 
+bool CGPS::CheckInBoundary(vector<cv::Point2f> _ground_bodypoint, double _object_x,double _object_y)
+{
+    cv::Point2f CheckReferPoint[4];
 
+    for(int i = 0; i < 4 ;i++)
+    {
+        CheckReferPoint[i].x = ground_rotated[i].x*cos(-rotate_angle_rad) - ground_rotated[i].y*sin(-rotate_angle_rad);
+        CheckReferPoint[i].y = ground_rotated[i].x*sin(-rotate_angle_rad) + ground_rotated[i].y*cos(-rotate_angle_rad);
+    }
 
+    double rotate_object_x = _object_x * cos(-rotate_angle_rad) - _object_y * sin(-rotate_angle_rad);
+    double rotate_object_y = _object_x * sin(-rotate_angle_rad) + _object_y * cos(-rotate_angle_rad);
 
+    double x_min,x_max,y_min,y_max;
+
+    y_min = (CheckReferPoint[0].y > CheckReferPoint[3].y ? CheckReferPoint[3].y : CheckReferPoint[0].y);
+    y_max = (CheckReferPoint[0].y < CheckReferPoint[3].y ? CheckReferPoint[3].y : CheckReferPoint[0].y);
+    x_min = (CheckReferPoint[3].x > CheckReferPoint[2].x ? CheckReferPoint[2].x : CheckReferPoint[3].x);
+    x_max = (CheckReferPoint[3].x < CheckReferPoint[2].x ? CheckReferPoint[2].x : CheckReferPoint[3].x);
+
+    if(rotate_object_x < x_max && rotate_object_x > x_min && rotate_object_y < y_max && rotate_object_y > y_min )
+        return true;
+    else
+        return false;
+}
 
 bool CGPS::CheckSum(unsigned char* _rxbuff,int _data_buffer_N)
 {
@@ -233,6 +261,7 @@ bool CGPS::CheckSum(unsigned char* _rxbuff,int _data_buffer_N)
     }
     else
     {
+//        return true;
         return false;
     }
 }
@@ -243,13 +272,15 @@ bool CGPS::RxParse2Data(unsigned char _msg_id, unsigned char *_rxbuff)
     {
         if(CGPS::CheckSum(_rxbuff,20))
         {
-            memcpy(&m_mstr_posecef,&_rxbuff[6],sizeof(m_mstr_posecef)); // data + checksum -> 20
+//            memcpy(&m_mstr_posecef,&_rxbuff[6],sizeof(m_mstr_posecef)); // data + checksum -> 20
+            cout << "data id 1" << endl;
 //            return true;
             fl_gps_rx = false;
             return false;
         }
         else
         {
+            cout << "data id 1 checksum error" << endl;
             fl_gps_rx = false;
             return false;
         }
@@ -258,39 +289,57 @@ bool CGPS::RxParse2Data(unsigned char _msg_id, unsigned char *_rxbuff)
     {
         if(CGPS::CheckSum(_rxbuff,92))
         {
+            cout << "data id 7" << endl;
+            memset(&m_mstr_pvt,0, sizeof(m_mstr_pvt)); // data + checksum -> 92
             memcpy(&m_mstr_pvt,&_rxbuff[6], sizeof(m_mstr_pvt)); // data + checksum -> 92
-            m_cur_gpspoint.lat = m_mstr_pvt.lat_deg_em7;
-            m_cur_gpspoint.lon = m_mstr_pvt.lon_deg_em7;
+            m_cur_gpspoint.lat = (long double)m_mstr_pvt.lat_deg_em7 / (long double)(10000000.0000000);
+            m_cur_gpspoint.lon = (long double)m_mstr_pvt.lon_deg_em7 / (long double)(10000000.0000000);
+
+//            cout << setprecision(20) << "lat : " << m_mstr_pvt.lat_deg_em7<<endl;
+//            cout << setprecision(20) << "lon : " << m_mstr_pvt.lon_deg_em7<< endl;
+//            m_cur_gpspoint.lat = 37.3535;
+//            m_cur_gpspoint.lon = 127.4949;
             fl_gps_rx = true;
             return true;
         }
         else
         {
+            cout << "data id 7 checksum error" << endl;
             fl_gps_rx = false;
             return false;
         }
     }
     else
     {
+        cout << "id error" << endl;
         fl_gps_rx = false;
         return false;
     }
+}
+
+bool CGPS::GPSrecieveCheck()
+{
+    return fl_gps_rx;
 }
 
 bool CGPS::GpsUpdate()
 {
     if(port->isOpen())
     {
-        bool ret = port->waitForReadyRead(10);
+        bool ret = port->waitForReadyRead(1000);
 
-
+//        cout << "GPS Thread id : " << QThread::currentThreadId()<<endl;
         if (ret)
         {
-            m_recvData = port->readAll();
+            QByteArray m_recvData1 = port->readAll();
+            cout << "error"<< endl;
 
             std::string start_index = std::to_string(char(0xb5)) + std::to_string(char(0x62));
-            QList<QByteArray> list = m_recvData.split('\r\n');
-            QList<QByteArray> list2 = list[0].split(0xb5);
+//            QList<QByteArray> list = m_recvData1.split('\r\n');
+//            QList<QByteArray> list2 = list[0].split(0xb5);
+
+
+            QList<QByteArray> list2 = m_recvData1.split(char(0xb5));
 
             if(list2.length() > 1)
             {
@@ -298,10 +347,12 @@ bool CGPS::GpsUpdate()
 
                 unsigned char Rxbuffer[list2[1].size()];
 
+                memset(Rxbuffer,0,list2[1].size());
                 memcpy(Rxbuffer,(list2[1].data()),list2[1].size());
 
                 if(Rxbuffer[0] != 0xb5 || Rxbuffer[1] != 0x62 || Rxbuffer[2] != 0x01) // check sync char1,2 & msg class 1
                 {
+                    cout << "flag error"<< endl;
                     fl_gps_rx = false;
                 }
                 else
@@ -311,11 +362,24 @@ bool CGPS::GpsUpdate()
             }
             else
             {
+                cout << "flag error"<< endl;
                 fl_gps_rx = false;
             }
 
         }
     }
+
+//    m_cur_heading_rad = mpc_imu->GetEulerAngles();
+
+    double tmp_cur_heading = m_cur_heading_rad.at(2);
+    if(tmp_cur_heading < 0)
+        tmp_cur_heading = tmp_cur_heading + 2*PI;
+
+    m_cur_heading = tmp_cur_heading * 180 / PI;
+
+    port->clear();
+    m_recvData.clear();
+
     return fl_gps_rx;
 }
 
@@ -327,6 +391,28 @@ void CGPS::GpsClose()
         std::cout << "Gps port close" << std::endl;
     }
 }
+
+vector<double> CGPS::GetIMUEuler()
+{
+    return m_cur_heading_rad;
+}
+
+// run thread!-------------------------------------------
+//
+void CGPS::run()
+{
+    while(running_command)
+    {
+        GpsUpdate();
+
+        msleep(30);
+        port->flush();
+    }
+}
+
+//
+//-------------------------------------------------------
+
 
 
 

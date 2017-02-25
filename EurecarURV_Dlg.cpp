@@ -22,7 +22,7 @@ EurecarURV_Dlg::EurecarURV_Dlg(QWidget *parent) :
     // Device Class Initialize
     //-------------------------------------------------
     mpc_imu = new CIMU;
-    mpc_gps = new CGPS;
+    mpc_gps = new CGPS();
     mpc_drive_lrf = new CLRF;
     mpc_mani__lrf = new CLRF;
     mpc_camera = new CCamera;
@@ -31,7 +31,7 @@ EurecarURV_Dlg::EurecarURV_Dlg(QWidget *parent) :
     mpc_gripper = new CGripper;
 
     mpc_ssd = new CSSD;
-    mpc_velodyne = new CVelodyne(mpc_imu, mpc_gps);
+    mpc_velodyne = new CVelodyne(mpc_gps);
     //-------------------------------------------------
     // Mission Class Initialize
     //-------------------------------------------------
@@ -85,6 +85,7 @@ EurecarURV_Dlg::EurecarURV_Dlg(QWidget *parent) :
     connect(ui->bt_ugv,SIGNAL(clicked()), this, SLOT(SlotButtonVehicleSwitch()));
     connect(ui->bt_gripper,SIGNAL(clicked()), this, SLOT(SlotButtonGripperSwitch()));
     connect(ui->bt_gps,SIGNAL(clicked()), this, SLOT(SlotButtonGPSSwitch()));
+    connect(ui->bt_gps_init_pos,SIGNAL(clicked()), this, SLOT(SlotButtonGPSInitPosSwitch()));
     connect(ui->bt_imu,SIGNAL(clicked()), this, SLOT(SlotButtonIMUSwitch()));
 
     //Click List View
@@ -108,12 +109,14 @@ EurecarURV_Dlg::EurecarURV_Dlg(QWidget *parent) :
     (mpc_drivig->GetPCL())->viewer->addPointCloud( (mpc_drivig->GetPCL())->panelpoint_cloud, "panelpoint_cloud");
     (mpc_drivig->GetPCL())->viewer->addPointCloud( (mpc_drivig->GetPCL())->lrf_cloud, "lrf_cloud");
     (mpc_drivig->GetPCL())->viewer->addPointCloud( (mpc_drivig->GetPCL())->lrf_waypoint_cloud, "lrf_waypoint_cloud");
+    (mpc_drivig->GetPCL())->viewer->addPointCloud( (mpc_drivig->GetPCL())->mission_boundary_cloud,"mission_boundary_cloud");
 
     (mpc_drivig->GetPCL())->viewer->setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE,1,"cloud");
     (mpc_drivig->GetPCL())->viewer->setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE,5,"waypoint_cloud");
     (mpc_drivig->GetPCL())->viewer->setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE,5,"panelpoint_cloud");
     (mpc_drivig->GetPCL())->viewer->setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE,1,"lrf_cloud");
     (mpc_drivig->GetPCL())->viewer->setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE,5,"lrf_waypoint_cloud");
+    (mpc_drivig->GetPCL())->viewer->setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE,5,"mission_boundary_cloud");
 
 
 
@@ -181,7 +184,7 @@ void EurecarURV_Dlg::SlotButtonGripperSwitch(){
 void EurecarURV_Dlg::SlotButtonIMUSwitch(){
     if(!mpc_imu->IsIMUInit())
     {
-        if(!mpc_imu->IMUInit(ui->ed_imu_path->text().toStdString()))
+        if(!mpc_imu->IMUInit(ui->ed_imu_path->text().toStdString(), ui->ed_init_heading->text().toDouble()))
         {
             QMessageBox::information(this, tr("Fail to Connect IMU"),tr("Check IMU"));
         }
@@ -280,7 +283,7 @@ void EurecarURV_Dlg::SlotButtonGPSSwitch(){
     QByteArray char_dev_path = dev_path.toLocal8Bit();
 
     if(!mpc_gps->port->isOpen()){
-        if(!mpc_gps->GpsInit()){
+        if(!mpc_gps->GpsInit(ui->ed_gps_path->text().toStdString())){
             QMessageBox::information(this, tr("Fail to Open Device"), tr("Check the GPS"));
             return;
         }
@@ -290,6 +293,10 @@ void EurecarURV_Dlg::SlotButtonGPSSwitch(){
         mpc_gps->GpsClose();
         ui->bt_gps->setText("GPS Connect");
     }
+}
+
+void EurecarURV_Dlg::SlotButtonGPSInitPosSwitch(){
+    mpc_gps->SetInitGPS();
 }
 
 void EurecarURV_Dlg::SlotButtonVehicleSwitch(){

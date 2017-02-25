@@ -51,9 +51,9 @@ struct StrDef_UBX_NAV_POSECEF // ECEF Position Solution from Ublox GNSS Module
 
 struct Gpspoint
 {
-    double lat;
-    double lon;
-    double height;
+    long double lat;
+    long double lon;
+    long double height;
 };
 
 struct Ground_Gpspoint
@@ -75,6 +75,8 @@ struct Ground_Bodypoint // calculated body coordinate using current gps position
     double angle_lefttop;
     double angle_righttop;
     double angle_right;
+
+
 };
 
 #endif // GPS_STRUCT_H

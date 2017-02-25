@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1083</width>
-    <height>578</height>
+    <height>680</height>
    </rect>
   </property>
   <property name="font">
@@ -37,7 +37,7 @@
      <x>670</x>
      <y>0</y>
      <width>391</width>
-     <height>571</height>
+     <height>651</height>
     </rect>
    </property>
    <property name="font">
@@ -631,7 +631,7 @@
      <rect>
       <x>150</x>
       <y>540</y>
-      <width>141</width>
+      <width>71</width>
       <height>22</height>
      </rect>
     </property>
@@ -673,6 +673,134 @@
     </property>
     <property name="text">
      <string>Yaw</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_15">
+    <property name="geometry">
+     <rect>
+      <x>270</x>
+      <y>560</y>
+      <width>51</width>
+      <height>16</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Z accel</string>
+    </property>
+   </widget>
+   <widget class="QLineEdit" name="ed_z_accel">
+    <property name="geometry">
+     <rect>
+      <x>260</x>
+      <y>575</y>
+      <width>121</width>
+      <height>22</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QLineEdit" name="ed_x_accel">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>575</y>
+      <width>121</width>
+      <height>22</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QLineEdit" name="ed_y_accel">
+    <property name="geometry">
+     <rect>
+      <x>140</x>
+      <y>575</y>
+      <width>111</width>
+      <height>22</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_16">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>560</y>
+      <width>51</width>
+      <height>16</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>X accel</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_17">
+    <property name="geometry">
+     <rect>
+      <x>150</x>
+      <y>560</y>
+      <width>51</width>
+      <height>16</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Y accel</string>
+    </property>
+   </widget>
+   <widget class="QLineEdit" name="ed_x_delta_velocity">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>600</y>
+      <width>121</width>
+      <height>22</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QLineEdit" name="ed_y_delta_velocity">
+    <property name="geometry">
+     <rect>
+      <x>140</x>
+      <y>600</y>
+      <width>111</width>
+      <height>22</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+   </widget>
+   <widget class="QLineEdit" name="ed_z_delta_velocity">
+    <property name="geometry">
+     <rect>
+      <x>260</x>
+      <y>600</y>
+      <width>121</width>
+      <height>22</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_18">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>630</y>
+      <width>81</width>
+      <height>16</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Timestamp</string>
+    </property>
+   </widget>
+   <widget class="QLineEdit" name="ed_timestamp">
+    <property name="geometry">
+     <rect>
+      <x>80</x>
+      <y>625</y>
+      <width>121</width>
+      <height>22</height>
+     </rect>
     </property>
    </widget>
   </widget>

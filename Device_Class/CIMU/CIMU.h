@@ -1,6 +1,12 @@
 #ifndef IMU_H
 #define IMU_H
 
+#include <QThread>
+#include <QMutex>
+#include <QTimer>
+#include <QElapsedTimer>
+
+
 #include "3DM-GX/mip_sdk.h"
 #include "3DM-GX/byteswap_utilities.h"
 #include "3DM-GX/mip_gx4_imu.h"
@@ -10,8 +16,7 @@
 #include <string>
 #include <iostream>
 #include <vector>
-#include <QMutex>
-
+#include <sys/time.h>
 #define MIP_SDK_GX4_25_IMU_STANDARD_MODE  0x01
 #define MIP_SDK_GX4_25_IMU_DIRECT_MODE	  0x02
 
@@ -29,14 +34,27 @@ using namespace std;
 void FilterPacketCallback(void *_user_ptr, u8 *_packet, u16 _packet_size, u8 _callback_type);
 void AhrsPacketCallback(void *_user_ptr, u8 *_packet, u16 _packet_size, u8 _callback_type);
 
-class CIMU {
+typedef struct LINEAR_ACCEL_STRUCT{
+    float x = 0.0;
+    float y = 0.0;
+    float z = 0.0;
+    u16 valid_flag;
+}linear_accel_struct;
+
+class CIMU: public QThread{
+    Q_OBJECT
+
+protected:
+    void run();
+
 public:
     CIMU();
     ~CIMU();
 
-    bool IMUInit(string _comport);
-    vector<double> GetEulerAngles();
+    bool IMUInit(string _comport, double _init_heading);
+    void GetEulerAngles();
     bool IsIMUInit();
+    void IMUClose();
 private:
 
     QMutex mtx_imu;
@@ -53,7 +71,12 @@ private:
     u8  enable = 1;
     u8  data_stream_format_descriptors[10];
     u16 data_stream_format_decimation[10];
+    u8  data_stream_format_descriptors_ahrs[10];
+    u16 data_stream_format_decimation_ahrs[10];
+
     u8  data_stream_format_num_entries = 0;
+    u8  data_stream_format_num_entries_ahrs = 0;
+
     u8  readback_data_stream_format_descriptors[10] = {0};
     u16 readback_data_stream_format_decimation[10]  = {0};
     u8  readback_data_stream_format_num_entries     =  0;
@@ -82,6 +105,8 @@ private:
     mip_low_pass_filter_settings filter_settings;
     float bias_vector[3]		   = {0};
     u16 duration = 0;
+
+
     gx4_imu_diagnostic_device_status_field imu_diagnostic_field;
     gx4_imu_basic_status_field imu_basic_field;
     gx4_25_diagnostic_device_status_field diagnostic_field;
@@ -104,11 +129,19 @@ private:
     double imu_pitch = 0.0;
     double imu_yaw = 0.0;
 
+    double yaw_bias = 0.0;
+
     //Hardware specific status functions
     u16 Mip3dmCmdHwSpecificDeviceStatus(mip_interface *_device_interface, u16 _model_number, u8 _status_selector, u8 *_response_buffer);
     u16 Mip3dmCmdHwSpecificImuDeviceStatus(mip_interface *_device_interface, u16 _model_number, u8 _status_selector, u8 *_response_buffer);
 
     u8 enable_data_stats_output = 0;
+
+signals:
+    void SignalIMUEuler(vector<double>);
+    void SignalIMULinearAccel(mip_filter_linear_acceleration);
+    void SignalIMUTimestamp(mip_ahrs_internal_timestamp);
+    void SignalIMUDeltaVelocity(mip_ahrs_delta_velocity);
 };
 
 

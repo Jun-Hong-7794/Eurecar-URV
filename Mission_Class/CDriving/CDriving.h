@@ -79,6 +79,11 @@ private:
     double panel_way_y = 0.0;
     bool parking_short = true;
 
+    vector<double> euler_angles = {0,0,0};
+    mip_filter_linear_acceleration linear_accel;
+    mip_ahrs_internal_timestamp time_stamp;
+    mip_ahrs_delta_velocity delta_velocity;
+
 
 private:
     //-------------------------------------------------
@@ -106,7 +111,6 @@ public:
     bool CloseVelodyne();
     bool IsVelodyneConnected();
 
-    bool ConnectGPS();
     bool IsGPSConnected();
     bool CloseGPS();
     void SetInitGPSpoint();
@@ -114,10 +118,15 @@ public:
 
     void PCLInit();
     CPCL* GetPCL();
+    CGPS* GetGPS();
 
-    CIMU* GetIMU();
-
+    vector<double> GetIMUEuler();
+    mip_filter_linear_acceleration GetIMULinearAccel();
+    mip_ahrs_internal_timestamp GetIMUTimestamp();
+    mip_ahrs_delta_velocity GetIMUDeltaVelocity();
     CVelodyne* GetVelodyne();
+    int GetPanelHeadingError();
+    vector<double> GetParkingStatus();
 
     //-------------------------------------------------
     // Drive Class Option Function
@@ -145,16 +154,13 @@ public:
     //-------------------------------------------------
     bool DriveToPanel();
     bool ParkingFrontPanel();
-    bool AttitudeEstimation();
     int VelGen(double);
 
     bool LRFVehicleHorizenControl();
     bool LRFVehicleAngleControl();
 
 
-    int GetPanelHeadingError();
 
-    vector<double> GetParkingStatus();
 
 signals:
     void SignalVelodyneParser(bool _parser_complete);
@@ -164,6 +170,12 @@ signals:
     //Display
     void SignalLRFVehicleAngleStruct(LRF_VEHICLE_ANGLE_STRUCT);
     void SignalLRFVehicleHorizenStruct(LRF_VEHICLE_HORIZEN_STRUCT);
+
+public slots:
+    void SlotIMUEuler(vector<double> _euler_angles);
+    void SlotIMULinearAccel(mip_filter_linear_acceleration _linear_accel);
+    void SlotIMUTimestamp(mip_ahrs_internal_timestamp _time_stamp);
+    void SlotIMUDeltaVelocity(mip_ahrs_delta_velocity _delta_velocity);
 };
 
 #endif // CDRIVING_H

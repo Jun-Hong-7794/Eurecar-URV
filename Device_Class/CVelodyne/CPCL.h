@@ -45,7 +45,7 @@
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
-
+#include <iostream>
 
 typedef pcl::PointXYZRGBA PointT;
 typedef pcl::PointCloud<PointT> PointCloudT;
@@ -88,8 +88,11 @@ public:
         panelpoint_cloud.reset(new PointCloudT);
         lrf_cloud.reset(new PointCloudT);
         lrf_waypoint_cloud.reset(new PointCloudT);
+        mission_boundary_cloud.reset(new PointCloudT);
         // PCL display setting
+
         viewer.reset (new pcl::visualization::PCLVisualizer ("viewer" , false));
+
 
     }
 
@@ -125,17 +128,21 @@ public:
         }
     }
 
+
+
     double **m_x_data = NULL;
     double **m_y_data = NULL;
     double **m_z_data = NULL;
     unsigned int **m_dist_data;
 
     boost::shared_ptr<pcl::visualization::PCLVisualizer> viewer;
+
     PointCloudT::Ptr cloud;
     PointCloudT::Ptr waypoint_cloud;
     PointCloudT::Ptr panelpoint_cloud;
     PointCloudT::Ptr lrf_cloud;
     PointCloudT::Ptr lrf_waypoint_cloud;
+    PointCloudT::Ptr mission_boundary_cloud;
 };
 
 #endif // CPCL_H
