@@ -219,6 +219,8 @@ public:
 
     bool KinovaRotateBase(double _rot_deg);
 
+    bool KinovaForceCheck(double _force_x, double _force_y, double _force_z); // true: force occured!
+
     //LRF
     bool InitLRF(char* _dev_path = (char *)"/dev/ttyACM0", int _dev_type = UST_20LX);
     bool CloseLRF();

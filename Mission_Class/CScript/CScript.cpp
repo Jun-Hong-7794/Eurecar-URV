@@ -1393,6 +1393,38 @@ bool CScript::InterpreteLRFKVerticalCtrl(QString _line, STEP_INFO& _step_info){
 
             return true;
         }
+
+        if(_line.contains("force_option")){
+
+            int colone_index = _line.indexOf("=");
+
+            QString str_option;
+            str_option = _line.mid(colone_index + 1).trimmed();
+
+            if(str_option.contains("true"))
+                _step_info.manipulation_option.lrf_k_v_ctrl_struct.fl_force_option  = true;
+            else
+                _step_info.manipulation_option.lrf_k_v_ctrl_struct.fl_force_option  = false;
+
+            return true;
+        }
+        if(_line.contains("force_x")){
+            int colone_index = _line.indexOf("=");
+            _step_info.manipulation_option.lrf_k_v_ctrl_struct.force_x = _line.mid(colone_index + 1).trimmed().toDouble();
+            return true;
+        }
+        if(_line.contains("force_y")){
+            int colone_index = _line.indexOf("=");
+            _step_info.manipulation_option.lrf_k_v_ctrl_struct.force_y = _line.mid(colone_index + 1).trimmed().toDouble();
+            return true;
+        }
+        if(_line.contains("force_z")){
+            int colone_index = _line.indexOf("=");
+            _step_info.manipulation_option.lrf_k_v_ctrl_struct.force_z = _line.mid(colone_index + 1).trimmed().toDouble();
+            return true;
+        }
+
+
     }
     else if(_line.contains("LRF_K_VERTICAL_CTRL_FUNCTION")){
         _step_info.function_index = MP_LRF_K_VERTIVAL_CONTROL;

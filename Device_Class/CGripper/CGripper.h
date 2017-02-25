@@ -166,6 +166,7 @@ private:
     int dxl_goal_position;
 
     int m_dxl_pro_goal_position;
+    int m_dxl_pro_current_position;
 
     uint8_t dxl_error;
     uint16_t dxl1_present_position;
@@ -210,6 +211,8 @@ public:
     //Port
     bool GripperPortInit(char* _device_port = (char *)"/dev/ttyUSB0");
     bool RotatorPortInit(char* _device_port = (char *)"/dev/ttyUSB0");
+
+    bool CloseDynamixelPort();
 
     //Rotator /*Dynamixel Pro*/
     bool InitRotator(char* _device_port = (char *)"/dev/ttyUSB0");

@@ -902,43 +902,46 @@ bool CKinova::KinovaDoManipulate(CartesianPosition _desired_position,int _mode, 
     else if(_mode == 3){ // Mode 3 : Roll
         double error0;
 
-        Kinova_GetCartesianPosition(position);
+        Kinova_SendAdvanceTrajectory(desired_position);
+        msleep(300);
 
-        error0 =  pow((desired_position.Position.CartesianPosition.ThetaX - position.Coordinates.ThetaX),2)
-                + pow((desired_position.Position.CartesianPosition.ThetaY - position.Coordinates.ThetaY),2)
-                + pow((desired_position.Position.CartesianPosition.ThetaZ - position.Coordinates.ThetaZ),2);
+//        Kinova_GetCartesianPosition(position);
 
-        error0 = sqrt(error0);
+//        error0 =  pow((desired_position.Position.CartesianPosition.ThetaX - position.Coordinates.ThetaX),2)
+//                + pow((desired_position.Position.CartesianPosition.ThetaY - position.Coordinates.ThetaY),2)
+//                + pow((desired_position.Position.CartesianPosition.ThetaZ - position.Coordinates.ThetaZ),2);
 
-        int count = 0;
+//        error0 = sqrt(error0);
 
-        double error = error0;
-        double error_old = error0;
-        double thresh = KINOVA_PI / 180;
-        double thresh2 = (KINOVA_PI / 180);
+//        int count = 0;
 
-        while((error > thresh) && (count < 5)){
+//        double error = error0;
+//        double error_old = error0;
+//        double thresh = KINOVA_PI / 180;
+//        double thresh2 = (KINOVA_PI / 180);
 
-            if((fabs(error - error_old) < thresh2) && (error0 >= error))
-            {
-                count++;
-            }
-            else
-            {
-                count = 0;
-            }
+//        while((error > thresh) && (count < 5)){
 
-            error_old = error;
+//            if((fabs(error - error_old) < thresh2) && (error0 >= error))
+//            {
+//                count++;
+//            }
+//            else
+//            {
+//                count = 0;
+//            }
 
-            Kinova_GetCartesianPosition(position);
-            error =   pow((desired_position.Position.CartesianPosition.ThetaX - position.Coordinates.ThetaX),2)
-                    + pow((desired_position.Position.CartesianPosition.ThetaY - position.Coordinates.ThetaY),2)
-                    + pow((desired_position.Position.CartesianPosition.ThetaZ - position.Coordinates.ThetaZ),2);
+//            error_old = error;
 
-            error = sqrt(error);
+//            Kinova_GetCartesianPosition(position);
+//            error =   pow((desired_position.Position.CartesianPosition.ThetaX - position.Coordinates.ThetaX),2)
+//                    + pow((desired_position.Position.CartesianPosition.ThetaY - position.Coordinates.ThetaY),2)
+//                    + pow((desired_position.Position.CartesianPosition.ThetaZ - position.Coordinates.ThetaZ),2);
 
-            Kinova_SendAdvanceTrajectory(desired_position);
-        }
+//            error = sqrt(error);
+
+//            Kinova_SendAdvanceTrajectory(desired_position);
+//        }
     }
 
     emit SignalKinovaPosition(KinovaGetPosition());

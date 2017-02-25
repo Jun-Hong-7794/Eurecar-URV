@@ -98,6 +98,7 @@ public slots:
     void SlotButtonKinovaReset();
     void SlotButtonGripperSwitch();
     void SlotButtonIMUSwitch();
+    void SlotButtonRotatorSwitch();
 
     //ListView
     void SlotMissionListUpdate(QModelIndex);

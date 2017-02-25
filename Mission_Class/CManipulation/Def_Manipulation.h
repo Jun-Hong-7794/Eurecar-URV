@@ -24,6 +24,12 @@ typedef struct _LRFK_VCtrl_Struct{
 
     bool fl_only_sensing_moving;
 
+    bool fl_force_option;
+
+    double force_x;
+    double force_y;
+    double force_z;
+
     int desired_v_dst;
 
     double error;
@@ -281,11 +287,16 @@ typedef struct _Kinova_Force_Ctrl_Struct{
     double move_step_y;
     double move_step_z;
 
+    int threshold_mode; //Mode1 : Bigger than, 2: Smaller than, 3: Range
+
     double force_threshold;
 
     double force_threshold_x;//Relative Force
     double force_threshold_y;//Relative Force
     double force_threshold_z;//Relative Force
+
+    double force_range_s;
+    double force_range_e;
 
     double position_limit_x;
     double position_limit_y;

@@ -11,6 +11,11 @@ CGripper::CGripper()
 CGripper::~CGripper()
 {
     CloseDynamixel();
+
+    if(IsRotatorInit())
+        CloseRotator();
+    else if(IsGripperInit())
+        CloseGripper();
 }
 
 
@@ -542,9 +547,13 @@ bool CGripper::InitRotator(char* _device_port){
         fprintf(stderr, "[ID:%03d] groupBulkRead DXL3 present position getdata failed", DXL3_ID);
 
     //ID - 3 Read Position
+    uint32_t present_pose_3 = 0;
+    mp_rotator_packetHandler->read4ByteTxRx(mp_rotator_portHandler, DXL3_ID, ADDR_PR_PRESENT_POSITION, &present_pose_3, &dxl_error);
     dxl3_present_position = mp_pro_groupBulkRead_pos->getData(DXL3_ID, ADDR_PR_PRESENT_POSITION, LEN_PR_PRESENT_POSITION);
 
     fl_init_rotator = true;
+
+    m_dxl_pro_current_position = 0;
 
     return true;
 }
@@ -554,7 +563,7 @@ void CGripper::CloseRotator(){
     GripperTorque(false);
     RotatorTorque(false);
 
-    mp_gripper_portHandler->closePort();
+    mp_rotator_portHandler->closePort();
 
     fl_init_gripper= false;
     fl_port_status = false;
@@ -600,12 +609,12 @@ bool CGripper::RotatorTorque(bool _onoff){
 
 bool CGripper::RotatorGoToThePosition(int _step){ // Go to The Position
 
-    int is_moving = 0;
-
     if(!fl_init_rotator)
         return false;
 
-    m_dxl_pro_goal_position = _step;
+    m_dxl_pro_current_position = _step;
+
+    m_dxl_pro_goal_position = m_dxl_pro_current_position;
     dxl_comm_result = mp_rotator_packetHandler->write4ByteTxRx(mp_rotator_portHandler, DXL3_ID, ADDR_PR_GOAL_POSITION, m_dxl_pro_goal_position/*+DXL1_OFFSET*/, &dxl_error);
 
     if(dxl_comm_result != COMM_SUCCESS)
@@ -614,10 +623,10 @@ bool CGripper::RotatorGoToThePosition(int _step){ // Go to The Position
     else if(dxl_error != 0)
         mp_rotator_packetHandler->printRxPacketError(dxl_error);
 
-    do{
-        is_moving = mp_pro_groupBulkRead_pos->getData(DXL3_ID, ADDR_PR_IS_MOVING, LEN_PR_IS_MOVING);
+//    do{
+//        mp_rotator_packetHandler->read1ByteTxRx(mp_rotator_portHandler, DXL3_ID, ADDR_PR_IS_MOVING, &is_moving, &dxl_error);
 
-    }while(is_moving > 0);
+//    }while(is_moving > 0);
 
 
     return true;
@@ -625,12 +634,17 @@ bool CGripper::RotatorGoToThePosition(int _step){ // Go to The Position
 
 bool CGripper::RotatorGoToRelPosition(int _step){ // Go to Relative Position From Present Position
 
-    int is_moving = 0;
-    dxl3_present_position = mp_pro_groupBulkRead_pos->getData(DXL3_ID, ADDR_PR_PRESENT_POSITION, LEN_PR_PRESENT_POSITION);
+    if(!fl_init_rotator)
+        return false;
 
-    dxl3_present_position = dxl3_present_position + _step;
+//    dxl3_present_position = mp_pro_groupBulkRead_pos->getData(DXL3_ID, ADDR_PR_PRESENT_POSITION, LEN_PR_PRESENT_POSITION);
 
-    dxl_comm_result = mp_rotator_packetHandler->write4ByteTxRx(mp_rotator_portHandler, DXL3_ID, ADDR_PR_GOAL_POSITION, dxl3_present_position/*+DXL1_OFFSET*/, &dxl_error);
+//    dxl3_present_position = dxl3_present_position + _step;
+
+    m_dxl_pro_current_position += _step;
+    m_dxl_pro_goal_position = m_dxl_pro_current_position;
+
+    dxl_comm_result = mp_rotator_packetHandler->write4ByteTxRx(mp_rotator_portHandler, DXL3_ID, ADDR_PR_GOAL_POSITION, m_dxl_pro_goal_position, &dxl_error);
 
     if(dxl_comm_result != COMM_SUCCESS)
         mp_rotator_packetHandler->printTxRxResult(dxl_comm_result);
@@ -638,12 +652,7 @@ bool CGripper::RotatorGoToRelPosition(int _step){ // Go to Relative Position Fro
     else if(dxl_error != 0)
         mp_rotator_packetHandler->printRxPacketError(dxl_error);
 
-    do{
-        is_moving = mp_pro_groupBulkRead_pos->getData(DXL3_ID, ADDR_PR_IS_MOVING, LEN_PR_IS_MOVING);
-
-    }while(is_moving > 0);
-
-    msleep(300);
+//    msleep(500);
 
     return true;
 }

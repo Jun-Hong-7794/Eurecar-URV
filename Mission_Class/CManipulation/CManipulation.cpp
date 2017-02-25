@@ -170,6 +170,36 @@ bool CManipulation::KinovaRotateBase(double _rot_deg){
     return true;
 }
 
+bool CManipulation::KinovaForceCheck(double _force_x, double _force_y, double _force_z){ // true: force occured!
+
+    if(!mpc_kinova->IsKinovaInitialized())
+        return false;
+
+    CartesianPosition cartesian_pos = mpc_kinova->KinovaGetCartesianForce();
+
+    msleep(30);
+
+    if(_force_x != 0){
+        if(fabs(cartesian_pos.Coordinates.X) > _force_x){//Over Threshold X axis force
+            return true;
+        }
+    }
+
+    if(_force_y != 0){
+        if(fabs(cartesian_pos.Coordinates.Y) > _force_y){//Over Threshold Y axis force
+            return true;
+        }
+    }
+
+    if(_force_z != 0){
+        if(fabs(cartesian_pos.Coordinates.Z) > _force_z){//Over Threshold Z axis force
+                return true;
+        }
+    }
+
+    return false;
+}
+
 //LRF
 bool CManipulation::InitLRF(char* _dev_path, int _dev_type){
 
@@ -1701,7 +1731,7 @@ bool CManipulation::LRFK_VCtrl(){
 
     double error_dst_m = ((double)error_dst) * 0.001;
 
-    if(lrf_kinova_struct.fl_only_sensing_moving){
+    if(!lrf_kinova_struct.fl_only_sensing_moving){
         mpc_kinova->Kinova_GetCartesianPosition(position);
 
         if(error_dst > 0){
@@ -1713,7 +1743,7 @@ bool CManipulation::LRFK_VCtrl(){
             mpc_kinova->KinovaDoManipulate(position, 2);
         }
     }
-
+    msleep(1500);
     //-----------------------------------------------
     // Precise Move
     //-----------------------------------------------
@@ -1724,6 +1754,11 @@ bool CManipulation::LRFK_VCtrl(){
                                        lrf_kinova_struct.lrf_info_struct.inlier_distance);
 
         PanelModeling(m_valve_size, info.vertical_dst, info.horizen__dst, info.angle);
+
+        if(lrf_kinova_struct.fl_force_option){
+            if(KinovaForceCheck(lrf_kinova_struct.force_x, lrf_kinova_struct.force_y, lrf_kinova_struct.force_z))
+                return true;
+        }
 
         error_dst = lrf_kinova_struct.desired_v_dst - info.vertical_dst;
         error_dst_m = ((double)error_dst) * 0.001;
@@ -1813,6 +1848,7 @@ bool CManipulation::LRFK_HCtrl(){
         }
     }
 
+    msleep(1500);
     //-----------------------------------------------
     // Precise Move
     //-----------------------------------------------
@@ -1890,7 +1926,7 @@ bool CManipulation::LRFK_ACtrl(){
         }
 
         mpc_gripper->RotatorGoToRelPosition(direction);
-        msleep(500);
+        msleep(30);
 
     }while(true);
 
@@ -2119,6 +2155,12 @@ bool CManipulation::KinovaForceCtrl(){
     double position_threshold = 0.03;
 
     KINOVA_FORCE_CTRL_STRUCT kinova_force_ctrl = GetKinovaForceCtrlOption();
+
+    //Mode1 : Bigger than, 2: Smaller than, 3: Range
+    int mode = kinova_force_ctrl.threshold_mode;
+
+    if(mode == 0)
+        mode = 1;//Default Mode
 
     do{
         CartesianPosition current_pos = mpc_kinova->KinovaGetPosition();
@@ -2358,18 +2400,17 @@ bool CManipulation::GripperKinovaValveSizeRecognition(){
     GRIPPER_DATA gripper_data;
     std::vector<GRIPPER_DATA> vec_gripper_data;
 
-    double org_roll_pose = 0;
+    vec_gripper_data.clear();
+
     CartesianPosition current_pose;
     current_pose = mpc_kinova->KinovaGetPosition();
-
-    org_roll_pose = current_pose.Coordinates.ThetaZ;
 
     // -1: Add Graph
     emit SignalValveSizeData(gripper_data_x, gripper_data_y, -1);
 
     double diff_pose = 0;
-    double diff_pose_1 = 0;
-    double diff_pose_2 = 0;
+    int diff_pose_1 = 0;
+    int diff_pose_2 = 0;
 
     double roll_angle = 0;
 
@@ -2407,15 +2448,10 @@ bool CManipulation::GripperKinovaValveSizeRecognition(){
             }
             else if(fl_gripper_1_not_reach && fl_gripper_2_not_reach){
                 std::cout << "1 and 2 not reched to valve" << std::endl;
-
-                i -= 1;
-                if(i < 0) i = 0;
-
-                continue;
             }
 
             mpc_gripper->GripperGoToThePositionLoadCheck(release_pose_1, release_pose_2, -2);
-            msleep(300);
+            msleep(500);
 
             mpc_kinova->KinovaMoveUnitStep(0, y_step, z_step);
             msleep(500);
@@ -2431,7 +2467,6 @@ bool CManipulation::GripperKinovaValveSizeRecognition(){
 
             continue;
         }
-
 
         diff_pose_1 = fabs(gripper_status.present_pose_1 - grasp_pose_1);
         diff_pose_2 = fabs(gripper_status.present_pose_2 - grasp_pose_2);
@@ -2460,6 +2495,8 @@ bool CManipulation::GripperKinovaValveSizeRecognition(){
             current_pose.Coordinates.ThetaZ -= (KINOVA_PI / grasp_trial);
         }
         mpc_kinova->KinovaDoManipulate(current_pose, 3);
+
+        msleep(100);
     };
 
     m_valve_size_graph_index++;
@@ -2473,12 +2510,10 @@ bool CManipulation::GripperKinovaValveSizeRecognition(){
 
     //Find Min Diff & Valve Rotation Angle
     DataSort(vec_gripper_data);
+
     //Minimum Diff Index * (Step Rotation Angle)
     gripper_kinova_valve_recog.rotation_angle =
             (vec_gripper_data.at(0).x * (KINOVA_PI / grasp_trial) * (180 / KINOVA_PI) /*Rad to Deg*/);
-
-    current_pose.Coordinates.ThetaZ = org_roll_pose;
-    mpc_kinova->KinovaDoManipulate(current_pose, 3);
 
     //Find Valve Size
     int valve_size_recog = DataAnalisys(DataSort(gripper_data_y));

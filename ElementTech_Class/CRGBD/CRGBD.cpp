@@ -344,7 +344,7 @@ LINE_PARAM CRGBD::EstimateLineEquation(std::vector<POINT_PARAM>& _point_vec){
 
     double line_max_count = 0;
 
-    double line_inlier_standard = 7;
+    double line_inlier_standard = 5;
 
     for(unsigned int i = 0; i < line_eq_vector.size(); i++){
 
