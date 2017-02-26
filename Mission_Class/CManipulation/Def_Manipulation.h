@@ -353,8 +353,8 @@ typedef struct _Kinova_Fit_To_Valve_Pose_Struct{
     int valve_size;/*16 ~ 24mm*/
     double valve_rotation_angle;
 
-    int move_step;
     int angle_step;
+    double move_step;
 
 }KINOVA_FIT_TO_VALVE_POSE_STRUCT;
 
@@ -415,6 +415,17 @@ typedef struct _Gripper_Force_Ctrl_Struct{
     int pose_2;
 
 }GRIPPER_FORCE_CTRL_STRUCT;
+
+typedef struct _Gripper_Go_To_Rel_Pose_Struct{
+
+    bool gripper_go_to_rel_pose;
+
+    int force_threshold;
+
+    int pose_1;
+    int pose_2;
+
+}GRIPPER_GO_TO_REL_POSE_STRUCT;
 
 typedef struct _Gripper_Magnet_Ctrl_Struct{
 
@@ -478,6 +489,8 @@ typedef struct _Manipulation_Option{
     KINOVA_DO_MANIPULATE_STRUCT kinova_manipulate_option;
 
     KINOVA_FIT_TO_VALVE_POSE_STRUCT kinova_fit_to_valve_pose;
+
+    GRIPPER_GO_TO_REL_POSE_STRUCT grippper_go_to_rel_pose_option;
 
     GRIPPER_KINOVA_VALVE_SIZE_RECOG_STRUCT gripper_kinova_valve_recog_option;
 

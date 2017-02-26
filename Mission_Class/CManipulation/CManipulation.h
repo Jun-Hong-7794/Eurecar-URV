@@ -58,6 +58,8 @@
 
 #define SENSING_LRF_PANEL_LOCALIZATION          17
 
+#define MANIPUL_INX_GRIPPER_GO_TO_REL_POSE      18
+
 class CManipulation:public QThread{
     Q_OBJECT
 
@@ -130,6 +132,9 @@ private:
 
     GRIPPER_FORCE_CTRL_STRUCT mstruct_gripper_force_ctrl;
     QMutex mxt_gripper_force_ctrl;
+
+    GRIPPER_GO_TO_REL_POSE_STRUCT mstruct_gripper_go_to_rel_pose;
+    QMutex mxt_gripper_go_to_rel_pose;
 
     GRIPPER_MAGNET_CTRL_STRUCT mstruct_gripper_magnet_ctrl;
     QMutex mxt_gripper_magnet_ctrl;
@@ -320,6 +325,9 @@ public:
     void SetManipulationOption(GRIPPER_FORCE_CTRL_STRUCT _manipulation_option);
     GRIPPER_FORCE_CTRL_STRUCT GetGripperForceCtrlOption();
 
+    void SetManipulationOption(GRIPPER_GO_TO_REL_POSE_STRUCT _manipulation_option);
+    GRIPPER_GO_TO_REL_POSE_STRUCT GetGripperGoToRelPoseOption();
+
     void SetManipulationOption(GRIPPER_MAGNET_CTRL_STRUCT _manipulation_option);
     GRIPPER_MAGNET_CTRL_STRUCT GetGripperMagnetCtrlOption();
 
@@ -381,6 +389,7 @@ private:
     bool KinovaFitToValvePose();
 
     bool GripperKinovaValveSizeRecognition();
+    bool GripperGoToRelPose();
 
     bool GripperForceCtrl();
     bool GripperMagnetCtrl();

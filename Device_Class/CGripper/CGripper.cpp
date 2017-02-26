@@ -946,6 +946,56 @@ bool CGripper::GripperGoToThePosition(int _degree){ // Go to The Position
     return true;
 }
 
+bool CGripper::GripperGoToRelPosition(int _rel_pose_1, int _rel_pose_2){ // Go to Relative Position From Present Position
+
+    uint8_t dxl_error = 0;                          // Dynamixel error
+    int dxl_comm_result = COMM_TX_FAIL;             // Communication result
+
+    uint16_t dxl_present_position_1 = 0; // Present position
+    uint16_t dxl_present_position_2 = 0; // Present position
+
+    int goal_pose_1 = 0;
+    int goal_pose_2 = 0;
+
+    GRIPPER_STATUS gripper_status;
+
+    mtx_gripper_handle.lock();
+    {
+        dxl_comm_result = mp_gripper_packetHandler->read2ByteTxRx(mp_gripper_portHandler, DXL1_ID, ADDR_MX_PRESENT_POSITION, &dxl_present_position_1, &dxl_error);
+
+        goal_pose_1 = dxl_present_position_1 + _rel_pose_1;
+        dxl_comm_result = mp_gripper_packetHandler->write2ByteTxRx(mp_gripper_portHandler, DXL1_ID, ADDR_MX_GOAL_POSITION, goal_pose_1, &dxl_error);
+
+        if(dxl_comm_result != COMM_SUCCESS){
+            mp_gripper_packetHandler->printTxRxResult(dxl_comm_result);
+            mtx_gripper_handle.unlock();
+            return false;
+        }
+
+        dxl_comm_result = mp_gripper_packetHandler->read2ByteTxRx(mp_gripper_portHandler, DXL2_ID, ADDR_MX_PRESENT_POSITION, &dxl_present_position_2, &dxl_error);
+
+        goal_pose_2 = dxl_present_position_2 + _rel_pose_2;
+        dxl_comm_result = mp_gripper_packetHandler->write2ByteTxRx(mp_gripper_portHandler, DXL2_ID, ADDR_MX_GOAL_POSITION, goal_pose_2, &dxl_error);
+
+        if(dxl_comm_result != COMM_SUCCESS){
+            mp_gripper_packetHandler->printTxRxResult(dxl_comm_result);
+            mtx_gripper_handle.unlock();
+            return false;
+        }
+
+        dxl_comm_result = mp_gripper_packetHandler->read2ByteTxRx(mp_gripper_portHandler, DXL1_ID, ADDR_MX_PRESENT_POSITION, &dxl_present_position_1, &dxl_error);
+        dxl_comm_result = mp_gripper_packetHandler->read2ByteTxRx(mp_gripper_portHandler, DXL2_ID, ADDR_MX_PRESENT_POSITION, &dxl_present_position_2, &dxl_error);
+
+        gripper_status.present_pose_1 = dxl_present_position_1;
+        gripper_status.present_pose_2 = dxl_present_position_2;
+    }
+    mtx_gripper_handle.unlock();
+
+    emit SignalEditeGripperStatus(gripper_status);
+
+    return true;
+}
+
 bool CGripper::GripperGoToThePositionLoadCheck(int _goal_pos_1, int _goal_pos_2, int _load_threshold){ // Go to The Position
 
     uint8_t dxl_error = 0;                          // Dynamixel error

@@ -46,6 +46,8 @@
 #define MP_KINOVA_MANIPULATE                 0x2006
 #define MP_KINOVA_ROTATE_VALVE               0x2007
 
+#define MP_GRIPPER_GO_TO_REL_POSE            0x2022
+
 /*Old LRF Kinova Control*/
 #define MP_LRF_KINOVA_VERTIVAL_CONTROL       0x2008
 #define MP_LRF_KINOVA_HORIZEN_CONTROL        0x2009

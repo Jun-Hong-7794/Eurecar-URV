@@ -17,7 +17,7 @@ A_Sleep(4000)
 
 LRF_K_VERTICAL_CTRL_STRUCT.mode = 2
 
-LRF_K_VERTICAL_CTRL_STRUCT.only_sensing_moving = true
+LRF_K_VERTICAL_CTRL_STRUCT.only_sensing_moving = false
 
 LRF_K_VERTICAL_CTRL_STRUCT.desired_v_dst = 240
 LRF_K_VERTICAL_CTRL_STRUCT.error = 2
@@ -158,7 +158,7 @@ WRENCH_RECOGNITION_STRUCT.valve_size = gi_valve_size
 WRENCH_RECOGNITION_STRUCT.valve_size = 16
 /*gi_wrench_hanger_index = WRENCH_RECOGNITION_FUNCTION()
 
-A_Sleep(500)
+A_Sleep(2000)
 
 ## Step13: Align to Panel
 IF(gi_wrench_hanger_index != -1)

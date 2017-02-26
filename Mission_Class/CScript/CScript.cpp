@@ -487,6 +487,14 @@ bool CScript::InterpreteMissionScriptLine(QString _line, MISSION_SCRIPT* _missio
         else
             return false;
     }
+    if(_line.contains("GRIPPER_GO_TO_REL_POSE")){
+
+        if(InterpreteGripperGotoRelPose(_line, _step_info))
+            return true;
+        else
+            return false;
+    }
+
     if(_line.contains("GRIPPER_MAGNET_CTRL")){
 
         if(InterpreteGripperMagnetCtrl(_line, _step_info))
@@ -1085,6 +1093,30 @@ bool CScript::InterpreteGripperForceCtrl(QString _line, STEP_INFO& _step_info){
     }
     else if(_line.contains("GRIPPER_FORCE_CTRL_FUNCTION")){
         _step_info.function_index = MP_GRIPPER_FORCE_CONTROL;
+    }
+    else
+        return false;
+
+    return true;
+}
+
+bool CScript::InterpreteGripperGotoRelPose(QString _line, STEP_INFO& _step_info){
+
+    if(_line.contains("GRIPPER_GO_TO_REL_POSE_STRUCT")){
+
+        if(_line.contains("pose_1")){
+            int colone_index = _line.indexOf("=");
+            _step_info.manipulation_option.grippper_go_to_rel_pose_option.pose_1 = _line.mid(colone_index + 1).trimmed().toInt();
+            return true;
+        }
+        if(_line.contains("pose_2")){
+            int colone_index = _line.indexOf("=");
+            _step_info.manipulation_option.grippper_go_to_rel_pose_option.pose_2 = _line.mid(colone_index + 1).trimmed().toInt();
+            return true;
+        }
+    }
+    else if(_line.contains("GRIPPER_GO_TO_REL_POSE_FUNCTION")){
+        _step_info.function_index = MP_GRIPPER_GO_TO_REL_POSE;
     }
     else
         return false;
@@ -2764,6 +2796,13 @@ bool CScript::MissionPlayer(){
             if(mpary_mission_script[i].step_vecor.at(j).function_index == MP_GRIPPER_FORCE_CONTROL){
                 mpc_manipulation->SetManipulationOption(mpary_mission_script[i].step_vecor.at(j).manipulation_option.gripper_force_option);
                 mpc_manipulation->SelectMainFunction(MANIPUL_INX_GRIPPER_FORCE_CLRL);
+
+                while(mpc_manipulation->isRunning());
+            }
+
+            if(mpary_mission_script[i].step_vecor.at(j).function_index == MP_GRIPPER_GO_TO_REL_POSE){
+                mpc_manipulation->SetManipulationOption(mpary_mission_script[i].step_vecor.at(j).manipulation_option.grippper_go_to_rel_pose_option);
+                mpc_manipulation->SelectMainFunction(MANIPUL_INX_GRIPPER_GO_TO_REL_POSE);
 
                 while(mpc_manipulation->isRunning());
             }

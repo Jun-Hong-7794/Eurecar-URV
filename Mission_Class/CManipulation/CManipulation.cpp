@@ -438,6 +438,12 @@ bool CManipulation::SelectMainFunction(int _fnc_index_){
 
         return true;
     }
+    else if(_fnc_index_ == MANIPUL_INX_GRIPPER_GO_TO_REL_POSE){
+        m_main_fnc_index = MANIPUL_INX_GRIPPER_GO_TO_REL_POSE;
+        this->start();
+
+        return true;
+    }
 
     else if(_fnc_index_ == MANIPUL_INX_KINOVA_MANIPULATE){
         m_main_fnc_index = MANIPUL_INX_KINOVA_MANIPULATE;
@@ -830,6 +836,29 @@ GRIPPER_FORCE_CTRL_STRUCT CManipulation::GetGripperForceCtrlOption(){
     mxt_gripper_force_ctrl.unlock();
 
     return gripper_force_ctrl;
+}
+
+void CManipulation::SetManipulationOption(GRIPPER_GO_TO_REL_POSE_STRUCT _manipulation_option){
+
+    mxt_gripper_go_to_rel_pose.lock();
+    {
+        mstruct_gripper_go_to_rel_pose = _manipulation_option;
+    }
+    mxt_gripper_go_to_rel_pose.unlock();
+}
+
+GRIPPER_GO_TO_REL_POSE_STRUCT CManipulation::GetGripperGoToRelPoseOption(){
+
+    GRIPPER_GO_TO_REL_POSE_STRUCT gripper_go_to_rel_pose;
+
+    mxt_gripper_go_to_rel_pose.lock();
+    {
+        gripper_go_to_rel_pose = mstruct_gripper_go_to_rel_pose;
+    }
+    mxt_gripper_go_to_rel_pose.unlock();
+
+    return gripper_go_to_rel_pose;
+
 }
 
 void CManipulation::SetManipulationOption(GRIPPER_MAGNET_CTRL_STRUCT _manipulation_option){
@@ -2363,13 +2392,14 @@ bool CManipulation::KinovaRotateValveMotion(){
 
     KINOVA_ROTATE_VALVE_STRUCT kinova_rotate_valve = GetKinovaRotateValveOption();
 
-    mpc_kinova->SetKinovaRotateValve(kinova_rotate_valve.using_current_coord, kinova_rotate_valve.init_angle, kinova_rotate_valve.center_x, kinova_rotate_valve.center_y, kinova_rotate_valve.center_z);
+    mpc_kinova->SetKinovaRotateValve(kinova_rotate_valve.using_current_coord, kinova_rotate_valve.init_angle,
+                                     kinova_rotate_valve.center_x, kinova_rotate_valve.center_y, kinova_rotate_valve.center_z);
 
-    if(kinova_rotate_valve.theta > 0)
-        mpc_kinova->KinovaRotateValveMotion(VALVE_ROTATE_DIR(CW), kinova_rotate_valve.radius, kinova_rotate_valve.theta);
-
-    else{
+    if(kinova_rotate_valve.theta < 0){
         kinova_rotate_valve.theta = (-1)* kinova_rotate_valve.theta;
+        mpc_kinova->KinovaRotateValveMotion(VALVE_ROTATE_DIR(CW), kinova_rotate_valve.radius, kinova_rotate_valve.theta);
+    }
+    else{
         mpc_kinova->KinovaRotateValveMotion(VALVE_ROTATE_DIR(CCW), kinova_rotate_valve.radius, kinova_rotate_valve.theta);
     }
 
@@ -2398,7 +2428,8 @@ bool CManipulation::KinovaFitToValvePose(){
         std::cout << "rotation angle : " << valve_rotation_angle << std::endl;
 
         std::cout << "Angle zero. Right num_move: " << num_move << std::endl;
-
+        if(num_move > 5)
+            num_move = 5;
         for(int i = 0; i < num_move; i++){
             mpc_kinova->KinovaMoveUnitStepRi();
             msleep(500);
@@ -2418,7 +2449,11 @@ bool CManipulation::KinovaFitToValvePose(){
         int num_move = (int)(added_x_value / kinova_fit_to_valve_optio.move_step);
         std::cout << "Left num_move: " << num_move << std::endl;
 
+        if(num_move > 5)
+            num_move = 5;
+
         for(int i = 0; i < num_move; i++){
+            //Default: 0.07
             mpc_kinova->KinovaMoveUnitStepLe();
             msleep(500);
         }
@@ -2427,6 +2462,9 @@ bool CManipulation::KinovaFitToValvePose(){
     if(added_x_value < 0){
         int num_move = (int)(fabs(added_x_value) / kinova_fit_to_valve_optio.move_step);
         std::cout << "Right num_move: " << num_move << std::endl;
+
+        if(num_move > 5)
+            num_move = 5;
 
         for(int i = 0; i < num_move; i++){
             mpc_kinova->KinovaMoveUnitStepRi();
@@ -2580,12 +2618,9 @@ bool CManipulation::GripperKinovaValveSizeRecognition(){
     //    gripper_kinova_valve_recog.rotation_angle =
 //    (vec_gripper_data.at(0).x * (KINOVA_PI / grasp_trial) * (180 / KINOVA_PI) /*Rad to Deg*/);
 
-    gripper_kinova_valve_recog.rotation_angle = rotation_angle;
-
-    //Find Valve Size
+     //Find Valve Size
     int valve_size_recog = DataAnalisys(DataSort(gripper_data_y));
 
-    gripper_kinova_valve_recog.valve_size = valve_size_recog;
 
     std::cout << "Rotation Angle: " << rotation_angle << std::endl;
 
@@ -2593,6 +2628,9 @@ bool CManipulation::GripperKinovaValveSizeRecognition(){
         rotation_angle -= 180;
         rotation_angle *= (-1);
     }
+
+    gripper_kinova_valve_recog.valve_size = valve_size_recog;
+    gripper_kinova_valve_recog.rotation_angle = rotation_angle;
 
     SetValveSizeRecogResult(valve_size_recog);
     SetValveRotationRecogResult(rotation_angle);
@@ -2620,6 +2658,20 @@ bool CManipulation::GripperForceCtrl(){
     gripper_force_ctrl = GetGripperForceCtrlOption();
 
     mpc_gripper->GripperGoToThePositionLoadCheck(gripper_force_ctrl.pose_1, gripper_force_ctrl.pose_2, gripper_force_ctrl.force_threshold);
+
+    return true;
+}
+
+bool CManipulation::GripperGoToRelPose(){
+
+    if(!mpc_gripper->IsGripperInit())
+        return false;
+    if(!mpc_gripper->IsGripperTorqueOn())
+        return false;
+
+    GRIPPER_GO_TO_REL_POSE_STRUCT gripper_rel_pose = GetGripperGoToRelPoseOption();
+
+    mpc_gripper->GripperGoToRelPosition(gripper_rel_pose.pose_1, gripper_rel_pose.pose_1);
 
     return true;
 }
@@ -2656,7 +2708,6 @@ bool CManipulation::WrenchRecognition(){
     if(!mpc_camera->GetCameraImage(camera_image))
         return false;
 
-//    mpc_rgb_d->SSD~~~
     bb_info = mpc_ssd->GetSSDImage(camera_image);
 
     int loop_count = 0;
@@ -2786,6 +2837,9 @@ void CManipulation::run(){
         break;
     case MANIPUL_INX_GRIPPER_FORCE_CLRL:
         GripperForceCtrl();
+        break;
+    case MANIPUL_INX_GRIPPER_GO_TO_REL_POSE:
+        GripperGoToRelPose();
         break;
     case MANIPUL_INX_GRIPPER_MAGNET_CLRL:
         GripperMagnetCtrl();

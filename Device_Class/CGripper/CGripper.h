@@ -228,7 +228,7 @@ public:
 
     bool GripperTorque(bool _onoff);
     bool GripperGoToThePosition(int _degree); // Go to The Position
-    bool GripperGoToRelPosition(int _degree); // Go to Relative Position From Present Position
+    bool GripperGoToRelPosition(int _rel_pose_1, int _rel_pose_2); // Go to Relative Position From Present Position
 
     bool GripperGoToThePositionLoadCheck(int _goal_pos_1, int _goal_pos_2, int _load_threshold); // Go to The Position
     bool GripperGoToThePositionLoadCheck_1(int _goal_pos_1, int _load_threshold); // Go to The Position

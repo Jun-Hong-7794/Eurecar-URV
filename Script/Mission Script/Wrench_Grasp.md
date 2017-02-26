@@ -128,7 +128,7 @@ LRF_K_HORIZEN_CTRL_STRUCT.mode = 3
 
 LRF_K_VERTICAL_CTRL_STRUCT.only_sensing_moving = false
 
-LRF_K_HORIZEN_CTRL_STRUCT.wrench_hanger_index = 2
+LRF_K_HORIZEN_CTRL_STRUCT.wrench_hanger_index = 5
 /*LRF_K_HORIZEN_CTRL_STRUCT.wrench_hanger_index = gi_wrench_hanger_index
 
 LRF_K_HORIZEN_CTRL_STRUCT.wrench_location_1 = 707 
@@ -154,10 +154,29 @@ LRF_K_HORIZEN_CTRL_FUNCTION()
 A_Sleep(500)
 
 ## Step8: Kinova Arm Down 
+/*<
+IF(gi_valve_size > 19)
 
 KINOVA_MANIPULATE_STRUCT.x = ==
 KINOVA_MANIPULATE_STRUCT.y = ==
 KINOVA_MANIPULATE_STRUCT.z = 0.3057
+
+KINOVA_MANIPULATE_STRUCT.roll = ==
+KINOVA_MANIPULATE_STRUCT.pitch = ==
+KINOVA_MANIPULATE_STRUCT.yaw = ==
+
+KINOVA_MANIPULATE_STRUCT.force_threshold = 10
+
+KINOVA_MANIPULATE_FUNCTION()
+
+A_Sleep(1000)
+
+## Step8: Kinova Arm Down 
+IF(gi_valve_size < 22)
+/*>
+KINOVA_MANIPULATE_STRUCT.x = ==
+KINOVA_MANIPULATE_STRUCT.y = ==
+KINOVA_MANIPULATE_STRUCT.z = 0.3357
 
 KINOVA_MANIPULATE_STRUCT.roll = ==
 KINOVA_MANIPULATE_STRUCT.pitch = ==
@@ -188,7 +207,7 @@ LRF_K_VERTICAL_CTRL_STRUCT.force_z = 0
 
 LRF_K_VERTICAL_CTRL_STRUCT.only_sensing_moving = true
 
-LRF_K_VERTICAL_CTRL_STRUCT.desired_v_dst = 125
+LRF_K_VERTICAL_CTRL_STRUCT.desired_v_dst = 115
 LRF_K_VERTICAL_CTRL_STRUCT.error = 2
 
 LRF_K_VERTICAL_CTRL_STRUCT.s_deg = 10
