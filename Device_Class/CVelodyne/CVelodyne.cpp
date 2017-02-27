@@ -300,12 +300,12 @@ bool CVelodyne::RunVelodyne(){
 
             if(mpc_pcl->lms511_cloud->points.size() != 0)
             {
-
-
                 for(unsigned int lms511_point_index = 0; lms511_point_index < mpc_pcl->lms511_cloud->points.size();lms511_point_index++)
                 {
+                    double lms_point_dist = sqrt(mpc_pcl->lms511_cloud->points[lms511_point_index].x*mpc_pcl->lms511_cloud->points[lms511_point_index].x + mpc_pcl->lms511_cloud->points[lms511_point_index].y*mpc_pcl->lms511_cloud->points[lms511_point_index].y);
 
-                    if(CheckInBoundary(mpc_pcl->lms511_cloud->points[lms511_point_index].x, mpc_pcl->lms511_cloud->points[lms511_point_index].y))
+//                    (CheckInBoundary(mpc_pcl->lms511_cloud->points[lms511_point_index].x, mpc_pcl->lms511_cloud->points[lms511_point_index].y)) &&
+                    if(CheckInBoundary(mpc_pcl->lms511_cloud->points[lms511_point_index].x, mpc_pcl->lms511_cloud->points[lms511_point_index].y) && (lms_point_dist > 0.3) )
                     {
                         lms511_point_in_arena->points.push_back(mpc_pcl->lms511_cloud->points[lms511_point_index]);
                         sum_panel_x += mpc_pcl->lms511_cloud->points[lms511_point_index].x ;
@@ -1846,13 +1846,14 @@ bool CVelodyne::GetUGVTurnDirection()
 
 std::vector<double> CVelodyne::GetPanelCenterLoc()
 {
-
+    mtx_pcl_class.lock();
     std::vector<double> mean_panel_loc;
 
     mean_panel_loc.push_back(mean_panel_x);
     mean_panel_loc.push_back(mean_panel_y);
     mean_panel_loc.push_back(mean_dist);
 
+    mtx_pcl_class.unlock();
     return mean_panel_loc;
 }
 

@@ -174,7 +174,8 @@ int RoboteqDevice::ReadAll(string &str)
 
 int RoboteqDevice::IssueCommand(string commandType, string command, string args, int waitms, string &response, bool isplusminus)
 {
-	int status;
+    mtx_roboteq.lock();
+    int status;
 	string read;
 	response = "";
 
@@ -184,35 +185,47 @@ int RoboteqDevice::IssueCommand(string commandType, string command, string args,
 		status = Write(commandType + command + " " + args + "\r");
 
 	if(status != RQ_SUCCESS)
+    {
+        mtx_roboteq.unlock();
 		return status;
-
+    }
 	usleep(waitms * 1000l);
 
 	status = ReadAll(read);
 	if(status != RQ_SUCCESS)
+    {
+        mtx_roboteq.unlock();
 		return status;
-
+    }
 	if(isplusminus)
 	{
 		if(read.length() < 2)
+        {
+            mtx_roboteq.unlock();
 			return RQ_INVALID_RESPONSE;
-
+        }
 		response = read.substr(read.length() - 2, 1);
+        mtx_roboteq.unlock();
 		return RQ_SUCCESS;
 	}
 
 
 	string::size_type pos = read.rfind(command + "=");
 	if(pos == string::npos)
+    {
+        mtx_roboteq.unlock();
 		return RQ_INVALID_RESPONSE;
-
+    }
 	pos += command.length() + 1;
 
 	string::size_type carriage = read.find("\r", pos);
 	if(carriage == string::npos)
+    {
+        mtx_roboteq.unlock();
 		return RQ_INVALID_RESPONSE;
-
+    }
 	response = read.substr(pos, carriage - pos);
+    mtx_roboteq.unlock();
 
 	return RQ_SUCCESS;
 }

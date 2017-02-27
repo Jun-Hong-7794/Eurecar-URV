@@ -1,5 +1,7 @@
 #include "CVehicle.h"
 
+QMutex mtx_vehicle;
+
 CVehicle::CVehicle(){
 
     fl_isGO = false;
@@ -45,6 +47,10 @@ bool CVehicle::InitEncoder()
 
         mc_device.SetCommand(UGV_DEF_C,1,0);
         mc_device.SetCommand(UGV_DEF_C,2,0);
+
+        mc_device.SetCommand(UGV_DEF_GO,1,0);
+        mc_device.SetCommand(UGV_DEF_GO,2,0);
+
         return true;
     }
     else
@@ -56,27 +62,29 @@ bool CVehicle::InitEncoder()
 
 vector<int> CVehicle::GetEncoderValue()
 {
+    mtx_vehicle.lock();
     vector<int> tmp;
     int tmp_int;
     int tmp_int2;
-    mc_device.GetValue(UGV_DEF_C,1,tmp_int);
-    mc_device.GetValue(UGV_DEF_C,2,tmp_int2);
+    mc_device.GetValue(UGV_DEF_F,1,tmp_int);
+    mc_device.GetValue(UGV_DEF_F,2,tmp_int2);
     tmp.push_back(abs(tmp_int));
     tmp.push_back(abs(tmp_int2));
-
+    mtx_vehicle.unlock();
     return tmp;
 }
 
 vector<int> CVehicle::GetEncoderValueRaw()
 {
+    mtx_vehicle.lock();
     vector<int> tmp;
     int tmp_int;
     int tmp_int2;
-    mc_device.GetValue(UGV_DEF_C,1,tmp_int);
-    mc_device.GetValue(UGV_DEF_C,2,tmp_int2);
+    mc_device.GetValue(UGV_DEF_ABCNTR,1,tmp_int);
+    mc_device.GetValue(UGV_DEF_ABCNTR,2,tmp_int2);
     tmp.push_back(tmp_int);
     tmp.push_back(tmp_int2);
-
+    mtx_vehicle.unlock();
     return tmp;
 }
 

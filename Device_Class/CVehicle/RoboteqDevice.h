@@ -2,7 +2,7 @@
 #define __RoboteqDevice_H_
 
 #include <iostream>
-
+#include <QMutex>
 using namespace std;
 
 string ReplaceString(string source, string find, string replacement);
@@ -21,6 +21,7 @@ protected:
 	int Write(string str);
 	int ReadAll(string &str);
 
+    QMutex mtx_roboteq;
 	int IssueCommand(string commandType, string command, string args, int waitms, string &response, bool isplusminus = false);
 	int IssueCommand(string commandType, string command, int waitms, string &response, bool isplusminus = false);
 
