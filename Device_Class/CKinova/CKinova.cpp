@@ -695,8 +695,8 @@ void CKinova::Kinova_Do_Wrench_Scan(double _kinova_rel_pos){
 
 void CKinova::KinovaAlignToPanel(){
 
-    KinovaInitMotion();
-    msleep(500);
+//    KinovaInitMotion();
+//    msleep(500);
 
     Kinova_EraseAllTrajectories();
 

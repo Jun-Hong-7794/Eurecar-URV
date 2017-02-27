@@ -17,7 +17,7 @@ A_Sleep(4000)
 ## Step1: Release
 /*IF(gb_froce_check)
 
-GRIPPER_FORCE_CTRL_STRUCT.pose_1 = 2700
+GRIPPER_FORCE_CTRL_STRUCT.pose_1 = 2850
 GRIPPER_FORCE_CTRL_STRUCT.pose_2 = 3000
 GRIPPER_FORCE_CTRL_STRUCT.force_threshold = -2
 
@@ -61,7 +61,7 @@ LRF_K_VERTICAL_CTRL_FUNCTION()
 
 A_Sleep(500)
 
-## Step4: Vehicle Horizen Control(New, Using Kinova-LRF)
+## Step4: Vehicle Horizen Control(Hanger Index < 4)
 IF(gi_wrench_hanger_index < 4)
 /*>
 
@@ -69,7 +69,7 @@ LRF_V_HORIZEN_CTRL_STRUCT.mode = 3
 
 LRF_V_HORIZEN_CTRL_STRUCT.desired_h_dst = 800
 
-LRF_V_HORIZEN_CTRL_STRUCT.error = 2
+LRF_V_HORIZEN_CTRL_STRUCT.error = 5
 
 LRF_V_HORIZEN_CTRL_STRUCT.s_deg = 10
 LRF_V_HORIZEN_CTRL_STRUCT.e_deg = 170
@@ -77,7 +77,28 @@ LRF_V_HORIZEN_CTRL_STRUCT.e_deg = 170
 LRF_V_HORIZEN_CTRL_STRUCT.inlier_lrf_dst = 1100
 
 LRF_V_HORIZEN_CTRL_STRUCT.loop_sleep = 30
-LRF_V_HORIZEN_CTRL_STRUCT.velocity = 77
+LRF_V_HORIZEN_CTRL_STRUCT.velocity = 55
+LRF_V_HORIZEN_CTRL_FUNCTION()
+
+A_Sleep(500)
+
+## Step4: Vehicle Horizen Control(Hanger Index > 3)
+IF(gi_wrench_hanger_index > 3)
+/*>
+
+LRF_V_HORIZEN_CTRL_STRUCT.mode = 3
+
+LRF_V_HORIZEN_CTRL_STRUCT.desired_h_dst = 870
+
+LRF_V_HORIZEN_CTRL_STRUCT.error = 5
+
+LRF_V_HORIZEN_CTRL_STRUCT.s_deg = 10
+LRF_V_HORIZEN_CTRL_STRUCT.e_deg = 170
+
+LRF_V_HORIZEN_CTRL_STRUCT.inlier_lrf_dst = 1100
+
+LRF_V_HORIZEN_CTRL_STRUCT.loop_sleep = 30
+LRF_V_HORIZEN_CTRL_STRUCT.velocity = 55
 LRF_V_HORIZEN_CTRL_FUNCTION()
 
 A_Sleep(500)
@@ -128,8 +149,8 @@ LRF_K_HORIZEN_CTRL_STRUCT.mode = 3
 
 LRF_K_VERTICAL_CTRL_STRUCT.only_sensing_moving = false
 
-LRF_K_HORIZEN_CTRL_STRUCT.wrench_hanger_index = 5
-/*LRF_K_HORIZEN_CTRL_STRUCT.wrench_hanger_index = gi_wrench_hanger_index
+/*LRF_K_HORIZEN_CTRL_STRUCT.wrench_hanger_index = 5
+LRF_K_HORIZEN_CTRL_STRUCT.wrench_hanger_index = gi_wrench_hanger_index
 
 LRF_K_HORIZEN_CTRL_STRUCT.wrench_location_1 = 707 
 LRF_K_HORIZEN_CTRL_STRUCT.wrench_location_2 = 757 
@@ -227,7 +248,7 @@ LRF_K_VERTICAL_CTRL_STRUCT.mode = 3
 
 LRF_K_VERTICAL_CTRL_STRUCT.only_sensing_moving = false
 
-LRF_K_VERTICAL_CTRL_STRUCT.desired_v_dst = 270
+LRF_K_VERTICAL_CTRL_STRUCT.desired_v_dst = 300
 LRF_K_VERTICAL_CTRL_STRUCT.error = 2
 
 LRF_K_VERTICAL_CTRL_STRUCT.s_deg = 10
@@ -255,9 +276,9 @@ gb_froce_check = KINOVA_FORCE_CHECK_FUNCTION()
 ## Step13: Grasp2
 /*IF(gb_froce_check)
 
-GRIPPER_FORCE_CTRL_STRUCT.pose_1 = 1600
+GRIPPER_FORCE_CTRL_STRUCT.pose_1 = 1680
 GRIPPER_FORCE_CTRL_STRUCT.pose_2 = 1700
-GRIPPER_FORCE_CTRL_STRUCT.force_threshold = 300
+GRIPPER_FORCE_CTRL_STRUCT.force_threshold = 150
 
 GRIPPER_FORCE_CTRL_FUNCTION()
 

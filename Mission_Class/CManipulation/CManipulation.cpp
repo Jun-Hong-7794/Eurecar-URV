@@ -27,6 +27,9 @@ CManipulation::CManipulation(CLRF *_p_mani_lrf, CCamera *_p_camera, CKinova *_p_
 
     m_valve_size = 19;
 
+   m_kinova_valve_pose_right = 0;
+   m_kinova_valve_pose_left = 0;
+
     m_mat_panel_model = cv::Mat::zeros(640,1280,CV_8UC3);
 
     connect(mpc_kinova, SIGNAL(SignalKinovaPosition(CartesianPosition)), this, SIGNAL(SignalKinovaPosition(CartesianPosition)));
@@ -296,14 +299,6 @@ bool CManipulation::CloseGripper(){
 
     if(mpc_gripper->IsGripperInit())
         mpc_gripper->CloseGripper();
-
-    return true;
-}
-
-bool CManipulation::GripperGoRelPose(double _deg){
-
-    if(!mpc_gripper->GripperGoToThePositionLoadCheck_1(_deg, 200))
-        return false;
 
     return true;
 }
@@ -1976,8 +1971,15 @@ bool CManipulation::LRFV_ACtrl(){
         return false;
     if(!mpc_vehicle->IsConnected())
         return false;
+    if(!mpc_gripper->IsRotatorInit())
+        return false;
 
     LOCALIZATION_INFO_ON_PANEL info;
+
+    if(lrf_vehicle_struct.fl_goto_home_pose){
+        mpc_gripper->RotatorGoToThePosition(0);
+        msleep(1000);
+    }
 
     mpc_rgb_d->LocalizationOnPanel(info, lrf_vehicle_struct.lrf_info_struct.mode,
                                    lrf_vehicle_struct.lrf_info_struct.s_deg,lrf_vehicle_struct.lrf_info_struct.e_deg,
@@ -1999,6 +2001,7 @@ bool CManipulation::LRFV_ACtrl(){
         slope_error = lrf_vehicle_struct.desired_angle - info.angle;
 
         if(lrf_vehicle_struct.error > fabs(slope_error)){
+            mpc_vehicle->Move(1, 0);
             break;
         }
 
@@ -2010,7 +2013,8 @@ bool CManipulation::LRFV_ACtrl(){
         }
 
         mpc_vehicle->Move(direction, lrf_vehicle_struct.velocity);
-        msleep(500);
+        msleep(400);
+        mpc_vehicle->Move(1, 0);
 
     }while(true);
 
@@ -2428,8 +2432,8 @@ bool CManipulation::KinovaFitToValvePose(){
         std::cout << "rotation angle : " << valve_rotation_angle << std::endl;
 
         std::cout << "Angle zero. Right num_move: " << num_move << std::endl;
-        if(num_move > 5)
-            num_move = 5;
+        if(num_move > 7)
+            num_move = 7;
         for(int i = 0; i < num_move; i++){
             mpc_kinova->KinovaMoveUnitStepRi();
             msleep(500);
@@ -2447,29 +2451,55 @@ bool CManipulation::KinovaFitToValvePose(){
 
     if(added_x_value > 0){
         int num_move = (int)(added_x_value / kinova_fit_to_valve_optio.move_step);
-        std::cout << "Left num_move: " << num_move << std::endl;
 
-        if(num_move > 5)
-            num_move = 5;
+        if(num_move > 7)
+            num_move = 7;
 
-        for(int i = 0; i < num_move; i++){
-            //Default: 0.07
-            mpc_kinova->KinovaMoveUnitStepLe();
-            msleep(500);
+        num_move -= m_kinova_valve_pose_left;
+
+        if(num_move < 0 ){
+            for(int i = 0; i < (-1)*num_move; i++){
+                //Default: 0.07
+                mpc_kinova->KinovaMoveUnitStepRi();
+                msleep(500);
+            }
         }
+        else{
+            for(int i = 0; i < num_move; i++){
+                //Default: 0.07
+                mpc_kinova->KinovaMoveUnitStepLe();
+                msleep(500);
+            }
+        }
+        std::cout << "Left num_move: " << num_move << std::endl;
+        std::cout << "Re-Try Number: " << m_kinova_valve_pose_left << std::endl;
+        m_kinova_valve_pose_left++;
     }
 
     if(added_x_value < 0){
         int num_move = (int)(fabs(added_x_value) / kinova_fit_to_valve_optio.move_step);
-        std::cout << "Right num_move: " << num_move << std::endl;
 
-        if(num_move > 5)
-            num_move = 5;
+        if(num_move > 7)
+            num_move = 7;
 
-        for(int i = 0; i < num_move; i++){
-            mpc_kinova->KinovaMoveUnitStepRi();
-            msleep(500);
+        num_move -= m_kinova_valve_pose_right;
+
+        if(num_move < 0 ){
+            for(int i = 0; i < (-1)*num_move; i++){
+                //Default: 0.07
+                mpc_kinova->KinovaMoveUnitStepLe();
+                msleep(500);
+            }
         }
+        else{
+            for(int i = 0; i < num_move; i++){
+                mpc_kinova->KinovaMoveUnitStepRi();
+                msleep(500);
+            }
+        }
+        std::cout << "Right num_move: " << num_move << std::endl;
+        std::cout << "Re-Try Number: " << m_kinova_valve_pose_right << std::endl;
+        m_kinova_valve_pose_right++;
     }
 
     return true;
@@ -2549,6 +2579,10 @@ bool CManipulation::GripperKinovaValveSizeRecognition(){
             else if(fl_gripper_1_not_reach && fl_gripper_2_not_reach){
                 std::cout << "1 and 2 not reched to valve" << std::endl;
             }
+            else{
+                SetValveSizeRecogResult(-1);
+                return false;
+            }
 
             mpc_gripper->GripperGoToThePositionLoadCheck(release_pose_1, release_pose_2, -2);
             msleep(500);
@@ -2572,6 +2606,11 @@ bool CManipulation::GripperKinovaValveSizeRecognition(){
         diff_pose_2 = fabs(gripper_status.present_pose_2 - grasp_pose_2);
 
         diff_pose = fabs(diff_pose_1 + diff_pose_2);
+
+        if(diff_pose < 80){
+            SetValveSizeRecogResult(-1);
+            return false;
+        }
 
         gripper_data_x.push_back((double)i);
         gripper_data_y.push_back(diff_pose);
@@ -2811,6 +2850,9 @@ void CManipulation::run(){
 
     case MANIPUL_INX_LRF_V_HORIZEN_CTRL:
         LRFV_HCtrl();
+        break;
+    case MANIPUL_INX_LRF_V_ANGLE_CTRL:
+        LRFV_ACtrl();
         break;
 
     /*Old LRF Kinova Control*/

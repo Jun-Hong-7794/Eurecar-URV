@@ -84,6 +84,9 @@ private:
 
     int m_valve_size;
 
+    int m_kinova_valve_pose_right;
+    int m_kinova_valve_pose_left;
+
     cv::Mat m_mat_panel_model;
     QMutex mtx_panel_model;
 
@@ -247,7 +250,6 @@ public:
     //End Effector
     bool InitGripper(char* _device_port = (char *)"/dev/ttyUSB0");
     bool CloseGripper();
-    bool GripperGoRelPose(double _deg);
 
     bool GripperGoThePose(int _pose_1, int _pose_2, int _load_thresh);
 

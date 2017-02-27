@@ -84,6 +84,8 @@ typedef struct _LRFK_ACtrl_Struct{
 // LRF - Vehicle
 typedef struct _LRFV_ACtrl_Struct{
 
+    bool fl_goto_home_pose;
+
     double desired_angle;
 
     double error;

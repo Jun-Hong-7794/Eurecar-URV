@@ -80,7 +80,7 @@
 #define ADDR_PR_GOAL_SPEED              600
 
 #define DXL_PR_GOAL_SPEED               1700
-#define DXL_PR_INITIAL_POSITION_VALUE   -650
+#define DXL_PR_INITIAL_POSITION_VALUE   0
 
 #define LEN_PR_GOAL_POSITION            4
 #define LEN_PR_PRESENT_POSITION         4
@@ -169,8 +169,8 @@ private:
     int m_dxl_pro_current_position;
 
     uint8_t dxl_error;
-    uint16_t dxl1_present_position;
-    uint16_t dxl2_present_position;
+    uint16_t m_dxl1_present_position;
+    uint16_t m_dxl2_present_position;
     int dxl3_present_position;
     uint16_t dxl1_present_load;
     uint16_t dxl2_present_load;
@@ -231,8 +231,6 @@ public:
     bool GripperGoToRelPosition(int _rel_pose_1, int _rel_pose_2); // Go to Relative Position From Present Position
 
     bool GripperGoToThePositionLoadCheck(int _goal_pos_1, int _goal_pos_2, int _load_threshold); // Go to The Position
-    bool GripperGoToThePositionLoadCheck_1(int _goal_pos_1, int _load_threshold); // Go to The Position
-    bool GripperGoToThePositionLoadCheck_2(int _goal_pos_2, int _load_threshold); // Go to The Position
 
     GRIPPER_STATUS GetGripperStatus();
     void SetGripperStatus(GRIPPER_STATUS);

@@ -103,9 +103,13 @@ bool CVehicle::ActiveMagnet(bool _on_off){
 
     if(_on_off){
         command_rst = mc_device.SetCommand(UGV_DEF_DRES, 6);
+        mc_device.SetCommand(UGV_DEF_GO,1,0);
+        mc_device.SetCommand(UGV_DEF_GO,2,0);
     }
     else{
         command_rst = mc_device.SetCommand(UGV_DEF_DSET, 6);
+        mc_device.SetCommand(UGV_DEF_GO,1,0);
+        mc_device.SetCommand(UGV_DEF_GO,2,0);
     }
 
     if(command_rst != RQ_SUCCESS){

@@ -1706,6 +1706,20 @@ bool CScript::InterpreteLRFVAngleCtrl(QString _line, STEP_INFO& _step_info){
             _step_info.manipulation_option.lrf_v_a_ctrl_struct.velocity = _line.mid(colone_index + 1).trimmed().toInt();
             return true;
         }
+        if(_line.contains("goto_home_pose")){
+            int colone_index = _line.indexOf("=");
+
+            QString str_option;
+            str_option = _line.mid(colone_index + 1).trimmed();
+
+            if(str_option.contains("true"))
+                _step_info.manipulation_option.lrf_v_a_ctrl_struct.fl_goto_home_pose = true;
+            else
+                _step_info.manipulation_option.lrf_v_a_ctrl_struct.fl_goto_home_pose = false;
+
+            return true;
+
+        }
 
     }
     else if(_line.contains("LRF_V_ANGLE_CTRL_FUNCTION")){
@@ -2583,7 +2597,7 @@ bool CScript::MissionPlayer(){
             if(IsMissionTerminated()){
                 i = mission_end___inx + 1;
                 j = step_end___inx + 1;
-                continue;
+                return false;
             }
 
             msessage = step_font_option_head;
@@ -2918,6 +2932,7 @@ bool CScript::MissionPlayer(){
         msessage += "End Mission: " + mpary_mission_script[i].mission_title;
         msessage += mission_font_option_tail;
 
+        step_end___inx = 100; //Dummy
         emit SignalScriptMessage(msessage);
     }
 
