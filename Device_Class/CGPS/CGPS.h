@@ -77,6 +77,7 @@ public:
 
     double GetCurrentHeading();
     double GetInitHeading();
+    Gpspoint GetCurrentGPS();
     Gpspoint GetInitGPS();
     vector<double> GetIMUEuler();
 
@@ -88,7 +89,7 @@ public:
 
     bool CheckInBoundary(vector<cv::Point2f> _ground_bodypoint, double _object_x,double _object_y);
 
-    //Gpspoint CalcGpspoint(double _cur_heading,double _relative_bearing, double dist, Gpspoint _cur_gps_point);
+    Gpspoint CalcGpspoint(double _relative_angle, double _dist_km, Gpspoint _start_gps_point);
 };
 
 

@@ -19,6 +19,7 @@
 #include "Device_Class/CKinova/CKinova.h"
 #include "Device_Class/CVehicle/CVehicle.h"
 #include "Device_Class/CVelodyne/CVelodyne.h"
+#include "Device_Class/CLMS511/CLMS511.h"
 
 
 //-------------------------------------------------
@@ -80,6 +81,10 @@ public slots:
     void SlotButtonDrivingView();
     void SlotButtonParkingView();
 
+    void SlotButtonDriveManger();
+    void SlotButtonBoundaryUpdate();
+    void SlotButtonBoundaryShift();
+    void SlotButtonPanelDistanceApply();
 //    void SlotButtonGpsConnect();
 
     //-------------------------------------------------
@@ -93,6 +98,8 @@ public slots:
     //-------------------------------------------------
     void SlotLRFVehicleAngleStructUpdate(LRF_VEHICLE_ANGLE_STRUCT);
     void SlotLRFVehicleHorizenStructUpdate(LRF_VEHICLE_HORIZEN_STRUCT);
+
+    void SlotDrivingQueryArenaInfo();
 
 private slots:
     void on_rd_vehicle_dir_forward_clicked();

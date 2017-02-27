@@ -37,6 +37,9 @@ private:
     int m_status;
     int m_battery;
 
+    int m_enc_left;
+    int m_enc_right;
+
     string mstr_response;
     RoboteqDevice mc_device;
 
@@ -47,6 +50,12 @@ public:
     int SetControl();
     bool Move(int _dir,int _vel);
     void CheckVolt();
+
+    bool InitEncoder();
+    vector<int> GetEncoderValue();
+    vector<int> GetEncoderValueRaw();
+    int CalcDistToEnc_m(double _dist_meter);
+
 
     bool ActiveMagnet(bool _on_off);
     int GetVel();

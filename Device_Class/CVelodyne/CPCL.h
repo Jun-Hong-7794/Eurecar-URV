@@ -84,6 +84,7 @@ public:
     {
         // Setup the cloud pointer
         cloud.reset(new PointCloudT);
+        lms511_cloud.reset(new PointCloudT);
         waypoint_cloud.reset(new PointCloudT);
         panelpoint_cloud.reset(new PointCloudT);
         lrf_cloud.reset(new PointCloudT);
@@ -92,14 +93,13 @@ public:
         // PCL display setting
 
         viewer.reset (new pcl::visualization::PCLVisualizer ("viewer" , false));
-
-
     }
 
     bool velodyne_loop = false;
     VELODYNE_DATA m_velodyne_data_ary[VELODYNE_TOTAL_PACKET_NUMBER];//360 deg Data
 
     void Set_Velodyne_Data(double **_x_ary, double **_y_ary, double **_z_ary){
+        int count = 0;
         for (int k = 0; k < VELODYNE_LASERS_NUM; k++){
             for (int i = 0; i < VELODYNE_TOTAL_PACKET_NUMBER; i++){
                 for (int j = 0; j < VELODYNE_BOLCKS_NUM; j++){
@@ -110,7 +110,7 @@ public:
                     unsigned int distance = (m_velodyne_data_ary[i].firing_data[j].laser_data[k].distance) * 2;//mm
                     unsigned short rotation = (m_velodyne_data_ary[i].firing_data[j].rotation);
                     if(distance != 0)
-                    xy_deg = rotation / 100.0;
+                        xy_deg = rotation / 100.0;
                     z_projected = distance * cos(D2R*(firing_vertical_angle[k]));
                     if(z_projected != 0)
                     m_dist_data[k][(j + i*VELODYNE_BOLCKS_NUM)] = distance;
@@ -138,6 +138,7 @@ public:
     boost::shared_ptr<pcl::visualization::PCLVisualizer> viewer;
 
     PointCloudT::Ptr cloud;
+    PointCloudT::Ptr lms511_cloud;
     PointCloudT::Ptr waypoint_cloud;
     PointCloudT::Ptr panelpoint_cloud;
     PointCloudT::Ptr lrf_cloud;

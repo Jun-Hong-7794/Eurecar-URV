@@ -10,6 +10,7 @@ Driving_Dlg::Driving_Dlg(CDriving* _pc_driving,QWidget *parent):
 
     qRegisterMetaType<QString>("QString");
     qRegisterMetaType<cv::Mat>("cv::Mat");
+    qRegisterMetaType<vector<vector<double>>>("vector<vector<double>>");
 
     //-------------------------------------------------
     // Graphic Scene Initialize
@@ -36,6 +37,11 @@ Driving_Dlg::Driving_Dlg(CDriving* _pc_driving,QWidget *parent):
 
     connect(ui->rd_driving_view,SIGNAL(clicked()),this,SLOT(SlotButtonDrivingView()));
     connect(ui->rd_parking_view,SIGNAL(clicked()),this,SLOT(SlotButtonParkingView()));
+
+    connect(ui->bt_drive_manager,SIGNAL(clicked()),this,SLOT(SlotButtonDriveManger()));
+    connect(ui->bt_boundary_update,SIGNAL(clicked()),this,SLOT(SlotButtonBoundaryUpdate()));
+    connect(ui->ch_boundary_shift,SIGNAL(clicked()),this,SLOT(SlotButtonBoundaryShift()));
+    connect(ui->bt_panel_distance_apply,SIGNAL(clicked()),this,SLOT(SlotButtonPanelDistanceApply()));
 
     //Driving Class Init
     mpc_drivig = _pc_driving;
@@ -237,6 +243,63 @@ void Driving_Dlg::SlotButtonParking(){
     }
 }
 
+
+void Driving_Dlg::SlotButtonDriveManger(){
+    vector<double> lb, lt, rt, rb;
+
+    lb.push_back(ui->ed_arena_lb_x->text().toDouble());
+    lb.push_back(ui->ed_arena_lb_y->text().toDouble());
+
+    lt.push_back(ui->ed_arena_lt_x->text().toDouble());
+    lt.push_back(ui->ed_arena_lt_y->text().toDouble());
+
+    rt.push_back(ui->ed_arena_rt_x->text().toDouble());
+    rt.push_back(ui->ed_arena_rt_y->text().toDouble());
+
+    rb.push_back(ui->ed_arena_rb_x->text().toDouble());
+    rb.push_back(ui->ed_arena_rb_y->text().toDouble());
+
+    mpc_drivig->SetArenaInfo(lb,lt,rt,rb);
+
+    mpc_drivig->DrivingMissionManager();
+}
+
+void Driving_Dlg::SlotButtonBoundaryUpdate(){
+    vector<double> lb, lt, rt, rb;
+
+    lb.push_back(ui->ed_arena_lb_x->text().toDouble());
+    lb.push_back(ui->ed_arena_lb_y->text().toDouble());
+
+    lt.push_back(ui->ed_arena_lt_x->text().toDouble());
+    lt.push_back(ui->ed_arena_lt_y->text().toDouble());
+
+    rt.push_back(ui->ed_arena_rt_x->text().toDouble());
+    rt.push_back(ui->ed_arena_rt_y->text().toDouble());
+
+    rb.push_back(ui->ed_arena_rb_x->text().toDouble());
+    rb.push_back(ui->ed_arena_rb_y->text().toDouble());
+
+    mpc_drivig->SetArenaInfo(lb,lt,rt,rb);
+}
+
+void Driving_Dlg::SlotButtonBoundaryShift(){
+    if(ui->ch_boundary_shift->isChecked())
+    {
+        mpc_drivig->SetArenaShift(true);
+    }
+    else
+    {
+        mpc_drivig->SetArenaShift(false);
+    }
+}
+
+void Driving_Dlg::SlotButtonPanelDistanceApply(){
+    double panel_dist_dri = ui->ed_panel_distance_driving->text().toDouble();
+    double panel_dist_par = ui->ed_panel_distance_parking->text().toDouble();
+
+    mpc_drivig->SetPanelDistance(panel_dist_dri,panel_dist_par);
+}
+
 void Driving_Dlg::SlotVeloyneParser(bool _parser_complete){
     if(_parser_complete){
         ui->qvtk_velodyne_driving_dlg->update();
@@ -251,6 +314,9 @@ void Driving_Dlg::SlotVeloyneParser(bool _parser_complete){
         imu_time_stamp = mpc_drivig->GetIMUTimestamp();
         imu_delta_velocity = mpc_drivig->GetIMUDeltaVelocity();
 
+        vector<int> encoder_value_raw = mpc_drivig->GetEncoderValueRaw();
+
+
         ui->ed_roll->setText(QString::fromStdString((std::to_string(imu_euler.at(0)*180.0/PI))));
         ui->ed_pitch->setText(QString::fromStdString((std::to_string(imu_euler.at(1)*180.0/PI))));
         ui->ed_yaw->setText(QString::fromStdString((std::to_string(imu_euler.at(2)*180.0/PI))));
@@ -261,10 +327,32 @@ void Driving_Dlg::SlotVeloyneParser(bool _parser_complete){
         ui->ed_x_delta_velocity->setText(QString::fromStdString((std::to_string(imu_delta_velocity.delta_velocity[0]))));
         ui->ed_y_delta_velocity->setText(QString::fromStdString((std::to_string(imu_delta_velocity.delta_velocity[1]))));
         ui->ed_z_delta_velocity->setText(QString::fromStdString((std::to_string(imu_delta_velocity.delta_velocity[2]))));
-
+        ui->ed_encoder1->setText(QString::fromStdString((std::to_string(encoder_value_raw.at(0)))));
+        ui->ed_encoder2->setText(QString::fromStdString((std::to_string(encoder_value_raw.at(1)))));
 
     }
 }
+
+void Driving_Dlg::SlotDrivingQueryArenaInfo()
+{
+    vector<double> lb, lt, rt, rb;
+
+    lb.push_back(ui->ed_arena_lb_x->text().toDouble());
+    lb.push_back(ui->ed_arena_lb_y->text().toDouble());
+
+    lt.push_back(ui->ed_arena_lt_x->text().toDouble());
+    lt.push_back(ui->ed_arena_lt_y->text().toDouble());
+
+    rt.push_back(ui->ed_arena_rt_x->text().toDouble());
+    rt.push_back(ui->ed_arena_rt_y->text().toDouble());
+
+    rb.push_back(ui->ed_arena_rb_x->text().toDouble());
+    rb.push_back(ui->ed_arena_rb_y->text().toDouble());
+
+    mpc_drivig->SetArenaInfo(lb,lt,rt,rb);
+}
+
+
 
 void Driving_Dlg::SlotLRFMapImage(cv::Mat _image){
 

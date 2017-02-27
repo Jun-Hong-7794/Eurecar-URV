@@ -11,6 +11,9 @@ CVehicle::CVehicle(){
     m_status = -2;
     m_battery = 0;
 
+    m_enc_left =0;
+    m_enc_right =0;
+
     mstr_response = "";
 }
 
@@ -36,6 +39,57 @@ int CVehicle::Connect(char* _dev_path){
     return fl_connection;
 }
 
+bool CVehicle::InitEncoder()
+{
+    if(fl_connection){
+
+        mc_device.SetCommand(UGV_DEF_C,1,0);
+        mc_device.SetCommand(UGV_DEF_C,2,0);
+        return true;
+    }
+    else
+    {
+        cout << " ugv connect first";
+        return false;
+    }
+}
+
+vector<int> CVehicle::GetEncoderValue()
+{
+    vector<int> tmp;
+    int tmp_int;
+    int tmp_int2;
+    mc_device.GetValue(UGV_DEF_C,1,tmp_int);
+    mc_device.GetValue(UGV_DEF_C,2,tmp_int2);
+    tmp.push_back(abs(tmp_int));
+    tmp.push_back(abs(tmp_int2));
+
+    return tmp;
+}
+
+vector<int> CVehicle::GetEncoderValueRaw()
+{
+    vector<int> tmp;
+    int tmp_int;
+    int tmp_int2;
+    mc_device.GetValue(UGV_DEF_C,1,tmp_int);
+    mc_device.GetValue(UGV_DEF_C,2,tmp_int2);
+    tmp.push_back(tmp_int);
+    tmp.push_back(tmp_int2);
+
+    return tmp;
+}
+
+int CVehicle::CalcDistToEnc_m(double _dist_meter)
+{
+//    double coef[5] = {0.3341 , -6.1275, 38.2482, 0, 42.0522};
+//    double tmp = _dist_meter*_dist_meter*_dist_meter*_dist_meter * coef[0] + _dist_meter*_dist_meter*_dist_meter * coef[1] + _dist_meter*_dist_meter*coef[2] + _dist_meter*coef[3] + coef[4];
+
+    double coeff[2] = {93.1531, -28.2715};
+    double tmp = _dist_meter*coeff[0] + coeff[1];
+
+    return (int)(tmp);
+}
 void CVehicle::Disconnect(){
 
     mc_device.Disconnect();

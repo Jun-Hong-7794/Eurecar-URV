@@ -96,22 +96,53 @@ double CGPS::GetInitHeading()
 
 void CGPS::SetInitGPS()
 {
-    m_inital_gpspoint.lat = m_cur_gpspoint.lat;
-    m_inital_gpspoint.lon = m_cur_gpspoint.lon;
+//    m_inital_gpspoint.lat = m_cur_gpspoint.lat;
+//    m_inital_gpspoint.lon = m_cur_gpspoint.lon;
 
 
-//    m_inital_gpspoint.lat = 37.3535;
-//    m_inital_gpspoint.lon = 127.4949;
+    m_inital_gpspoint.lat = 36.3921420;
+    m_inital_gpspoint.lon = 127.3973690;
 
 //    double tmp = mpc_imu->GetEulerAngles().at(2);
 
-    double tmp = 0;
-    m_init_heading = tmp * 180.0 / PI;
+//    double tmp = ;
+//    m_init_heading = tmp * 180.0 / PI;
+    m_init_heading = 185;
+}
+
+Gpspoint CGPS::GetCurrentGPS()
+{
+    return m_cur_gpspoint;
 }
 
 Gpspoint CGPS::GetInitGPS()
 {
     return m_inital_gpspoint;
+}
+
+Gpspoint CGPS::CalcGpspoint(double _relative_angle, double _dist_km, Gpspoint _start_gps_point)
+{
+    const double radisuEarthKm = 6371.01;
+    double distRatio = _dist_km / radisuEarthKm;
+    double distRatioSine = sin(distRatio);
+    double distRatioCosine = cos(distRatio);
+
+    double startLatRad = _start_gps_point.lat * PI / 180;
+    double startLonRad = _start_gps_point.lon * PI / 180;
+
+    double startLatCos = cos(startLatRad);
+    double startLatSin = sin(startLatRad);
+
+    double initialBearingRadians = ((-1)*(m_init_heading) + _relative_angle) * PI / 180;
+
+    double endLatRads = asin((startLatSin * distRatioCosine) + (startLatCos * distRatioSine * cos(initialBearingRadians)));
+    double endLonRads = startLonRad + atan2(sin(initialBearingRadians) * distRatioSine * startLatCos,distRatioCosine - startLatSin * sin(endLatRads));
+
+    Gpspoint calced_point;
+    calced_point.lat = endLatRads * 180 / PI;
+    calced_point.lon = endLonRads * 180 / PI;
+
+    return calced_point;
 }
 
 double CGPS::DistCalc_Gps2Gps(Gpspoint _cur_point, Gpspoint _target_point)

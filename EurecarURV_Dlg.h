@@ -47,7 +47,8 @@ private:
     CVehicle* mpc_vehicle;
     CVelodyne* mpc_velodyne;
     CGripper* mpc_gripper;
-
+    CPCL* mpc_pcl;
+    CLMS511* mpc_lms511;
     CSSD* mpc_ssd;
     //-------------------------------------------------
     // Mission Class
@@ -98,6 +99,7 @@ public slots:
     void SlotButtonKinovaReset();
     void SlotButtonGripperSwitch();
     void SlotButtonIMUSwitch();
+    void SlotButtonLMS511Switch();
 
     //ListView
     void SlotMissionListUpdate(QModelIndex);

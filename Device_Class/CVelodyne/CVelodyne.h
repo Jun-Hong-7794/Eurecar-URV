@@ -39,7 +39,7 @@ protected:
 
 public:
     CVelodyne();
-    CVelodyne(CGPS* _p_gps);
+    CVelodyne(CPCL* _p_pcl);
 
     ~CVelodyne();
 
@@ -127,10 +127,17 @@ private:
 
     vector<cv::Point2f> ground_point;
 
-
+    bool far_distance_panel_found = true;
 
     double velodyne_range = 100.0;
     VELODYNE_MODE velodyne_mode = VELODYNE_MODE_DRIVING;
+
+    vector<vector<double>> arena_default_info = {{0,-45},{-60,-45},{-60,45},{0,45}};
+    vector<vector<double>> arena_info = {{0,-45},{-60,-45},{-60,45},{0,45}};
+    vector<vector<double>> rotated_arena_info = {{0,-45},{-60,-45},{-60,45},{0,45}};
+    double arena_rotation_angle = 0.0; // 0~2PI
+    double arena_shift_x = 0.0;
+    double arena_shift_y = 0.0;
 
     bool RunVelodyne();
 public:
@@ -163,6 +170,9 @@ public:
     bool SetLRFDataToPCL(long* _lrf_data,int _num_of_points);
     void SetLRFWaypointToPCL(vector<vector<double>> _waypoint);
 
+    // Set lms511 data
+    void SetLMS511DataToPCL(vector<vector<double>> _x_and_y);
+
     void SetVelodyneRange(double _range);
 
     void SetVelodyneMode(VELODYNE_MODE _mode);
@@ -174,11 +184,17 @@ public:
     // Get current_waypoint_index
     int GetCurrentWaypointIndex();
 
+    // Set Arena boundary
+    void SetArenaBoundary(vector<vector<double>> _arena_info, double _shift_x, double _shift_y, double _rotation_angle);
+
+    bool CheckInBoundary(double _x, double _y);
+
     //calc ground gps points to body coordiante
 //    Ground_Bodypoint GetGroundGPS_Body();
 
-
     void viewer_update_geofence(pcl::visualization::PCLVisualizer& viewer);
+
+
 
 //    // Velodyne with IMU
 //    vector<cv::Point2f> CalcGroundBodyPoint_IMU();
@@ -198,6 +214,7 @@ public slots:
 
 signals:
     void SignalVelodyneParser(bool);
+    void SignalVelodynePanelFound(bool);
 
 };
 

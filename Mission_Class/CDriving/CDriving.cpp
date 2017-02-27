@@ -4,7 +4,6 @@ vector<vector<double>> lrf_panelpoint = {{0.5,0.0},{0.0,0.375}};
 vector<vector<double>> lrf_waypoint = {{1.5,1.425}, {0.0,1.425}, {-1.5,1.425}, {-1.5,0.0}};
 double lrf_waypoint_update_thres = 0.2;
 
-double desirable_parking_dist = 0.9;
 double parking_dist_margin = 0.1;
 
 
@@ -13,7 +12,7 @@ CDriving::CDriving(){
 
 }
 
-CDriving::CDriving(CIMU* _p_imu, CGPS* _p_gps, CLRF* _p_lrf, CCamera* _p_camera, CKinova* _p_kinova, CVehicle* _p_vehicle, CVelodyne* _p_velodyne){
+CDriving::CDriving(CIMU* _p_imu, CGPS* _p_gps, CLRF* _p_lrf, CCamera* _p_camera, CKinova* _p_kinova, CVehicle* _p_vehicle, CVelodyne* _p_velodyne, CLMS511* _p_lms511){
 
     qRegisterMetaType<vector<double>>("vector<double>");
     qRegisterMetaType<mip_filter_linear_acceleration>("mip_filter_linear_acceleration");
@@ -26,15 +25,20 @@ CDriving::CDriving(CIMU* _p_imu, CGPS* _p_gps, CLRF* _p_lrf, CCamera* _p_camera,
     mpc_kinova = _p_kinova;
     mpc_vehicle = _p_vehicle;
     mpc_velodyne = _p_velodyne;
+    mpc_lms511 = _p_lms511;
 
     mpc_rgb_d = new CRGBD(_p_lrf);
 
     connect(mpc_velodyne,SIGNAL(SignalVelodyneParser(bool)),this,SIGNAL(SignalVelodyneParser(bool)));
+    connect(mpc_velodyne,SIGNAL(SignalVelodynePanelFound(bool)),this,SLOT(SlotVelodynePanelFound(bool)));
+    connect(mpc_lms511,SIGNAL(SignalLMS511UpdatePoints(vector<vector<double> >)),this,SLOT(SlotLMS511UpdatePoints(vector<vector<double> >)));
+
     connect(mpc_rgb_d,SIGNAL(SignalLRFMapImage(cv::Mat)),this,SIGNAL(SignalLRFMapImage(cv::Mat)));
     connect(mpc_imu,SIGNAL(SignalIMUEuler(vector<double>)),this,SLOT(SlotIMUEuler(vector<double>)));
     connect(mpc_imu,SIGNAL(SignalIMULinearAccel(mip_filter_linear_acceleration)),this,SLOT(SlotIMULinearAccel(mip_filter_linear_acceleration)));
     connect(mpc_imu,SIGNAL(SignalIMUTimestamp(mip_ahrs_internal_timestamp)),this,SLOT(SlotIMUTimestamp(mip_ahrs_internal_timestamp)));
     connect(mpc_imu,SIGNAL(SignalIMUDeltaVelocity(mip_ahrs_delta_velocity)),this,SLOT(SlotIMUDeltaVelocity(mip_ahrs_delta_velocity)));
+
 
     linear_accel.x = 0;
     linear_accel.y = 0;
@@ -159,6 +163,18 @@ CVelodyne* CDriving::GetVelodyne(){
     return mpc_velodyne;
 }
 
+vector<int> CDriving::GetEncoderValueRaw(){
+    vector<int> encoder_value_raw = {0,0};
+    if(!mpc_vehicle->IsConnected())
+    {
+        return encoder_value_raw;
+    }
+    else
+    {
+        return mpc_vehicle->GetEncoderValueRaw();
+    }
+}
+
 int CDriving::GetPanelHeadingError(){
     std::vector<double> panel_loc;
 
@@ -192,6 +208,41 @@ int CDriving::GetPanelHeadingError(){
 
 }
 
+
+void CDriving::SetArenaInfo(vector<double> _lb, vector<double> _lt, vector<double> _rt, vector<double> _rb)
+{
+    m_arena_info.at(0) = _lb;
+    m_arena_info.at(1) = _lt;
+    m_arena_info.at(2) = _rt;
+    m_arena_info.at(3) = _rb;
+    mpc_velodyne->SetArenaBoundary(m_arena_info,0,0,0);
+}
+
+void CDriving::SetArenaShift(bool _shift_on)
+{
+    if(_shift_on)
+    {
+        // Init encoder
+        mpc_vehicle->InitEncoder();
+
+        aligned_initial_heading = euler_angles.at(2);
+        if(aligned_initial_heading < 0)
+        {
+            aligned_initial_heading += 2*PI;
+        }
+        arena_aligned_compensate = true;
+    }
+    else
+    {
+        arena_aligned_compensate = false;
+    }
+}
+
+void CDriving::SetPanelDistance(double _panel_dist_dri, double _panel_dist_par)
+{
+    side_center_margin = _panel_dist_dri;
+    desirable_parking_dist = _panel_dist_par;
+}
 
 //----------------------------------------------------------------
 // Option Function
@@ -405,6 +456,15 @@ bool CDriving::DriveToPanel(){
         return false;
     }
 
+    // Init encoder
+    mpc_vehicle->InitEncoder();
+
+    aligned_initial_heading = euler_angles.at(2);
+    if(aligned_initial_heading < 0)
+    {
+        aligned_initial_heading += 2*PI;
+    }
+    arena_aligned_compensate = true;
 
     cout << "Driving Start " << endl;
     mpc_velodyne->SetVelodyneMode(VELODYNE_MODE_DRIVING);
@@ -667,7 +727,6 @@ bool CDriving::ParkingFrontPanel(){
     int _e_deg = 180;
 
     double panel_length_margin = 0.15;
-    double side_center_margin = 1.0;
     double front_center_margin = 1.0;
 
     int s_lrf_index = (int)((_s_deg + 45) / ANGLE_RESOLUTION);
@@ -1495,6 +1554,138 @@ bool CDriving::LRFVehicleAngleControl(){
     return true;
 }
 
+
+bool CDriving::DrivieByOdometer(double _heading_constraint, double _distance_constraint)
+{
+    DRIVING_STRUCT driving_struct;
+
+    double heading_control_margin = 2.0/180.0*PI;
+
+
+    mpc_vehicle->InitEncoder();
+
+    int target_encoder_value = mpc_vehicle->CalcDistToEnc_m(_distance_constraint);
+
+    target_encoder_value = target_encoder_value * 1000;
+    int current_encoder_value;
+    do{
+
+        current_encoder_value = 0.5*(mpc_vehicle->GetEncoderValue().at(0) + mpc_vehicle->GetEncoderValue().at(1));
+        double current_heading = euler_angles.at(2);
+
+        if(current_heading < 0)
+        {
+            current_heading += 2*PI;
+        }
+
+        if(_heading_constraint < PI)
+        {
+            if(((_heading_constraint + heading_control_margin) < current_heading ) &&(current_heading < (_heading_constraint + PI)) )
+            {
+                driving_struct.direction = UGV_move_left;
+                driving_struct.velocity = 100;
+            }
+            else if(((current_heading >= 0) && (current_heading < (_heading_constraint - heading_control_margin))) || ((current_heading > _heading_constraint + PI) && (current_heading < 2*PI)))
+            {
+                driving_struct.direction = UGV_move_right;
+                driving_struct.velocity = 100;
+            }
+            else
+            {
+                driving_struct.direction = UGV_move_forward;
+                driving_struct.velocity = 100;
+            }
+        }
+        else
+        {
+            if( ((current_heading > (_heading_constraint + heading_control_margin)) && (current_heading < 2*PI)) || ((current_heading >= 0) && (current_heading < _heading_constraint - PI) ))
+            {
+                driving_struct.direction = UGV_move_left;
+                driving_struct.velocity = 100;
+            }
+            else if((current_heading >=  _heading_constraint - PI) &&(current_heading < _heading_constraint - heading_control_margin) )
+            {
+                driving_struct.direction = UGV_move_right;
+                driving_struct.velocity = 100;
+            }
+            else
+            {
+                driving_struct.direction = UGV_move_forward;
+                driving_struct.velocity = 100;
+            }
+        }
+        mpc_vehicle->Move(driving_struct.direction, driving_struct.velocity);
+
+    }while(current_encoder_value < target_encoder_value);
+
+    return true;
+}
+
+double CDriving::CalcDistErrorToCheckPoint(double _dist_m)
+{
+    Gpspoint cur_gps;
+    cur_gps = mpc_gps->GetCurrentGPS();
+    cur_gps.lat = cur_gps.lat;
+    cur_gps.lon = cur_gps.lon;
+
+    Gpspoint init_gps;
+    init_gps = mpc_gps->GetInitGPS();
+    init_gps.lat = init_gps.lat;
+    init_gps.lon = init_gps.lon;
+
+    Gpspoint target_gps;
+    double dist_km = _dist_m /1000.0;
+    target_gps = mpc_gps->CalcGpspoint(0,dist_km,init_gps);
+
+    double dist_init2cur_forcheck = mpc_gps->DistCalc_Gps2Gps(init_gps,cur_gps);
+    double dist_init2target_forcheck = mpc_gps->DistCalc_Gps2Gps(init_gps,target_gps);
+
+    double dist_error = mpc_gps->DistCalc_Gps2Gps(cur_gps,target_gps);
+
+    if(dist_init2cur_forcheck > dist_init2target_forcheck) // odometry moves more than target gps point
+        dist_error = abs(dist_error) * -1;
+    else                                                    // odometry moves less than target gps point
+        dist_error = abs(dist_error);
+
+    return dist_error;
+}
+
+bool CDriving::DrivingMissionManager()
+{
+    // Init encoder
+    mpc_vehicle->InitEncoder();
+
+    aligned_initial_heading = euler_angles.at(2);
+    if(aligned_initial_heading < 0)
+    {
+        aligned_initial_heading += 2*PI;
+    }
+    arena_aligned_compensate = true;
+
+
+
+    double dist_m_to_p1 = 20.0;
+    DrivieByOdometer(aligned_initial_heading, 20.0);
+
+    m_dist_error_from_p1_km = CalcDistErrorToCheckPoint(dist_m_to_p1);
+
+//    Sleep(1000);
+
+    // Check Panel Found
+    if(panel_found)
+    {
+//        DriveToPanel();
+    }
+    else
+    {
+//        double dist_m_to_p1 = 20.0;
+//        DrivieByOdometer(aligned_initial_heading, 20.0);
+
+//        m_dist_error_from_p1_km = CalcDistErrorToCheckPoint(dist_m_to_p1);
+    }
+    return true;
+}
+
 CGPS* CDriving::GetGPS()
 {
     return mpc_gps;
@@ -1503,7 +1694,65 @@ CGPS* CDriving::GetGPS()
 // Slots
 void CDriving::SlotIMUEuler(vector<double> _euler_angles)
 {
-    euler_angles = _euler_angles;
+    if(IMU_update_finished)
+    {
+        IMU_update_finished = false;
+        euler_angles = _euler_angles;
+
+        double current_heading = euler_angles.at(2);
+        if(current_heading < 0)
+        {
+            current_heading += 2*PI;
+        }
+
+        if(arena_aligned_compensate)
+        {
+            if((abs(current_encoder_value.at(0)) - abs(past_encoder_value.at(0)))*(abs(current_encoder_value.at(1)) - abs(past_encoder_value.at(1))) < 0) // vehicle is turning
+            {
+//                encoder_bias_update = true;
+//                total_move_distance = 0;
+//                arena_move_coordinate_old.at(0) = arena_move_coordinate.at(0);
+//                arena_move_coordinate_old.at(0) = arena_move_coordinate.at(1);
+            }
+            else
+            {
+                if(encoder_bias_update)
+                {
+//                    mpc_vehicle->InitEncoder();
+//                    encoder_bias_1 = current_encoder_value.at(0);
+//                    encoder_bias_2 = current_encoder_value.at(1);
+//                    encoder_bias_update = false;
+                }
+                double encoder_change_mean = 0.5*(double)(abs(current_encoder_value.at(0) - encoder_bias_1) + abs(current_encoder_value.at(1)- encoder_bias_2));
+                if( ((current_encoder_value.at(0) - encoder_bias_1) < 0) &&  ((current_encoder_value.at(1) - encoder_bias_2) > 0))
+                {
+                    //move forward
+                    total_move_distance = (encoder_change_mean/1000.0 + 28.2715)/93.1531 - 0.30349;
+                }
+                else
+                {
+                    //move backward
+                    total_move_distance = -((encoder_change_mean/1000.0 + 28.2715)/93.1531 - 0.30349);
+                }
+                arena_move_coordinate.at(0) = arena_move_coordinate_old.at(0) - total_move_distance*cos(current_heading - aligned_initial_heading);
+                arena_move_coordinate.at(1) = arena_move_coordinate_old.at(1) + total_move_distance*sin(current_heading - aligned_initial_heading);
+            }
+
+            aligned_heading_to_current_differ = current_heading - aligned_initial_heading;
+
+            vector<vector<double>> new_arena_info;
+
+            for(int i = 0; i < 4;i++)
+            {
+                vector<double> new_arena_info_element = {0,0};
+                new_arena_info_element.at(0) = (m_arena_info.at(i)).at(0)*cos(aligned_heading_to_current_differ) - (m_arena_info.at(i)).at(1)*sin(aligned_heading_to_current_differ);
+                new_arena_info_element.at(1) = (m_arena_info.at(i)).at(0)*sin(aligned_heading_to_current_differ) + (m_arena_info.at(i)).at(1)*cos(aligned_heading_to_current_differ);
+                new_arena_info.push_back(new_arena_info_element);
+            }
+            mpc_velodyne->SetArenaBoundary(new_arena_info,-arena_move_coordinate.at(0),-arena_move_coordinate.at(1),aligned_heading_to_current_differ);
+        }
+        IMU_update_finished = true;
+    }
 }
 
 void CDriving::SlotIMULinearAccel(mip_filter_linear_acceleration _linear_accel)
@@ -1521,6 +1770,18 @@ void CDriving::SlotIMUDeltaVelocity(mip_ahrs_delta_velocity _delta_velocity)
     delta_velocity = _delta_velocity;
 }
 
+void CDriving::SlotVelodynePanelFound(bool _panel_found)
+{
+    past_encoder_value = current_encoder_value;
+    current_encoder_value = mpc_vehicle->GetEncoderValueRaw();
+
+    panel_found = _panel_found;
+}
+
+void CDriving::SlotLMS511UpdatePoints(vector<vector<double>> _point_list)
+{
+    mpc_velodyne->SetLMS511DataToPCL(_point_list);
+}
 
 //----------------------------------------------------------------
 //

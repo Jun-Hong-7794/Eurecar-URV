@@ -17,6 +17,7 @@
 #include "Device_Class/CKinova/CKinova.h"
 #include "Device_Class/CVehicle/CVehicle.h"
 #include "Device_Class/CVelodyne/CVelodyne.h"
+#include "Device_Class/CLMS511/CLMS511.h"
 
 //-------------------------------------------------
 // Element Tech Class
@@ -51,7 +52,7 @@ protected:
 
 public:
     CDriving();
-    CDriving(CIMU* _p_imu, CGPS* _p_gps, CLRF* _p_lrf, CCamera* _p_camera, CKinova* _p_kinova, CVehicle* _p_vehicle, CVelodyne* _p_velodyne);
+    CDriving(CIMU* _p_imu, CGPS* _p_gps, CLRF* _p_lrf, CCamera* _p_camera, CKinova* _p_kinova, CVehicle* _p_vehicle, CVelodyne* _p_velodyne, CLMS511* _p_lms511);
 
     ~CDriving();
 private:
@@ -69,6 +70,29 @@ private:
     QMutex mxt_lrf_vehicle_angle;
 
 
+    // Aerna info
+    vector<vector<double>> m_arena_info = {{0,-45},{-60,-45},{-60,45},{0,45}};
+    bool arena_aligned_compensate = false;
+    bool IMU_update_finished = true;
+
+    // Aligned initial heading
+    double aligned_initial_heading = 0.0;
+    double aligned_heading_to_current_differ = 0.0;
+    vector<int> past_encoder_value = {0,0};
+    vector<int> current_encoder_value = {0,0};
+    bool encoder_bias_update = false;
+    long int encoder_bias_1 = 0;
+    long int encoder_bias_2 = 0;
+    vector<double> arena_move_coordinate = {0,0};
+    vector<double> arena_move_coordinate_old = {0,0};
+    double total_move_distance = 0;
+
+
+
+    // parking parameter
+    double side_center_margin = 1.0;
+    double desirable_parking_dist = 1.0;
+
     // ugv info variables
     double ugv_heading = 0.0;
     double final_parking_heading = -PI;
@@ -78,11 +102,16 @@ private:
     double panel_way_x = 0.0;
     double panel_way_y = 0.0;
     bool parking_short = true;
+    bool panel_found = true;
+
+    double m_dist_error_from_p1_km=0.0;
 
     vector<double> euler_angles = {0,0,0};
     mip_filter_linear_acceleration linear_accel;
     mip_ahrs_internal_timestamp time_stamp;
     mip_ahrs_delta_velocity delta_velocity;
+
+
 
 
 private:
@@ -97,7 +126,7 @@ private:
     CVehicle* mpc_vehicle;
     CVelodyne* mpc_velodyne;
     CRGBD* mpc_rgb_d;
-
+    CLMS511* mpc_lms511;
 
 
 public:
@@ -127,6 +156,12 @@ public:
     CVelodyne* GetVelodyne();
     int GetPanelHeadingError();
     vector<double> GetParkingStatus();
+    vector<int> GetEncoderValueRaw();
+
+
+    void SetArenaInfo(vector<double> _lb, vector<double> _lt, vector<double> _rt, vector<double> _rb);
+    void SetArenaShift(bool _shift_on);
+    void SetPanelDistance(double _panel_dist_dri, double _panel_dist_par);
 
     //-------------------------------------------------
     // Drive Class Option Function
@@ -152,6 +187,8 @@ public:
     //-------------------------------------------------
     // Drive Class Main Function
     //-------------------------------------------------
+    bool DrivingMissionManager();
+
     bool DriveToPanel();
     bool ParkingFrontPanel();
     int VelGen(double);
@@ -159,6 +196,8 @@ public:
     bool LRFVehicleHorizenControl();
     bool LRFVehicleAngleControl();
 
+    bool DrivieByOdometer(double _heading_constraint, double _distance_constraint);
+    double CalcDistErrorToCheckPoint(double _dist_m);
 
 
 
@@ -171,11 +210,19 @@ signals:
     void SignalLRFVehicleAngleStruct(LRF_VEHICLE_ANGLE_STRUCT);
     void SignalLRFVehicleHorizenStruct(LRF_VEHICLE_HORIZEN_STRUCT);
 
+    //Arena information query singal
+    void SignalDrivingQueryArenaInfo();
+
+
 public slots:
     void SlotIMUEuler(vector<double> _euler_angles);
     void SlotIMULinearAccel(mip_filter_linear_acceleration _linear_accel);
     void SlotIMUTimestamp(mip_ahrs_internal_timestamp _time_stamp);
     void SlotIMUDeltaVelocity(mip_ahrs_delta_velocity _delta_velocity);
+    void SlotVelodynePanelFound(bool _panel_found);
+
+    void SlotLMS511UpdatePoints(vector<vector<double>> _point_list);
+
 };
 
 #endif // CDRIVING_H

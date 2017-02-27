@@ -29,15 +29,17 @@ EurecarURV_Dlg::EurecarURV_Dlg(QWidget *parent) :
     mpc_kinova = new CKinova;
     mpc_vehicle = new CVehicle;
     mpc_gripper = new CGripper;
+    mpc_pcl = new CPCL;
+    mpc_lms511 = new CLMS511(mpc_pcl);
 
     mpc_ssd = new CSSD;
-    mpc_velodyne = new CVelodyne(mpc_gps);
+    mpc_velodyne = new CVelodyne(mpc_pcl);
     //-------------------------------------------------
     // Mission Class Initialize
     //-------------------------------------------------
 
     //Driving Class Initialize
-    mpc_drivig = new CDriving(mpc_imu, mpc_gps, mpc_drive_lrf, mpc_camera, mpc_kinova, mpc_vehicle, mpc_velodyne);
+    mpc_drivig = new CDriving(mpc_imu, mpc_gps, mpc_drive_lrf, mpc_camera, mpc_kinova, mpc_vehicle, mpc_velodyne, mpc_lms511);
 
     //Manipulation Class Initialize
     mpc_manipulation = new CManipulation(mpc_mani__lrf, mpc_camera, mpc_kinova, mpc_vehicle, mpc_velodyne, mpc_gripper, mpc_ssd);
@@ -87,6 +89,7 @@ EurecarURV_Dlg::EurecarURV_Dlg(QWidget *parent) :
     connect(ui->bt_gps,SIGNAL(clicked()), this, SLOT(SlotButtonGPSSwitch()));
     connect(ui->bt_gps_init_pos,SIGNAL(clicked()), this, SLOT(SlotButtonGPSInitPosSwitch()));
     connect(ui->bt_imu,SIGNAL(clicked()), this, SLOT(SlotButtonIMUSwitch()));
+    connect(ui->bt_lms511,SIGNAL(clicked()), this, SLOT(SlotButtonLMS511Switch()));
 
     //Click List View
     connect(ui->lsview_mission_title,SIGNAL(clicked(QModelIndex)), this, SLOT(SlotMissionListUpdate(QModelIndex)));
@@ -105,6 +108,7 @@ EurecarURV_Dlg::EurecarURV_Dlg(QWidget *parent) :
     (mpc_drivig->GetPCL())->viewer->setBackgroundColor(0,0,0);
     (mpc_drivig->GetPCL())->viewer->addCoordinateSystem(1.0);
     (mpc_drivig->GetPCL())->viewer->addPointCloud( (mpc_drivig->GetPCL())->cloud, "cloud");
+    (mpc_drivig->GetPCL())->viewer->addPointCloud( (mpc_drivig->GetPCL())->lms511_cloud, "lms511_cloud");
     (mpc_drivig->GetPCL())->viewer->addPointCloud( (mpc_drivig->GetPCL())->waypoint_cloud, "waypoint_cloud");
     (mpc_drivig->GetPCL())->viewer->addPointCloud( (mpc_drivig->GetPCL())->panelpoint_cloud, "panelpoint_cloud");
     (mpc_drivig->GetPCL())->viewer->addPointCloud( (mpc_drivig->GetPCL())->lrf_cloud, "lrf_cloud");
@@ -112,11 +116,12 @@ EurecarURV_Dlg::EurecarURV_Dlg(QWidget *parent) :
     (mpc_drivig->GetPCL())->viewer->addPointCloud( (mpc_drivig->GetPCL())->mission_boundary_cloud,"mission_boundary_cloud");
 
     (mpc_drivig->GetPCL())->viewer->setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE,1,"cloud");
+    (mpc_drivig->GetPCL())->viewer->setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE,1,"lms511_cloud");
     (mpc_drivig->GetPCL())->viewer->setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE,5,"waypoint_cloud");
     (mpc_drivig->GetPCL())->viewer->setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE,5,"panelpoint_cloud");
     (mpc_drivig->GetPCL())->viewer->setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE,1,"lrf_cloud");
     (mpc_drivig->GetPCL())->viewer->setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE,5,"lrf_waypoint_cloud");
-    (mpc_drivig->GetPCL())->viewer->setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE,5,"mission_boundary_cloud");
+    (mpc_drivig->GetPCL())->viewer->setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE,20,"mission_boundary_cloud");
 
 
 
@@ -192,6 +197,25 @@ void EurecarURV_Dlg::SlotButtonIMUSwitch(){
         {
             ui->bt_imu->setText("IMU On");
         }
+
+    }
+}
+
+void EurecarURV_Dlg::SlotButtonLMS511Switch(){
+    if(!mpc_lms511->IsLMS511Init())
+    {
+        if(mpc_lms511->ConnectLMS511())
+        {
+            cout << "LMS 511 init success!" << endl;
+            ui->bt_lms511->setText("LMS511 Off");
+        }
+        else
+        {
+            cout << "LMS 511 init failed!" << endl;
+        }
+    }
+    else
+    {
 
     }
 }
@@ -556,8 +580,11 @@ void EurecarURV_Dlg::ScriptInfoDisplay(){
 }
 
 void EurecarURV_Dlg::SlotVeloyneParser(bool _parser_complete){
-
     if(_parser_complete){
         ui->qvtk_velodyne_main_dlg->update();
+    }
+    if((mpc_lms511->IsLMS511Init()) && (!mpc_lms511->isRunning()))
+    {
+        mpc_lms511->start();
     }
 }

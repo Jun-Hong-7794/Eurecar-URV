@@ -646,7 +646,7 @@ void CIMU::GetEulerAngles()
 
 //    x_vel += time_lapsed*curr_ahrs_delta_velocity.delta_velocity[0];
     x_vel += time_lapsed*curr_ahrs_accel.scaled_accel[0]*9.8;
-    cout << x_vel<<endl;
+//    cout << x_vel<<endl;
 
 
     if(!((curr_filter_angles.roll == 0) && (curr_filter_angles.pitch == 0) && (curr_filter_angles.yaw == 0)))

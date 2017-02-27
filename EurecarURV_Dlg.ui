@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1221</width>
-    <height>694</height>
+    <height>745</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -40,7 +40,7 @@
       <x>680</x>
       <y>330</y>
       <width>291</width>
-      <height>321</height>
+      <height>361</height>
      </rect>
     </property>
    </widget>
@@ -460,7 +460,7 @@
       <x>13</x>
       <y>288</y>
       <width>651</width>
-      <height>361</height>
+      <height>401</height>
      </rect>
     </property>
    </widget>
@@ -470,7 +470,7 @@
       <x>980</x>
       <y>310</y>
       <width>231</width>
-      <height>341</height>
+      <height>381</height>
      </rect>
     </property>
     <property name="font">
@@ -657,6 +657,19 @@
       <property name="text">
        <string>Set initial 
 pose</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="bt_lms511">
+      <property name="geometry">
+       <rect>
+        <x>4</x>
+        <y>298</y>
+        <width>101</width>
+        <height>41</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>LMS511 On</string>
       </property>
      </widget>
     </widget>
