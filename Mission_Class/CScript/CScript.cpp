@@ -2085,6 +2085,54 @@ bool CScript::InterpreteKinovaRotateValveCtrl(QString _line, STEP_INFO& _step_in
             return true;
         }
 
+        if(_line.contains("radius_16mm")){
+            int colone_index = _line.indexOf("=");
+            _step_info.manipulation_option.kinova_rotate_valve_option.radius_16mm = _line.mid(colone_index + 1).trimmed().toDouble();
+            return true;
+        }
+        if(_line.contains("radius_17mm")){
+            int colone_index = _line.indexOf("=");
+            _step_info.manipulation_option.kinova_rotate_valve_option.radius_17mm = _line.mid(colone_index + 1).trimmed().toDouble();
+            return true;
+        }
+        if(_line.contains("radius_18mm")){
+            int colone_index = _line.indexOf("=");
+            _step_info.manipulation_option.kinova_rotate_valve_option.radius_18mm = _line.mid(colone_index + 1).trimmed().toDouble();
+            return true;
+        }
+        if(_line.contains("radius_19mm")){
+            int colone_index = _line.indexOf("=");
+            _step_info.manipulation_option.kinova_rotate_valve_option.radius_19mm = _line.mid(colone_index + 1).trimmed().toDouble();
+            return true;
+        }
+        if(_line.contains("radius_22mm")){
+            int colone_index = _line.indexOf("=");
+            _step_info.manipulation_option.kinova_rotate_valve_option.radius_22mm = _line.mid(colone_index + 1).trimmed().toDouble();
+            return true;
+        }
+        if(_line.contains("radius_24mm")){
+            int colone_index = _line.indexOf("=");
+            _step_info.manipulation_option.kinova_rotate_valve_option.radius_24mm = _line.mid(colone_index + 1).trimmed().toDouble();
+            return true;
+        }
+
+        if(_line.contains("radius_offset_mm")){
+            int colone_index = _line.indexOf("=");
+            _step_info.manipulation_option.kinova_rotate_valve_option.radius_offset_mm = _line.mid(colone_index + 1).trimmed().toDouble();
+            return true;
+        }
+
+        if(_line.contains("wrench_size")){
+            int colone_index = _line.indexOf("=");
+            _step_info.manipulation_option.kinova_rotate_valve_option.str_wrench_size = _line.mid(colone_index + 1).trimmed();
+            return true;
+        }
+        if(_line.contains("valve_rotation_angle")){
+            int colone_index = _line.indexOf("=");
+            _step_info.manipulation_option.kinova_rotate_valve_option.str_valve_rotation_angle = _line.mid(colone_index + 1).trimmed();
+            return true;
+        }
+
         if(_line.contains("using_current_coord")){
             int colone_index = _line.indexOf("=");
 
@@ -2680,6 +2728,22 @@ bool CScript::MissionPlayer(){
             }
 
             if(mpary_mission_script[i].step_vecor.at(j).function_index == MP_KINOVA_ROTATE_VALVE){
+
+                int wrench_size = 0;
+                QString str_wrench_size;
+                str_wrench_size = mpary_mission_script[i].step_vecor.at(j).manipulation_option.kinova_rotate_valve_option.str_wrench_size;
+
+                wrench_size = InterpreteIntVariable(str_wrench_size, mpary_mission_script[i]);
+                mpary_mission_script[i].step_vecor.at(j).manipulation_option.kinova_rotate_valve_option.wrench_size = wrench_size;
+
+                int valve_rotation = 0;
+                QString str_valve_rotation;
+                str_valve_rotation = mpary_mission_script[i].step_vecor.at(j).manipulation_option.kinova_rotate_valve_option.str_valve_rotation_angle;
+
+                valve_rotation = InterpreteIntVariable(str_valve_rotation, mpary_mission_script[i]);
+                mpary_mission_script[i].step_vecor.at(j).manipulation_option.kinova_rotate_valve_option.valve_rotation_angle = valve_rotation;
+
+
                 mpc_manipulation->SetManipulationOption(mpary_mission_script[i].step_vecor.at(j).manipulation_option.kinova_rotate_valve_option);
                 mpc_manipulation->SelectMainFunction(MANIPUL_INX_KINOVA_ROTATE_VALVE);
 

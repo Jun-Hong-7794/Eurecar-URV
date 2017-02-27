@@ -416,6 +416,9 @@ void EurecarURV_Dlg::SlotButtonScenarioPartialRun(){
     player_option.end_step_num = 100;//Dummy Value
 
     mpc_script->SetPlayerOption(player_option);
+
+    mpc_script->SetMissionPause(false);
+    mpc_script->SetMissionTerminate(false);
     return;
 }
 

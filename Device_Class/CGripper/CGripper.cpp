@@ -990,21 +990,15 @@ bool CGripper::GripperGoToThePositionLoadCheck(int _goal_pos_1, int _goal_pos_2,
     int dxl_comm_result = COMM_TX_FAIL;             // Communication result
 
     int dxl_step_1 = 1;
-    uint16_t dxl_prev_position_1 = 0;
-    uint16_t dxl_present_position_1 = 0; // Present position
     uint16_t dxl_present_load_1 = 0; // Present position
 
     int dxl_step_2 = 1;
-    uint16_t dxl_prev_position_2 = 0;
-    uint16_t dxl_present_position_2 = 0; // Present position
     uint16_t dxl_present_load_2 = 0; // Present position
 
     GRIPPER_STATUS gripper_status;
 
     mtx_gripper_handle.lock();
     {
-        dxl_prev_position_1 = m_dxl1_present_position;
-        dxl_prev_position_2 = m_dxl2_present_position;
 
         if(_load_threshold == -2){// Go to the position no load and no unit step
 
@@ -1053,9 +1047,20 @@ bool CGripper::GripperGoToThePositionLoadCheck(int _goal_pos_1, int _goal_pos_2,
                 // Read present position
                 dxl_comm_result = mp_gripper_packetHandler->read2ByteTxRx(mp_gripper_portHandler, DXL1_ID, ADDR_MX_PRESENT_LOAD, &dxl_present_load_1, &dxl_error);
             }
+            if(dxl_comm_result != COMM_SUCCESS){
+                mp_gripper_packetHandler->printTxRxResult(dxl_comm_result);
+                msleep(50);
+                continue;
+            }
+
             if(_goal_pos_2 != -1){
                 // Read present position
                 dxl_comm_result = mp_gripper_packetHandler->read2ByteTxRx(mp_gripper_portHandler, DXL2_ID, ADDR_MX_PRESENT_LOAD, &dxl_present_load_2, &dxl_error);
+            }
+            if(dxl_comm_result != COMM_SUCCESS){
+                mp_gripper_packetHandler->printTxRxResult(dxl_comm_result);
+                msleep(50);
+                continue;
             }
 
             gripper_status.present_pose_1 = m_dxl1_present_position;
@@ -1072,17 +1077,17 @@ bool CGripper::GripperGoToThePositionLoadCheck(int _goal_pos_1, int _goal_pos_2,
                 if(_goal_pos_1 != -1){
                     if(dxl_step_1 == 1){
                         if((dxl_present_load_1 > 1800)){
-                            std::cout << "Force Occured!" << std::endl;
-                            std::cout << "Present Gripper Load :" << dxl_present_load_1 << std::endl;
-                            std::cout << "Present Goal Position :" << m_dxl1_present_position << std::endl;
+//                            std::cout << "Force Occured!" << std::endl;
+//                            std::cout << "Present Gripper Load :" << dxl_present_load_1 << std::endl;
+//                            std::cout << "Present Goal Position :" << m_dxl1_present_position << std::endl;
                             _goal_pos_1 = -1;
                         }
                     }
                     else{
                         if((dxl_present_load_1> _load_threshold) && (dxl_present_load_1 < 1000)){
-                            std::cout << "Force Occured!" << std::endl;
-                            std::cout << "Present Gripper Load :" << dxl_present_load_1 << std::endl;
-                            std::cout << "Present Goal Position :" << m_dxl1_present_position << std::endl;
+//                            std::cout << "Force Occured!" << std::endl;
+//                            std::cout << "Present Gripper Load :" << dxl_present_load_1 << std::endl;
+//                            std::cout << "Present Goal Position :" << m_dxl1_present_position << std::endl;
                             _goal_pos_1 = -1;
                         }
                     }
@@ -1091,17 +1096,17 @@ bool CGripper::GripperGoToThePositionLoadCheck(int _goal_pos_1, int _goal_pos_2,
                 if(_goal_pos_2 != -1){
                     if(dxl_step_2 == 1){
                         if((dxl_present_load_2 > 1800)){
-                            std::cout << "Force Occured!" << std::endl;
-                            std::cout << "Present Gripper Load :" << dxl_present_load_2 << std::endl;
-                            std::cout << "Present Goal Position :" << m_dxl2_present_position << std::endl;
+//                            std::cout << "Force Occured!" << std::endl;
+//                            std::cout << "Present Gripper Load :" << dxl_present_load_2 << std::endl;
+//                            std::cout << "Present Goal Position :" << m_dxl2_present_position << std::endl;
                             _goal_pos_2 = -1;
                         }
                     }
                     else{
                         if((dxl_present_load_2> _load_threshold) && (dxl_present_load_2 < 1000)){
-                            std::cout << "Force Occured!" << std::endl;
-                            std::cout << "Present Gripper Load :" << dxl_present_load_2 << std::endl;
-                            std::cout << "Present Goal Position :" << m_dxl2_present_position << std::endl;
+//                            std::cout << "Force Occured!" << std::endl;
+//                            std::cout << "Present Gripper Load :" << dxl_present_load_2 << std::endl;
+//                            std::cout << "Present Goal Position :" << m_dxl2_present_position << std::endl;
                             _goal_pos_2 = -1;
                         }
                     }
@@ -1139,8 +1144,7 @@ bool CGripper::GripperGoToThePositionLoadCheck(int _goal_pos_1, int _goal_pos_2,
                 printf("Read present position : dxl_error\n");
             }
 
-            dxl_prev_position_1 = m_dxl1_present_position;
-            dxl_prev_position_2 = m_dxl2_present_position;
+            usleep(500);
 
         }while(true);
 

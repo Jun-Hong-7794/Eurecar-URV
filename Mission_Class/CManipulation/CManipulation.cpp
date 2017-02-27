@@ -1101,7 +1101,8 @@ int CManipulation::DataAnalisys(QVector<double> _data){//For Valve Recognition, 
     QVector<double> x(_data.size());
 
     int valve_index = 0;
-    int min_error = 999999;/*Just... Big Number*/
+//    int min_error = 999999;/*Just... Big Number*/
+    int max_index = 0;
     int ary_error[6] = {-1, -1, -1, -1, -1, -1};
     int result_valve = 0;//16,17,18,19,22,24mm
 
@@ -1109,39 +1110,65 @@ int CManipulation::DataAnalisys(QVector<double> _data){//For Valve Recognition, 
         x[i] = i;
     }
 
+    double error_bound = 5;
+
     for(int i = 0; i < 35; i++){
 
         if(!mqvec_sorted_16mm.isEmpty()){
-            ary_error[0] += fabs(_data[i] - mqvec_sorted_16mm[i]);
+//            ary_error[0] += fabs(_data[i] - mqvec_sorted_16mm[i]);
+            if(error_bound > fabs(_data[i] - mqvec_sorted_16mm[i]))
+                ary_error[0]++;
         }
         if(!mqvec_sorted_17mm.isEmpty()){
-            ary_error[1] += fabs(_data[i] - mqvec_sorted_17mm[i]);
+//            ary_error[1] += fabs(_data[i] - mqvec_sorted_17mm[i]);
+            if(error_bound > fabs(_data[i] - mqvec_sorted_17mm[i]))
+                ary_error[1]++;
         }
         if(!mqvec_sorted_18mm.isEmpty()){
-            ary_error[2] += fabs(_data[i] - mqvec_sorted_18mm[i]);
+//            ary_error[2] += fabs(_data[i] - mqvec_sorted_18mm[i]);
+            if(error_bound > fabs(_data[i] - mqvec_sorted_18mm[i]))
+                ary_error[2]++;
         }
         if(!mqvec_sorted_19mm.isEmpty()){
-            ary_error[3] += fabs(_data[i] - mqvec_sorted_19mm[i]);
+//            ary_error[3] += fabs(_data[i] - mqvec_sorted_19mm[i]);
+            if(error_bound > fabs(_data[i] - mqvec_sorted_19mm[i]))
+                ary_error[3]++;
         }
         if(!mqvec_sorted_22mm.isEmpty()){
-            ary_error[4] += fabs(_data[i] - mqvec_sorted_22mm[i]);
+//            ary_error[4] += fabs(_data[i] - mqvec_sorted_22mm[i]);
+            if(error_bound > fabs(_data[i] - mqvec_sorted_22mm[i]))
+                ary_error[4]++;
         }
         if(!mqvec_sorted_24mm.isEmpty()){
-            ary_error[5] += fabs(_data[i] - mqvec_sorted_24mm[i]);
+//            ary_error[5] += fabs(_data[i] - mqvec_sorted_24mm[i]);
+            if(error_bound > fabs(_data[i] - mqvec_sorted_24mm[i]))
+                ary_error[5]++;
         }
     }
 
+//    for(int i = 0; i < 6/*Number of Valve*/; i++){
+//        if(ary_error[i] != -1){
+//            if(min_error > ary_error[i]){
+//                valve_index = i;
+//                min_error = ary_error[i];
+//            }
+//        }
+//    }
+
     for(int i = 0; i < 6/*Number of Valve*/; i++){
         if(ary_error[i] != -1){
-            if(min_error > ary_error[i]){
+            if(ary_error[i] > max_index){
                 valve_index = i;
-                min_error = ary_error[i];
+                max_index = ary_error[i];
             }
         }
     }
 
-    if(min_error == 999999){
-        return 0;
+    if(ary_error[valve_index] < 20)
+        return -1;
+
+    if(max_index == 0){
+        return -1;
     }
     else
         result_valve = mary_valve_size[valve_index];
@@ -2399,6 +2426,53 @@ bool CManipulation::KinovaRotateValveMotion(){
     mpc_kinova->SetKinovaRotateValve(kinova_rotate_valve.using_current_coord, kinova_rotate_valve.init_angle,
                                      kinova_rotate_valve.center_x, kinova_rotate_valve.center_y, kinova_rotate_valve.center_z);
 
+    switch (kinova_rotate_valve.wrench_size){
+    case 16:
+        kinova_rotate_valve.radius = kinova_rotate_valve.radius_16mm;
+        break;
+    case 17:
+        kinova_rotate_valve.radius = kinova_rotate_valve.radius_17mm;
+        break;
+    case 18:
+        kinova_rotate_valve.radius = kinova_rotate_valve.radius_18mm;
+        break;
+    case 19:
+        kinova_rotate_valve.radius = kinova_rotate_valve.radius_19mm;
+        break;
+    case 22:
+        kinova_rotate_valve.radius = kinova_rotate_valve.radius_22mm;
+        break;
+    case 24:
+        kinova_rotate_valve.radius = kinova_rotate_valve.radius_24mm;
+        break;
+    }
+
+    double radius = kinova_rotate_valve.radius;
+    kinova_rotate_valve.radius += kinova_rotate_valve.radius_offset_mm;
+
+    //Move Kinova Arm...
+    if(kinova_rotate_valve.valve_rotation_angle != -1){
+
+        //Get Present Position
+        CartesianPosition present_position;
+        mpc_kinova->Get_Kinova_Position(present_position);
+
+        // ++ Present Position + Radius
+        present_position.Coordinates.Z += radius;
+        mpc_kinova->KinovaDoManipulate(present_position, 2);
+
+        msleep(500);
+
+        if(kinova_rotate_valve.valve_rotation_angle < 45){//CW
+            if(kinova_rotate_valve.theta > 0)
+                kinova_rotate_valve.theta = (-1)* kinova_rotate_valve.theta;
+        }
+        else if(kinova_rotate_valve.valve_rotation_angle >= 45){//CW
+            if(kinova_rotate_valve.theta < 0)
+                kinova_rotate_valve.theta = (-1)* kinova_rotate_valve.theta;
+        }
+    }
+
     if(kinova_rotate_valve.theta < 0){
         kinova_rotate_valve.theta = (-1)* kinova_rotate_valve.theta;
         mpc_kinova->KinovaRotateValveMotion(VALVE_ROTATE_DIR(CW), kinova_rotate_valve.radius, kinova_rotate_valve.theta);
@@ -2581,6 +2655,8 @@ bool CManipulation::GripperKinovaValveSizeRecognition(){
             }
             else{
                 SetValveSizeRecogResult(-1);
+                gripper_kinova_valve_recog.valve_size = -1;
+                SetManipulationOption(gripper_kinova_valve_recog);
                 return false;
             }
 
@@ -2609,6 +2685,8 @@ bool CManipulation::GripperKinovaValveSizeRecognition(){
 
         if(diff_pose < 80){
             SetValveSizeRecogResult(-1);
+            gripper_kinova_valve_recog.valve_size = -1;
+            SetManipulationOption(gripper_kinova_valve_recog);
             return false;
         }
 

@@ -255,6 +255,6 @@ IF(gi_valve_size != -1)
 KINOVA_ALIGN_TO_PANEL_FUNCTION()
 
 
-ELSE(GoTo:0)
+ELSE(GoTo: 0)
 
 ##########################################_MISSION_END_##########################################

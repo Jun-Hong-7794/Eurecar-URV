@@ -376,6 +376,21 @@ typedef struct _Kinova_Rotate_Valve_Struct{
     double theta;
     double radius;
 
+    double radius_16mm;
+    double radius_17mm;
+    double radius_18mm;
+    double radius_19mm;
+    double radius_22mm;
+    double radius_24mm;
+
+    double radius_offset_mm;
+
+    int wrench_size;
+    QString str_wrench_size;
+
+    int valve_rotation_angle;
+    QString str_valve_rotation_angle;
+
     double force_threshold;
 
 }KINOVA_ROTATE_VALVE_STRUCT;
