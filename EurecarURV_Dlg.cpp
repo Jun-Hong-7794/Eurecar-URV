@@ -90,6 +90,7 @@ EurecarURV_Dlg::EurecarURV_Dlg(QWidget *parent) :
     connect(ui->bt_gps_init_pos,SIGNAL(clicked()), this, SLOT(SlotButtonGPSInitPosSwitch()));
     connect(ui->bt_imu,SIGNAL(clicked()), this, SLOT(SlotButtonIMUSwitch()));
     connect(ui->bt_lms511,SIGNAL(clicked()), this, SLOT(SlotButtonLMS511Switch()));
+    connect(ui->bt_rotator,SIGNAL(clicked()), this, SLOT(SlotButtonRotatorSwitch()));
 
     //Click List View
     connect(ui->lsview_mission_title,SIGNAL(clicked(QModelIndex)), this, SLOT(SlotMissionListUpdate(QModelIndex)));
@@ -197,7 +198,24 @@ void EurecarURV_Dlg::SlotButtonIMUSwitch(){
         {
             ui->bt_imu->setText("IMU On");
         }
+    }
+}
 
+void EurecarURV_Dlg::SlotButtonRotatorSwitch(){
+
+    if(!mpc_gripper->IsRotatorInit()){
+        if(!mpc_gripper->InitRotator())
+        {
+            QMessageBox::information(this, tr("Fail to Connect Dyanmixel Pro"),tr("Check Dyanmixel"));
+        }
+        else
+        {
+            ui->bt_rotator->setText("Rotator Off");
+        }
+    }
+    else{
+        mpc_gripper->CloseRotator();
+        ui->bt_rotator->setText("Rotator On");
     }
 }
 
@@ -241,6 +259,8 @@ void EurecarURV_Dlg::SlotButtonKinovaSwitch(){
             QMessageBox::information(this, tr("Fail to Connect KINOVA"), tr("Check KINOVA"));
         else{
             ui->bt_kinova->setText("Kinova Close");
+            mpc_kinova->KinovaInitMotion();
+            sleep(2);
             mpc_kinova->KinovaAlignToPanel();
         }
     }
@@ -420,6 +440,9 @@ void EurecarURV_Dlg::SlotButtonScenarioPartialRun(){
     player_option.end_step_num = 100;//Dummy Value
 
     mpc_script->SetPlayerOption(player_option);
+
+    mpc_script->SetMissionPause(false);
+    mpc_script->SetMissionTerminate(false);
     return;
 }
 

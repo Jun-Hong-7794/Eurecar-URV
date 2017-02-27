@@ -194,12 +194,12 @@ void CRGBD::LocalizationOnPanel(LOCALIZATION_INFO_ON_PANEL &_info,int _mode,
 
     std::vector<POINT_PARAM> point_vec;
 
-    std::vector<LINE_PARAM> optimal_line_eq_vec;
+//    std::vector<LINE_PARAM> optimal_line_eq_vec;
 
-    int sample_loop = 3;
+//    int sample_loop = 3;
 
-    int v_distance = 0;
-    double angle = 0;
+//    int v_distance = 0;
+//    double angle = 0;
 
     if(!mpc_lrf->GetLRFData(mary_lrf_distance)){
         std::cout << "LRF : GetLRFData Error" << std::endl;
@@ -228,9 +228,13 @@ void CRGBD::LocalizationOnPanel(LOCALIZATION_INFO_ON_PANEL &_info,int _mode,
         _info.vertical_dst = current_v_dst;
         _info.angle = current_ang;
 
-        if((_mode & 0xf000) == L_M_ROUGH){// Only RANSAC Mode, s_deg: 10, e_deg: 170
+        if((_mode & 0xff00) == L_M_ROUGH){// Only RANSAC Mode, s_deg: 10, e_deg: 170
             std::vector<POINT_PARAM>::iterator iter_end = point_vec.end();
-            _info.horizen__dst =  (*iter_end).x;
+
+            double point_x_start = point_vec[0].x;
+            double point_x_end = point_vec[point_vec.size() - 1].x;
+
+            _info.horizen__dst =  point_x_end;
         }
         else if((_mode & 0xf000) == L_M_PRECISE){
 
@@ -242,13 +246,13 @@ void CRGBD::LocalizationOnPanel(LOCALIZATION_INFO_ON_PANEL &_info,int _mode,
             if((_mode & 0x000f) == L_M_DIR_LEFT){// s_deg: 90, e_deg: 170, Using e_inlier_inx
                 //Assume, always e_inlier_deg > 90
                 e_inlier_deg = (e_inlier_deg - 90);
-                _info.horizen__dst = fabs( tan((RGBD_D2R* e_inlier_deg))* current_v_dst );
+                _info.horizen__dst = fabs( tan((RGBD_D2R* e_inlier_deg))* current_v_dst);
 
             }
             else if((_mode & 0x000f) == L_M_DIR_RIGHT){// s_deg: 10, e_deg: 90, Using s_inlier_inx
                 //Assume, always s_inlier_deg < 90
                 s_inlier_deg = (90 - s_inlier_deg);
-                _info.horizen__dst = 1000/*mm, panel size*/ - fabs( tan((RGBD_D2R* s_inlier_deg))* current_v_dst );
+                _info.horizen__dst = 1000/*mm, panel size*/ - fabs(tan((RGBD_D2R* s_inlier_deg))* current_v_dst) - 5/*offset*/;
             }
         }
     }
@@ -292,7 +296,7 @@ void CRGBD::ClaculateLRFHeightDistance(long* _lrf_org_data, double _s_deg, doubl
 
 LINE_PARAM CRGBD::EstimateLineEquation(std::vector<POINT_PARAM>& _point_vec){
 
-    int iteration = 500;
+    int iteration = 3000;
 
     int random_num_1 = 0;
     int random_num_2 = 0;
@@ -340,7 +344,7 @@ LINE_PARAM CRGBD::EstimateLineEquation(std::vector<POINT_PARAM>& _point_vec){
 
     double line_max_count = 0;
 
-    double line_inlier_standard = 4;
+    double line_inlier_standard = 5;
 
     for(unsigned int i = 0; i < line_eq_vector.size(); i++){
 

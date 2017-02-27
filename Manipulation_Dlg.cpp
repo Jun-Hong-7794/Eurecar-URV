@@ -98,6 +98,10 @@ Manipulation_Dlg::Manipulation_Dlg(CManipulation* _pc_manipulation, QWidget *par
 
     connect(mpc_manipulation, SIGNAL(SignalLRFHorizentDistance(LRF_VEHICLE_HORIZEN_STRUCT)), this, SLOT(SlotLRFHorizentDistance(LRF_VEHICLE_HORIZEN_STRUCT)));
 
+    //Rotator
+    connect(ui->bt_rotator, SIGNAL(clicked()), this, SLOT(SlotButtonRotatorConnection()));
+    connect(ui->bt_rotator_rotate, SIGNAL(clicked()), this, SLOT(SlotButtonRotatorRotate()));
+
     //Edit Update
     connect(mpc_manipulation, SIGNAL(SignalLRFKinovaAngleStruct(LRF_KINOVA_ANGLE_CTRL_STRUCT)),
             this, SLOT(SlotEditeLRFKinovaAngleStruct(LRF_KINOVA_ANGLE_CTRL_STRUCT)));
@@ -787,6 +791,29 @@ void Manipulation_Dlg::SlotButtonGripperGrasp(){
 
 void Manipulation_Dlg::SlotButtonGripperTorqueOn(){
 
+}
+
+void Manipulation_Dlg::SlotButtonRotatorConnection(){
+
+
+    if(!mpc_manipulation->InitRotator()){
+        QMessageBox::information(this, tr("Fail to Init Rotator"), tr("Check the dynamixel pro!!"));
+        ui->bt_rotator->setText("Close");
+    }
+    else{
+        mpc_manipulation->CloseRotator();
+        ui->bt_rotator->setText("Connect");
+    }
+
+}
+
+void Manipulation_Dlg::SlotButtonRotatorRotate(){
+
+    int goal_step = ui->ed_rotator_goal_pose->text().toInt();
+
+    if(!mpc_manipulation->RotatorGoThePose(goal_step)){
+        QMessageBox::information(this, tr("Fail to Init Rotator"), tr("Check the dynamixel pro!!"));
+    }
 }
 
 void Manipulation_Dlg::SlotButtonGraphClear(){

@@ -23,6 +23,10 @@
 #define STEP_NUM        5 // unit
 #define SLEEP_TIME      5000
 
+#define ALIGN_TO_PANEL_ROLL_VALUE 2.1517
+#define ALIGN_TO_PANEL_PITCH_VALUE 1.5575
+#define ALIGN_TO_PANEL_YAW_VALUE -2.2821
+
 typedef enum Direction {CW, CCW} VALVE_ROTATE_DIR;
 
 class CKinova: public QThread{
@@ -141,6 +145,8 @@ public: // Basic Motion
 
     void SetKinovaRotateValve(bool _using_current_coord, bool _init_angle,double _x, double _y, double _z);
     void KinovaRotateValveMotion(VALVE_ROTATE_DIR _dir, int _radius, int _theta);
+
+    bool KinovaRotateValveMotion(bool _using_constant_c_point, CartesianPosition _center_point, int _radius, int _theta, double _unit_angle = 5/*deg*/);
 
     bool Kinova_Do_Manipulate(JoystickCommand _desired_command);
 

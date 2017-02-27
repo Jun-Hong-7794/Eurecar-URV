@@ -19,6 +19,100 @@ typedef struct _LRF_Sensing_Info_Struct{
 
 }LRF_SENSING_INFO_STRUCT;
 
+// LRF - KINOVA
+typedef struct _LRFK_VCtrl_Struct{
+
+    bool fl_only_sensing_moving;
+
+    bool fl_force_option;
+
+    double force_x;
+    double force_y;
+    double force_z;
+
+    int desired_v_dst;
+
+    double error;
+
+    int loop_sleep; /*msec*/
+
+    LRF_SENSING_INFO_STRUCT lrf_info_struct;
+
+}LRF_K_V_CTRL_STRUCT;
+
+typedef struct _LRFK_HCtrl_Struct{
+
+    bool fl_only_sensing_moving;
+
+    int desired_h_location;
+
+    QString wrench_hanger_index_str/*1~6*/;
+    int wrench_hanger_index/*1~6*/;
+
+    int wrench_location_1/*mm*/;
+    int wrench_location_2/*mm*/;
+    int wrench_location_3/*mm*/;
+    int wrench_location_4/*mm*/;
+    int wrench_location_5/*mm*/;
+    int wrench_location_6/*mm*/;
+
+    int error;
+
+    int loop_sleep; /*msec*/
+
+    LRF_SENSING_INFO_STRUCT lrf_info_struct;
+
+}LRF_K_H_CTRL_STRUCT;
+
+typedef struct _LRFK_ACtrl_Struct{
+
+    bool fl_only_sensing_option;
+
+    double desired_angle;
+
+    double unit_deg;
+
+    double error;
+
+    int loop_sleep;
+
+    LRF_SENSING_INFO_STRUCT lrf_info_struct;
+
+}LRF_K_A_CTRL_STRUCT;
+//---------------------------------
+
+// LRF - Vehicle
+typedef struct _LRFV_ACtrl_Struct{
+
+    bool fl_goto_home_pose;
+
+    double desired_angle;
+
+    double error;
+
+    double velocity;
+
+    int loop_sleep;
+
+    LRF_SENSING_INFO_STRUCT lrf_info_struct;
+
+}LRF_V_A_CTRL_STRUCT;
+
+typedef struct _LRFV_HCtrl_Struct{
+
+    int desired_h_location;
+
+    double error;
+
+    double velocity;
+
+    int loop_sleep;
+
+    LRF_SENSING_INFO_STRUCT lrf_info_struct;
+
+}LRF_V_H_CTRL_STRUCT;
+//---------------------------------
+
 typedef struct _LRF_Kinova_Angle_Ctrl_Struct{
 
     bool lrf_kinova_mission;
@@ -195,11 +289,16 @@ typedef struct _Kinova_Force_Ctrl_Struct{
     double move_step_y;
     double move_step_z;
 
+    int threshold_mode; //Mode1 : Bigger than, 2: Smaller than, 3: Range
+
     double force_threshold;
 
     double force_threshold_x;//Relative Force
     double force_threshold_y;//Relative Force
     double force_threshold_z;//Relative Force
+
+    double force_range_s;
+    double force_range_e;
 
     double position_limit_x;
     double position_limit_y;
@@ -256,8 +355,8 @@ typedef struct _Kinova_Fit_To_Valve_Pose_Struct{
     int valve_size;/*16 ~ 24mm*/
     double valve_rotation_angle;
 
-    int move_step;
     int angle_step;
+    double move_step;
 
 }KINOVA_FIT_TO_VALVE_POSE_STRUCT;
 
@@ -276,6 +375,21 @@ typedef struct _Kinova_Rotate_Valve_Struct{
 
     double theta;
     double radius;
+
+    double radius_16mm;
+    double radius_17mm;
+    double radius_18mm;
+    double radius_19mm;
+    double radius_22mm;
+    double radius_24mm;
+
+    double radius_offset_mm;
+
+    int wrench_size;
+    QString str_wrench_size;
+
+    int valve_rotation_angle;
+    QString str_valve_rotation_angle;
 
     double force_threshold;
 
@@ -319,6 +433,17 @@ typedef struct _Gripper_Force_Ctrl_Struct{
 
 }GRIPPER_FORCE_CTRL_STRUCT;
 
+typedef struct _Gripper_Go_To_Rel_Pose_Struct{
+
+    bool gripper_go_to_rel_pose;
+
+    int force_threshold;
+
+    int pose_1;
+    int pose_2;
+
+}GRIPPER_GO_TO_REL_POSE_STRUCT;
+
 typedef struct _Gripper_Magnet_Ctrl_Struct{
 
     bool gripper_magnet_ctrl_mission;
@@ -346,6 +471,20 @@ typedef struct _Wrench_Recognition{
 
 typedef struct _Manipulation_Option{
 
+    /*New LRF Kinova Control*/
+    // Kinova
+    LRF_K_V_CTRL_STRUCT lrf_k_v_ctrl_struct;
+
+    LRF_K_H_CTRL_STRUCT lrf_k_h_ctrl_struct;
+
+    LRF_K_A_CTRL_STRUCT lrf_k_a_ctrl_struct;
+
+    // Vehicle
+    LRF_V_H_CTRL_STRUCT lrf_v_h_ctrl_struct;
+
+    LRF_V_A_CTRL_STRUCT lrf_v_a_ctrl_struct;
+    //--------------------------------------
+
     LRF_KINOVA_VERTICAL_CTRL_STRUCT lrf_kinova_vertical_option;
 
     LRF_KINOVA_ANGLE_CTRL_STRUCT lrf_kinova_angle_option;
@@ -367,6 +506,8 @@ typedef struct _Manipulation_Option{
     KINOVA_DO_MANIPULATE_STRUCT kinova_manipulate_option;
 
     KINOVA_FIT_TO_VALVE_POSE_STRUCT kinova_fit_to_valve_pose;
+
+    GRIPPER_GO_TO_REL_POSE_STRUCT grippper_go_to_rel_pose_option;
 
     GRIPPER_KINOVA_VALVE_SIZE_RECOG_STRUCT gripper_kinova_valve_recog_option;
 

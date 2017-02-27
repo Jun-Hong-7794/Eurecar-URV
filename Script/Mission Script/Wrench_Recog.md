@@ -2,7 +2,7 @@
 /* Made By Jun Hong 28.01.2017
 /* This Script is for 2107 MBZIRC Challenge2
 
-global_int gi_wrench_hanger_index = 3
+global_int gi_wrench_hanger_index = 6
 /*gi_valve_size
 
 # Title: Valve Recognition
@@ -11,86 +11,168 @@ global_int gi_wrench_hanger_index = 3
 
 KINOVA_ALIGN_TO_PANEL_FUNCTION()
 
-## Step0: Kinova Arm Up
-
-KINOVA_MANIPULATE_STRUCT.x = ==
-KINOVA_MANIPULATE_STRUCT.y = ==
-KINOVA_MANIPULATE_STRUCT.z = 0.4319
-
-KINOVA_MANIPULATE_STRUCT.roll = ==
-KINOVA_MANIPULATE_STRUCT.pitch = ==
-KINOVA_MANIPULATE_STRUCT.yaw = ==
-
-KINOVA_MANIPULATE_STRUCT.force_threshold = 10
-
-KINOVA_MANIPULATE_FUNCTION()
-
-## Step1: LRF-Kinova Vertical CTRL
-
-LRF_KINOVA_VERTICAL_CTRL_STRUCT.desired_distance = 270
-LRF_KINOVA_VERTICAL_CTRL_STRUCT.error = 2
-
-LRF_KINOVA_VERTICAL_CTRL_STRUCT.s_deg = 30
-LRF_KINOVA_VERTICAL_CTRL_STRUCT.e_deg = 150
-
-LRF_KINOVA_VERTICAL_CTRL_STRUCT.inlier_lrf_dst = 800
-
-LRF_KINOVA_VERTICAL_CTRL_STRUCT.loop_sleep = 30
-LRF_KINOVA_VERTICAL_CTRL_STRUCT.sensor_option = false
-
-LRF_KINOVA_VERTICAL_CTRL_FUNCTION()
-
-A_Sleep(500)
-
-## Step2: Vehicle Horizen Control(Using LRF)
-/* unit is mm
-
-LRF_VEHICLE_HORIZEN_CTRL_STRUCT.desired_avr_inlier_deg = 103
-LRF_VEHICLE_HORIZEN_CTRL_STRUCT.error_deg_boundary = 3
-
-LRF_VEHICLE_HORIZEN_CTRL_STRUCT.s_deg = 30
-LRF_VEHICLE_HORIZEN_CTRL_STRUCT.e_deg = 150
-
-LRF_VEHICLE_HORIZEN_CTRL_STRUCT.inlier_distance = 800
+A_Sleep(4000)
 
 
-LRF_VEHICLE_HORIZEN_CTRL_STRUCT.velocity = 77
+## Step4: Vehicle Angle Control(Using LRF)
+/* mode =2 => Left
+LRF_V_ANGLE_CTRL_STRUCT.mode = 2
 
-LRF_VEHICLE_HORIZEN_CTRL_STRUCT.sensor_option = false
+LRF_V_ANGLE_CTRL_STRUCT.error = 5
+LRF_V_ANGLE_CTRL_STRUCT.desired_angle = 0
 
-LRF_VEHICLE_HORIZEN_CTRL_FUNCTION()
+LRF_V_ANGLE_CTRL_STRUCT.inlier_lrf_dst = 1100
 
-A_Sleep(500)
-## Step3: LRF-Kinova Vertical CTRL
+LRF_V_ANGLE_CTRL_STRUCT.s_deg = 10
+LRF_V_ANGLE_CTRL_STRUCT.e_deg = 170
 
-LRF_KINOVA_VERTICAL_CTRL_STRUCT.desired_distance = 300
-LRF_KINOVA_VERTICAL_CTRL_STRUCT.error = 2
+LRF_V_ANGLE_CTRL_STRUCT.velocity = 58
 
-LRF_KINOVA_VERTICAL_CTRL_STRUCT.s_deg = 30
-LRF_KINOVA_VERTICAL_CTRL_STRUCT.e_deg = 150
+LRF_V_ANGLE_CTRL_STRUCT.loop_sleep = 300
 
-LRF_KINOVA_VERTICAL_CTRL_STRUCT.inlier_lrf_dst = 800
+LRF_V_ANGLE_CTRL_FUNCTION()
 
-LRF_KINOVA_VERTICAL_CTRL_STRUCT.loop_sleep = 30
-LRF_KINOVA_VERTICAL_CTRL_STRUCT.sensor_option = false
+LRF_V_ANGLE_CTRL_STRUCT.goto_home_pose = true;
 
-LRF_KINOVA_VERTICAL_CTRL_FUNCTION()
+## Step1: LRF-Kinova Vertical CTRL(NEW)
+
+LRF_K_VERTICAL_CTRL_STRUCT.mode = 2
+
+LRF_K_VERTICAL_CTRL_STRUCT.only_sensing_moving = false
+
+LRF_K_VERTICAL_CTRL_STRUCT.desired_v_dst = 270
+LRF_K_VERTICAL_CTRL_STRUCT.error = 2
+
+LRF_K_VERTICAL_CTRL_STRUCT.s_deg = 10
+LRF_K_VERTICAL_CTRL_STRUCT.e_deg = 170
+
+LRF_K_VERTICAL_CTRL_STRUCT.inlier_lrf_dst = 1100
+
+LRF_K_VERTICAL_CTRL_STRUCT.loop_sleep = 300
+
+LRF_K_VERTICAL_CTRL_FUNCTION()
 
 A_Sleep(500)
 
-## Step4: LRF-Kinova Horizen CTRL
-LRF_KINOVA_HORIZEN_CTRL_STRUCT.desired_inlier_deg_avr = 107.5
 
-LRF_KINOVA_HORIZEN_CTRL_STRUCT.error = 0.5
+## Step4: KINOVA Angle Control(New, Using Dynamixel Pro-LRF)
+/* mode =2 => Left
+LRF_K_ANGLE_CTRL_STRUCT.mode = 3
 
-LRF_KINOVA_HORIZEN_CTRL_STRUCT.s_deg = 30 
-LRF_KINOVA_HORIZEN_CTRL_STRUCT.e_deg = 150
+LRF_K_ANGLE_CTRL_STRUCT.error = 0.3
+LRF_K_ANGLE_CTRL_STRUCT.desired_angle = 0
 
-LRF_KINOVA_HORIZEN_CTRL_STRUCT.inlier_lrf_dst = 800
+LRF_K_ANGLE_CTRL_STRUCT.inlier_lrf_dst = 1100
 
-LRF_KINOVA_HORIZEN_CTRL_STRUCT.loop_sleep = 30 LRF_KINOVA_HORIZEN_CTRL_STRUCT.sensor_option = false
+LRF_K_ANGLE_CTRL_STRUCT.s_deg = 10
+LRF_K_ANGLE_CTRL_STRUCT.e_deg = 170
 
-LRF_KINOVA_HORIZEN_CTRL_FUNCTION()
+LRF_K_ANGLE_CTRL_STRUCT.unit_deg = 0.3
+
+LRF_K_ANGLE_CTRL_STRUCT.loop_sleep = 30
+
+LRF_K_ANGLE_CTRL_FUNCTION()
+
+
+## Step2: Vehicle Horizen Control(New, Using Kinova-LRF)
+
+LRF_V_HORIZEN_CTRL_STRUCT.mode = 3
+
+LRF_V_HORIZEN_CTRL_STRUCT.desired_h_dst = 850
+
+LRF_V_HORIZEN_CTRL_STRUCT.error = 2
+
+LRF_V_HORIZEN_CTRL_STRUCT.s_deg = 10
+LRF_V_HORIZEN_CTRL_STRUCT.e_deg = 170
+
+LRF_V_HORIZEN_CTRL_STRUCT.inlier_lrf_dst = 1100
+
+LRF_V_HORIZEN_CTRL_STRUCT.velocity = 52
+
+LRF_V_HORIZEN_CTRL_STRUCT.loop_sleep = 30
+
+LRF_V_HORIZEN_CTRL_FUNCTION()
+
+A_Sleep(500)
+
+
+## Step4: KINOVA Angle Control(New, Using Dynamixel Pro-LRF)
+/* mode =2 => Left
+LRF_K_ANGLE_CTRL_STRUCT.mode = 3
+
+LRF_K_ANGLE_CTRL_STRUCT.error = 0.3
+LRF_K_ANGLE_CTRL_STRUCT.desired_angle = 0
+
+LRF_K_ANGLE_CTRL_STRUCT.inlier_lrf_dst = 1100
+
+LRF_K_ANGLE_CTRL_STRUCT.s_deg = 10
+LRF_K_ANGLE_CTRL_STRUCT.e_deg = 170
+
+LRF_K_ANGLE_CTRL_STRUCT.unit_deg = 0.3
+
+LRF_K_ANGLE_CTRL_STRUCT.loop_sleep = 30
+
+LRF_K_ANGLE_CTRL_FUNCTION()
+
+
+## Step3: LRF-Kinova Vertical CTRL(NEW)
+
+LRF_K_VERTICAL_CTRL_STRUCT.mode = 3
+
+LRF_K_VERTICAL_CTRL_STRUCT.only_sensing_moving = false
+
+LRF_K_VERTICAL_CTRL_STRUCT.desired_v_dst = 270
+LRF_K_VERTICAL_CTRL_STRUCT.error = 2
+
+LRF_K_VERTICAL_CTRL_STRUCT.s_deg = 10
+LRF_K_VERTICAL_CTRL_STRUCT.e_deg = 170
+
+LRF_K_VERTICAL_CTRL_STRUCT.inlier_lrf_dst = 1100
+
+LRF_K_VERTICAL_CTRL_STRUCT.loop_sleep = 30
+
+LRF_K_VERTICAL_CTRL_FUNCTION()
+
+A_Sleep(500)
+
+## Step3: LRF-Kinova Horizen CTRL(NEW)
+
+LRF_K_HORIZEN_CTRL_STRUCT.mode = 3
+
+LRF_K_HORIZEN_CTRL_STRUCT.only_sensing_moving = false
+
+LRF_K_HORIZEN_CTRL_STRUCT.desired_h_dst = 850
+
+LRF_K_HORIZEN_CTRL_STRUCT.error = 2
+
+LRF_K_HORIZEN_CTRL_STRUCT.s_deg = 10 
+LRF_K_HORIZEN_CTRL_STRUCT.e_deg = 170
+
+LRF_K_HORIZEN_CTRL_STRUCT.inlier_lrf_dst = 1100
+
+LRF_K_HORIZEN_CTRL_STRUCT.loop_sleep = 30 
+
+LRF_K_HORIZEN_CTRL_FUNCTION()
+
+A_Sleep(500)
+
+## Step4: LRF-Kinova Vertical CTRL(NEW)
+
+LRF_K_VERTICAL_CTRL_STRUCT.mode = 3
+
+LRF_K_VERTICAL_CTRL_STRUCT.only_sensing_moving = false
+
+LRF_K_VERTICAL_CTRL_STRUCT.desired_v_dst = 350
+LRF_K_VERTICAL_CTRL_STRUCT.error = 2
+
+LRF_K_VERTICAL_CTRL_STRUCT.s_deg = 10
+LRF_K_VERTICAL_CTRL_STRUCT.e_deg = 170
+
+LRF_K_VERTICAL_CTRL_STRUCT.inlier_lrf_dst = 1100
+
+LRF_K_VERTICAL_CTRL_STRUCT.loop_sleep = 30
+
+LRF_K_VERTICAL_CTRL_FUNCTION()
 
 A_Sleep(500)
 
@@ -114,11 +196,29 @@ A_Sleep(500)
 
 WRENCH_RECOGNITION_STRUCT.num_of_wrench = 6
 WRENCH_RECOGNITION_STRUCT.loop_count = 50
-/*WRENCH_RECOGNITION_STRUCT.valve_size = gi_valve_size
+WRENCH_RECOGNITION_STRUCT.valve_size = gi_valve_size
 WRENCH_RECOGNITION_STRUCT.valve_size = 16
-gi_wrench_hanger_index = WRENCH_RECOGNITION_FUNCTION()
+/*gi_wrench_hanger_index = WRENCH_RECOGNITION_FUNCTION()
+
+A_Sleep(2000)
+
+
+## Step8: Kinova Arm Backward
+
+KINOVA_MANIPULATE_STRUCT.x = --0.08
+KINOVA_MANIPULATE_STRUCT.y = ==
+KINOVA_MANIPULATE_STRUCT.z = ==
+
+KINOVA_MANIPULATE_STRUCT.roll = ==
+KINOVA_MANIPULATE_STRUCT.pitch = ==
+KINOVA_MANIPULATE_STRUCT.yaw = ==
+
+KINOVA_MANIPULATE_STRUCT.force_threshold = 10
+
+KINOVA_MANIPULATE_FUNCTION()
 
 A_Sleep(500)
+
 
 ## Step13: Align to Panel
 IF(gi_wrench_hanger_index != -1)

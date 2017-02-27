@@ -85,7 +85,7 @@ public:
 
     // _mode: 0x1000(Rough mode), 0x2x01(Precise mode-LEFT), 0x2x02(Precise mode-Righ), 0xx1xx(Constant Mode), 0xx2xx(RANSAC Mode)
     void LocalizationOnPanel(LOCALIZATION_INFO_ON_PANEL &_info,int _mode, double _s_deg = 10/*deg*/,
-                             double _e_deg = 170/*deg*/, int _inlier_dst = 1100/*mm*/, int _current_v_dst = 270/*mm, for const mode*/, double _current_ang = 0/*deg for const mode*/);
+                             double _e_deg = 170/*deg*/, int _inlier_dst = 1100/*mm*/, int _current_v_dst = 240/*mm, for const mode*/, double _current_ang = 0/*deg for const mode*/);
 
     cv::Mat GetSegnetImage(cv::Mat _org_img);
 

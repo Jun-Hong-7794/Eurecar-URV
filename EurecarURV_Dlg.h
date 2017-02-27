@@ -100,6 +100,7 @@ public slots:
     void SlotButtonGripperSwitch();
     void SlotButtonIMUSwitch();
     void SlotButtonLMS511Switch();
+    void SlotButtonRotatorSwitch();
 
     //ListView
     void SlotMissionListUpdate(QModelIndex);

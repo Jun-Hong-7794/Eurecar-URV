@@ -26,9 +26,20 @@
 //-------------------------------------------------
 // Definetion
 //-------------------------------------------------
+
+/*New LRF Kinova Control*/
+#define MANIPUL_INX_LRF_K_VERTIVAL_CTRL    19
+#define MANIPUL_INX_LRF_K_HORIZEN_CTRL     20
+#define MANIPUL_INX_LRF_K_ANGLE_CTRL       21
+
+#define MANIPUL_INX_LRF_V_HORIZEN_CTRL     22
+#define MANIPUL_INX_LRF_V_ANGLE_CTRL       23
+
+/*Old LRF Kinova Control*/
 #define MANIPUL_INX_LRF_KINOVA_VERTIVAL_CTRL    1
 #define MANIPUL_INX_LRF_KINOVA_HORIZEN_CTRL     2
 #define MANIPUL_INX_LRF_KINOVA_ANGLE_CTRL       3
+
 #define MANIPUL_INX_KINOVA_FORCE_CLRL           4
 #define MANIPUL_INX_KINOVA_FORCE_CHECK          5
 #define MANIPUL_INX_GRIPPER_FORCE_CLRL          6
@@ -47,6 +58,8 @@
 
 #define SENSING_LRF_PANEL_LOCALIZATION          17
 
+#define MANIPUL_INX_GRIPPER_GO_TO_REL_POSE      18
+
 class CManipulation:public QThread{
     Q_OBJECT
 
@@ -64,12 +77,37 @@ private:
     int m_valve_size_graph_index;
 
     int m_valve_size_result;
+    double m_valve_rotation_result;
 
     bool fl_main_fnc_result;
     bool fl_kinova_force_ctrl_result;
 
+    int m_valve_size;
+
+    int m_kinova_valve_pose_right;
+    int m_kinova_valve_pose_left;
+
     cv::Mat m_mat_panel_model;
     QMutex mtx_panel_model;
+
+    //---------------Kinova---------------//
+
+    LRF_K_V_CTRL_STRUCT mstruct_lrf_k_v_ctrl;
+    QMutex mxt_lrf_k_v_ctrl;
+
+    LRF_K_H_CTRL_STRUCT mstruct_lrf_k_h_ctrl;
+    QMutex mxt_lrf_k_h_ctrl;
+
+    LRF_K_A_CTRL_STRUCT mstruct_lrf_k_a_ctrl;
+    QMutex mxt_lrf_k_a_ctrl;
+
+    //---------------Vehicle---------------//
+    LRF_V_H_CTRL_STRUCT mstruct_lrf_v_h_ctrl;
+    QMutex mxt_lrf_v_h_ctrl;
+
+    LRF_V_A_CTRL_STRUCT mstruct_lrf_v_a_ctrl;
+    QMutex mxt_lrf_v_a_ctrl;
+    ////////////////////////////////////////
 
     LRF_SENSING_INFO_STRUCT mstruct_lrf_sensing_info;
     QMutex mxt_lrf_sensing_info;
@@ -97,6 +135,9 @@ private:
 
     GRIPPER_FORCE_CTRL_STRUCT mstruct_gripper_force_ctrl;
     QMutex mxt_gripper_force_ctrl;
+
+    GRIPPER_GO_TO_REL_POSE_STRUCT mstruct_gripper_go_to_rel_pose;
+    QMutex mxt_gripper_go_to_rel_pose;
 
     GRIPPER_MAGNET_CTRL_STRUCT mstruct_gripper_magnet_ctrl;
     QMutex mxt_gripper_magnet_ctrl;
@@ -187,6 +228,8 @@ public:
 
     bool KinovaRotateBase(double _rot_deg);
 
+    bool KinovaForceCheck(double _force_x, double _force_y, double _force_z); // true: force occured!
+
     //LRF
     bool InitLRF(char* _dev_path = (char *)"/dev/ttyACM0", int _dev_type = UST_20LX);
     bool CloseLRF();
@@ -207,12 +250,17 @@ public:
     //End Effector
     bool InitGripper(char* _device_port = (char *)"/dev/ttyUSB0");
     bool CloseGripper();
-    bool GripperGoRelPose(double _deg);
 
     bool GripperGoThePose(int _pose_1, int _pose_2, int _load_thresh);
 
     bool GripperPresentPose(uint16_t& _pose);
     bool GripperPresentLoad(uint16_t& _load);
+
+    //Rotator
+    bool InitRotator(char* _device_port = (char *)"/dev/ttyUSB0");
+    bool CloseRotator();
+
+    bool RotatorGoThePose(int _step);
 
 public:
     bool GetMainFunctionResult();
@@ -220,6 +268,9 @@ public:
 
     int GetValveSizeRecogResult();
     void SetValveSizeRecogResult(int _result);
+
+    double GetValveRotationRecogResult();
+    void SetValveRotationRecogResult(double _result);
 
     void SetForceCheckThread(bool _data);
 
@@ -233,6 +284,25 @@ public:
     LRF_SENSING_INFO_STRUCT GetLRFSensingInfo();
 
     //Main Function//
+    /*LRF Ctrl New Version*/
+    //---------------Kinova---------------//
+    void SetManipulationOption(LRF_K_V_CTRL_STRUCT _manipulation_option);
+    LRF_K_V_CTRL_STRUCT GetLRFKVerticalCtrlOption();
+
+    void SetManipulationOption(LRF_K_H_CTRL_STRUCT _manipulation_option);
+    LRF_K_H_CTRL_STRUCT GetLRFKHorizenCtrlOption();
+
+    void SetManipulationOption(LRF_K_A_CTRL_STRUCT _manipulation_option);
+    LRF_K_A_CTRL_STRUCT GetLRFKAngleCtrlOption();
+
+    //---------------Vehicle---------------//
+    void SetManipulationOption(LRF_V_A_CTRL_STRUCT _manipulation_option);
+    LRF_V_A_CTRL_STRUCT GetLRFVAngleCtrlOption();
+
+    void SetManipulationOption(LRF_V_H_CTRL_STRUCT _manipulation_option);
+    LRF_V_H_CTRL_STRUCT GetLRFVHorizenCtrlOption();
+    /////////////////////////////////////////
+
     void SetManipulationOption(LRF_KINOVA_VERTICAL_CTRL_STRUCT _manipulation_option);
     LRF_KINOVA_VERTICAL_CTRL_STRUCT GetLRFKinovaVerticalOption();
 
@@ -256,6 +326,9 @@ public:
 
     void SetManipulationOption(GRIPPER_FORCE_CTRL_STRUCT _manipulation_option);
     GRIPPER_FORCE_CTRL_STRUCT GetGripperForceCtrlOption();
+
+    void SetManipulationOption(GRIPPER_GO_TO_REL_POSE_STRUCT _manipulation_option);
+    GRIPPER_GO_TO_REL_POSE_STRUCT GetGripperGoToRelPoseOption();
 
     void SetManipulationOption(GRIPPER_MAGNET_CTRL_STRUCT _manipulation_option);
     GRIPPER_MAGNET_CTRL_STRUCT GetGripperMagnetCtrlOption();
@@ -318,6 +391,7 @@ private:
     bool KinovaFitToValvePose();
 
     bool GripperKinovaValveSizeRecognition();
+    bool GripperGoToRelPose();
 
     bool GripperForceCtrl();
     bool GripperMagnetCtrl();

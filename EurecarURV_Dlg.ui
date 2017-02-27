@@ -454,7 +454,7 @@
      </property>
     </widget>
    </widget>
-   <widget class="QVTKWidget" name="qvtk_velodyne_main_dlg">
+   <widget class="QVTKWidget" name="qvtk_velodyne_main_dlg" native="true">
     <property name="geometry">
      <rect>
       <x>13</x>
@@ -662,7 +662,7 @@ pose</string>
      <widget class="QPushButton" name="bt_lms511">
       <property name="geometry">
        <rect>
-        <x>4</x>
+        <x>0</x>
         <y>298</y>
         <width>101</width>
         <height>41</height>
@@ -670,6 +670,19 @@ pose</string>
       </property>
       <property name="text">
        <string>LMS511 On</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="bt_rotator">
+      <property name="geometry">
+       <rect>
+        <x>0</x>
+        <y>0</y>
+        <width>83</width>
+        <height>22</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Rotator On</string>
       </property>
      </widget>
     </widget>
