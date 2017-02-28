@@ -106,6 +106,7 @@ typedef struct _Step_Information{
 
     QString step_title;
 
+    bool fl_do_init_motion;
     int function_index; //0x1xxx : Driving, 0x2xxx : Manipulation
 
     DRIVING_OPTION driving_option;

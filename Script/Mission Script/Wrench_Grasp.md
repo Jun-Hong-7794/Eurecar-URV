@@ -10,9 +10,10 @@ global_bool gb_froce_check = false;
 
 ## Step0: Align to Panel
 
+KINOVA_ALIGN_TO_PANEL.do_init_motion = false
 KINOVA_ALIGN_TO_PANEL_FUNCTION()
 
-A_Sleep(4000)
+A_Sleep(1000)
 
 ## Step1: Release
 /*IF(gb_froce_check)
@@ -287,7 +288,7 @@ A_Sleep(2000)
 ELSE(GoTo: 0)
 
 ## Step14: Align to Panel
-
+KINOVA_ALIGN_TO_PANEL.do_init_motion = false
 KINOVA_ALIGN_TO_PANEL_FUNCTION()
 
 ##########################################_MISSION_END_##########################################

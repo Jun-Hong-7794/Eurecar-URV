@@ -55,9 +55,11 @@ public:
     void GetEulerAngles();
     bool IsIMUInit();
     void IMUClose();
-private:
 
     QMutex mtx_imu;
+
+private:
+
 
     bool imu_init = false;
     //--------------------------------------------------

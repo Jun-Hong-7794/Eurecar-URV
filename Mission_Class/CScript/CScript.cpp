@@ -1023,6 +1023,19 @@ bool CScript::InterpreteKinovaManipulate(QString _line, STEP_INFO& _step_info){
 
 bool CScript::InterpreteKinovaAlignToPanel(QString _line, STEP_INFO& _step_info){
 
+    if(_line.contains("KINOVA_ALIGN_TO_PANEL")){
+        if(_line.contains("do_init_motion")){
+            int colone_index = _line.indexOf("=");
+            QString str_option;
+
+            str_option = _line.mid(colone_index + 1).trimmed();
+
+            if(str_option.contains("true"))
+                _step_info.fl_do_init_motion = true;
+            else
+              _step_info.fl_do_init_motion = false;
+        }
+    }
     if(_line.contains("KINOVA_ALIGN_TO_PANEL_FUNCTION")){
         _step_info.function_index = MP_KINOVA_ALIGN_TO_PANEL;
     }
@@ -2910,6 +2923,11 @@ bool CScript::MissionPlayer(){
             }
 
             if(mpary_mission_script[i].step_vecor.at(j).function_index == MP_KINOVA_ALIGN_TO_PANEL){
+
+                if(mpary_mission_script[i].step_vecor.at(j).fl_do_init_motion){
+                    mpc_manipulation->SelectMainFunction(MANIPUL_INX_KINOVA_INIT_MOTION);
+                    while(mpc_manipulation->isRunning());
+                }
 
                 mpc_manipulation->SelectMainFunction(MANIPUL_INX_KINOVA_ALIGN_TO_PANEL);
 

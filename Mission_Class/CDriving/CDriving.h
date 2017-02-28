@@ -90,8 +90,8 @@ private:
 
 
     // parking parameter
-    double side_center_margin = 1.0;
-    double desirable_parking_dist = 1.0;
+    double side_center_margin = 0.9;
+    double desirable_parking_dist = 0.9;
 
     // ugv info variables
     double ugv_heading = 0.0;

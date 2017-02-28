@@ -10,6 +10,7 @@ global_double gb_valve_rotation = 30
 
 ## Step0: Align to Panel
 
+KINOVA_ALIGN_TO_PANEL.do_init_motion = true
 KINOVA_ALIGN_TO_PANEL_FUNCTION()
 
 A_Sleep(100)
@@ -252,6 +253,7 @@ A_Sleep(3000)
 ## Step13: Align to Panel
 IF(gi_valve_size != -1)
 
+KINOVA_ALIGN_TO_PANEL.do_init_motion = false
 KINOVA_ALIGN_TO_PANEL_FUNCTION()
 
 

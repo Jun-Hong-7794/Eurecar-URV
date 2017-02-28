@@ -2,16 +2,16 @@
 /* Made By Jun Hong 28.01.2017
 /* This Script is for 2107 MBZIRC Challenge2
 
-global_int gi_wrench_hanger_index = 6
+global_int gi_wrench_hanger_index = 4
 /*gi_valve_size
 
 # Title: Valve Recognition
 
 ## Step0: Align to Panel
-
+KINOVA_ALIGN_TO_PANEL.do_init_motion = false
 KINOVA_ALIGN_TO_PANEL_FUNCTION()
 
-A_Sleep(4000)
+A_Sleep(1000)
 
 
 ## Step4: Vehicle Angle Control(Using LRF)
@@ -222,7 +222,7 @@ A_Sleep(500)
 
 ## Step13: Align to Panel
 IF(gi_wrench_hanger_index != -1)
-
+KINOVA_ALIGN_TO_PANEL.do_init_motion = false
 KINOVA_ALIGN_TO_PANEL_FUNCTION()
 
 ELSE(GoTo: 0)

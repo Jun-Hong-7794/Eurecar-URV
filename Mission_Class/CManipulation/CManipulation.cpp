@@ -362,6 +362,13 @@ bool CManipulation::SelectMainFunction(int _fnc_index_){
         return false;
     }
 
+    if(_fnc_index_ == MANIPUL_INX_KINOVA_INIT_MOTION){
+        m_main_fnc_index = MANIPUL_INX_KINOVA_INIT_MOTION;
+        this->start();
+
+        return true;
+    }
+
     if(_fnc_index_ == MANIPUL_INX_LRF_KINOVA_VERTIVAL_CTRL){
         m_main_fnc_index = MANIPUL_INX_LRF_KINOVA_VERTIVAL_CTRL;
         this->start();
@@ -2934,6 +2941,9 @@ void CManipulation::run(){
         break;
 
     /*Old LRF Kinova Control*/
+    case MANIPUL_INX_KINOVA_INIT_MOTION:
+        KinovaInitMotion();
+        break;
     case MANIPUL_INX_LRF_KINOVA_VERTIVAL_CTRL:
         LRFKinovaVerticalControl();
         break;
