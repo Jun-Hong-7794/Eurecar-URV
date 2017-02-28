@@ -305,30 +305,30 @@ void Driving_Dlg::SlotVeloyneParser(bool _parser_complete){
         ui->qvtk_velodyne_driving_dlg->update();
 
         vector<double> imu_euler;
-        mip_filter_linear_acceleration imu_linear_accel;
-        mip_ahrs_internal_timestamp imu_time_stamp;
-        mip_ahrs_delta_velocity imu_delta_velocity;
+//        mip_filter_linear_acceleration imu_linear_accel;
+//        mip_ahrs_internal_timestamp imu_time_stamp;
+//        mip_ahrs_delta_velocity imu_delta_velocity;
 
         imu_euler = mpc_drivig->GetIMUEuler();
-        imu_linear_accel = mpc_drivig->GetIMULinearAccel();
-        imu_time_stamp = mpc_drivig->GetIMUTimestamp();
-        imu_delta_velocity = mpc_drivig->GetIMUDeltaVelocity();
+//        imu_linear_accel = mpc_drivig->GetIMULinearAccel();
+//        imu_time_stamp = mpc_drivig->GetIMUTimestamp();
+//        imu_delta_velocity = mpc_drivig->GetIMUDeltaVelocity();
 
-        vector<int> encoder_value_raw = mpc_drivig->GetEncoderValueRaw();
+//        vector<int> encoder_value_raw = mpc_drivig->GetEncoderValueRaw();
 
 
         ui->ed_roll->setText(QString::fromStdString((std::to_string(imu_euler.at(0)*180.0/PI))));
         ui->ed_pitch->setText(QString::fromStdString((std::to_string(imu_euler.at(1)*180.0/PI))));
         ui->ed_yaw->setText(QString::fromStdString((std::to_string(imu_euler.at(2)*180.0/PI))));
-        ui->ed_x_accel->setText(QString::fromStdString((std::to_string(imu_linear_accel.x))));
-        ui->ed_y_accel->setText(QString::fromStdString((std::to_string(imu_linear_accel.y))));
-        ui->ed_z_accel->setText(QString::fromStdString((std::to_string(imu_linear_accel.z))));
-        ui->ed_timestamp->setText(QString::fromStdString((std::to_string(imu_time_stamp.counts))));
-        ui->ed_x_delta_velocity->setText(QString::fromStdString((std::to_string(imu_delta_velocity.delta_velocity[0]))));
-        ui->ed_y_delta_velocity->setText(QString::fromStdString((std::to_string(imu_delta_velocity.delta_velocity[1]))));
-        ui->ed_z_delta_velocity->setText(QString::fromStdString((std::to_string(imu_delta_velocity.delta_velocity[2]))));
-        ui->ed_encoder1->setText(QString::fromStdString((std::to_string(encoder_value_raw.at(0)))));
-        ui->ed_encoder2->setText(QString::fromStdString((std::to_string(encoder_value_raw.at(1)))));
+//        ui->ed_x_accel->setText(QString::fromStdString((std::to_string(imu_linear_accel.x))));
+//        ui->ed_y_accel->setText(QString::fromStdString((std::to_string(imu_linear_accel.y))));
+//        ui->ed_z_accel->setText(QString::fromStdString((std::to_string(imu_linear_accel.z))));
+//        ui->ed_timestamp->setText(QString::fromStdString((std::to_string(imu_time_stamp.counts))));
+//        ui->ed_x_delta_velocity->setText(QString::fromStdString((std::to_string(imu_delta_velocity.delta_velocity[0]))));
+//        ui->ed_y_delta_velocity->setText(QString::fromStdString((std::to_string(imu_delta_velocity.delta_velocity[1]))));
+//        ui->ed_z_delta_velocity->setText(QString::fromStdString((std::to_string(imu_delta_velocity.delta_velocity[2]))));
+//        ui->ed_encoder1->setText(QString::fromStdString((std::to_string(encoder_value_raw.at(0)))));
+//        ui->ed_encoder2->setText(QString::fromStdString((std::to_string(encoder_value_raw.at(1)))));
 
     }
 }

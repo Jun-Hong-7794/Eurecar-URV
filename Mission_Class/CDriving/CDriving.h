@@ -197,6 +197,9 @@ public:
     bool LRFVehicleAngleControl();
 
     bool DrivieByOdometer(double _heading_constraint, double _distance_constraint);
+
+    void PanelFrontDistanceControlByLMS511();
+
     double CalcDistErrorToCheckPoint(double _dist_m);
 
 

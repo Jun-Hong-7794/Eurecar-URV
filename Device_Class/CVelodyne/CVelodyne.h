@@ -125,6 +125,14 @@ private:
 
     bool lrf_find_panel = false;
 
+
+    double lms511_slope_x = 0.0;
+    double lms511_slope_y = 0.0;
+    double lms511_ransac_line_mean_x = 0.0;
+    double lms511_ransac_line_mean_y = 0.0;
+    double lms511_panel_length = 0.0;
+    bool lms511_find_panel = false;
+
     vector<cv::Point2f> ground_point;
 
     bool far_distance_panel_found = true;
@@ -172,6 +180,7 @@ public:
 
     // Set lms511 data
     void SetLMS511DataToPCL(vector<vector<double>> _x_and_y);
+    std::vector<double> GetLMS511PanelInfo();
 
     void SetVelodyneRange(double _range);
 

@@ -1050,8 +1050,9 @@ bool CGripper::GripperGoToThePositionLoadCheck(int _goal_pos_1, int _goal_pos_2,
             if(dxl_comm_result != COMM_SUCCESS){
                 mp_gripper_packetHandler->printTxRxResult(dxl_comm_result);
                 msleep(50);
-                continue;
+//                continue;
             }
+            msleep(1);
 
             if(_goal_pos_2 != -1){
                 // Read present position
@@ -1060,8 +1061,9 @@ bool CGripper::GripperGoToThePositionLoadCheck(int _goal_pos_1, int _goal_pos_2,
             if(dxl_comm_result != COMM_SUCCESS){
                 mp_gripper_packetHandler->printTxRxResult(dxl_comm_result);
                 msleep(50);
-                continue;
+//                continue;
             }
+            msleep(1);
 
             gripper_status.present_pose_1 = m_dxl1_present_position;
             gripper_status.present_pose_2 = m_dxl2_present_position;

@@ -296,7 +296,7 @@ void CRGBD::ClaculateLRFHeightDistance(long* _lrf_org_data, double _s_deg, doubl
 
 LINE_PARAM CRGBD::EstimateLineEquation(std::vector<POINT_PARAM>& _point_vec){
 
-    int iteration = 3000;
+    int iteration = 14000;
 
     int random_num_1 = 0;
     int random_num_2 = 0;
@@ -344,7 +344,7 @@ LINE_PARAM CRGBD::EstimateLineEquation(std::vector<POINT_PARAM>& _point_vec){
 
     double line_max_count = 0;
 
-    double line_inlier_standard = 5;
+    double line_inlier_standard = 10;
 
     for(unsigned int i = 0; i < line_eq_vector.size(); i++){
 

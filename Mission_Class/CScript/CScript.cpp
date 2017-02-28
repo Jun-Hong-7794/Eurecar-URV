@@ -1245,6 +1245,12 @@ bool CScript::InterpreteGripperValveSizeRecog(QString _line, STEP_INFO& _step_in
                     _line.mid(colone_index + 1).trimmed().toDouble();
             return true;
         }
+        if(_line.contains("retry_num")){
+            int colone_index = _line.indexOf("=");
+            _step_info.manipulation_option.gripper_kinova_valve_recog_option.retry_num =
+                    _line.mid(colone_index + 1).trimmed().toInt();
+            return true;
+        }
     }
     else if(_line.contains("VALVE_SIZE_RECOG_GET_SIZE")){
 
@@ -2092,11 +2098,7 @@ bool CScript::InterpreteKinovaRotateValveCtrl(QString _line, STEP_INFO& _step_in
             _step_info.manipulation_option.kinova_rotate_valve_option.theta = _line.mid(colone_index + 1).trimmed().toDouble();
             return true;
         }
-        if(_line.contains("radius")){
-            int colone_index = _line.indexOf("=");
-            _step_info.manipulation_option.kinova_rotate_valve_option.radius = _line.mid(colone_index + 1).trimmed().toDouble();
-            return true;
-        }
+
 
         if(_line.contains("radius_16mm")){
             int colone_index = _line.indexOf("=");
@@ -2132,6 +2134,12 @@ bool CScript::InterpreteKinovaRotateValveCtrl(QString _line, STEP_INFO& _step_in
         if(_line.contains("radius_offset_mm")){
             int colone_index = _line.indexOf("=");
             _step_info.manipulation_option.kinova_rotate_valve_option.radius_offset_mm = _line.mid(colone_index + 1).trimmed().toDouble();
+            return true;
+        }
+
+        if(_line.contains("radius")){
+            int colone_index = _line.indexOf("=");
+            _step_info.manipulation_option.kinova_rotate_valve_option.radius = _line.mid(colone_index + 1).trimmed().toDouble();
             return true;
         }
 
@@ -2753,7 +2761,7 @@ bool CScript::MissionPlayer(){
                 QString str_valve_rotation;
                 str_valve_rotation = mpary_mission_script[i].step_vecor.at(j).manipulation_option.kinova_rotate_valve_option.str_valve_rotation_angle;
 
-                valve_rotation = InterpreteIntVariable(str_valve_rotation, mpary_mission_script[i]);
+                valve_rotation = InterpreteDoubleVariable(str_valve_rotation, mpary_mission_script[i]);
                 mpary_mission_script[i].step_vecor.at(j).manipulation_option.kinova_rotate_valve_option.valve_rotation_angle = valve_rotation;
 
 

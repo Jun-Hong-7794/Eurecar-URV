@@ -9,7 +9,7 @@ global_bool gb_bool_kinova_force_ctrl_rst = true;
 # Title: Valve Recognition
 
 ## Step0: Align to Panel
-
+KINOVA_ALIGN_TO_PANEL.do_init_motion = false
 KINOVA_ALIGN_TO_PANEL_FUNCTION()
 
 A_Sleep(1000)
@@ -39,7 +39,7 @@ LRF_K_VERTICAL_CTRL_STRUCT.mode = 3
 
 LRF_K_VERTICAL_CTRL_STRUCT.only_sensing_moving = false
 
-LRF_K_VERTICAL_CTRL_STRUCT.desired_v_dst = 280
+LRF_K_VERTICAL_CTRL_STRUCT.desired_v_dst = 300
 LRF_K_VERTICAL_CTRL_STRUCT.error = 2
 
 LRF_K_VERTICAL_CTRL_STRUCT.s_deg = 10
@@ -60,7 +60,7 @@ LRF_V_HORIZEN_CTRL_STRUCT.mode = 2
 
 LRF_V_HORIZEN_CTRL_STRUCT.desired_h_dst = 345
 
-LRF_V_HORIZEN_CTRL_STRUCT.error = 8
+LRF_V_HORIZEN_CTRL_STRUCT.error = 9
 
 LRF_V_HORIZEN_CTRL_STRUCT.s_deg = 10
 LRF_V_HORIZEN_CTRL_STRUCT.e_deg = 170
@@ -98,7 +98,7 @@ LRF_V_ANGLE_CTRL_STRUCT.goto_home_pose = true;
 ## Step0: Align to Panel
 
 IF(!gb_bool_kinova_force_ctrl_rst)
-
+KINOVA_ALIGN_TO_PANEL.do_init_motion = false
 KINOVA_ALIGN_TO_PANEL_FUNCTION()
 
 A_Sleep(1000)
@@ -139,8 +139,7 @@ LRF_K_ANGLE_CTRL_STRUCT.loop_sleep = 30
 
 LRF_K_ANGLE_CTRL_FUNCTION()
 
-A_Sleep(1000)
-
+A_Sleep(500)
 
 ## Step8: LRF-Kinova Vertical CTRL
 
@@ -159,6 +158,26 @@ LRF_K_VERTICAL_CTRL_STRUCT.inlier_lrf_dst = 1100
 LRF_K_VERTICAL_CTRL_STRUCT.loop_sleep = 30
 
 LRF_K_VERTICAL_CTRL_FUNCTION()
+
+A_Sleep(500)
+
+## Step7: KINOVA Angle Control(New, Using Dynamixel Pro-LRF)
+/* mode =2 => Left
+LRF_K_ANGLE_CTRL_STRUCT.mode = 2
+
+LRF_K_ANGLE_CTRL_STRUCT.error = 0.3
+LRF_K_ANGLE_CTRL_STRUCT.desired_angle = -0.5
+
+LRF_K_ANGLE_CTRL_STRUCT.inlier_lrf_dst = 1100
+
+LRF_K_ANGLE_CTRL_STRUCT.s_deg = 10
+LRF_K_ANGLE_CTRL_STRUCT.e_deg = 170
+
+LRF_K_ANGLE_CTRL_STRUCT.unit_deg = 0.3
+
+LRF_K_ANGLE_CTRL_STRUCT.loop_sleep = 30
+
+LRF_K_ANGLE_CTRL_FUNCTION()
 
 A_Sleep(500)
 
@@ -210,7 +229,7 @@ KINOVA_FIT_TO_VALVE_POSE_STRUCT.valve_size = gi_valve_size
 KINOVA_FIT_TO_VALVE_POSE_STRUCT.valve_rotation_angle = gb_valve_rotation
 
 /*[cm/s]
-KINOVA_FIT_TO_VALVE_POSE_STRUCT.move_step = 1.0 
+KINOVA_FIT_TO_VALVE_POSE_STRUCT.move_step = 1.8 
 
 KINOVA_FIT_TO_VALVE_POSE_STRUCT.angle_step = 19
 
@@ -281,12 +300,11 @@ A_Sleep(1000)
 
 IF(gb_bool_kinova_force_ctrl_rst)
 
-GRIPPER_FORCE_CTRL_STRUCT.pose_1 = 1750
+GRIPPER_FORCE_CTRL_STRUCT.pose_1 = 1700
 GRIPPER_FORCE_CTRL_STRUCT.pose_2 = 1750
 GRIPPER_FORCE_CTRL_STRUCT.force_threshold = 130
 
 GRIPPER_FORCE_CTRL_FUNCTION()
-
 
 /*Else Go to 0 Step*/DGDG
 ELSE(GoTo:5)
@@ -295,8 +313,8 @@ A_Sleep(1000)
 
 ## Step19: Gripper Release 
 
-GRIPPER_GO_TO_REL_POSE_STRUCT.pose_1 = 20
-GRIPPER_GO_TO_REL_POSE_STRUCT.pose_2 = 20
+GRIPPER_GO_TO_REL_POSE_STRUCT.pose_1 = 50
+GRIPPER_GO_TO_REL_POSE_STRUCT.pose_2 = 50
 
 GRIPPER_GO_TO_REL_POSE_FUNCTION()
 

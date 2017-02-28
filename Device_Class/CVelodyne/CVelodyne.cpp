@@ -296,6 +296,9 @@ bool CVelodyne::RunVelodyne(){
 
             pcl::PointCloud<pcl::PointXYZRGBA>::Ptr lms511_point_in_arena (new pcl::PointCloud<pcl::PointXYZRGBA>);
             pcl::PointCloud<pcl::PointXYZRGBA>::Ptr lms511_point_out_arena (new pcl::PointCloud<pcl::PointXYZRGBA>);
+            pcl::PointCloud<pcl::PointXYZRGBA>::Ptr lms511_point_parking_raw (new pcl::PointCloud<pcl::PointXYZRGBA>);
+            pcl::PointCloud<pcl::PointXYZRGBA>::Ptr lms511_point_parking_ransac (new pcl::PointCloud<pcl::PointXYZRGBA>);
+
 
 
             if(mpc_pcl->lms511_cloud->points.size() != 0)
@@ -304,7 +307,6 @@ bool CVelodyne::RunVelodyne(){
                 {
                     double lms_point_dist = sqrt(mpc_pcl->lms511_cloud->points[lms511_point_index].x*mpc_pcl->lms511_cloud->points[lms511_point_index].x + mpc_pcl->lms511_cloud->points[lms511_point_index].y*mpc_pcl->lms511_cloud->points[lms511_point_index].y);
 
-//                    (CheckInBoundary(mpc_pcl->lms511_cloud->points[lms511_point_index].x, mpc_pcl->lms511_cloud->points[lms511_point_index].y)) &&
                     if(CheckInBoundary(mpc_pcl->lms511_cloud->points[lms511_point_index].x, mpc_pcl->lms511_cloud->points[lms511_point_index].y) && (lms_point_dist > 0.3) )
                     {
                         lms511_point_in_arena->points.push_back(mpc_pcl->lms511_cloud->points[lms511_point_index]);
@@ -312,6 +314,10 @@ bool CVelodyne::RunVelodyne(){
                         sum_panel_y += mpc_pcl->lms511_cloud->points[lms511_point_index].y ;
                         sum_dist += sqrt(mpc_pcl->lms511_cloud->points[lms511_point_index].x*mpc_pcl->lms511_cloud->points[lms511_point_index].x + mpc_pcl->lms511_cloud->points[lms511_point_index].y*mpc_pcl->lms511_cloud->points[lms511_point_index].y);
                         panel_point_index++;
+                    }
+                    else if ((lms_point_dist > 0.1) && (lms_point_dist < 3.0)) // Save lms511 point cloud for parking
+                    {
+                        lms511_point_parking_raw->points.push_back(mpc_pcl->lms511_cloud->points[lms511_point_index]);
                     }
                     else
                     {
@@ -339,6 +345,63 @@ bool CVelodyne::RunVelodyne(){
 
             mpc_pcl->viewer->updatePointCloud(mpc_pcl->lms511_cloud,"lms511_cloud");
 
+
+            if(lms511_point_parking_raw->points.size() != 0)
+            {
+                // Ransac lms511 data for control parking distance
+                Eigen::VectorXf coeff_lms511;
+                pcl::SampleConsensusModelLine<pcl::PointXYZRGBA>::Ptr model_lms511(new pcl::SampleConsensusModelLine<pcl::PointXYZRGBA> (lms511_point_parking_raw));
+                pcl::RandomSampleConsensus<pcl::PointXYZRGBA> sac_lms511 (model_lms511,0.01);
+                std::vector<int> inliers_lms511;
+
+                sac_lms511.computeModel();
+                sac_lms511.getInliers(inliers_lms511);
+                sac_lms511.getModelCoefficients(coeff_lms511);
+
+                pcl::copyPointCloud(*lms511_point_parking_raw,inliers_lms511,*lms511_point_parking_ransac);
+
+
+
+                double lms511_ransac_line_sum_x = 0;
+                double lms511_ransac_line_sum_y = 0;
+
+
+                // Calculate ransac mean
+                for(int i = 0; i < lms511_point_parking_ransac->points.size();i++)
+                {
+                    lms511_ransac_line_sum_x += lms511_point_parking_ransac->points[i].x;
+                    lms511_ransac_line_sum_y += lms511_point_parking_ransac->points[i].y;
+                }
+                lms511_ransac_line_mean_x = lms511_ransac_line_sum_x/(double)lms511_point_parking_ransac->points.size();
+                lms511_ransac_line_mean_y = lms511_ransac_line_sum_y/(double)lms511_point_parking_ransac->points.size();
+
+
+                // Calculate maximum distance
+
+                double lms511_maximum_dist_from_ransac_mean = 0;
+                for(int i = 0; i < lms511_point_parking_ransac->points.size();i++)
+                {
+                    double lms511_dist_from_ransac_mean = sqrt((lms511_ransac_line_mean_x - lms511_point_parking_ransac->points[i].x)*(lms511_ransac_line_mean_x - lms511_point_parking_ransac->points[i].x) + (lms511_ransac_line_mean_y - lms511_point_parking_ransac->points[i].y)*(lms511_ransac_line_mean_y - lms511_point_parking_ransac->points[i].y));
+                    if (lms511_maximum_dist_from_ransac_mean < lms511_dist_from_ransac_mean)
+                    {
+                        lms511_maximum_dist_from_ransac_mean = lms511_dist_from_ransac_mean;
+                    }
+                }
+
+                lms511_panel_length = 2*lms511_maximum_dist_from_ransac_mean;
+
+                if( coeff_lms511.rows() != 6)
+                {
+                    lms511_find_panel = false;
+                }
+                else
+                {
+                    lms511_find_panel = true;
+                    lms511_slope_x = coeff_lms511[3];
+                    lms511_slope_y = coeff_lms511[4];
+                }
+
+            }
             //
             // --------------------------------------------------------------------------------
 
@@ -581,14 +644,6 @@ bool CVelodyne::RunVelodyne(){
                     }
                 }
             }
-
-//            std::cout << "0 layer clustering cnt : " << clustering_index << std::endl;
-//            std::cout << "10.67 layer clustering cnt : " << clustering_index2 << std::endl;
-
-//            cout << "maximum distance : " << max_dist << endl;
-
-
-
 
             eifilter.setInputCloud(mpc_pcl->cloud);
             eifilter.setIndices(inliers);
@@ -1867,6 +1922,21 @@ std::vector<double> CVelodyne::GetLRFPanelInfo()
     panel_info.push_back(lrf_panel_length);
     panel_info.push_back(lrf_ransac_line_mean_x);
     panel_info.push_back(lrf_ransac_line_mean_y);
+    mtx_pcl_class.unlock();
+    return panel_info;
+}
+
+std::vector<double> CVelodyne::GetLMS511PanelInfo()
+{
+    mtx_pcl_class.lock();
+    std::vector<double> panel_info;
+
+    panel_info.push_back(lms511_slope_x);
+    panel_info.push_back(lms511_slope_y);
+    panel_info.push_back(lms511_panel_length);
+    panel_info.push_back(lms511_ransac_line_mean_x);
+    panel_info.push_back(lms511_ransac_line_mean_y);
+
     mtx_pcl_class.unlock();
     return panel_info;
 }

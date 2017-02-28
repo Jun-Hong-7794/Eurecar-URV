@@ -54,7 +54,7 @@
 #define MANIPUL_INX_LRF_K_VEHICLE_ANGLE_CTRL    14
 
 #define MANIPUL_INX_KINOVA_ALIGN_TO_PANEL       15
-#define MANIPUL_INX_KINOVA_INIT_MOTION       24
+#define MANIPUL_INX_KINOVA_INIT_MOTION          30
 #define MANIPUL_INX_KINOVA_FIT_TO_VALVE         16
 
 #define SENSING_LRF_PANEL_LOCALIZATION          17
@@ -87,6 +87,8 @@ private:
 
     int m_kinova_valve_pose_right;
     int m_kinova_valve_pose_left;
+
+    int m_valve_size_retry_num;
 
     cv::Mat m_mat_panel_model;
     QMutex mtx_panel_model;

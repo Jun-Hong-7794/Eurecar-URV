@@ -24,6 +24,7 @@ CManipulation::CManipulation(CLRF *_p_mani_lrf, CCamera *_p_camera, CKinova *_p_
 
     m_valve_size_result = 0;
     m_valve_size_graph_index = 0;
+    m_valve_size_retry_num = 0;
 
     m_valve_size = 19;
 
@@ -1171,7 +1172,7 @@ int CManipulation::DataAnalisys(QVector<double> _data){//For Valve Recognition, 
         }
     }
 
-    if(ary_error[valve_index] < 20)
+    if(ary_error[valve_index] < 13)
         return -1;
 
     if(max_index == 0){
@@ -1805,11 +1806,10 @@ bool CManipulation::LRFK_VCtrl(){
             mpc_kinova->KinovaDoManipulate(position, 2);
         }
     }
-    msleep(1500);
+    msleep(800);
     //-----------------------------------------------
     // Precise Move
     //-----------------------------------------------
-    msleep(1000);
     do{
         mpc_rgb_d->LocalizationOnPanel(info, lrf_kinova_struct.lrf_info_struct.mode,
                                        lrf_kinova_struct.lrf_info_struct.s_deg,lrf_kinova_struct.lrf_info_struct.e_deg,
@@ -1909,8 +1909,7 @@ bool CManipulation::LRFK_HCtrl(){
             mpc_kinova->KinovaDoManipulate(position, 2);
         }
     }
-
-    msleep(1500);
+    msleep(800);
     //-----------------------------------------------
     // Precise Move
     //-----------------------------------------------
@@ -2047,7 +2046,7 @@ bool CManipulation::LRFV_ACtrl(){
         }
 
         mpc_vehicle->Move(direction, lrf_vehicle_struct.velocity);
-        msleep(400);
+        msleep(900);
         mpc_vehicle->Move(1, 0);
 
     }while(true);
@@ -2108,12 +2107,16 @@ bool CManipulation::LRFV_HCtrl(){
         }
 
         mpc_vehicle->Move(direction, lrf_vehicle_struct.velocity);
+//        Sleep(500);
+
 
         if(lrf_vehicle_struct.loop_sleep != 0)
             msleep(lrf_vehicle_struct.loop_sleep/*msec*/);
 
     }
     while(true);
+
+    mpc_vehicle->Move(direction, 0);
 
     return true;
 }
@@ -2462,20 +2465,20 @@ bool CManipulation::KinovaRotateValveMotion(){
 
         //Get Present Position
         CartesianPosition present_position;
-        mpc_kinova->Get_Kinova_Position(present_position);
+        present_position = mpc_kinova->KinovaGetPosition();
 
         // ++ Present Position + Radius
-        present_position.Coordinates.Z += radius;
+        present_position.Coordinates.Z = kinova_rotate_valve.center_z + (radius*0.01);
         mpc_kinova->KinovaDoManipulate(present_position, 2);
 
         msleep(500);
 
         if(kinova_rotate_valve.valve_rotation_angle < 45){//CW
-            if(kinova_rotate_valve.theta > 0)
+            if(kinova_rotate_valve.theta < 0)
                 kinova_rotate_valve.theta = (-1)* kinova_rotate_valve.theta;
         }
         else if(kinova_rotate_valve.valve_rotation_angle >= 45){//CW
-            if(kinova_rotate_valve.theta < 0)
+            if(kinova_rotate_valve.theta > 0)
                 kinova_rotate_valve.theta = (-1)* kinova_rotate_valve.theta;
         }
     }
@@ -2659,11 +2662,18 @@ bool CManipulation::GripperKinovaValveSizeRecognition(){
             }
             else if(fl_gripper_1_not_reach && fl_gripper_2_not_reach){
                 std::cout << "1 and 2 not reched to valve" << std::endl;
-            }
-            else{
+
+                if(m_valve_size_retry_num > gripper_kinova_valve_recog.retry_num){
+                    SetValveSizeRecogResult(19);
+                    gripper_kinova_valve_recog.valve_size = 30;
+                    SetManipulationOption(gripper_kinova_valve_recog);
+                    return true;
+                }
+
                 SetValveSizeRecogResult(-1);
                 gripper_kinova_valve_recog.valve_size = -1;
                 SetManipulationOption(gripper_kinova_valve_recog);
+                m_valve_size_retry_num++;
                 return false;
             }
 
@@ -2691,9 +2701,19 @@ bool CManipulation::GripperKinovaValveSizeRecognition(){
         diff_pose = fabs(diff_pose_1 + diff_pose_2);
 
         if(diff_pose < 80){
+
+            if(m_valve_size_retry_num > gripper_kinova_valve_recog.retry_num){
+                SetValveSizeRecogResult(19);
+                gripper_kinova_valve_recog.valve_size = 30;
+                SetManipulationOption(gripper_kinova_valve_recog);
+                return true;
+            }
+
             SetValveSizeRecogResult(-1);
             gripper_kinova_valve_recog.valve_size = -1;
             SetManipulationOption(gripper_kinova_valve_recog);
+
+            m_valve_size_retry_num++;
             return false;
         }
 
@@ -2729,8 +2749,19 @@ bool CManipulation::GripperKinovaValveSizeRecognition(){
 
     msleep(1000);
 
-    if(vec_gripper_data.size() == 0)
+    if(vec_gripper_data.size() == 0){
+
+        if(m_valve_size_retry_num > gripper_kinova_valve_recog.retry_num){
+            SetValveSizeRecogResult(19);
+            gripper_kinova_valve_recog.valve_size = 30;
+            SetManipulationOption(gripper_kinova_valve_recog);
+            return true;
+        }
+
+        m_valve_size_retry_num++;
+
         return false;
+    }
 
     //Find Min Diff & Valve Rotation Angle
     DataSort(vec_gripper_data);
@@ -2760,6 +2791,24 @@ bool CManipulation::GripperKinovaValveSizeRecognition(){
     SetValveRotationRecogResult(rotation_angle);
 
     cv::Mat valve_model;
+    if(valve_size_recog == -1){
+        if(m_valve_size_retry_num > gripper_kinova_valve_recog.retry_num){
+
+            SetValveSizeRecogResult(19);
+            gripper_kinova_valve_recog.valve_size = rotation_angle;
+            SetManipulationOption(gripper_kinova_valve_recog);
+
+            valve_model = ValveModeling(gripper_kinova_valve_recog.valve_size, gripper_kinova_valve_recog.rotation_angle);
+
+            std::cout << "RetryOver " << std::endl;
+            std::cout << "Valve Size: " << valve_size_recog << std::endl;
+            std::cout << "Rotation Angle: " << gripper_kinova_valve_recog.rotation_angle << std::endl;
+            return true;
+        }
+        else
+            m_valve_size_retry_num++;
+    }
+
     valve_model = ValveModeling(gripper_kinova_valve_recog.valve_size, gripper_kinova_valve_recog.rotation_angle);
 
     SetManipulationOption(gripper_kinova_valve_recog);
