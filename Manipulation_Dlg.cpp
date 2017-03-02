@@ -164,7 +164,7 @@ Manipulation_Dlg::Manipulation_Dlg(CManipulation* _pc_manipulation, QWidget *par
     ui->graph_gripper_data_plot->yAxis->setLabel("Diff Step");
     // set axes ranges, so we see all data:
     ui->graph_gripper_data_plot->xAxis->setRange(0, 36);
-    ui->graph_gripper_data_plot->yAxis->setRange(100, 350);
+    ui->graph_gripper_data_plot->yAxis->setRange(100, 500);
     ui->graph_gripper_data_plot->replot();
 
     //-------------------------------------------
@@ -182,7 +182,7 @@ Manipulation_Dlg::Manipulation_Dlg(CManipulation* _pc_manipulation, QWidget *par
     ui->graph_gripper_data_anal_plot->yAxis->setLabel("Diff Step");
     // set axes ranges, so we see all data:
     ui->graph_gripper_data_anal_plot->xAxis->setRange(0, 36);
-    ui->graph_gripper_data_anal_plot->yAxis->setRange(100, 350);
+    ui->graph_gripper_data_anal_plot->yAxis->setRange(100, 500);
     ui->graph_gripper_data_anal_plot->replot();
 
     //-------------------------------------------

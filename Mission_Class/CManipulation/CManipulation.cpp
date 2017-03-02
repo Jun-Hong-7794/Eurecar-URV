@@ -1118,7 +1118,7 @@ int CManipulation::DataAnalisys(QVector<double> _data){//For Valve Recognition, 
         x[i] = i;
     }
 
-    double error_bound = 5;
+    double error_bound = 10;
 
     for(int i = 0; i < 35; i++){
 
@@ -1172,7 +1172,7 @@ int CManipulation::DataAnalisys(QVector<double> _data){//For Valve Recognition, 
         }
     }
 
-    if(ary_error[valve_index] < 13)
+    if(ary_error[valve_index] < 20)
         return -1;
 
     if(max_index == 0){
@@ -1797,13 +1797,16 @@ bool CManipulation::LRFK_VCtrl(){
     if(!lrf_kinova_struct.fl_only_sensing_moving){
         mpc_kinova->Kinova_GetCartesianPosition(position);
 
-        if(error_dst > 0){
-            position.Coordinates.X -= fabs(error_dst_m);
-            mpc_kinova->KinovaDoManipulate(position, 2);
-        }
+        if(info.angle == 0 && info.horizen__dst == 0 && info.vertical_dst == 0);
         else{
-            position.Coordinates.X += fabs(error_dst_m);
-            mpc_kinova->KinovaDoManipulate(position, 2);
+            if(error_dst > 0){
+                position.Coordinates.X -= fabs(error_dst_m);
+                mpc_kinova->KinovaDoManipulate(position, 2);
+            }
+            else{
+                position.Coordinates.X += fabs(error_dst_m);
+                mpc_kinova->KinovaDoManipulate(position, 2);
+            }
         }
     }
     msleep(800);
@@ -1814,6 +1817,9 @@ bool CManipulation::LRFK_VCtrl(){
         mpc_rgb_d->LocalizationOnPanel(info, lrf_kinova_struct.lrf_info_struct.mode,
                                        lrf_kinova_struct.lrf_info_struct.s_deg,lrf_kinova_struct.lrf_info_struct.e_deg,
                                        lrf_kinova_struct.lrf_info_struct.inlier_distance);
+
+        if(info.angle == 0 && info.horizen__dst == 0 && info.vertical_dst == 0)
+            continue;
 
         PanelModeling(m_valve_size, info.vertical_dst, info.horizen__dst, info.angle);
 
@@ -1900,27 +1906,38 @@ bool CManipulation::LRFK_HCtrl(){
     if(lrf_kinova_struct.fl_only_sensing_moving){
         mpc_kinova->Kinova_GetCartesianPosition(position);
 
-        if(error_dst > 0){
-            position.Coordinates.Y -= fabs(error_dst_m);
-            mpc_kinova->KinovaDoManipulate(position, 2);
-        }
+        if(info.angle == 0 && info.horizen__dst == 0 && info.vertical_dst == 0);
+
         else{
-            position.Coordinates.Y += fabs(error_dst_m);
-            mpc_kinova->KinovaDoManipulate(position, 2);
+            if(error_dst > 0){
+                position.Coordinates.Y -= fabs(error_dst_m);
+                mpc_kinova->KinovaDoManipulate(position, 2);
+            }
+            else{
+                position.Coordinates.Y += fabs(error_dst_m);
+                mpc_kinova->KinovaDoManipulate(position, 2);
+            }
         }
     }
     msleep(800);
     //-----------------------------------------------
     // Precise Move
     //-----------------------------------------------
+    double desired_h_distance = lrf_kinova_struct.desired_h_location;
     do{
         mpc_rgb_d->LocalizationOnPanel(info, lrf_kinova_struct.lrf_info_struct.mode,
                                        lrf_kinova_struct.lrf_info_struct.s_deg,lrf_kinova_struct.lrf_info_struct.e_deg,
                                        lrf_kinova_struct.lrf_info_struct.inlier_distance);
 
+        if(info.angle == 0 && info.horizen__dst == 0 && info.vertical_dst == 0)
+            continue;
+
         PanelModeling(m_valve_size, info.vertical_dst, info.horizen__dst, info.angle);
 
-        error_dst = lrf_kinova_struct.desired_h_location - info.horizen__dst;
+        desired_h_distance = lrf_kinova_struct.desired_h_location * cos(info.angle * RGBD_D2R);
+//        desired_h_distance = lrf_kinova_struct.desired_h_location;
+
+        error_dst = desired_h_distance - info.horizen__dst;
         error_dst_m = ((double)error_dst) * 0.001;
 
         if(lrf_kinova_struct.error > fabs(error_dst)){
@@ -2046,8 +2063,8 @@ bool CManipulation::LRFV_ACtrl(){
         }
 
         mpc_vehicle->Move(direction, lrf_vehicle_struct.velocity);
-        msleep(900);
-        mpc_vehicle->Move(1, 0);
+//        msleep(1200);
+//        mpc_vehicle->Move(1, 0);
 
     }while(true);
 
@@ -2089,6 +2106,9 @@ bool CManipulation::LRFV_HCtrl(){
                                        lrf_vehicle_struct.lrf_info_struct.s_deg,lrf_vehicle_struct.lrf_info_struct.e_deg,
                                        lrf_vehicle_struct.lrf_info_struct.inlier_distance);
 
+        if(info.angle == 0 && info.horizen__dst == 0 && info.vertical_dst == 0)
+            continue;
+
         PanelModeling(m_valve_size, info.vertical_dst, info.horizen__dst, info.angle);
 
         error_dst = lrf_vehicle_struct.desired_h_location - info.horizen__dst;
@@ -2107,7 +2127,6 @@ bool CManipulation::LRFV_HCtrl(){
         }
 
         mpc_vehicle->Move(direction, lrf_vehicle_struct.velocity);
-//        Sleep(500);
 
 
         if(lrf_vehicle_struct.loop_sleep != 0)
@@ -2116,7 +2135,6 @@ bool CManipulation::LRFV_HCtrl(){
     }
     while(true);
 
-    mpc_vehicle->Move(direction, 0);
 
     return true;
 }
@@ -2633,6 +2651,9 @@ bool CManipulation::GripperKinovaValveSizeRecognition(){
 
     int grasp_trial = gripper_kinova_valve_recog.trial;
 
+    mpc_gripper->GripperGoToThePositionLoadCheck(release_pose_1, release_pose_2, -2);
+    msleep(500);
+
     for(int i = 0; i < grasp_trial; i++){
 
         mpc_gripper->GripperGoToThePositionLoadCheck(grasp_pose_1, grasp_pose_2, force_threshold);
@@ -2690,7 +2711,7 @@ bool CManipulation::GripperKinovaValveSizeRecognition(){
             fl_gripper_2_not_reach = false;
 
             i -= 1;
-            if(i < 0) i = 0;
+            if(i < 0) i = -1;
 
             continue;
         }
@@ -2727,7 +2748,7 @@ bool CManipulation::GripperKinovaValveSizeRecognition(){
 
         emit SignalValveSizeData(gripper_data_x, gripper_data_y, m_valve_size_graph_index);
 
-        mpc_gripper->GripperGoToThePositionLoadCheck(release_pose_1, release_pose_2, force_threshold);
+        mpc_gripper->GripperGoToThePositionLoadCheck(release_pose_1, release_pose_2, -2);
 
         // KINOVA_PI / grasp_trial => if(i == grasp_trial) => Half Rotation
         if((grasp_trial/2) > (i) ){
@@ -2747,7 +2768,7 @@ bool CManipulation::GripperKinovaValveSizeRecognition(){
 
     mpc_gripper->GripperGoToThePositionLoadCheck(2300, 2300, -2);
 
-    msleep(1000);
+    msleep(300);
 
     if(vec_gripper_data.size() == 0){
 

@@ -18,12 +18,12 @@
 #define KINOVA_D2R (3.141592/180)
 #define KINOVA_R2D (180/3.141592)
 
-#define VEL             0.07 //[cm/s]
+#define VEL             0.09 //[cm/s]
 #define ROT             0.5 //[cm/s]
 #define STEP_NUM        5 // unit
 #define SLEEP_TIME      5000
 
-#define ALIGN_TO_PANEL_ROLL_VALUE 2.1517
+#define ALIGN_TO_PANEL_ROLL_VALUE 2.0974
 #define ALIGN_TO_PANEL_PITCH_VALUE 1.5575
 #define ALIGN_TO_PANEL_YAW_VALUE -2.2821
 

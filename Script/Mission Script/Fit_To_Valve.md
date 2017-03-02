@@ -58,9 +58,9 @@ A_Sleep(500)
 
 LRF_V_HORIZEN_CTRL_STRUCT.mode = 2
 
-LRF_V_HORIZEN_CTRL_STRUCT.desired_h_dst = 345
+LRF_V_HORIZEN_CTRL_STRUCT.desired_h_dst = 360
 
-LRF_V_HORIZEN_CTRL_STRUCT.error = 9
+LRF_V_HORIZEN_CTRL_STRUCT.error = 20
 
 LRF_V_HORIZEN_CTRL_STRUCT.s_deg = 10
 LRF_V_HORIZEN_CTRL_STRUCT.e_deg = 170
@@ -75,33 +75,23 @@ LRF_V_HORIZEN_CTRL_FUNCTION()
 
 A_Sleep(500)
 
-## Step4: Vehicle Angle Control(Using LRF)
-/* mode =2 => Left
-LRF_V_ANGLE_CTRL_STRUCT.mode = 2
-
-LRF_V_ANGLE_CTRL_STRUCT.error = 3
-LRF_V_ANGLE_CTRL_STRUCT.desired_angle = 0
-
-LRF_V_ANGLE_CTRL_STRUCT.inlier_lrf_dst = 1100
-
-LRF_V_ANGLE_CTRL_STRUCT.s_deg = 10
-LRF_V_ANGLE_CTRL_STRUCT.e_deg = 170
-
-LRF_V_ANGLE_CTRL_STRUCT.velocity = 57
-
-LRF_V_ANGLE_CTRL_STRUCT.loop_sleep = 30
-
-LRF_V_ANGLE_CTRL_FUNCTION()
-
-LRF_V_ANGLE_CTRL_STRUCT.goto_home_pose = true;
-
 ## Step0: Align to Panel
 
 IF(!gb_bool_kinova_force_ctrl_rst)
 KINOVA_ALIGN_TO_PANEL.do_init_motion = false
 KINOVA_ALIGN_TO_PANEL_FUNCTION()
 
-A_Sleep(1000)
+A_Sleep(500)
+
+## Step5: Wrench Grasp
+
+GRIPPER_FORCE_CTRL_STRUCT.pose_1 = 1800
+GRIPPER_FORCE_CTRL_STRUCT.pose_2 = 1900
+GRIPPER_FORCE_CTRL_STRUCT.force_threshold = -2
+
+GRIPPER_FORCE_CTRL_FUNCTION()
+
+A_Sleep(500)
 
 ## Step5: Wrench Grasp
 
@@ -111,13 +101,13 @@ GRIPPER_FORCE_CTRL_STRUCT.force_threshold = 180
 
 GRIPPER_FORCE_CTRL_FUNCTION()
 
-A_Sleep(2000)
+A_Sleep(500)
 
 ## Step6: Gripper Release
 
 GRIPPER_FORCE_CTRL_STRUCT.pose_1 = 2500
 GRIPPER_FORCE_CTRL_STRUCT.pose_2 = 2500
-GRIPPER_FORCE_CTRL_STRUCT.forece_threshold = 110
+GRIPPER_FORCE_CTRL_STRUCT.force_threshold = -2
 
 GRIPPER_FORCE_CTRL_FUNCTION()
 
@@ -186,7 +176,7 @@ LRF_K_HORIZEN_CTRL_STRUCT.mode = 2
 
 LRF_K_HORIZEN_CTRL_STRUCT.only_sensing_moving = false
 
-LRF_K_HORIZEN_CTRL_STRUCT.desired_h_dst = 343
+LRF_K_HORIZEN_CTRL_STRUCT.desired_h_dst = 335
 /*Center Point
 /*LRF_K_HORIZEN_CTRL_STRUCT.desired_h_dst = 335
 
@@ -195,7 +185,7 @@ LRF_K_HORIZEN_CTRL_STRUCT.error = 1.0
 LRF_K_HORIZEN_CTRL_STRUCT.s_deg = 10 
 LRF_K_HORIZEN_CTRL_STRUCT.e_deg = 170
 
-LRF_K_HORIZEN_CTRL_STRUCT.inlier_lrf_dst = 1100
+LRF_K_HORIZEN_CTRL_STRUCT.inlier_lrf_dst = 800
 
 LRF_K_HORIZEN_CTRL_STRUCT.loop_sleep = 30 
 
@@ -209,7 +199,7 @@ LRF_K_VERTICAL_CTRL_STRUCT.mode = 2
 
 LRF_K_VERTICAL_CTRL_STRUCT.only_sensing_moving = false
 
-LRF_K_VERTICAL_CTRL_STRUCT.desired_v_dst = 190
+LRF_K_VERTICAL_CTRL_STRUCT.desired_v_dst = 180
 LRF_K_VERTICAL_CTRL_STRUCT.error = 2
 
 LRF_K_VERTICAL_CTRL_STRUCT.s_deg = 10
@@ -313,8 +303,8 @@ A_Sleep(1000)
 
 ## Step19: Gripper Release 
 
-GRIPPER_GO_TO_REL_POSE_STRUCT.pose_1 = 50
-GRIPPER_GO_TO_REL_POSE_STRUCT.pose_2 = 50
+GRIPPER_GO_TO_REL_POSE_STRUCT.pose_1 = 10
+GRIPPER_GO_TO_REL_POSE_STRUCT.pose_2 = 10
 
 GRIPPER_GO_TO_REL_POSE_FUNCTION()
 

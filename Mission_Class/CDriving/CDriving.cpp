@@ -1014,7 +1014,7 @@ bool CDriving::ParkingFrontPanel(){
 
                     //// ------------------------------////////////////
 
-                    double front_panel_center_to_origin_x = - (detected_panel_info.at(3) -0.1);
+                    double front_panel_center_to_origin_x = - (detected_panel_info.at(3) + 0.1);
                     double front_panel_center_to_origin_y = - detected_panel_info.at(4);
                     double front_panel_center_to_origin_angle = atan2(front_panel_center_to_origin_y, front_panel_center_to_origin_x);
 
@@ -1030,7 +1030,7 @@ bool CDriving::ParkingFrontPanel(){
                         angle_between_norm_origin = 2*PI - abs(angle_between_norm_origin);
                     }
 
-                    double front_panel_center_x_to_ugv = sqrt((detected_panel_info.at(3)-0.1)*(detected_panel_info.at(3)-0.1) + detected_panel_info.at(4)*detected_panel_info.at(4)) * sin(angle_between_norm_origin);
+                    double front_panel_center_x_to_ugv = sqrt((detected_panel_info.at(3)+ 0.1)*(detected_panel_info.at(3)+ 0.1) + detected_panel_info.at(4)*detected_panel_info.at(4)) * sin(angle_between_norm_origin);
 
 
                     double line_distance_to_origin;
@@ -1485,8 +1485,8 @@ void CDriving::PanelFrontDistanceControlByLMS511()
 {
     DRIVING_STRUCT driving_struct;
 
-    double parking_dist = 0.85;
-    double parking_thres = 0.15;
+    double parking_dist = 0.75;
+    double parking_thres = 0.05;
     double dist_to_ugv_center = 0;
     vector<double> panel_info;
     while(abs(dist_to_ugv_center-parking_dist) > parking_thres)
@@ -1589,7 +1589,7 @@ void CDriving::PanelFrontDistanceControlByLMS511()
             if(dist_to_ugv_center > parking_dist)
             {
                 driving_struct.direction = UGV_move_forward;
-                driving_struct.velocity = 60;
+                driving_struct.velocity = 50;
             }
             else
             {
@@ -1688,12 +1688,12 @@ void CDriving::PanelFrontDistanceControlByLMS511()
         if((panel_slope_norm_angle > (0.5*PI + (5.0/180.0*PI))) && (panel_slope_norm_angle < (1.5*PI)))
         {
             driving_struct.direction = UGV_move_left;
-            driving_struct.velocity = 85;
+            driving_struct.velocity = 95;
         }
         else if (((panel_slope_norm_angle < (0.5*PI - (5.0/180.0*PI))) && (panel_slope_norm_angle >= 0)) || ((panel_slope_norm_angle > (1.5*PI)) && (panel_slope_norm_angle < 2*PI)))
         {
             driving_struct.direction = UGV_move_right;
-            driving_struct.velocity = 85;
+            driving_struct.velocity = 95;
         }
         else
         {

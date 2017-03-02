@@ -209,8 +209,8 @@ void CRGBD::LocalizationOnPanel(LOCALIZATION_INFO_ON_PANEL &_info,int _mode,
     else{
         memcpy(lrf_distance, &mary_lrf_distance[s_lrf_index], sizeof(long)*(number_of_point));
 
+        LINE_PARAM optimal_line_eq;
         if((_mode & 0x0f00) == L_M_VALUE_RANSAC){
-                LINE_PARAM optimal_line_eq;
                 mpc_lrf->GetLRFData(mary_lrf_distance);
 
                 ClaculateLRFHeightDistance(lrf_distance, _s_deg, _e_deg, s_index, point_vec, _inlier_dst);
@@ -229,12 +229,23 @@ void CRGBD::LocalizationOnPanel(LOCALIZATION_INFO_ON_PANEL &_info,int _mode,
         _info.angle = current_ang;
 
         if((_mode & 0xff00) == L_M_ROUGH){// Only RANSAC Mode, s_deg: 10, e_deg: 170
-            std::vector<POINT_PARAM>::iterator iter_end = point_vec.end();
+//            std::vector<POINT_PARAM>::iterator iter_end = point_vec.end();
 
-            double point_x_start = point_vec[0].x;
+//            double point_x_start = point_vec[0].x;
+
+            if(point_vec.size() == 0){
+                _info.angle = 0;
+                _info.horizen__dst = 0;
+                _info.vertical_dst = 0;
+                return;
+            }
+
             double point_x_end = point_vec[point_vec.size() - 1].x;
+            double point_y_end = point_vec[point_vec.size() - 1].y;
 
-            _info.horizen__dst =  point_x_end;
+            _info.horizen__dst = sqrt( pow(point_x_end, 2) + pow(point_y_end - optimal_line_eq.b, 2));
+
+//            _info.horizen__dst =  point_x_end;
         }
         else if((_mode & 0xf000) == L_M_PRECISE){
 
@@ -281,7 +292,7 @@ void CRGBD::ClaculateLRFHeightDistance(long* _lrf_org_data, double _s_deg, doubl
 
         double deg = i*ANGLE_RESOLUTION + _s_deg;
 
-        if(_lrf_org_data[i] > _inlier_lrf_dst)
+        if((_lrf_org_data[i]) > _inlier_lrf_dst)
             continue;
 
         if(_s_index < 0)
@@ -293,10 +304,62 @@ void CRGBD::ClaculateLRFHeightDistance(long* _lrf_org_data, double _s_deg, doubl
         _point_vec.push_back(point_parameter);
     }
 }
+//LINE_PARAM CRGBD::EstimateLineEquation(std::vector<POINT_PARAM>& _point_vec){
+
+//    LINE_PARAM line_parameter;
+
+//    double a = 0;
+//    double b = 0;
+
+//    double x_sum = 0;
+//    double y_sum = 0;
+//    double xy_sum = 0;
+//    double x_pow_2_sum = 0;
+
+//    unsigned int num_point = _point_vec.size();
+
+//    if(num_point == 0){
+//        line_parameter.a = 0;
+//        line_parameter.b = 0;
+//        line_parameter.Distance = 0;
+//        line_parameter.num_inlier = 0;
+//        line_parameter.yaw = 0;
+//        return line_parameter;
+//    }
+
+//    for(unsigned int i = 0; i < num_point; i++){
+
+//        x_sum += _point_vec.at(i).x;
+//        y_sum += _point_vec.at(i).y;
+
+//        xy_sum += (_point_vec.at(i).x * _point_vec.at(i).y);
+
+//        x_pow_2_sum += (pow(_point_vec.at(i).x, 2));
+//    }
+
+//    a = (x_sum*y_sum - num_point*xy_sum) / (pow(x_sum,2) - (num_point * x_pow_2_sum));
+
+//    b = ((x_sum* xy_sum) - (x_pow_2_sum*y_sum)) / (pow(x_sum,2) - (num_point * x_pow_2_sum));
+
+//    line_parameter.a = a;
+//    line_parameter.b = b;
+
+//    double yaw_rad_line = atan(line_parameter.a);
+
+//    line_parameter.yaw = (yaw_rad_line * 180) / 3.14159265359;
+
+//    line_parameter.Distance =
+//            (fabs(line_parameter.b) / sqrt(pow((line_parameter.a),2) + 1));
+
+//    std::cout << "a : " << a << "b : " << b << std::endl;
+//    std::cout << "yaw : " << line_parameter.yaw << std::endl;
+
+//    return line_parameter;
+//}
 
 LINE_PARAM CRGBD::EstimateLineEquation(std::vector<POINT_PARAM>& _point_vec){
 
-    int iteration = 14000;
+    int iteration = 15000;
 
     int random_num_1 = 0;
     int random_num_2 = 0;
@@ -344,7 +407,7 @@ LINE_PARAM CRGBD::EstimateLineEquation(std::vector<POINT_PARAM>& _point_vec){
 
     double line_max_count = 0;
 
-    double line_inlier_standard = 10;
+    double line_inlier_standard = 5/*mm*/;
 
     for(unsigned int i = 0; i < line_eq_vector.size(); i++){
 
@@ -379,7 +442,8 @@ LINE_PARAM CRGBD::EstimateLineEquation(std::vector<POINT_PARAM>& _point_vec){
 
     optimal_line_eq.yaw = (yaw_rad_line * 180) / 3.14159265359;
 
-    optimal_line_eq.Distance = optimal_line_eq.b;
+    optimal_line_eq.Distance =
+            (fabs(optimal_line_eq.b) / sqrt(pow((optimal_line_eq.a),2) + 1));
 
 
     return optimal_line_eq;

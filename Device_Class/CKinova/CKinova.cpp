@@ -926,6 +926,14 @@ bool CKinova::KinovaDoManipulate(CartesianPosition _desired_position,int _mode, 
 
             error = sqrt(error);
 
+            std::cout << "X: "<< desired_position.Position.CartesianPosition.X <<std::endl;
+            std::cout << "Y: "<< desired_position.Position.CartesianPosition.Y <<std::endl;
+            std::cout << "Z: "<< desired_position.Position.CartesianPosition.Z <<std::endl;
+
+            std::cout << "Ro: "<< desired_position.Position.CartesianPosition.ThetaZ <<std::endl;
+            std::cout << "Pi: "<< desired_position.Position.CartesianPosition.ThetaY <<std::endl;
+            std::cout << "Ya: "<< desired_position.Position.CartesianPosition.ThetaX <<std::endl;
+
             Kinova_SendAdvanceTrajectory(desired_position);
         }
 
