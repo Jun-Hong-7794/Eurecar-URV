@@ -92,6 +92,9 @@ EurecarURV_Dlg::EurecarURV_Dlg(QWidget *parent) :
     connect(ui->bt_lms511,SIGNAL(clicked()), this, SLOT(SlotButtonLMS511Switch()));
     connect(ui->bt_rotator,SIGNAL(clicked()), this, SLOT(SlotButtonRotatorSwitch()));
 
+    connect(ui->bt_driving_sensor_on,SIGNAL(clicked()), this, SLOT(SlotButtonDrivingSensorSwitch()));
+    connect(ui->bt_manipulator_sensor_on,SIGNAL(clicked()), this, SLOT(SlotButtonManipulatorSensorSwitch()));
+
     //Click List View
     connect(ui->lsview_mission_title,SIGNAL(clicked(QModelIndex)), this, SLOT(SlotMissionListUpdate(QModelIndex)));
     //Click Combo Box
@@ -183,11 +186,10 @@ void EurecarURV_Dlg::SlotButtonGripperSwitch(){
         mpc_gripper->CloseGripper();
         ui->bt_gripper->setText("Gripper On");
     }
-
-
 }
 
 void EurecarURV_Dlg::SlotButtonIMUSwitch(){
+
     if(!mpc_imu->IsIMUInit())
     {
         if(!mpc_imu->IMUInit(ui->ed_imu_path->text().toStdString(), ui->ed_init_heading->text().toDouble()))
@@ -220,6 +222,7 @@ void EurecarURV_Dlg::SlotButtonRotatorSwitch(){
 }
 
 void EurecarURV_Dlg::SlotButtonLMS511Switch(){
+
     if(!mpc_lms511->IsLMS511Init())
     {
         if(mpc_lms511->ConnectLMS511())
@@ -271,6 +274,7 @@ void EurecarURV_Dlg::SlotButtonKinovaSwitch(){
 }
 
 void EurecarURV_Dlg::SlotButtonKinovaReset(){
+
     if(!mpc_kinova->IsKinovaInitialized()){
         if(!mpc_kinova->InitKinova())
             QMessageBox::information(this, tr("Fail to Connect KINOVA"), tr("Check KINOVA"));
@@ -444,6 +448,143 @@ void EurecarURV_Dlg::SlotButtonScenarioPartialRun(){
     mpc_script->SetMissionPause(false);
     mpc_script->SetMissionTerminate(false);
     return;
+}
+
+void EurecarURV_Dlg::SlotButtonDrivingSensorSwitch(){
+
+    if(!mpc_imu->IsIMUInit())
+    {
+        if(!mpc_imu->IMUInit(ui->ed_imu_path->text().toStdString(), ui->ed_init_heading->text().toDouble()))
+        {
+            QMessageBox::information(this, tr("Fail to Connect IMU"),tr("Check IMU"));
+        }
+        else
+        {
+            ui->bt_imu->setText("IMU On");
+
+            SlotViewSystemMessage("IMU On");
+        }
+    }
+
+    QThread::msleep(500);
+
+    if(!mpc_lms511->IsLMS511Init())
+    {
+        if(mpc_lms511->ConnectLMS511())
+        {
+            cout << "LMS 511 init success!" << endl;
+            ui->bt_lms511->setText("LMS511 Off");
+
+            SlotViewSystemMessage("LMS 511 init success!");
+        }
+        else
+        {
+            QMessageBox::information(this, tr("LMS 511 init failed!"),tr("Check LMS 511"));
+            SlotViewSystemMessage("LMS 511 init Fail!");
+            return;
+        }
+    }
+    QThread::msleep(500);
+
+    if(!mpc_velodyne->IsVelodyneConneted()){
+        if(!mpc_velodyne->SetVelodyneThread(true)){
+            QMessageBox::information(this, tr("Fail to Connect Velodyne"), tr("Check Velodyne"));
+            SlotViewSystemMessage("Velodyne Fail to Init!!");
+            return;
+        }
+        else{
+            ui->bt_velodyne->setText("Velodyne Off");
+            SlotViewSystemMessage("Velodyne On!!");
+        }
+    }
+
+    QThread::msleep(500);
+
+    QString dev_path;
+    dev_path = ui->ed_drive_lrf_path->text();
+
+    QByteArray char_dev_path = dev_path.toLocal8Bit();
+
+    if(!mpc_drive_lrf->IsLRFOn()){
+        if(!mpc_drive_lrf->InitLRF(char_dev_path.data(), UTM_30LX)){
+            QMessageBox::information(this, tr("Fail to Open Device"), tr("Check the UGV LRF"));
+            return;
+        }
+        ui->bt_drive_lrf->setText("V LRF Off");
+        SlotViewSystemMessage("V LRF  On!!");
+    }
+
+
+    QThread::msleep(500);
+
+    dev_path = ui->ed_vehicle_path->text();
+
+    char_dev_path = dev_path.toLocal8Bit();
+
+    if(!mpc_vehicle->IsConnected()){
+        if(!mpc_vehicle->Connect(char_dev_path.data())){
+            QMessageBox::information(this, tr("Fail to Open Device"), tr("Check the UGV"));
+            return;
+        }
+        ui->bt_ugv->setText("UGV OFF");
+        SlotViewSystemMessage("UGV  On!!");
+    }
+
+    QThread::msleep(500);
+
+    ui->bt_driving_sensor_on->setText("D-Sensor \nSuccess");
+
+}
+
+void EurecarURV_Dlg::SlotButtonManipulatorSensorSwitch(){
+
+
+    if(!mpc_gripper->IsGripperInit()){
+        if(!mpc_gripper->InitGripper()){
+            QMessageBox::information(this, tr("Fail to Connect Gripper"), tr("Check Gripper"));
+            SlotViewSystemMessage("Fail to Gripper Init!!");
+            return;
+        }
+        else{
+            ui->bt_gripper->setText("Gripper Off");
+            SlotViewSystemMessage("Gripper Init!");
+        }
+    }
+
+    QThread::msleep(300);
+
+    if(!mpc_gripper->IsRotatorInit()){
+        if(!mpc_gripper->InitRotator())
+        {
+            QMessageBox::information(this, tr("Fail to Connect Dyanmixel Pro"),tr("Check Dyanmixel"));
+            SlotViewSystemMessage("Fail to Rotator Init");
+            return;
+        }
+        else
+        {
+            ui->bt_rotator->setText("Rotator Off");
+            SlotViewSystemMessage("Rotator Init!!");
+        }
+    }
+
+    QThread::msleep(300);
+
+    QString dev_path;
+    dev_path = ui->ed_mani_lrf_ip->text();
+
+    QByteArray char_dev_path = dev_path.toLocal8Bit();
+
+    if(!mpc_mani__lrf->IsLRFOn()){
+        if(!mpc_mani__lrf->InitLRF(char_dev_path.data(), UST_20LX)){
+            QMessageBox::information(this, tr("Fail to Open Device"), tr("Check the KINOVA LRF"));
+            SlotViewSystemMessage("Fail to LRF K Init");
+            return;
+        }
+        ui->bt_mani_lrf->setText("K LRF Off");
+        SlotViewSystemMessage("LRF K Init!!");
+    }
+
+    ui->bt_manipulator_sensor_on->setText("M-Sensor \nSuccess");
 }
 
 //-------------------------------------------------

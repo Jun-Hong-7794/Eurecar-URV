@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1221</width>
-    <height>745</height>
+    <height>788</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -40,7 +40,7 @@
       <x>680</x>
       <y>330</y>
       <width>291</width>
-      <height>361</height>
+      <height>411</height>
      </rect>
     </property>
    </widget>
@@ -460,7 +460,7 @@
       <x>13</x>
       <y>288</y>
       <width>651</width>
-      <height>401</height>
+      <height>451</height>
      </rect>
     </property>
    </widget>
@@ -470,7 +470,7 @@
       <x>980</x>
       <y>310</y>
       <width>231</width>
-      <height>381</height>
+      <height>431</height>
      </rect>
     </property>
     <property name="font">
@@ -662,7 +662,7 @@ pose</string>
      <widget class="QPushButton" name="bt_lms511">
       <property name="geometry">
        <rect>
-        <x>0</x>
+        <x>4</x>
         <y>299</y>
         <width>101</width>
         <height>41</height>
@@ -683,6 +683,39 @@ pose</string>
       </property>
       <property name="text">
        <string>Rotator On</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="bt_driving_sensor_on">
+      <property name="geometry">
+       <rect>
+        <x>4</x>
+        <y>349</y>
+        <width>101</width>
+        <height>41</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <pointsize>9</pointsize>
+       </font>
+      </property>
+      <property name="text">
+       <string>Driving 
+Sensor On</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="bt_manipulator_sensor_on">
+      <property name="geometry">
+       <rect>
+        <x>120</x>
+        <y>350</y>
+        <width>101</width>
+        <height>41</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Manupulator 
+Sensor On</string>
       </property>
      </widget>
     </widget>

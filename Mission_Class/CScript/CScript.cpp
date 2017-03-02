@@ -594,9 +594,27 @@ bool CScript::InterpreteMissionScriptLine(QString _line, MISSION_SCRIPT* _missio
             return false;
     }
 
+    if(_line.contains("ROTATOR")){
+
+        if(InterpreteRotator(_line, _step_info))
+            return true;
+//        else
+//            return false;
+    }
+
+
+
     if(_line.contains("WRENCH_RECOGNITION")){
 
         if(InterpreteWrenchRecognition(_line, _step_info))
+            return true;
+        else
+            return false;
+    }
+
+    if(_line.contains("KINOVA_LRF_VALVE_SEARCHING")){
+
+        if(InterpreteKinovaLRFValveSearching(_line, _step_info))
             return true;
         else
             return false;
@@ -973,6 +991,12 @@ bool CScript::InterpreteKinovaManipulate(QString _line, STEP_INFO& _step_info){
 
     if(_line.contains("KINOVA_MANIPULATE_STRUCT")){
 
+        if(_line.contains("mode")){
+            int colone_index = _line.indexOf("=");
+            _step_info.manipulation_option.kinova_manipulate_option.mode = _line.mid(colone_index + 1).trimmed().toInt();
+            return true;
+        }
+
         if(_line.contains("roll")){
             int colone_index = _line.indexOf("=");
             _step_info.manipulation_option.kinova_manipulate_option.str_roll = _line.mid(colone_index + 1).trimmed();
@@ -1198,6 +1222,82 @@ bool CScript::InterpreteWrenchRecognition(QString _line, STEP_INFO& _step_info){
     return true;
 }
 
+bool CScript::InterpreteKinovaLRFValveSearching(QString _line, STEP_INFO& _step_info){
+
+    if(_line.contains("KINOVA_LRF_VALVE_SEARCHING_STRUCT")){
+
+        if(_line.contains("mode")){
+            int colone_index = _line.indexOf("=");
+            _step_info.manipulation_option.kinova_lrf_valve_searching_option.mode =
+                    _line.mid(colone_index + 1).trimmed().toInt();
+            return true;
+        }
+
+        if(_line.contains("s_deg")){
+            int colone_index = _line.indexOf("=");
+            _step_info.manipulation_option.kinova_lrf_valve_searching_option.s_deg =
+                    _line.mid(colone_index + 1).trimmed().toDouble();
+            return true;
+        }
+
+        if(_line.contains("e_deg")){
+            int colone_index = _line.indexOf("=");
+            _step_info.manipulation_option.kinova_lrf_valve_searching_option.e_deg =
+                    _line.mid(colone_index + 1).trimmed().toDouble();
+            return true;
+        }
+
+        if(_line.contains("maximum_lrf_dst")){
+            int colone_index = _line.indexOf("=");
+            _step_info.manipulation_option.kinova_lrf_valve_searching_option.maximum_lrf_dst =
+                    _line.mid(colone_index + 1).trimmed().toDouble();
+            return true;
+        }
+
+        if(_line.contains("searching_lengh")){
+            int colone_index = _line.indexOf("=");
+            _step_info.manipulation_option.kinova_lrf_valve_searching_option.searching_length =
+                    _line.mid(colone_index + 1).trimmed().toDouble();
+            return true;
+        }
+        if(_line.contains("num_point_thresh")){
+            int colone_index = _line.indexOf("=");
+            _step_info.manipulation_option.kinova_lrf_valve_searching_option.num_point_thresh =
+                    _line.mid(colone_index + 1).trimmed().toInt();
+            return true;
+        }
+        if(_line.contains("height_thresh")){
+            int colone_index = _line.indexOf("=");
+            _step_info.manipulation_option.kinova_lrf_valve_searching_option.height_thresh =
+                    _line.mid(colone_index + 1).trimmed().toDouble();
+            return true;
+        }
+
+        if(_line.contains("offset")){/*cm*/
+            int colone_index = _line.indexOf("=");
+            _step_info.manipulation_option.kinova_lrf_valve_searching_option.offset =
+                    _line.mid(colone_index + 1).trimmed().toDouble();
+            return true;
+        }
+
+        if(_line.contains("loop_sleep")){/*cm*/
+            int colone_index = _line.indexOf("=");
+            _step_info.manipulation_option.kinova_lrf_valve_searching_option.loop_sleep =
+                    _line.mid(colone_index + 1).trimmed().toInt();
+            return true;
+        }
+    }
+
+    else if(_line.contains("KINOVA_LRF_VALVE_SEARCHING_FUNCTION")){
+        _step_info.function_index = MP_KINOVA_LRF_VALVE_SEARCHING;
+    }
+
+    else
+        return false;
+
+    return true;
+}
+
 bool CScript::InterpreteGripperValveSizeRecog(QString _line, STEP_INFO& _step_info){
 
     if(_line.contains("VALVE_SIZE_RECOG_STRUCT")){
@@ -1277,6 +1377,37 @@ bool CScript::InterpreteGripperValveSizeRecog(QString _line, STEP_INFO& _step_in
         return false;
 
     return true;
+}
+
+bool CScript::InterpreteRotator(QString _line, STEP_INFO& _step_info){
+
+    if(_line.contains("ROTATOR_STRUCT")){
+
+        if(_line.contains("desired_position")){
+            int colone_index = _line.indexOf("=");
+            _step_info.manipulation_option.rotator_option.desired_position = _line.mid(colone_index + 1).trimmed().toInt();
+            return true;
+        }
+
+        if(_line.contains("fl_rotator_torque")){
+            int colone_index = _line.indexOf("=");
+
+            QString str_option;
+            str_option = _line.mid(colone_index + 1).trimmed();
+
+            if(str_option.contains("true"))
+                _step_info.manipulation_option.rotator_option.fl_torque_on_off = true;
+            else
+                _step_info.manipulation_option.rotator_option.fl_torque_on_off = false;
+
+            return true;
+        }
+
+    }
+    else if(_line.contains("ROTATOR_FUNCTION")){
+        _step_info.function_index = MP_ROTATOR;
+    }
+
 }
 
 bool CScript::InterpreteLRFVehicleAngleCtrl(QString _line, STEP_INFO& _step_info){
@@ -2720,6 +2851,16 @@ bool CScript::MissionPlayer(){
                 }
             }
 
+//            MP_ROTATOR
+
+            if(mpary_mission_script[i].step_vecor.at(j).function_index == MP_ROTATOR){
+
+                mpc_manipulation->SetManipulationOption(mpary_mission_script[i].step_vecor.at(j).manipulation_option.rotator_option);
+                mpc_manipulation->SelectMainFunction(MANIPUL_INX_ROTATOR);
+
+                while(mpc_manipulation->isRunning());
+            }
+
             if(mpary_mission_script[i].step_vecor.at(j).function_index == MP_LRF_K_VEHICLE_HORIZEN_CONTROL){
                 mpc_manipulation->SetManipulationOption(mpary_mission_script[i].step_vecor.at(j).manipulation_option.lrf_k_vehicle_horizen_option);
                 mpc_manipulation->SelectMainFunction(MANIPUL_INX_LRF_K_VEHICLE_HORIZEN_CTRL);
@@ -2972,6 +3113,13 @@ bool CScript::MissionPlayer(){
 
                 mpc_manipulation->SetManipulationOption(mpary_mission_script[i].step_vecor.at(j).manipulation_option.kinova_fit_to_valve_pose);
                 mpc_manipulation->SelectMainFunction(MANIPUL_INX_KINOVA_FIT_TO_VALVE);
+
+                while(mpc_manipulation->isRunning());
+            }
+
+            if(mpary_mission_script[i].step_vecor.at(j).function_index == MP_KINOVA_LRF_VALVE_SEARCHING){
+                mpc_manipulation->SetManipulationOption(mpary_mission_script[i].step_vecor.at(j).manipulation_option.kinova_lrf_valve_searching_option);
+                mpc_manipulation->SelectMainFunction(MANIPUL_INX_KINOVA_LRF_VALVE_SEARCHING);
 
                 while(mpc_manipulation->isRunning());
             }

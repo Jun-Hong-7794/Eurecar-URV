@@ -61,6 +61,10 @@
 
 #define MANIPUL_INX_GRIPPER_GO_TO_REL_POSE      18
 
+#define MANIPUL_INX_ROTATOR                     24
+
+#define MANIPUL_INX_KINOVA_LRF_VALVE_SEARCHING  25
+
 class CManipulation:public QThread{
     Q_OBJECT
 
@@ -92,6 +96,11 @@ private:
 
     cv::Mat m_mat_panel_model;
     QMutex mtx_panel_model;
+
+    //---------------Rotator---------------//
+
+    ROTATOR_STRUCT mstruct_rotator;
+    QMutex mxt_rotator;
 
     //---------------Kinova---------------//
 
@@ -159,6 +168,9 @@ private:
 
     KINOVA_FIT_TO_VALVE_POSE_STRUCT mstruct_fit_to_valve_pose;
     QMutex mxt_fit_to_valve_pose;
+
+    KINOVA_LRF_VALVE_SEARCHING_STRUCT mstruct_valve_searching;
+    QMutex mxt_valve_searching;
     //-------------------------------------------------
     // ElementTech Class
     //-------------------------------------------------
@@ -212,6 +224,7 @@ public:
     //-------------------------------------------------
     // Dvice Class Initialize(Connect) Function
     //-------------------------------------------------
+
     //KINOVA
     bool InitKinova();
     bool CloseKinova();
@@ -286,6 +299,10 @@ public:
     void SetManipulationOption(LRF_SENSING_INFO_STRUCT _manipulation_option);
     LRF_SENSING_INFO_STRUCT GetLRFSensingInfo();
 
+    //---------------Rotator---------------//
+    void SetManipulationOption(ROTATOR_STRUCT _manipulation_option);
+    ROTATOR_STRUCT GetRotatorOption();
+
     //Main Function//
     /*LRF Ctrl New Version*/
     //---------------Kinova---------------//
@@ -351,7 +368,14 @@ public:
     void SetManipulationOption(KINOVA_FIT_TO_VALVE_POSE_STRUCT _manipulation_option);
     KINOVA_FIT_TO_VALVE_POSE_STRUCT GetFitToValvePoseOption();
 
+    void SetManipulationOption(KINOVA_LRF_VALVE_SEARCHING_STRUCT _manipulation_option);
+    KINOVA_LRF_VALVE_SEARCHING_STRUCT GetKinovaLRFValveSearchingOption();
+
 private:
+    //-------------------------------------------------
+    // Dynamixel Pro Function
+    //-------------------------------------------------
+    bool DynamixelRotate();
     //-------------------------------------------------
     // Sensor Test Function
     //-------------------------------------------------
@@ -390,6 +414,8 @@ private:
     bool KinovaForceCheck();
     bool KinovaDoManipulate();
     bool KinovaRotateValveMotion();
+
+    bool KinovaLRFValveSearching();
 
     bool KinovaFitToValvePose();
 

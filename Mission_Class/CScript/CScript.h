@@ -113,6 +113,8 @@ private:
     //-------------------------------------------------
     // Function
     //-------------------------------------------------
+    bool InterpreteKinovaLRFValveSearching(QString _line, STEP_INFO& _step_info);
+
     bool InterpreteVehicleDriveToPanel(QString _line, STEP_INFO& _step_info);
     bool InterpreteVehicleParking(QString _line, STEP_INFO& _step_info);
 
@@ -129,6 +131,8 @@ private:
     bool InterpreteGripperGotoRelPose(QString _line, STEP_INFO& _step_info);
     bool InterpreteGripperMagnetCtrl(QString _line, STEP_INFO& _step_info);
     bool InterpreteGripperValveSizeRecog(QString _line, STEP_INFO& _step_info);
+
+    bool InterpreteRotator(QString _line, STEP_INFO& _step_info);
 
     /*New LRF Kinova Control*/
     bool InterpreteLRFKVerticalCtrl(QString _line, STEP_INFO& _step_info);

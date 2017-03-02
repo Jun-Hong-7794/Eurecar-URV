@@ -6,6 +6,8 @@ CGripper::CGripper()
     fl_torque = false;
 
     fl_port_status = false;
+    fl_torque_rotator = false;
+    fl_torque_gripper = false;
 
     m_dxl1_present_position = 0;
     m_dxl2_present_position = 0;
@@ -571,15 +573,15 @@ bool CGripper::InitRotator(char* _device_port){
 
 void CGripper::CloseRotator(){
 
-    GripperTorque(false);
+//    GripperTorque(false);
     RotatorTorque(false);
 
-    mp_rotator_portHandler->closePort();
+//    mp_rotator_portHandler->closePort();
 
-    fl_init_gripper= false;
-    fl_port_status = false;
+//    fl_init_gripper= false;
+//    fl_port_status = false;
 
-    fl_init_rotator = false;
+//    fl_init_rotator = false;
     fl_torque_rotator = false;
 }
 

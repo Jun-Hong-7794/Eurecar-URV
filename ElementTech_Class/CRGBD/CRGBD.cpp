@@ -168,6 +168,54 @@ void CRGBD::GetHorizenDistance(double _inlier_distance,double& _horizen_distance
 
     return;
 }
+
+int CRGBD::SearchingValvePointOnPanel(double _s_deg, double _e_deg, int _maximum_lrf_dst, double _height_thresh){
+    int num_point = 0;
+    int s_index = -1;
+
+    int s_lrf_index = (int)((_s_deg + 45) / ANGLE_RESOLUTION);
+    int e_lrf_index = (int)((_e_deg + 45) / ANGLE_RESOLUTION);
+
+    int number_of_point = e_lrf_index - s_lrf_index + 1;
+
+    long* lrf_distance = new long[number_of_point];
+
+    std::vector<POINT_PARAM> point_vec;
+
+    if(!mpc_lrf->GetLRFData(mary_lrf_distance)){
+        std::cout << "LRF : GetLRFData Error" << std::endl;
+        delete[] lrf_distance;
+
+        return num_point;
+    }
+    else{
+        memcpy(lrf_distance, &mary_lrf_distance[s_lrf_index], sizeof(long)*(number_of_point));
+
+        mpc_lrf->GetLRFData(mary_lrf_distance);
+
+        ClaculateLRFHeightDistance(lrf_distance, _s_deg, _e_deg, s_index, point_vec, _maximum_lrf_dst);
+
+        double y_sum = 0;
+        for(unsigned int i = 0; i < point_vec.size(); i++){
+            if(point_vec.at(i).y != 0){
+                if(point_vec.at(i).y < _height_thresh){
+                    y_sum += point_vec.at(i).y;
+                    num_point++;
+                }
+            }
+        }
+
+        if(num_point > 0){
+            y_sum /= num_point;
+            std::cout << "y_sum : " << y_sum << std::endl;
+        }
+    }
+
+    delete[] lrf_distance;
+
+    return num_point;
+}
+
 void CRGBD::LocalizationOnPanel(LOCALIZATION_INFO_ON_PANEL &_info,int _mode,
                                 double _s_deg/*deg*/, double _e_deg/*deg*/, int _inlier_dst/*mm*/,
                                 int _current_v_dst/*mm, for const mode*/, double _current_ang/*deg for const mode*/){
@@ -304,150 +352,150 @@ void CRGBD::ClaculateLRFHeightDistance(long* _lrf_org_data, double _s_deg, doubl
         _point_vec.push_back(point_parameter);
     }
 }
-//LINE_PARAM CRGBD::EstimateLineEquation(std::vector<POINT_PARAM>& _point_vec){
-
-//    LINE_PARAM line_parameter;
-
-//    double a = 0;
-//    double b = 0;
-
-//    double x_sum = 0;
-//    double y_sum = 0;
-//    double xy_sum = 0;
-//    double x_pow_2_sum = 0;
-
-//    unsigned int num_point = _point_vec.size();
-
-//    if(num_point == 0){
-//        line_parameter.a = 0;
-//        line_parameter.b = 0;
-//        line_parameter.Distance = 0;
-//        line_parameter.num_inlier = 0;
-//        line_parameter.yaw = 0;
-//        return line_parameter;
-//    }
-
-//    for(unsigned int i = 0; i < num_point; i++){
-
-//        x_sum += _point_vec.at(i).x;
-//        y_sum += _point_vec.at(i).y;
-
-//        xy_sum += (_point_vec.at(i).x * _point_vec.at(i).y);
-
-//        x_pow_2_sum += (pow(_point_vec.at(i).x, 2));
-//    }
-
-//    a = (x_sum*y_sum - num_point*xy_sum) / (pow(x_sum,2) - (num_point * x_pow_2_sum));
-
-//    b = ((x_sum* xy_sum) - (x_pow_2_sum*y_sum)) / (pow(x_sum,2) - (num_point * x_pow_2_sum));
-
-//    line_parameter.a = a;
-//    line_parameter.b = b;
-
-//    double yaw_rad_line = atan(line_parameter.a);
-
-//    line_parameter.yaw = (yaw_rad_line * 180) / 3.14159265359;
-
-//    line_parameter.Distance =
-//            (fabs(line_parameter.b) / sqrt(pow((line_parameter.a),2) + 1));
-
-//    std::cout << "a : " << a << "b : " << b << std::endl;
-//    std::cout << "yaw : " << line_parameter.yaw << std::endl;
-
-//    return line_parameter;
-//}
-
 LINE_PARAM CRGBD::EstimateLineEquation(std::vector<POINT_PARAM>& _point_vec){
 
-    int iteration = 15000;
-
-    int random_num_1 = 0;
-    int random_num_2 = 0;
-
-    int random_max_num = _point_vec.size();
-
-    LINE_PARAM optimal_line_eq;
     LINE_PARAM line_parameter;
 
-    if(random_max_num <= 0){
-        optimal_line_eq.a = 999;
-        optimal_line_eq.b = -999;
-        optimal_line_eq.yaw = 999;
-        return optimal_line_eq;
-    }
-    std::vector<LINE_PARAM> line_eq_vector;
+    double a = 0;
+    double b = 0;
 
-    std::srand((unsigned int)time(NULL));
+    double x_sum = 0;
+    double y_sum = 0;
+    double xy_sum = 0;
+    double x_pow_2_sum = 0;
 
-    //Get Line Equations candidate using random sampling
-    for(int i = 0; i < iteration; i++){
+    unsigned int num_point = _point_vec.size();
 
-        random_num_1 = std::rand() % random_max_num;
-        random_num_2 = std::rand() % random_max_num;
-
-        double line_son = (_point_vec.at(random_num_1).y - _point_vec.at(random_num_2).y);
-        double line_parent = (_point_vec.at(random_num_1).x - _point_vec.at(random_num_2).x);
-
-        line_parameter.a = line_son / line_parent;
-
-        line_parameter.b = _point_vec.at(random_num_2).y - (_point_vec.at(random_num_2).x * line_parameter.a);
-
-//        if(line_parameter.b < 0)
-//            std::cout << "What!!?" << std::endl;
-
+    if(num_point == 0){
+        line_parameter.a = 0;
+        line_parameter.b = 0;
+        line_parameter.Distance = 0;
         line_parameter.num_inlier = 0;
-
-        line_eq_vector.push_back(line_parameter);
+        line_parameter.yaw = 0;
+        return line_parameter;
     }
 
-    double line_parm_a = 0.0;
-    double line_parm_b = 0.0;
+    for(unsigned int i = 0; i < num_point; i++){
 
-    double line_distance = 0;
+        x_sum += _point_vec.at(i).x;
+        y_sum += _point_vec.at(i).y;
 
-    double line_max_count = 0;
+        xy_sum += (_point_vec.at(i).x * _point_vec.at(i).y);
 
-    double line_inlier_standard = 5/*mm*/;
-
-    for(unsigned int i = 0; i < line_eq_vector.size(); i++){
-
-        line_parm_a = line_eq_vector.at(i).a;
-        line_parm_b = line_eq_vector.at(i).b;
-
-        for(unsigned int j = 0; j < _point_vec.size(); j++){
-
-            double line_son = 0;
-            double line_parent = 0;
-
-            line_son = fabs(line_parm_a*_point_vec.at(j).x - _point_vec.at(j).y + line_parm_b);
-
-            line_parent = sqrt(pow(line_parm_a,2.0) + pow(1.0,2.0));
-
-            line_distance = (line_son / line_parent);
-
-            if(line_distance <= line_inlier_standard){
-                line_eq_vector.at(i).num_inlier++;
-            }
-        }
+        x_pow_2_sum += (pow(_point_vec.at(i).x, 2));
     }
 
-    for(unsigned int i = 0; i < line_eq_vector.size(); i++){
-        if(line_max_count < line_eq_vector.at(i).num_inlier){
-            line_max_count = line_eq_vector.at(i).num_inlier;
-            optimal_line_eq = line_eq_vector.at(i);
-        }
-    }
+    a = (x_sum*y_sum - num_point*xy_sum) / (pow(x_sum,2) - (num_point * x_pow_2_sum));
 
-    double yaw_rad_line = atan(optimal_line_eq.a);
+    b = ((x_sum* xy_sum) - (x_pow_2_sum*y_sum)) / (pow(x_sum,2) - (num_point * x_pow_2_sum));
 
-    optimal_line_eq.yaw = (yaw_rad_line * 180) / 3.14159265359;
+    line_parameter.a = a;
+    line_parameter.b = b;
 
-    optimal_line_eq.Distance =
-            (fabs(optimal_line_eq.b) / sqrt(pow((optimal_line_eq.a),2) + 1));
+    double yaw_rad_line = atan(line_parameter.a);
 
+    line_parameter.yaw = (yaw_rad_line * 180) / 3.14159265359;
 
-    return optimal_line_eq;
+    line_parameter.Distance =
+            (fabs(line_parameter.b) / sqrt(pow((line_parameter.a),2) + 1));
+
+    std::cout << "a : " << a << "b : " << b << std::endl;
+    std::cout << "yaw : " << line_parameter.yaw << std::endl;
+
+    return line_parameter;
 }
+
+//LINE_PARAM CRGBD::EstimateLineEquation(std::vector<POINT_PARAM>& _point_vec){
+
+//    int iteration = 15000;
+
+//    int random_num_1 = 0;
+//    int random_num_2 = 0;
+
+//    int random_max_num = _point_vec.size();
+
+//    LINE_PARAM optimal_line_eq;
+//    LINE_PARAM line_parameter;
+
+//    if(random_max_num <= 0){
+//        optimal_line_eq.a = 999;
+//        optimal_line_eq.b = -999;
+//        optimal_line_eq.yaw = 999;
+//        return optimal_line_eq;
+//    }
+//    std::vector<LINE_PARAM> line_eq_vector;
+
+//    std::srand((unsigned int)time(NULL));
+
+//    //Get Line Equations candidate using random sampling
+//    for(int i = 0; i < iteration; i++){
+
+//        random_num_1 = std::rand() % random_max_num;
+//        random_num_2 = std::rand() % random_max_num;
+
+//        double line_son = (_point_vec.at(random_num_1).y - _point_vec.at(random_num_2).y);
+//        double line_parent = (_point_vec.at(random_num_1).x - _point_vec.at(random_num_2).x);
+
+//        line_parameter.a = line_son / line_parent;
+
+//        line_parameter.b = _point_vec.at(random_num_2).y - (_point_vec.at(random_num_2).x * line_parameter.a);
+
+////        if(line_parameter.b < 0)
+////            std::cout << "What!!?" << std::endl;
+
+//        line_parameter.num_inlier = 0;
+
+//        line_eq_vector.push_back(line_parameter);
+//    }
+
+//    double line_parm_a = 0.0;
+//    double line_parm_b = 0.0;
+
+//    double line_distance = 0;
+
+//    double line_max_count = 0;
+
+//    double line_inlier_standard = 5/*mm*/;
+
+//    for(unsigned int i = 0; i < line_eq_vector.size(); i++){
+
+//        line_parm_a = line_eq_vector.at(i).a;
+//        line_parm_b = line_eq_vector.at(i).b;
+
+//        for(unsigned int j = 0; j < _point_vec.size(); j++){
+
+//            double line_son = 0;
+//            double line_parent = 0;
+
+//            line_son = fabs(line_parm_a*_point_vec.at(j).x - _point_vec.at(j).y + line_parm_b);
+
+//            line_parent = sqrt(pow(line_parm_a,2.0) + pow(1.0,2.0));
+
+//            line_distance = (line_son / line_parent);
+
+//            if(line_distance <= line_inlier_standard){
+//                line_eq_vector.at(i).num_inlier++;
+//            }
+//        }
+//    }
+
+//    for(unsigned int i = 0; i < line_eq_vector.size(); i++){
+//        if(line_max_count < line_eq_vector.at(i).num_inlier){
+//            line_max_count = line_eq_vector.at(i).num_inlier;
+//            optimal_line_eq = line_eq_vector.at(i);
+//        }
+//    }
+
+//    double yaw_rad_line = atan(optimal_line_eq.a);
+
+//    optimal_line_eq.yaw = (yaw_rad_line * 180) / 3.14159265359;
+
+//    optimal_line_eq.Distance =
+//            (fabs(optimal_line_eq.b) / sqrt(pow((optimal_line_eq.a),2) + 1));
+
+
+//    return optimal_line_eq;
+//}
 
 void CRGBD::ClaculateHorizenDistance(std::vector<POINT_PARAM>& _point_vec, double _inlier_distance,double& _horizen_distance, int& _s_inlier_inx, int& _e_inlier_inx){
 

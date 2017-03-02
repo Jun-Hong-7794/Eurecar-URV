@@ -2,6 +2,14 @@
 #define DEF_MANIPULATION_H
 #include <QString>
 
+typedef struct _Rotator_Struct{
+
+    bool fl_torque_on_off;
+
+    int desired_position;
+
+}ROTATOR_STRUCT;
+
 typedef struct _LRF_Sensing_Info_Struct{
 
     bool fl_lrf_sensing;
@@ -326,6 +334,8 @@ typedef struct _Kinova_Do_Manipulate_Struct{
 
     bool kinova_do_manipulate_mission;
 
+    int mode;
+
     QString str_x;
     QString str_y;
     QString str_z;
@@ -359,6 +369,29 @@ typedef struct _Kinova_Fit_To_Valve_Pose_Struct{
     double move_step;
 
 }KINOVA_FIT_TO_VALVE_POSE_STRUCT;
+
+typedef struct _Kinova_LRF_Valve_Searching_Struct{
+
+    bool kinova_lrf_valve_searching_mission;
+
+    int mode;//1: Go to Left, 2: Go to Right
+
+    double s_deg;/*deg*/
+    double e_deg;/*deg*/
+
+    int maximum_lrf_dst;/*mm*/
+
+    double searching_length;/*cm*/
+    double move_step;
+
+    double height_thresh;/*cm*/
+    double num_point_thresh;
+
+    double offset;/*cm*/
+
+    int loop_sleep;
+
+}KINOVA_LRF_VALVE_SEARCHING_STRUCT;
 
 
 typedef struct _Kinova_Rotate_Valve_Struct{
@@ -473,6 +506,9 @@ typedef struct _Wrench_Recognition{
 
 typedef struct _Manipulation_Option{
 
+
+    ROTATOR_STRUCT rotator_option;
+
     /*New LRF Kinova Control*/
     // Kinova
     LRF_K_V_CTRL_STRUCT lrf_k_v_ctrl_struct;
@@ -512,6 +548,8 @@ typedef struct _Manipulation_Option{
     GRIPPER_GO_TO_REL_POSE_STRUCT grippper_go_to_rel_pose_option;
 
     GRIPPER_KINOVA_VALVE_SIZE_RECOG_STRUCT gripper_kinova_valve_recog_option;
+
+    KINOVA_LRF_VALVE_SEARCHING_STRUCT kinova_lrf_valve_searching_option;
 
     GRIPPER_FORCE_CTRL_STRUCT gripper_force_option;
 

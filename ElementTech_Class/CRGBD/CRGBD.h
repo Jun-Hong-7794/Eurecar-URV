@@ -87,6 +87,8 @@ public:
     void LocalizationOnPanel(LOCALIZATION_INFO_ON_PANEL &_info,int _mode, double _s_deg = 10/*deg*/,
                              double _e_deg = 170/*deg*/, int _inlier_dst = 1100/*mm*/, int _current_v_dst = 240/*mm, for const mode*/, double _current_ang = 0/*deg for const mode*/);
 
+    int SearchingValvePointOnPanel(double _s_deg, double _e_deg, int _maximum_lrf_dst, double _height_thresh);
+
     cv::Mat GetSegnetImage(cv::Mat _org_img);
 
     bool RGB_DThreadSetting(int _function_index);

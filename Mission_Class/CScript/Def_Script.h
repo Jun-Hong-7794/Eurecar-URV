@@ -25,7 +25,6 @@
 #define DR_VEHICLE_DRIVE_TO_PANEL            0x1003
 #define DR_VEHICLE_PARKING                   0x1004
 
-
 //Manipulation
 /*New LRF Kinova Control*/
 #define MP_LRF_K_VERTIVAL_CONTROL            0x2017
@@ -47,6 +46,10 @@
 #define MP_KINOVA_ROTATE_VALVE               0x2007
 
 #define MP_GRIPPER_GO_TO_REL_POSE            0x2022
+
+#define MP_ROTATOR                           0x2023
+
+#define MP_KINOVA_LRF_VALVE_SEARCHING        0x2024
 
 /*Old LRF Kinova Control*/
 #define MP_LRF_KINOVA_VERTIVAL_CONTROL       0x2008

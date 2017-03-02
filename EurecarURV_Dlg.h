@@ -102,6 +102,9 @@ public slots:
     void SlotButtonLMS511Switch();
     void SlotButtonRotatorSwitch();
 
+    void SlotButtonDrivingSensorSwitch();
+    void SlotButtonManipulatorSensorSwitch();
+
     //ListView
     void SlotMissionListUpdate(QModelIndex);
 

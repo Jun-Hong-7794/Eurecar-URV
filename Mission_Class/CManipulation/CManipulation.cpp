@@ -486,6 +486,13 @@ bool CManipulation::SelectMainFunction(int _fnc_index_){
         return true;
     }
 
+    else if(_fnc_index_ == MANIPUL_INX_KINOVA_LRF_VALVE_SEARCHING){
+        m_main_fnc_index = MANIPUL_INX_KINOVA_LRF_VALVE_SEARCHING;
+        this->start();
+
+        return true;
+    }
+
     else if(_fnc_index_ == MANIPUL_INX_LRF_K_VERTIVAL_CTRL){
         m_main_fnc_index = MANIPUL_INX_LRF_K_VERTIVAL_CTRL;
         this->start();
@@ -509,6 +516,13 @@ bool CManipulation::SelectMainFunction(int _fnc_index_){
 
     else if(_fnc_index_ == MANIPUL_INX_LRF_V_HORIZEN_CTRL){
         m_main_fnc_index = MANIPUL_INX_LRF_V_HORIZEN_CTRL;
+        this->start();
+
+        return true;
+    }
+
+    else if(_fnc_index_ == MANIPUL_INX_ROTATOR){
+        m_main_fnc_index = MANIPUL_INX_ROTATOR;
         this->start();
 
         return true;
@@ -545,6 +559,31 @@ LRF_SENSING_INFO_STRUCT CManipulation::GetLRFSensingInfo(){
     mxt_lrf_sensing_info.unlock();
 
     return lrf_sensing_info_struct;
+}
+
+//---------------Rotator---------------//
+void CManipulation::SetManipulationOption(ROTATOR_STRUCT _manipulation_option){
+
+
+    mxt_rotator .lock();
+    {
+        mstruct_rotator = _manipulation_option;
+    }
+    mxt_rotator.unlock();
+
+}
+
+ROTATOR_STRUCT CManipulation::GetRotatorOption(){
+
+    ROTATOR_STRUCT lrf_kinova_struct;
+
+    mxt_rotator .lock();
+    {
+        lrf_kinova_struct = mstruct_rotator;
+    }
+    mxt_rotator.unlock();
+
+    return lrf_kinova_struct;
 }
 
 /*LRF Ctrl New Version*/
@@ -994,6 +1033,29 @@ KINOVA_FIT_TO_VALVE_POSE_STRUCT CManipulation::GetFitToValvePoseOption(){
     mxt_fit_to_valve_pose.unlock();
 
     return fit_to_valve_pose;
+}
+
+void CManipulation::SetManipulationOption(KINOVA_LRF_VALVE_SEARCHING_STRUCT _manipulation_option){
+
+    mxt_valve_searching.lock();
+    {
+        mstruct_valve_searching = _manipulation_option;
+    }
+    mxt_valve_searching.unlock();
+
+}
+
+KINOVA_LRF_VALVE_SEARCHING_STRUCT CManipulation::GetKinovaLRFValveSearchingOption(){
+
+    KINOVA_LRF_VALVE_SEARCHING_STRUCT valve_searching;
+
+    mxt_fit_to_valve_pose.lock();
+    {
+        valve_searching = mstruct_valve_searching;
+    }
+    mxt_fit_to_valve_pose.unlock();
+
+    return valve_searching;
 }
 
 //-------------------------------------------------
@@ -1702,6 +1764,20 @@ bool CManipulation::LRFKinovaHorizenControl(){
         count = 0;
     }
     while(true);
+
+    return true;
+}
+
+bool CManipulation::DynamixelRotate(){
+
+    if(!mpc_gripper->IsRotatorInit())
+        return false;
+
+    ROTATOR_STRUCT rotator_option = GetRotatorOption();
+
+    mpc_gripper->RotatorGoToThePosition(rotator_option.desired_position);
+
+    msleep(300);
 
     return true;
 }
@@ -2441,8 +2517,12 @@ bool CManipulation::KinovaDoManipulate(){
     kinova_pose.Coordinates.ThetaY = kinova_manipulate.pitch;
     kinova_pose.Coordinates.ThetaX = kinova_manipulate.yaw;
 
-//    mpc_kinova->KinovaDoManipulate(kinova_pose, kinova_manipulate.force_threshold);
-    mpc_kinova->KinovaDoManipulate(kinova_pose, 2);
+
+    if(kinova_manipulate.mode == 3){
+        mpc_kinova->KinovaDoManipulate(kinova_pose, 3);
+    }
+    else
+        mpc_kinova->KinovaDoManipulate(kinova_pose, 2);
 
     return true;
 }
@@ -2507,6 +2587,71 @@ bool CManipulation::KinovaRotateValveMotion(){
     }
     else{
         mpc_kinova->KinovaRotateValveMotion(VALVE_ROTATE_DIR(CCW), kinova_rotate_valve.radius, kinova_rotate_valve.theta);
+    }
+
+    return true;
+}
+
+bool CManipulation::KinovaLRFValveSearching(){
+
+    if(!mpc_lrf->IsLRFOn())
+        return false;
+    if(!mpc_kinova->IsKinovaInitialized())
+        return false;
+
+    KINOVA_LRF_VALVE_SEARCHING_STRUCT valve_searching = GetKinovaLRFValveSearchingOption();
+
+    int current_num_point = 0;
+    double position_threshold = 0.02;/*m*/
+
+    CartesianPosition position;
+    position = mpc_kinova->KinovaGetPosition();
+
+    double desired_y_position = 0 ;
+
+    if(valve_searching.mode == 1)
+        desired_y_position = position.Coordinates.Y + valve_searching.searching_length * 0.01;
+    if(valve_searching.mode == 2)
+        desired_y_position = position.Coordinates.Y - valve_searching.searching_length * 0.01;
+    //-----------------------------------------------
+    // Precise Move
+    //-----------------------------------------------
+    do{
+        current_num_point = mpc_rgb_d->SearchingValvePointOnPanel(valve_searching.s_deg, valve_searching.e_deg,
+                                              valve_searching.maximum_lrf_dst, valve_searching.height_thresh);
+
+        std::cout << "num_point: " << current_num_point  << std::endl;
+
+        if(current_num_point > valve_searching.num_point_thresh)
+            break;
+
+        if(position_threshold > fabs(desired_y_position - position.Coordinates.Y))
+            return false;
+
+        if(valve_searching.mode == 1){
+            mpc_kinova->KinovaMoveUnitStepLe();
+        }
+
+        else if(valve_searching.mode == 2){
+            mpc_kinova->KinovaMoveUnitStepRi();
+        }
+
+        if(valve_searching.loop_sleep != 0)
+            msleep(valve_searching.loop_sleep/*msec*/);
+    }
+    while(true);
+
+    msleep(300);
+
+    position = mpc_kinova->KinovaGetPosition();
+
+    if(valve_searching.mode == 1){
+        position.Coordinates.Y -= (valve_searching.offset * 0.01)/*m*/;
+        mpc_kinova->KinovaDoManipulate(position, 2);
+    }
+    else if(valve_searching.mode == 2){
+        position.Coordinates.Y += (valve_searching.offset * 0.01)/*m*/;
+        mpc_kinova->KinovaDoManipulate(position, 2);
     }
 
     return true;
@@ -2686,7 +2831,8 @@ bool CManipulation::GripperKinovaValveSizeRecognition(){
 
                 if(m_valve_size_retry_num > gripper_kinova_valve_recog.retry_num){
                     SetValveSizeRecogResult(19);
-                    gripper_kinova_valve_recog.valve_size = 30;
+                    gripper_kinova_valve_recog.valve_size = 19;
+                    gripper_kinova_valve_recog.rotation_angle = 30;
                     SetManipulationOption(gripper_kinova_valve_recog);
                     return true;
                 }
@@ -2725,7 +2871,8 @@ bool CManipulation::GripperKinovaValveSizeRecognition(){
 
             if(m_valve_size_retry_num > gripper_kinova_valve_recog.retry_num){
                 SetValveSizeRecogResult(19);
-                gripper_kinova_valve_recog.valve_size = 30;
+                gripper_kinova_valve_recog.valve_size = 19;
+                gripper_kinova_valve_recog.rotation_angle = 30;
                 SetManipulationOption(gripper_kinova_valve_recog);
                 return true;
             }
@@ -2774,7 +2921,8 @@ bool CManipulation::GripperKinovaValveSizeRecognition(){
 
         if(m_valve_size_retry_num > gripper_kinova_valve_recog.retry_num){
             SetValveSizeRecogResult(19);
-            gripper_kinova_valve_recog.valve_size = 30;
+            gripper_kinova_valve_recog.valve_size = 19;
+            gripper_kinova_valve_recog.rotation_angle = 30;
             SetManipulationOption(gripper_kinova_valve_recog);
             return true;
         }
@@ -2816,7 +2964,8 @@ bool CManipulation::GripperKinovaValveSizeRecognition(){
         if(m_valve_size_retry_num > gripper_kinova_valve_recog.retry_num){
 
             SetValveSizeRecogResult(19);
-            gripper_kinova_valve_recog.valve_size = rotation_angle;
+            gripper_kinova_valve_recog.valve_size = 19;
+            gripper_kinova_valve_recog.rotation_angle = rotation_angle;
             SetManipulationOption(gripper_kinova_valve_recog);
 
             valve_model = ValveModeling(gripper_kinova_valve_recog.valve_size, gripper_kinova_valve_recog.rotation_angle);
@@ -3061,6 +3210,12 @@ void CManipulation::run(){
         break;
     case MANIPUL_INX_KINOVA_ALIGN_TO_PANEL:
         KinovaAlignPanel();
+        break;
+    case MANIPUL_INX_KINOVA_LRF_VALVE_SEARCHING:
+        KinovaLRFValveSearching();
+        break;
+    case MANIPUL_INX_ROTATOR:
+        DynamixelRotate();
         break;
     case SENSING_LRF_PANEL_LOCALIZATION:
         LRFLocalizationOnPanel();
