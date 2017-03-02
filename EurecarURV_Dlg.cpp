@@ -103,6 +103,9 @@ EurecarURV_Dlg::EurecarURV_Dlg(QWidget *parent) :
     //View System Message
     connect(mpc_script,SIGNAL(SignalScriptMessage(QString)), this, SLOT(SlotViewSystemMessage(QString)));
 
+    // Click Check Box
+    connect(ui->ch_viewer,SIGNAL(clicked()), this, SLOT(SlotButtonViewerCheckBox()));
+
     //-------------------------------------------------
     // PCL Init For Velodyne
     //-------------------------------------------------
@@ -369,6 +372,17 @@ void EurecarURV_Dlg::SlotButtonVehicleSwitch(){
 
 void EurecarURV_Dlg::SlotButtonCameraSwitch(){
 
+}
+
+void EurecarURV_Dlg::SlotButtonViewerCheckBox(){
+    if(ui->ch_viewer->isChecked())
+    {
+        m_viewer_on = true;
+    }
+    else
+    {
+        m_viewer_on = false;
+    }
 }
 
 void EurecarURV_Dlg::SlotButtonMissionRun(){
@@ -745,10 +759,12 @@ void EurecarURV_Dlg::ScriptInfoDisplay(){
 
 void EurecarURV_Dlg::SlotVeloyneParser(bool _parser_complete){
     if(_parser_complete){
-//        mpc_velodyne->mtx_pcl_class.lock();
-//        ui->qvtk_velodyne_main_dlg->update();
-
-//        mpc_velodyne->mtx_pcl_class.unlock();
+        if(m_viewer_on)
+        {
+            mpc_velodyne->mtx_pcl_class.lock();
+            ui->qvtk_velodyne_main_dlg->update();
+            mpc_velodyne->mtx_pcl_class.unlock();
+        }
     }
     if((mpc_lms511->IsLMS511Init()) && (!mpc_lms511->isRunning()))
     {

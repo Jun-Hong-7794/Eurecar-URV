@@ -86,7 +86,7 @@
     <property name="geometry">
      <rect>
       <x>12</x>
-      <y>265</y>
+      <y>290</y>
       <width>71</width>
       <height>16</height>
      </rect>
@@ -458,9 +458,9 @@
     <property name="geometry">
      <rect>
       <x>13</x>
-      <y>288</y>
+      <y>308</y>
       <width>651</width>
-      <height>451</height>
+      <height>431</height>
      </rect>
     </property>
    </widget>
@@ -906,6 +906,19 @@ Sensor On</string>
       </property>
      </widget>
     </widget>
+   </widget>
+   <widget class="QCheckBox" name="ch_viewer">
+    <property name="geometry">
+     <rect>
+      <x>564</x>
+      <y>280</y>
+      <width>91</width>
+      <height>20</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Viewer On</string>
+    </property>
    </widget>
   </widget>
   <widget class="QMenuBar" name="menuBar">

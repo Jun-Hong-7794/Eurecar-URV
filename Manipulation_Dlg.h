@@ -98,6 +98,7 @@ private:// Graphic Scene
     QGraphicsScene *mp_valve_image_grahicscene;
     QGraphicsScene *mp_panel_image_grahicscene;
 
+
 public://Display Image to Qt Graphicview
     QImage Mat2QImage(cv::Mat src);
     void Display_Image(cv::Mat,QGraphicsScene*,QGraphicsView*,bool _fl_clear = false);

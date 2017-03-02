@@ -61,6 +61,10 @@ private:
     //-------------------------------------------------
     CScript* mpc_script;
 
+
+private:// Viewer on of flag
+    bool m_viewer_on = true;
+
 public://Display Image to Qt Graphicview
     QImage Mat2QImage(cv::Mat src);
     void Display_Image(cv::Mat,QGraphicsScene*,QGraphicsView*,bool _fl_clear = false);
@@ -104,6 +108,9 @@ public slots:
 
     void SlotButtonDrivingSensorSwitch();
     void SlotButtonManipulatorSensorSwitch();
+
+    // Check Box
+    void SlotButtonViewerCheckBox();
 
     //ListView
     void SlotMissionListUpdate(QModelIndex);
