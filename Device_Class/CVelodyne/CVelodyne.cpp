@@ -115,94 +115,6 @@ bool CVelodyne::IsVelodyneConneted(){
     return fl_velodyne_thread;
 }
 
-//vector<cv::Point2f> CVelodyne::CalcGroundBodyPoint_IMU()
-//{
-//    // current location and heading are needed
-//    double cur_heading = mpc_imu->GetEulerAngles().at(2);
-
-//    cur_heading = (1.0) * cur_heading * 180.0 / PI;
-
-//    double dist =0.;
-//    // dist calc from cur pos to init pos
-
-//    double bearing=0;
-//    // bearing calc from cur pos to init pos
-
-
-//    double shift_x,shift_y =0;
-
-//    shift_x = (dist*1000.0) * cos((cur_heading + bearing) * PI / 180);
-//    shift_y = (dist*1000.0) * sin((cur_heading + bearing) * PI / 180);
-
-//    double rotate_angle_degree = cur_heading;
-//    rotate_angle_rad = rotate_angle_degree * PI / 180;
-
-//    vector<cv::Point2f> ground_rotated; //order : left lefttop righttop right
-
-
-
-//    //////////////////////////////////// test distance ////////////////////////////////////
-//    double test_ratio = 0.1;
-
-//    //left
-//    ground_point.at(0).x = 0 *test_ratio;
-//    ground_point.at(0).y = -45 *test_ratio;
-
-//    //lefttop
-//    ground_point.at(1).x = -60 *test_ratio;
-//    ground_point.at(1).y = -45 *test_ratio;
-
-//    //righttop
-//    ground_point.at(2).x = -60 *test_ratio;
-//    ground_point.at(2).y = 45 *test_ratio;
-
-//    //right
-//    ground_point.at(3).x = 0 *test_ratio;
-//    ground_point.at(3).y = 45 *test_ratio;
-//    ///////////////////////////////////////////////////////////////////////////////////////
-
-
-
-//    for(int i=0; i<4; i++)
-//    {
-//        ground_rotated[i].x = ground_point[i].x * cos(rotate_angle_rad) - ground_point[i].y * sin(rotate_angle_rad) + shift_x;
-//        ground_rotated[i].y = ground_point[i].x * sin(rotate_angle_rad) + ground_point[i].y * cos(rotate_angle_rad) - shift_y;
-//    }
-
-//    return ground_rotated;
-
-
-//}
-//bool CVelodyne::CheckInBoundary_IMU(vector<cv::Point2f> _ground_point, double _obj_x, double _obj_y)
-//{
-//    cv::Point2f CheckReferPoint[4];
-
-//    double cur_heading = mpc_imu->GetEulerAngles().at(2);
-
-//    for(int i = 0; i < 4 ;i++)
-//    {
-//        CheckReferPoint[i].x = _ground_point[i].x*cos(-cur_heading) - _ground_point[i].y*sin(-cur_heading);
-//        CheckReferPoint[i].y = _ground_point[i].x*sin(-cur_heading) + _ground_point[i].y*cos(-cur_heading);
-//    }
-
-//    double rotate_object_x = _obj_x * cos(-cur_heading) - _obj_y * sin(-cur_heading);
-//    double rotate_object_y = _obj_x * sin(-cur_heading) + _obj_y * cos(-cur_heading);
-
-//    double x_min,x_max,y_min,y_max;
-
-//    y_min = (CheckReferPoint[0].y > CheckReferPoint[3].y ? CheckReferPoint[3].y : CheckReferPoint[0].y);
-//    y_max = (CheckReferPoint[0].y < CheckReferPoint[3].y ? CheckReferPoint[3].y : CheckReferPoint[0].y);
-//    x_min = (CheckReferPoint[3].x > CheckReferPoint[2].x ? CheckReferPoint[2].x : CheckReferPoint[3].x);
-//    x_max = (CheckReferPoint[3].x < CheckReferPoint[2].x ? CheckReferPoint[2].x : CheckReferPoint[3].x);
-
-//    if(rotate_object_x < x_max && rotate_object_x > x_min && rotate_object_y < y_max && rotate_object_y > y_min )
-//        return true;
-//    else
-//        return false;
-//}
-
-
-
 
 bool CVelodyne::RunVelodyne(){
 
@@ -210,11 +122,6 @@ bool CVelodyne::RunVelodyne(){
         std::cout << "Velodyne Init First!" << std::endl;
         return false;
     }
-
-//    if(!mpc_gps->IsGPSConnected()){
-//        std::cout << "GPS Init First!" << std::endl;
-////        return false;
-//    }
 
     SetVelodyneMode(VELODYNE_MODE_DRIVING);
 
@@ -243,9 +150,6 @@ bool CVelodyne::RunVelodyne(){
 
     double clustering_tolerence = 0.1;
     double clustering_count_tolerence = 50;
-//    double clustering_max_count_tolerence = 50;
-//    double parking_distance = 0.5;
-//    double side_distance = 0.7;
     double waypoint_converged_margin = 0.15;
 
     while(fl_velodyne_thread)
@@ -315,7 +219,7 @@ bool CVelodyne::RunVelodyne(){
                         sum_dist += sqrt(mpc_pcl->lms511_cloud->points[lms511_point_index].x*mpc_pcl->lms511_cloud->points[lms511_point_index].x + mpc_pcl->lms511_cloud->points[lms511_point_index].y*mpc_pcl->lms511_cloud->points[lms511_point_index].y);
                         panel_point_index++;
                     }
-                    else if ((lms_point_dist > 0.1) && (lms_point_dist < 3.0)) // Save lms511 point cloud for parking
+                    else if ((lms_point_dist > 0.05) && (lms_point_dist < 3.5)) // Save lms511 point cloud for parking
                     {
                         lms511_point_parking_raw->points.push_back(mpc_pcl->lms511_cloud->points[lms511_point_index]);
                     }
@@ -346,7 +250,7 @@ bool CVelodyne::RunVelodyne(){
             mpc_pcl->viewer->updatePointCloud(mpc_pcl->lms511_cloud,"lms511_cloud");
 
 
-            if(lms511_point_parking_raw->points.size() != 0)
+            if(lms511_point_parking_raw->points.size() >= 2)
             {
                 // Ransac lms511 data for control parking distance
                 Eigen::VectorXf coeff_lms511;
@@ -478,18 +382,18 @@ bool CVelodyne::RunVelodyne(){
                             minimum_z = mpc_pcl->cloud->points[point_index].z;
 
                         }
-                        if(CheckInBoundary(mpc_pcl->cloud->points[point_index].x, mpc_pcl->cloud->points[point_index].y))
-                        {
+//                        if(CheckInBoundary(mpc_pcl->cloud->points[point_index].x, mpc_pcl->cloud->points[point_index].y))
+//                        {
                             mpc_pcl->cloud->points[point_index].r = 0;
                             mpc_pcl->cloud->points[point_index].g = 0;
                             mpc_pcl->cloud->points[point_index].b = 255;
-                        }
-                        else
-                        {
-                            mpc_pcl->cloud->points[point_index].r = 255;
-                            mpc_pcl->cloud->points[point_index].g = 255;
-                            mpc_pcl->cloud->points[point_index].b = 255;
-                        }
+//                        }
+//                        else
+//                        {
+//                            mpc_pcl->cloud->points[point_index].r = 255;
+//                            mpc_pcl->cloud->points[point_index].g = 255;
+//                            mpc_pcl->cloud->points[point_index].b = 255;
+//                        }
 
 
                         point_index++;
@@ -529,9 +433,6 @@ bool CVelodyne::RunVelodyne(){
                         {
                             if((firing_vertical_angle[k] == 0.0))
                             {
-//                                mpc_pcl->cloud->points[point_index].r = 255;
-//                                mpc_pcl->cloud->points[point_index].g = 0;
-//                                mpc_pcl->cloud->points[point_index].b = 0;
 
                                 if(mpc_pcl->m_dist_data[k][(j + i*VELODYNE_BOLCKS_NUM)]*0.001 > max_dist)
                                 {
@@ -557,21 +458,6 @@ bool CVelodyne::RunVelodyne(){
                                             max_clustering_member_count = clustering_member_count;
                                             (*max_points_clustering_indices).indices = (*tmp_inlier).indices;
                                         }
-//                                        mpc_pcl->cloud->points[point_index].r = cv::saturate_cast<uchar>(255 - clustering_index*10);
-//                                        mpc_pcl->cloud->points[point_index].g = cv::saturate_cast<uchar>(128 + clustering_index*10);
-//                                        mpc_pcl->cloud->points[point_index].b = cv::saturate_cast<uchar>(clustering_index*10);
-//                                        if(clustering_index % 2 ==0)
-//                                        {
-//                                            mpc_pcl->cloud->points[point_index].r = 255;
-//                                            mpc_pcl->cloud->points[point_index].g = 0;
-//                                            mpc_pcl->cloud->points[point_index].b = 0;
-//                                        }
-//                                        else
-//                                        {
-//                                            mpc_pcl->cloud->points[point_index].r = 255;
-//                                            mpc_pcl->cloud->points[point_index].g = 255;
-//                                            mpc_pcl->cloud->points[point_index].b = 255;
-//                                        }
                                     }
                                     else
                                     {
@@ -611,9 +497,6 @@ bool CVelodyne::RunVelodyne(){
                                             max_clustering_member_count1 = clustering_member_count2;
                                             (*max_points_clustering_indices1 ).indices = (*tmp_inlier1).indices;
                                         }
-//                                        mpc_pcl->cloud->points[point_index].r = cv::saturate_cast<uchar>(255 - clustering_index2*10);
-//                                        mpc_pcl->cloud->points[point_index].g = cv::saturate_cast<uchar>(128 + clustering_index2*10);
-//                                        mpc_pcl->cloud->points[point_index].b = cv::saturate_cast<uchar>(clustering_index2*10);
                                     }
                                     else
                                     {
@@ -634,10 +517,7 @@ bool CVelodyne::RunVelodyne(){
 
                             else
                             {
-                                /*
-                                mpc_pcl->cloud->points[point_index].r = 0;
-                                mpc_pcl->cloud->points[point_index].g = 0;
-                                mpc_pcl->cloud->points[point_index].b = 255;*/
+
                             }
                         }
                         point_index++;
@@ -663,11 +543,6 @@ bool CVelodyne::RunVelodyne(){
 
             if(velodyne_mode == VELODYNE_MODE_DRIVING)
             {
-                waypoint_x = mean_panel_x + driving_waypoint_x_margin;
-//                waypoint_y = mean_panel_y + driving_waypoint_y_margin;
-
-                waypoint_y = mean_panel_y;
-
                 if(mpc_pcl->cloud->points.size() != 0)
                     mpc_pcl->viewer->updatePointCloud(mpc_pcl->cloud,"cloud");
 
@@ -736,7 +611,6 @@ bool CVelodyne::RunVelodyne(){
 
                 lrf_panel_length = 2*lrf_maximum_dist_from_ransac_mean;
 
-//                lrf_panel_dist = sqrt(lrf_ransac_line_mean_x*lrf_ransac_line_mean_x + lrf_ransac_line_mean_y*lrf_ransac_line_mean_y);
 
                 if( coeff_lrf.rows() != 6)
                 {
@@ -1005,9 +879,6 @@ bool CVelodyne::RunVelodyne(){
                                         mpc_pcl->panelpoint_cloud->points[i].x = transform_result_x;
                                         mpc_pcl->panelpoint_cloud->points[i].y = transform_result_y;
                                         mpc_pcl->panelpoint_cloud->points[i].z = 0;
-//                                        mpc_pcl->panelpoint_cloud->points[i].r = 255;
-//                                        mpc_pcl->panelpoint_cloud->points[i].g = 255;
-//                                        mpc_pcl->panelpoint_cloud->points[i].b = 255;
                                     }
 
 
@@ -1916,7 +1787,6 @@ std::vector<double> CVelodyne::GetLRFPanelInfo()
 {
     mtx_pcl_class.lock();
     std::vector<double> panel_info;
-
     panel_info.push_back(lrf_slope_norm_x);
     panel_info.push_back(lrf_slope_norm_y);
     panel_info.push_back(lrf_panel_length);
@@ -1947,7 +1817,7 @@ bool CVelodyne::SetLRFDataToPCL(long *_lrf_data,int _num_of_points)
     mpc_pcl->lrf_cloud->clear();
     for(int i = 0;i<_num_of_points;i++)
     {
-        if((_lrf_data[i] <= 2500)&& (_lrf_data[i] >= 30))
+        if((_lrf_data[i] <= 3500)&& (_lrf_data[i] >= 30))
         {
 
 
@@ -1966,6 +1836,25 @@ bool CVelodyne::SetLRFDataToPCL(long *_lrf_data,int _num_of_points)
 }
 
 void CVelodyne::SetLMS511DataToPCL(vector<vector<double> > _x_and_y)
+{
+    mtx_pcl_class.lock();
+    mpc_pcl->lms511_cloud->clear();
+
+    for(int i = 0; i < _x_and_y.size();i++)
+    {
+        pcl::PointXYZRGBA point_lms511;
+        point_lms511.x = -(_x_and_y.at(i)).at(1);
+        point_lms511.y = (_x_and_y.at(i)).at(0);
+        point_lms511.z = 0.3;
+        point_lms511.r = 255;
+        point_lms511.g = 0;
+        point_lms511.b = 0;
+        mpc_pcl->lms511_cloud->points.push_back(point_lms511);
+    }
+    mtx_pcl_class.unlock();
+}
+
+void CVelodyne::SlotLMS511UpdatePoints(vector<vector<double>> _x_and_y)
 {
     mtx_pcl_class.lock();
     mpc_pcl->lms511_cloud->clear();
@@ -2056,53 +1945,40 @@ int CVelodyne::GetCurrentWaypointIndex()
     return current_waypoint_index;
 }
 
+bool boundary_update_finsh = true;
 void CVelodyne::SetArenaBoundary(vector<vector<double> > _arena_info, double _shift_x, double _shift_y, double _rotation_angle)
 {
-    if((_shift_x == 0) && (_shift_y == 0) && (_rotation_angle == 0))
+    if(boundary_update_finsh)
     {
-        arena_default_info = _arena_info;
-        arena_info = _arena_info;
-        rotated_arena_info = _arena_info;
-    }
-    else
-    {
-        for(int i =0;i < 4;i++)
+        boundary_update_finsh = false;
+
+        if((_shift_x == 0) && (_shift_y == 0) && (_rotation_angle == 0))
         {
-            (arena_info.at(i)).at(0) = ((arena_default_info.at(i)).at(0) + _shift_x)*cos(_rotation_angle) - ((arena_default_info.at(i)).at(1) + _shift_y)*sin(_rotation_angle);
-            (arena_info.at(i)).at(1) = ((arena_default_info.at(i)).at(0) + _shift_x)*sin(_rotation_angle) + ((arena_default_info.at(i)).at(1) + _shift_y)*cos(_rotation_angle);
+            arena_default_info = _arena_info;
+            arena_info = _arena_info;
+            rotated_arena_info = _arena_info;
         }
+        else
+        {
+            for(int i =0;i < 4;i++)
+            {
+                (arena_info.at(i)).at(0) = ((arena_default_info.at(i)).at(0) + _shift_x)*cos(_rotation_angle) - ((arena_default_info.at(i)).at(1) + _shift_y)*sin(_rotation_angle);
+                (arena_info.at(i)).at(1) = ((arena_default_info.at(i)).at(0) + _shift_x)*sin(_rotation_angle) + ((arena_default_info.at(i)).at(1) + _shift_y)*cos(_rotation_angle);
+            }
+        }
+
+        arena_rotation_angle = _rotation_angle;
+        arena_shift_x = _shift_x;
+        arena_shift_y = _shift_y;
+
+        for(int i = 0; i < 4; i++)
+        {
+            (rotated_arena_info.at(i)).at(0) = ((arena_info.at(i)).at(0))*cos(-arena_rotation_angle) - ((arena_info.at(i)).at(1))*sin(-arena_rotation_angle);
+            (rotated_arena_info.at(i)).at(1) = ((arena_info.at(i)).at(0))*sin(-arena_rotation_angle) + ((arena_info.at(i)).at(1))*cos(-arena_rotation_angle);
+        }
+        boundary_update_finsh = true;
     }
 
-//    double actual_arena_lt_to_rt_vec_x  = (arena_info.at(2)).at(0) - (arena_info.at(1)).at(0);
-//    double actual_arena_lt_to_rt_vec_y  = (arena_info.at(2)).at(1) - (arena_info.at(1)).at(1);
-//    double actual_arena_lt_to_rt_vec_angle = atan2(actual_arena_lt_to_rt_vec_y,actual_arena_lt_to_rt_vec_x);
-
-//    if(actual_arena_lt_to_rt_vec_angle < 0)
-//    {
-//        actual_arena_lt_to_rt_vec_angle += 2*PI;
-//    }
-
-//    double initial_arena_lt_to_rt_vec_x = 0;
-//    double initial_arena_lt_to_rt_vec_y = 1;
-//    double initial_arena_lt_to_rt_vec_angle = atan2(initial_arena_lt_to_rt_vec_y,initial_arena_lt_to_rt_vec_x);
-
-//    if(initial_arena_lt_to_rt_vec_angle < 0)
-//    {
-//        initial_arena_lt_to_rt_vec_angle += 2*PI;
-//    }
-
-//    arena_rotation_angle = initial_arena_lt_to_rt_vec_angle - actual_arena_lt_to_rt_vec_angle;
-
-
-    arena_rotation_angle = _rotation_angle;
-    arena_shift_x = _shift_x;
-    arena_shift_y = _shift_y;
-
-    for(int i = 0; i < 4; i++)
-    {
-        (rotated_arena_info.at(i)).at(0) = ((arena_info.at(i)).at(0))*cos(-arena_rotation_angle) - ((arena_info.at(i)).at(1))*sin(-arena_rotation_angle);
-        (rotated_arena_info.at(i)).at(1) = ((arena_info.at(i)).at(0))*sin(-arena_rotation_angle) + ((arena_info.at(i)).at(1))*cos(-arena_rotation_angle);
-    }
 }
 
 bool CVelodyne::CheckInBoundary(double _x, double _y)
@@ -2142,11 +2018,6 @@ void CVelodyne::viewer_update_geofence(pcl::visualization::PCLVisualizer& viewer
             pcl_pt_ground.push_back(pcl_pt_tmp);
         }
 
-//        viewer.removeAllShapes();
-//        viewer.addLine(pcl_pt_ground.at(0),pcl_pt_ground.at(1),128,128,128,"line1");
-//        viewer.addLine(pcl_pt_ground.at(1),pcl_pt_ground.at(2),128,128,128,"line2");
-//        viewer.addLine(pcl_pt_ground.at(2),pcl_pt_ground.at(3),128,128,128,"line3");
-//        viewer.addLine(pcl_pt_ground.at(3),pcl_pt_ground.at(0),128,128,128,"line4");
     }
 }
 //----------------------------------------------------------------

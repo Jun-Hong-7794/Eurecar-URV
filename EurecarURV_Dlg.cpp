@@ -745,7 +745,10 @@ void EurecarURV_Dlg::ScriptInfoDisplay(){
 
 void EurecarURV_Dlg::SlotVeloyneParser(bool _parser_complete){
     if(_parser_complete){
-        ui->qvtk_velodyne_main_dlg->update();
+//        mpc_velodyne->mtx_pcl_class.lock();
+//        ui->qvtk_velodyne_main_dlg->update();
+
+//        mpc_velodyne->mtx_pcl_class.unlock();
     }
     if((mpc_lms511->IsLMS511Init()) && (!mpc_lms511->isRunning()))
     {

@@ -43,11 +43,14 @@ public:
 
     ~CVelodyne();
 
+    QMutex mtx_pcl;
+    QMutex mtx_pcl_class;
+
+
 private:
 
     // PCL Class
     CPCL* mpc_pcl;
-    QMutex mtx_pcl;
 
     //GPS Class
     CGPS* mpc_gps;
@@ -64,7 +67,6 @@ private:
 
     bool fl_pause_status = false;
 
-    QMutex mtx_pcl_class;
     QMutex mtx_parse_state;
 
     //UDP Class
@@ -219,6 +221,7 @@ public:
     CGPS* GetGPS();
 
 public slots:
+    void SlotLMS511UpdatePoints(vector<vector<double>> _x_and_y);
     void SignalRecieveParam(bool ps);
 
 signals:
