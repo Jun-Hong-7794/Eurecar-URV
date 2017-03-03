@@ -2896,6 +2896,7 @@ bool CManipulation::GripperKinovaValveSizeRecognition(){
         emit SignalValveSizeData(gripper_data_x, gripper_data_y, m_valve_size_graph_index);
 
         mpc_gripper->GripperGoToThePositionLoadCheck(release_pose_1, release_pose_2, -2);
+        msleep(300);
 
         // KINOVA_PI / grasp_trial => if(i == grasp_trial) => Half Rotation
         if((grasp_trial/2) > (i) ){
@@ -2907,13 +2908,11 @@ bool CManipulation::GripperKinovaValveSizeRecognition(){
             current_pose.Coordinates.ThetaZ -= (KINOVA_PI / grasp_trial);
         }
         mpc_kinova->KinovaDoManipulate(current_pose, 3);
-
-        msleep(100);
     };
 
     m_valve_size_graph_index++;
 
-    mpc_gripper->GripperGoToThePositionLoadCheck(2300, 2300, -2);
+    mpc_gripper->GripperGoToThePositionLoadCheck(2800, 2800, -2);
 
     msleep(300);
 

@@ -28,7 +28,8 @@
 
 #define DXL_ID                          1
 #define BAUDRATE                        1000000
-#define DEVICENAME                      "/dev/ttyUSB0"
+#define DEVICENAME_MX                      "/dev/ttyUSB0"
+#define DEVICENAME_PR                      "/dev/ttyUSB1"
 
 #define TORQUE_ENABLE                   1
 #define TORQUE_DISABLE                  0
@@ -60,7 +61,7 @@
 #define DXL_GOAL_VELOCITY_VALUE         300//1100
 #define DXL_INITIAL_POSITION_VALUE      2300 //2300
 
-#define DXL1_OFFSET                     160
+#define DXL2_OFFSET                     300
 #define ESC_ASCII_VALUE                 0x1b
 
 /*
@@ -210,12 +211,12 @@ public:
 
     //Port
     bool GripperPortInit(char* _device_port = (char *)"/dev/ttyUSB0");
-    bool RotatorPortInit(char* _device_port = (char *)"/dev/ttyUSB0");
+    bool RotatorPortInit(char* _device_port = (char *)"/dev/ttyUSB1");
 
     bool CloseDynamixelPort();
 
     //Rotator /*Dynamixel Pro*/
-    bool InitRotator(char* _device_port = (char *)"/dev/ttyUSB0");
+    bool InitRotator(char* _device_port = (char *)"/dev/ttyUSB1");
     void CloseRotator();
     bool RotatorTorque(bool _onoff);
 
