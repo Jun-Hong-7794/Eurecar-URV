@@ -1837,9 +1837,10 @@ bool CVelodyne::SetLRFDataToPCL(long *_lrf_data,int _num_of_points)
 
 void CVelodyne::SetLMS511DataToPCL(vector<vector<double> > _x_and_y)
 {
-    mtx_pcl_class.lock();
+//    mtx_pcl_class.lock();
     mpc_pcl->lms511_cloud->clear();
 
+//    cout << _x_and_y.size() << endl;
     for(int i = 0; i < _x_and_y.size();i++)
     {
         pcl::PointXYZRGBA point_lms511;
@@ -1851,26 +1852,34 @@ void CVelodyne::SetLMS511DataToPCL(vector<vector<double> > _x_and_y)
         point_lms511.b = 0;
         mpc_pcl->lms511_cloud->points.push_back(point_lms511);
     }
-    mtx_pcl_class.unlock();
+//    mtx_pcl_class.unlock();
 }
 
+bool update_complete = true;
 void CVelodyne::SlotLMS511UpdatePoints(vector<vector<double>> _x_and_y)
 {
-    mtx_pcl_class.lock();
-    mpc_pcl->lms511_cloud->clear();
-
-    for(int i = 0; i < _x_and_y.size();i++)
+    if(update_complete)
     {
-        pcl::PointXYZRGBA point_lms511;
-        point_lms511.x = -(_x_and_y.at(i)).at(1);
-        point_lms511.y = (_x_and_y.at(i)).at(0);
-        point_lms511.z = 0.3;
-        point_lms511.r = 255;
-        point_lms511.g = 0;
-        point_lms511.b = 0;
-        mpc_pcl->lms511_cloud->points.push_back(point_lms511);
+        update_complete = false;
+        mtx_pcl_class.lock();
+    //    cout << _x_and_y.size() << endl;
+
+        mpc_pcl->lms511_cloud->clear();
+
+        for(int i = 0; i < _x_and_y.size();i++)
+        {
+            pcl::PointXYZRGBA point_lms511;
+            point_lms511.x = -(_x_and_y.at(i)).at(1);
+            point_lms511.y = (_x_and_y.at(i)).at(0);
+            point_lms511.z = 0.3;
+            point_lms511.r = 255;
+            point_lms511.g = 0;
+            point_lms511.b = 0;
+            mpc_pcl->lms511_cloud->points.push_back(point_lms511);
+        }
+        mtx_pcl_class.unlock();
+        update_complete = true;
     }
-    mtx_pcl_class.unlock();
 }
 
 void CVelodyne::SetLRFWaypointToPCL(vector<vector<double> > _waypoint)
@@ -1976,6 +1985,7 @@ void CVelodyne::SetArenaBoundary(vector<vector<double> > _arena_info, double _sh
             (rotated_arena_info.at(i)).at(0) = ((arena_info.at(i)).at(0))*cos(-arena_rotation_angle) - ((arena_info.at(i)).at(1))*sin(-arena_rotation_angle);
             (rotated_arena_info.at(i)).at(1) = ((arena_info.at(i)).at(0))*sin(-arena_rotation_angle) + ((arena_info.at(i)).at(1))*cos(-arena_rotation_angle);
         }
+//        Sleep(30);
         boundary_update_finsh = true;
     }
 

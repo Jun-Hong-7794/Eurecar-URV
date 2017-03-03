@@ -136,7 +136,7 @@ bool CLMS511::ConnectLMS511()
 
 void CLMS511::DataRecv()
 {
-    mtx_lms.lock();
+//    mtx_lms.lock();
     lms_struct_poll_telegram lms_poll_telegram;
     char telegram_buff[TELEGRAM_SIZE];
 
@@ -205,7 +205,7 @@ void CLMS511::DataRecv()
     {
         parse_complete = false;
     }
-    mtx_lms.unlock();
+//    mtx_lms.unlock();
 }
 
 

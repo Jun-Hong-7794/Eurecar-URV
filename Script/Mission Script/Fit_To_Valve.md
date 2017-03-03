@@ -329,11 +329,11 @@ KINOVA_ROTATE_VALVE_STRUCT.center_z = 0.1686
 
 KINOVA_ROTATE_VALVE_STRUCT.theta = 400
 
-/*KINOVA_ROTATE_VALVE_STRUCT.wrench_size = gi_valve_size
-/*KINOVA_ROTATE_VALVE_STRUCT.valve_rotation_angle = gb_valve_rotation
-
-KINOVA_ROTATE_VALVE_STRUCT.wrench_size = 16
+KINOVA_ROTATE_VALVE_STRUCT.wrench_size = gi_valve_size
 KINOVA_ROTATE_VALVE_STRUCT.valve_rotation_angle = gb_valve_rotation
+
+/*KINOVA_ROTATE_VALVE_STRUCT.wrench_size = 16
+/*KINOVA_ROTATE_VALVE_STRUCT.valve_rotation_angle = gb_valve_rotation
 
 KINOVA_ROTATE_VALVE_STRUCT.radius_16mm = 12
 KINOVA_ROTATE_VALVE_STRUCT.radius_17mm = 14

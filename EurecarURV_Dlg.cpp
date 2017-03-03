@@ -123,7 +123,7 @@ EurecarURV_Dlg::EurecarURV_Dlg(QWidget *parent) :
     (mpc_drivig->GetPCL())->viewer->addPointCloud( (mpc_drivig->GetPCL())->mission_boundary_cloud,"mission_boundary_cloud");
 
     (mpc_drivig->GetPCL())->viewer->setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE,1,"cloud");
-    (mpc_drivig->GetPCL())->viewer->setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE,1,"lms511_cloud");
+    (mpc_drivig->GetPCL())->viewer->setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE,10,"lms511_cloud");
     (mpc_drivig->GetPCL())->viewer->setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE,5,"waypoint_cloud");
     (mpc_drivig->GetPCL())->viewer->setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE,5,"panelpoint_cloud");
     (mpc_drivig->GetPCL())->viewer->setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE,1,"lrf_cloud");

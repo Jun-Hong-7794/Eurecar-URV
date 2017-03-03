@@ -30,7 +30,7 @@ ROTATOR_STRUCT.desired_position = 0
 ROTATOR_STRUCT.fl_rotator_torque = true
 
 ROTATOR_FUNCTION()
-A_Sleep(2000)
+A_Sleep(2500)
 
 ## Step1: LRF-Kinova Vertical CTRL(NEW)
 
@@ -38,7 +38,7 @@ LRF_K_VERTICAL_CTRL_STRUCT.mode = 2
 
 LRF_K_VERTICAL_CTRL_STRUCT.only_sensing_moving = false
 
-LRF_K_VERTICAL_CTRL_STRUCT.desired_v_dst = 270
+LRF_K_VERTICAL_CTRL_STRUCT.desired_v_dst = 280
 LRF_K_VERTICAL_CTRL_STRUCT.error = 2
 
 LRF_K_VERTICAL_CTRL_STRUCT.s_deg = 10
