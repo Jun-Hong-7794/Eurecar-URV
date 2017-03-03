@@ -1,7 +1,5 @@
 #include "CVehicle.h"
 
-QMutex mtx_vehicle;
-
 CVehicle::CVehicle(){
 
     fl_isGO = false;
@@ -33,7 +31,10 @@ int CVehicle::Connect(char* _dev_path){
 
     if(!fl_connection){
         if(mc_device.Connect(_dev_path) == RQ_SUCCESS)
+        {
             fl_connection = true;
+            this->start();
+        }
         else
             fl_connection = false;
     }
@@ -62,7 +63,6 @@ bool CVehicle::InitEncoder()
 
 vector<int> CVehicle::GetEncoderValue()
 {
-    mtx_vehicle.lock();
     vector<int> tmp;
     int tmp_int;
     int tmp_int2;
@@ -70,29 +70,30 @@ vector<int> CVehicle::GetEncoderValue()
     mc_device.GetValue(UGV_DEF_F,2,tmp_int2);
     tmp.push_back(abs(tmp_int));
     tmp.push_back(abs(tmp_int2));
-    mtx_vehicle.unlock();
     return tmp;
 }
 
 vector<int> CVehicle::GetEncoderValueRaw()
 {
+//    vector<int> tmp;
+//    int tmp_int;
+//    int tmp_int2;
+//    mc_device.GetValue(UGV_DEF_ABCNTR,1,tmp_int);
+//    mc_device.GetValue(UGV_DEF_ABCNTR,2,tmp_int2);
+//    tmp.push_back(tmp_int);
+//    tmp.push_back(tmp_int2);
+//    return tmp;
+//    while(m_enc_val.size() != 2) {};
+
+    vector<int> return_encoder_val = {0,0};
     mtx_vehicle.lock();
-    vector<int> tmp;
-    int tmp_int;
-    int tmp_int2;
-    mc_device.GetValue(UGV_DEF_ABCNTR,1,tmp_int);
-    mc_device.GetValue(UGV_DEF_ABCNTR,2,tmp_int2);
-    tmp.push_back(tmp_int);
-    tmp.push_back(tmp_int2);
+    return_encoder_val = m_enc_val;
     mtx_vehicle.unlock();
-    return tmp;
+    return m_enc_val;
 }
 
 int CVehicle::CalcDistToEnc_m(double _dist_meter)
 {
-//    double coef[5] = {0.3341 , -6.1275, 38.2482, 0, 42.0522};
-//    double tmp = _dist_meter*_dist_meter*_dist_meter*_dist_meter * coef[0] + _dist_meter*_dist_meter*_dist_meter * coef[1] + _dist_meter*_dist_meter*coef[2] + _dist_meter*coef[3] + coef[4];
-
     double coeff[2] = {93.1531, -28.2715};
     double tmp = _dist_meter*coeff[0] + coeff[1];
 
@@ -106,39 +107,79 @@ void CVehicle::Disconnect(){
 
 bool CVehicle::Move(int _dir, int _vel){
 
+    int control_target_velocity = _vel;
     int rst__left_side = -1;
     int rst_right_side = -1;
 
+    // Check point start for vehicle turning availability ------------------
+
+    gettimeofday(&m_cur_time,NULL);
+
+    long time_lapsed = 0;
+    double heading_changed = 0.0;
+
+    if((_dir == m_past_direction_command) && ((_dir == UGV_move_left) || (_dir == UGV_move_right) || (_dir == UGV_move_differ_left)))
+    {
+        if(m_reference_timestamp == 0)
+        {
+            m_reference_timestamp = m_cur_time.tv_sec*1000 + (double)m_cur_time.tv_usec/1000.0;
+            m_reference_heading = m_current_heading;
+        }
+        else
+        {
+            m_current_timestamp = m_cur_time.tv_sec*1000 + (double)m_cur_time.tv_usec/1000.0;
+            time_lapsed = m_current_timestamp - m_reference_timestamp;
+            heading_changed = abs(m_current_heading - m_reference_heading)/3.1415926535*180.0;
+            if( (time_lapsed > 1000) && (heading_changed < 20.0))
+            {
+                int vel_increase_scale_factor = time_lapsed/1000 + 1;
+
+                control_target_velocity = _vel + 10*vel_increase_scale_factor;
+            }
+
+            // velocity increase saturation
+            if(control_target_velocity > 150)
+            {
+                control_target_velocity = 150;
+            }
+        }
+    }
+    else
+    {
+        m_reference_timestamp = 0;
+    }
+    // ---------------------------------------------------------------------
+
     switch (_dir) {
     case UGV_move_forward:
-        m_vel = _vel;
+        m_vel = control_target_velocity;
         m_dir = UGV_move_forward;
-        rst__left_side = mc_device.SetCommand(UGV_DEF_GO,1,_vel*(1.1));
-        rst_right_side = mc_device.SetCommand(UGV_DEF_GO,2,_vel*(-1.1));
+        rst__left_side = mc_device.SetCommand(UGV_DEF_GO,1,m_vel*(1.1));
+        rst_right_side = mc_device.SetCommand(UGV_DEF_GO,2,m_vel*(-1.1));
         break;
     case UGV_move_backward:
-        m_vel = _vel;
+        m_vel = control_target_velocity;
         m_dir = UGV_move_backward;
-        rst__left_side = mc_device.SetCommand(UGV_DEF_GO,2,_vel*(1.1));
-        rst_right_side = mc_device.SetCommand(UGV_DEF_GO,1,_vel*(-1.1));
+        rst__left_side = mc_device.SetCommand(UGV_DEF_GO,2,m_vel*(1.1));
+        rst_right_side = mc_device.SetCommand(UGV_DEF_GO,1,m_vel*(-1.1));
         break;
     case UGV_move_left:
-        m_vel = _vel;
+        m_vel = control_target_velocity;
         m_dir = UGV_move_left;
-        rst__left_side = mc_device.SetCommand(UGV_DEF_GO,1,_vel*(-2.2));
-        rst_right_side = mc_device.SetCommand(UGV_DEF_GO,2,_vel*(-2.2));
+        rst__left_side = mc_device.SetCommand(UGV_DEF_GO,1,m_vel*(-2.2));
+        rst_right_side = mc_device.SetCommand(UGV_DEF_GO,2,m_vel*(-2.2));
         break;
     case UGV_move_right:
-        m_vel = _vel;
+        m_vel = control_target_velocity;
         m_dir = UGV_move_right;
-        rst__left_side = mc_device.SetCommand(UGV_DEF_GO,1,_vel*(2.2));
-        rst_right_side = mc_device.SetCommand(UGV_DEF_GO,2,_vel*(2.2));
+        rst__left_side = mc_device.SetCommand(UGV_DEF_GO,1,m_vel*(2.2));
+        rst_right_side = mc_device.SetCommand(UGV_DEF_GO,2,m_vel*(2.2));
         break;
     case UGV_move_differ_left:
-        m_vel = _vel;
+        m_vel = control_target_velocity;
         m_dir = UGV_move_differ_left;
-        rst__left_side = mc_device.SetCommand(UGV_DEF_GO,1,_vel*(-1.8));
-        rst_right_side = mc_device.SetCommand(UGV_DEF_GO,2,_vel*(-3));
+        rst__left_side = mc_device.SetCommand(UGV_DEF_GO,1,m_vel*(-1.8));
+        rst_right_side = mc_device.SetCommand(UGV_DEF_GO,2,m_vel*(-3));
         break;
     default:
         break;
@@ -154,7 +195,7 @@ bool CVehicle::Move(int _dir, int _vel){
         return false;
     }
 
-    sleepms(20);
+    sleepms(30);
 
     return true;
 }
@@ -193,6 +234,21 @@ int CVehicle::GetVel()
     return m_vel;
 }
 
+void CVehicle::CheckEncoderValue()
+{
+    mtx_vehicle.lock();
+    mc_device.GetValue(UGV_DEF_ABCNTR,1,m_enc_right);
+    mc_device.GetValue(UGV_DEF_ABCNTR,2,m_enc_left);
+    m_enc_val.clear();
+    m_enc_val.push_back(m_enc_right);
+    m_enc_val.push_back(m_enc_left);
+    mtx_vehicle.unlock();
+}
+
+void CVehicle::SlotVehicleHeading(double _heading)
+{
+    m_current_heading = _heading;
+}
 
 //----------------------------------------------------------------
 //
@@ -202,8 +258,14 @@ int CVehicle::GetVel()
 
 void CVehicle::run()
 {
-    while(fl_isGO){
-        Move(m_dir,m_vel);
+//    while(fl_isGO){
+//        Move(m_dir,m_vel);
+//        sleepms(20);
+//    }
+
+    while(fl_connection)
+    {
+        CheckEncoderValue();
         sleepms(20);
     }
 }

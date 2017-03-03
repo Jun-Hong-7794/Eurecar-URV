@@ -5,10 +5,6 @@ vector<vector<double>> lrf_waypoint = {{1.5,1.425}, {0.0,1.425}, {-1.5,1.425}, {
 double lrf_waypoint_update_thres = 0.2;
 
 double parking_dist_margin = 0.2;
-
-QMutex driving_mutex;
-
-
 CDriving::CDriving(){
 
 }
@@ -32,7 +28,9 @@ CDriving::CDriving(CIMU* _p_imu, CGPS* _p_gps, CLRF* _p_lrf, CCamera* _p_camera,
 
     connect(mpc_velodyne,SIGNAL(SignalVelodyneParser(bool)),this,SIGNAL(SignalVelodyneParser(bool)));
     connect(mpc_velodyne,SIGNAL(SignalVelodynePanelFound(bool)),this,SLOT(SlotVelodynePanelFound(bool)));
-    connect(mpc_lms511,SIGNAL(SignalLMS511UpdatePoints(vector<vector<double> >)),this,SLOT(SlotLMS511UpdatePoints(vector<vector<double> >)));
+//    connect(mpc_lms511,SIGNAL(SignalLMS511UpdatePoints(vector<vector<double> >)),this,SLOT(SlotLMS511UpdatePoints(vector<vector<double> >)));
+    connect(mpc_lms511,SIGNAL(SignalLMS511UpdatePoints(vector<vector<double> >)),this,SIGNAL(SignalLMS511UpdatePoints(vector<vector<double> >)));
+    connect(this,SIGNAL(SignalLMS511UpdatePoints(vector<vector<double>>)),mpc_velodyne,SLOT(SlotLMS511UpdatePoints(vector<vector<double> >)));
 
     connect(mpc_rgb_d,SIGNAL(SignalLRFMapImage(cv::Mat)),this,SIGNAL(SignalLRFMapImage(cv::Mat)));
     connect(mpc_imu,SIGNAL(SignalIMUEuler(vector<double>)),this,SLOT(SlotIMUEuler(vector<double>)));
@@ -40,6 +38,8 @@ CDriving::CDriving(CIMU* _p_imu, CGPS* _p_gps, CLRF* _p_lrf, CCamera* _p_camera,
     connect(mpc_imu,SIGNAL(SignalIMUTimestamp(mip_ahrs_internal_timestamp)),this,SLOT(SlotIMUTimestamp(mip_ahrs_internal_timestamp)));
     connect(mpc_imu,SIGNAL(SignalIMUDeltaVelocity(mip_ahrs_delta_velocity)),this,SLOT(SlotIMUDeltaVelocity(mip_ahrs_delta_velocity)));
 
+
+    connect(this,SIGNAL(SignalVehicleHeading(double)),mpc_vehicle,SLOT(SlotVehicleHeading(double)));
 
     linear_accel.x = 0;
     linear_accel.y = 0;
@@ -470,6 +470,18 @@ bool CDriving::DriveToPanel(){
     cout << "Driving Start " << endl;
     mpc_velodyne->SetVelodyneMode(VELODYNE_MODE_DRIVING);
 
+    while(!panel_found)
+    {
+        driving_struct.direction = UGV_move_forward;
+        driving_struct.velocity =100;
+        mpc_vehicle->Move(driving_struct.direction,driving_struct.velocity);
+        if(arena_move_coordinate.at(0) < - 50)
+        {
+            cout << "Could not find panel" << endl;
+            return false;
+        }
+    }
+
     do{
 
         vector<double> way_point_error = GetWaypointError(mpc_velodyne->GetPanelCenterLoc().at(0) + 1.35,mpc_velodyne->GetPanelCenterLoc().at(1));
@@ -480,9 +492,7 @@ bool CDriving::DriveToPanel(){
         {
             if ( (way_point_error.at(1) < 0.5) /*|| (way_point_error.at(0)/way_point_error.at(1) > 1.0) */ )
             {
-                driving_mutex.lock();
                 mpc_vehicle->Move(UGV_move_backward, 0);
-                driving_mutex.unlock();
                 break;
             }
         }
@@ -499,11 +509,13 @@ bool CDriving::DriveToPanel(){
             break;
         case 1: // go forward
             driving_struct.direction = UGV_move_forward;
-            driving_struct.velocity =this->VelGen(way_point_error.at(1));
+//            driving_struct.velocity =this->VelGen(way_point_error.at(1));
+            driving_struct.velocity =100;
             break;
         case 2: // go backward
             driving_struct.direction = UGV_move_backward;
-            driving_struct.velocity =this->VelGen(way_point_error.at(1));
+            driving_struct.velocity =100;
+//            driving_struct.velocity =this->VelGen(way_point_error.at(1));
             break;
         default:
             driving_struct.direction = UGV_move_backward;
@@ -511,17 +523,15 @@ bool CDriving::DriveToPanel(){
             break;
         }
 
-        driving_mutex.lock();
         mpc_vehicle->Move(driving_struct.direction, driving_struct.velocity);
-        driving_mutex.unlock();
+
         Sleep(20);
 
     }while(driving_struct.driving_mission);
     cout << "driving mision done"<< endl;
 
-    driving_mutex.lock();
     mpc_vehicle->Move(UGV_move_backward, 0);
-    driving_mutex.unlock();
+
     mpc_velodyne->SetVelodyneMode(VELODYNE_MODE_PARKING);
 
     Sleep(2500);
@@ -536,9 +546,7 @@ bool CDriving::DriveToPanel(){
         cout << "Get panelpoints!" << endl;
         driving_struct.direction = UGV_move_backward;
         driving_struct.velocity =100;
-        driving_mutex.lock();
         mpc_vehicle->Move(driving_struct.direction, driving_struct.velocity);
-        driving_mutex.unlock();
         for(int i = 0; i < 6;i++)
         {
             panel_point_array[i].x = mpc_velodyne->GetPCL()->panelpoint_cloud->points[i].x;
@@ -549,9 +557,7 @@ bool CDriving::DriveToPanel(){
 
     driving_struct.direction = UGV_move_backward;
     driving_struct.velocity =0;
-    driving_mutex.lock();
     mpc_vehicle->Move(driving_struct.direction, driving_struct.velocity);
-    driving_mutex.unlock();
 
     double dist_arr[6] ={0,0,0,0,0,0};
     double min_dist = 1000000.;
@@ -705,9 +711,7 @@ bool CDriving::DriveToPanel(){
 
         driving_struct.direction = UGV_move_right;
         driving_struct.velocity =100;
-        driving_mutex.lock();
         mpc_vehicle->Move(driving_struct.direction, driving_struct.velocity);
-        driving_mutex.unlock();
         driving_struct.direction = UGV_move_right;
         driving_struct.velocity =0;
 
@@ -1014,7 +1018,7 @@ bool CDriving::ParkingFrontPanel(){
 
                     //// ------------------------------////////////////
 
-                    double front_panel_center_to_origin_x = - (detected_panel_info.at(3) + 0.1);
+                    double front_panel_center_to_origin_x = - (detected_panel_info.at(3) - 0.6);
                     double front_panel_center_to_origin_y = - detected_panel_info.at(4);
                     double front_panel_center_to_origin_angle = atan2(front_panel_center_to_origin_y, front_panel_center_to_origin_x);
 
@@ -1030,7 +1034,7 @@ bool CDriving::ParkingFrontPanel(){
                         angle_between_norm_origin = 2*PI - abs(angle_between_norm_origin);
                     }
 
-                    double front_panel_center_x_to_ugv = sqrt((detected_panel_info.at(3)+ 0.1)*(detected_panel_info.at(3)+ 0.1) + detected_panel_info.at(4)*detected_panel_info.at(4)) * sin(angle_between_norm_origin);
+                    double front_panel_center_x_to_ugv = sqrt((detected_panel_info.at(3) - 0.6)*(detected_panel_info.at(3) - 0.6) + detected_panel_info.at(4)*detected_panel_info.at(4)) * sin(angle_between_norm_origin);
 
 
                     double line_distance_to_origin;
@@ -1079,7 +1083,7 @@ bool CDriving::ParkingFrontPanel(){
                                     else
                                     {
                                         driving_struct.direction = UGV_move_forward;
-                                        driving_struct.velocity =70;
+                                        driving_struct.velocity =50;
                                     }
                                 }
                                 else
@@ -1124,7 +1128,7 @@ bool CDriving::ParkingFrontPanel(){
                                 else if (front_panel_center_x_to_ugv > 0.1)
                                 {
                                     driving_struct.direction = UGV_move_backward;
-                                    driving_struct.velocity =70;
+                                    driving_struct.velocity =50;
                                 }
                                 else
                                 {
@@ -1146,6 +1150,8 @@ bool CDriving::ParkingFrontPanel(){
     // Control the distance between front panel and ugv-----------------------------------------------
     //
     //
+
+    bool control_panel_front_dist = false;
     if(!mpc_drive_lrf->GetLRFData(lrf_distance_raw)){
         std::cout << "LRF : GetLRFData Error" << std::endl;
     }
@@ -1262,15 +1268,293 @@ bool CDriving::ParkingFrontPanel(){
                 double dist_margin = 0.1;
                 if(abs(dist_to_ugv_center - 1.05) > dist_margin)
                 {
-                    PanelFrontDistanceControlByLMS511();
+//                    PanelFrontDistanceControlByLMS511();
+                    control_panel_front_dist = true;
                 }
                 else
                 {
-
+                    control_panel_front_dist = false;
                 }
             }
         }
 
+    }
+
+
+    double parking_dist = 1.05;
+    double parking_thres = 0.05;
+
+    if(control_panel_front_dist)
+    {
+        while(1)
+        {
+            if(!mpc_drive_lrf->GetLRFData(lrf_distance_raw)){
+                std::cout << "LRF : GetLRFData Error" << std::endl;
+            }
+            else
+            {
+                memcpy(lrf_distance, &lrf_distance_raw[s_lrf_index], sizeof(long)*(number_of_point));
+                mpc_velodyne->SetLRFDataToPCL(lrf_distance,number_of_point);
+
+                do{
+                    detected_panel_info = mpc_velodyne->GetLRFPanelInfo();
+                }while((detected_panel_info.at(0) == 0) &&(detected_panel_info.at(1) == 0));
+
+                double panel_slope_atan2 = atan2(detected_panel_info.at(1),detected_panel_info.at(0));
+
+                if(panel_slope_atan2 < 0)
+                {
+                    panel_slope_atan2 += 2.0*PI;
+                }
+
+                panel_slope_norm_x = -detected_panel_info.at(1);
+                panel_slope_norm_y = detected_panel_info.at(0);
+
+
+                double panel_slope_norm = atan2(panel_slope_norm_y,panel_slope_norm_x);
+
+                if(panel_slope_norm < 0)
+                {
+                    panel_slope_norm += 2.0*PI;
+                }
+
+                double panel_length = detected_panel_info.at(2);
+
+                if(panel_length > 0.10) // any panel
+                {
+                    double panel_center_to_origin_x = -detected_panel_info.at(3);
+                    double panel_center_to_origin_y = -detected_panel_info.at(4);
+
+                    double panel_center_to_origin_slope = atan2(panel_center_to_origin_y,panel_center_to_origin_x);
+
+                    if(panel_center_to_origin_slope < 0)
+                    {
+                        panel_center_to_origin_slope += 2.0*PI;
+                    }
+
+                    double norm_to_origin_angle = abs(panel_center_to_origin_slope - panel_slope_norm);
+
+                    if (norm_to_origin_angle > PI)
+                    {
+                        norm_to_origin_angle -= PI;
+                    }
+
+                    if (acos((panel_slope_norm_x*panel_center_to_origin_x + panel_slope_norm_y*panel_center_to_origin_y)/(sqrt(panel_center_to_origin_x*panel_center_to_origin_x+panel_center_to_origin_y*panel_center_to_origin_y))) > 0.5*PI)
+                    {
+                        panel_slope_norm_x = -panel_slope_norm_x;
+                        panel_slope_norm_y = -panel_slope_norm_y;
+                    }
+
+                    double panel_slope_norm_angle = atan2(panel_slope_norm_y,panel_slope_norm_x);
+
+                    if (panel_slope_norm_angle < 0)
+                    {
+                        panel_slope_norm_angle += 2*PI;
+                    }
+
+                    //// Test section ----------------////////////////
+
+                    double panel_slope_norm_x_norm = panel_slope_norm_x/sqrt(panel_slope_norm_x*panel_slope_norm_x + panel_slope_norm_y*panel_slope_norm_y);
+                    double panel_slope_norm_y_norm = panel_slope_norm_y/sqrt(panel_slope_norm_x*panel_slope_norm_x + panel_slope_norm_y*panel_slope_norm_y);
+
+                    double angle_between_norm_and_panel_center_to_origin = abs(panel_slope_norm_angle - panel_center_to_origin_slope);
+
+                    if(angle_between_norm_and_panel_center_to_origin > PI)
+                    {
+                        angle_between_norm_and_panel_center_to_origin = 2*PI - angle_between_norm_and_panel_center_to_origin;
+                    }
+
+                    double panel_way_anchor_x = detected_panel_info.at(3) + panel_slope_norm_x_norm*sqrt(panel_center_to_origin_x*panel_center_to_origin_x + panel_center_to_origin_y*panel_center_to_origin_y)*cos(angle_between_norm_and_panel_center_to_origin);
+                    double panel_way_anchor_y = detected_panel_info.at(4) + panel_slope_norm_y_norm*sqrt(panel_center_to_origin_x*panel_center_to_origin_x + panel_center_to_origin_y*panel_center_to_origin_y)*cos(angle_between_norm_and_panel_center_to_origin);
+
+                    panel_way_x = panel_way_anchor_x + side_center_margin*(-panel_slope_norm_y_norm);
+                    panel_way_y = panel_way_anchor_y + side_center_margin*(panel_slope_norm_x_norm);
+
+                    double panel_center_to_way_x = panel_way_x - detected_panel_info.at(3);
+                    double panel_center_to_way_y = panel_way_y - detected_panel_info.at(4);
+
+                    double outer_product_panel_center_norm = panel_center_to_origin_x*panel_center_to_way_y - panel_center_to_origin_y*panel_center_to_way_x;
+
+                    //// ------------------------------////////////////
+                    double dist_to_ugv_center = 0;
+
+                    if(detected_panel_info.at(0) == 0)
+                    {
+                        dist_to_ugv_center = detected_panel_info.at(3);
+                    }
+                    else
+                    {
+                        double lrf_eq_a = detected_panel_info.at(1)/detected_panel_info.at(0);
+                        double lrf_eq_b = detected_panel_info.at(4) - lrf_eq_a*detected_panel_info.at(3);
+
+                        double dist_target_x = 0.4;
+                        double dist_target_y = 0;
+
+                        dist_to_ugv_center = abs(-lrf_eq_a*dist_target_x + dist_target_y - lrf_eq_b)/sqrt(lrf_eq_a*lrf_eq_a+1);
+                    }
+
+                    if((panel_slope_norm_angle > (0.0 + (5.0/180.0*PI))) && (panel_slope_norm_angle < (PI)))
+                    {
+                        driving_struct.direction = UGV_move_left;
+                        driving_struct.velocity = 100;
+                    }
+                    else if ((panel_slope_norm_angle >= (PI)) && (panel_slope_norm_angle < (2*PI - (5.0/180.0*PI))))
+                    {
+                        driving_struct.direction = UGV_move_right;
+                        driving_struct.velocity = 100;
+                    }
+                    else
+                    {
+                        if (dist_to_ugv_center > (parking_dist+ parking_thres))
+                        {
+                            driving_struct.direction = UGV_move_forward;
+                            driving_struct.velocity = 50;
+                        }
+                        else if (dist_to_ugv_center < parking_dist)
+                        {
+                            driving_struct.direction = UGV_move_backward;
+                            driving_struct.velocity = 50;
+                        }
+                        else
+                        {
+                            break;
+                        }
+                    }
+                }
+                mpc_vehicle->Move(driving_struct.direction,driving_struct.velocity);
+            }
+        }
+
+        while(1)
+        {
+            if(!mpc_drive_lrf->GetLRFData(lrf_distance_raw)){
+                std::cout << "LRF : GetLRFData Error" << std::endl;
+            }
+            else
+            {
+                memcpy(lrf_distance, &lrf_distance_raw[s_lrf_index], sizeof(long)*(number_of_point));
+                mpc_velodyne->SetLRFDataToPCL(lrf_distance,number_of_point);
+
+                do{
+                    detected_panel_info = mpc_velodyne->GetLRFPanelInfo();
+                }while((detected_panel_info.at(0) == 0) &&(detected_panel_info.at(1) == 0));
+
+                double panel_slope_atan2 = atan2(detected_panel_info.at(1),detected_panel_info.at(0));
+
+                if(panel_slope_atan2 < 0)
+                {
+                    panel_slope_atan2 += 2.0*PI;
+                }
+
+                panel_slope_norm_x = -detected_panel_info.at(1);
+                panel_slope_norm_y = detected_panel_info.at(0);
+
+
+                double panel_slope_norm = atan2(panel_slope_norm_y,panel_slope_norm_x);
+
+                if(panel_slope_norm < 0)
+                {
+                    panel_slope_norm += 2.0*PI;
+                }
+
+                double panel_length = detected_panel_info.at(2);
+
+                if(panel_length > 0.10) // any panel
+                {
+                    double panel_center_to_origin_x = -detected_panel_info.at(3);
+                    double panel_center_to_origin_y = -detected_panel_info.at(4);
+
+                    double panel_center_to_origin_slope = atan2(panel_center_to_origin_y,panel_center_to_origin_x);
+
+                    if(panel_center_to_origin_slope < 0)
+                    {
+                        panel_center_to_origin_slope += 2.0*PI;
+                    }
+
+                    double norm_to_origin_angle = abs(panel_center_to_origin_slope - panel_slope_norm);
+
+                    if (norm_to_origin_angle > PI)
+                    {
+                        norm_to_origin_angle -= PI;
+                    }
+
+                    if (acos((panel_slope_norm_x*panel_center_to_origin_x + panel_slope_norm_y*panel_center_to_origin_y)/(sqrt(panel_center_to_origin_x*panel_center_to_origin_x+panel_center_to_origin_y*panel_center_to_origin_y))) > 0.5*PI)
+                    {
+                        panel_slope_norm_x = -panel_slope_norm_x;
+                        panel_slope_norm_y = -panel_slope_norm_y;
+                    }
+
+                    double panel_slope_norm_angle = atan2(panel_slope_norm_y,panel_slope_norm_x);
+
+                    if (panel_slope_norm_angle < 0)
+                    {
+                        panel_slope_norm_angle += 2*PI;
+                    }
+
+                    //// Test section ----------------////////////////
+
+                    double panel_slope_norm_x_norm = panel_slope_norm_x/sqrt(panel_slope_norm_x*panel_slope_norm_x + panel_slope_norm_y*panel_slope_norm_y);
+                    double panel_slope_norm_y_norm = panel_slope_norm_y/sqrt(panel_slope_norm_x*panel_slope_norm_x + panel_slope_norm_y*panel_slope_norm_y);
+
+                    double angle_between_norm_and_panel_center_to_origin = abs(panel_slope_norm_angle - panel_center_to_origin_slope);
+
+                    if(angle_between_norm_and_panel_center_to_origin > PI)
+                    {
+                        angle_between_norm_and_panel_center_to_origin = 2*PI - angle_between_norm_and_panel_center_to_origin;
+                    }
+
+                    double panel_way_anchor_x = detected_panel_info.at(3) + panel_slope_norm_x_norm*sqrt(panel_center_to_origin_x*panel_center_to_origin_x + panel_center_to_origin_y*panel_center_to_origin_y)*cos(angle_between_norm_and_panel_center_to_origin);
+                    double panel_way_anchor_y = detected_panel_info.at(4) + panel_slope_norm_y_norm*sqrt(panel_center_to_origin_x*panel_center_to_origin_x + panel_center_to_origin_y*panel_center_to_origin_y)*cos(angle_between_norm_and_panel_center_to_origin);
+
+                    panel_way_x = panel_way_anchor_x + side_center_margin*(-panel_slope_norm_y_norm);
+                    panel_way_y = panel_way_anchor_y + side_center_margin*(panel_slope_norm_x_norm);
+
+                    double panel_center_to_way_x = panel_way_x - detected_panel_info.at(3);
+                    double panel_center_to_way_y = panel_way_y - detected_panel_info.at(4);
+
+                    double outer_product_panel_center_norm = panel_center_to_origin_x*panel_center_to_way_y - panel_center_to_origin_y*panel_center_to_way_x;
+
+                    //// ------------------------------////////////////
+                    double dist_to_ugv_center = 0;
+
+                    if(detected_panel_info.at(0) == 0)
+                    {
+                        dist_to_ugv_center = detected_panel_info.at(3);
+                    }
+                    else
+                    {
+                        double lrf_eq_a = detected_panel_info.at(1)/detected_panel_info.at(0);
+                        double lrf_eq_b = detected_panel_info.at(4) - lrf_eq_a*detected_panel_info.at(3);
+
+                        double dist_target_x = 0.4;
+                        double dist_target_y = 0;
+
+                        dist_to_ugv_center = abs(-lrf_eq_a*dist_target_x + dist_target_y - lrf_eq_b)/sqrt(lrf_eq_a*lrf_eq_a+1);
+                    }
+
+                    if((panel_slope_norm_angle > (0.5*PI + (10.0/180.0*PI))) && (panel_slope_norm_angle < (1.5*PI)))
+                    {
+                        driving_struct.direction = UGV_move_left;
+                        driving_struct.velocity =100;
+                    }
+                    else if (((panel_slope_norm_angle < (0.5*PI - (10.0/180.0*PI))) && (panel_slope_norm_angle >= 0)) || ((panel_slope_norm_angle > (1.5*PI)) && (panel_slope_norm_angle < 2*PI)))
+                    {
+                        driving_struct.direction = UGV_move_right;
+                        driving_struct.velocity =100;
+                    }
+                    else
+                    {
+                        driving_struct.direction = UGV_move_left;
+                        driving_struct.velocity =0;
+                        mpc_vehicle->Move(driving_struct.direction,driving_struct.velocity);
+                        break;
+                    }
+                }
+                mpc_vehicle->Move(driving_struct.direction,driving_struct.velocity);
+            }
+        }
+
+        Sleep(1000);
     }
 
     //
@@ -1485,7 +1769,7 @@ void CDriving::PanelFrontDistanceControlByLMS511()
 {
     DRIVING_STRUCT driving_struct;
 
-    double parking_dist = 0.75;
+    double parking_dist = 0.8;
     double parking_thres = 0.05;
     double dist_to_ugv_center = 0;
     vector<double> panel_info;
@@ -1493,8 +1777,10 @@ void CDriving::PanelFrontDistanceControlByLMS511()
     {
         // Get panel distance by lms511
         do{
-            panel_info = mpc_velodyne->GetLMS511PanelInfo();
-        }while((panel_info.at(0) == 0) && (panel_info.at(1) == 1));
+//            panel_info = mpc_velodyne->GetLMS511PanelInfo();
+            panel_info = mpc_velodyne->GetLRFPanelInfo();
+            cout << "panel info 0" << panel_info.at(0) << ", panel info 1 " << panel_info.at(1) << endl;
+        }while((panel_info.at(0) == 0) && (panel_info.at(1) == 0));
 
 
         ///////////////////////////////////////////////////
@@ -1573,7 +1859,6 @@ void CDriving::PanelFrontDistanceControlByLMS511()
 
         ///////////////////////////////////////////////
 
-
         if((panel_slope_norm_angle > (0.0 + (5.0/180.0*PI))) && (panel_slope_norm_angle < (PI)))
         {
             driving_struct.direction = UGV_move_left;
@@ -1597,6 +1882,12 @@ void CDriving::PanelFrontDistanceControlByLMS511()
                 driving_struct.velocity = 60;
             }
         }
+
+
+        cout << "panel slope norm x : " << panel_slope_norm_x << endl;
+        cout << "panel slope norm y : " << panel_slope_norm_y << endl;
+        cout << "panel_slope_norm_angle : " << panel_slope_norm_angle << endl;
+
 
         mpc_vehicle->Move(driving_struct.direction,driving_struct.velocity);
     }
@@ -1779,7 +2070,7 @@ CGPS* CDriving::GetGPS()
 // Slots
 void CDriving::SlotIMUEuler(vector<double> _euler_angles)
 {
-//    mpc_imu->mtx_imu.lock();
+    mpc_imu->mtx_imu.lock();
     if(IMU_update_finished)
     {
         IMU_update_finished = false;
@@ -1790,24 +2081,38 @@ void CDriving::SlotIMUEuler(vector<double> _euler_angles)
         {
             current_heading += 2*PI;
         }
+        emit SignalVehicleHeading(current_heading);
 
         if(arena_aligned_compensate)
         {
+            vector<int> encoder_new = mpc_vehicle->GetEncoderValueRaw();
+            if(encoder_new.size() != 2)
+            {
+                return;
+            }
+            else
+            {
+                past_encoder_value = current_encoder_value;
+                current_encoder_value = encoder_new;
+            }
+//            past_encoder_value = current_encoder_value;
+//            do
+//            {
+//                current_encoder_value = mpc_vehicle->GetEncoderValueRaw();
+//            }while(current_encoder_value.size() != 2);
             if((abs(current_encoder_value.at(0)) - abs(past_encoder_value.at(0)))*(abs(current_encoder_value.at(1)) - abs(past_encoder_value.at(1))) < 0) // vehicle is turning
             {
-//                encoder_bias_update = true;
-//                total_move_distance = 0;
-//                arena_move_coordinate_old.at(0) = arena_move_coordinate.at(0);
-//                arena_move_coordinate_old.at(0) = arena_move_coordinate.at(1);
+                encoder_bias_update = true;
             }
             else
             {
                 if(encoder_bias_update)
                 {
-//                    mpc_vehicle->InitEncoder();
-//                    encoder_bias_1 = current_encoder_value.at(0);
-//                    encoder_bias_2 = current_encoder_value.at(1);
-//                    encoder_bias_update = false;
+                    arena_move_coordinate_old.at(0) = arena_move_coordinate.at(0);
+                    arena_move_coordinate_old.at(1) = arena_move_coordinate.at(1);
+                    encoder_bias_1 = current_encoder_value.at(0);
+                    encoder_bias_2 = current_encoder_value.at(1);
+                    encoder_bias_update = false;
                 }
                 double encoder_change_mean = 0.5*(double)(abs(current_encoder_value.at(0) - encoder_bias_1) + abs(current_encoder_value.at(1)- encoder_bias_2));
                 if( ((current_encoder_value.at(0) - encoder_bias_1) < 0) &&  ((current_encoder_value.at(1) - encoder_bias_2) > 0))
@@ -1839,7 +2144,8 @@ void CDriving::SlotIMUEuler(vector<double> _euler_angles)
         }
         IMU_update_finished = true;
     }
-//    mpc_imu->mtx_imu.unlock();
+//    Sleep(30);
+    mpc_imu->mtx_imu.unlock();
 }
 
 void CDriving::SlotIMULinearAccel(mip_filter_linear_acceleration _linear_accel)
@@ -1859,14 +2165,14 @@ void CDriving::SlotIMUDeltaVelocity(mip_ahrs_delta_velocity _delta_velocity)
 
 void CDriving::SlotVelodynePanelFound(bool _panel_found)
 {
-    past_encoder_value = current_encoder_value;
-    current_encoder_value = mpc_vehicle->GetEncoderValueRaw();
     panel_found = _panel_found;
 }
 
 void CDriving::SlotLMS511UpdatePoints(vector<vector<double>> _point_list)
 {
+    mpc_lms511->mtx_lms.lock();
     mpc_velodyne->SetLMS511DataToPCL(_point_list);
+    mpc_lms511->mtx_lms.unlock();
 }
 
 //----------------------------------------------------------------

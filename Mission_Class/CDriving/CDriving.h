@@ -41,8 +41,8 @@
 #define MAX_VEL 200
 #define MIN_VEL 80
 #define ACCEL_RATE 5
-#define DECEL_RATE -8
-#define DECEL_START_DIST 1.8
+#define DECEL_RATE -15
+#define DECEL_START_DIST 2.0
 
 class CDriving:public QThread{
     Q_OBJECT
@@ -215,6 +215,11 @@ signals:
 
     //Arena information query singal
     void SignalDrivingQueryArenaInfo();
+
+    //Send haeding value to mpc_vehicle
+    void SignalVehicleHeading(double);
+
+    void SignalLMS511UpdatePoints(vector<vector<double>>);
 
 
 public slots:

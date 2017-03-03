@@ -136,6 +136,7 @@ bool CLMS511::ConnectLMS511()
 
 void CLMS511::DataRecv()
 {
+    mtx_lms.lock();
     lms_struct_poll_telegram lms_poll_telegram;
     char telegram_buff[TELEGRAM_SIZE];
 
@@ -168,9 +169,6 @@ void CLMS511::DataRecv()
         {
             uint16_t distance = 0;
             memset(&distance,0,2);
-
-            uint8_t distance_tmp[2];
-            memset(distance_tmp,0,2);
 
             switch((telegrem_buff_parse.at(j)).size())
             {
@@ -207,6 +205,7 @@ void CLMS511::DataRecv()
     {
         parse_complete = false;
     }
+    mtx_lms.unlock();
 }
 
 
@@ -215,6 +214,6 @@ void CLMS511::run()
     while(running_command)
     {
         DataRecv();
-        msleep(10);
+        msleep(30);
     }
 }
