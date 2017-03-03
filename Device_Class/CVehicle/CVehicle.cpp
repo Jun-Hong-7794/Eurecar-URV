@@ -111,6 +111,8 @@ bool CVehicle::Move(int _dir, int _vel){
     int rst__left_side = -1;
     int rst_right_side = -1;
 
+    cout << "current velocity : " << _vel << endl;
+
     // Check point start for vehicle turning availability ------------------
 
     gettimeofday(&m_cur_time,NULL);
@@ -156,30 +158,48 @@ bool CVehicle::Move(int _dir, int _vel){
         m_dir = UGV_move_forward;
         rst__left_side = mc_device.SetCommand(UGV_DEF_GO,1,m_vel*(1.1));
         rst_right_side = mc_device.SetCommand(UGV_DEF_GO,2,m_vel*(-1.1));
+        turn_continue_flag_left =0;
+        turn_continue_flag_right=0;
         break;
     case UGV_move_backward:
         m_vel = control_target_velocity;
         m_dir = UGV_move_backward;
         rst__left_side = mc_device.SetCommand(UGV_DEF_GO,2,m_vel*(1.1));
         rst_right_side = mc_device.SetCommand(UGV_DEF_GO,1,m_vel*(-1.1));
+        turn_continue_flag_left =0;
+        turn_continue_flag_right=0;
         break;
     case UGV_move_left:
         m_vel = control_target_velocity;
         m_dir = UGV_move_left;
         rst__left_side = mc_device.SetCommand(UGV_DEF_GO,1,m_vel*(-2.2));
         rst_right_side = mc_device.SetCommand(UGV_DEF_GO,2,m_vel*(-2.2));
+        turn_continue_flag_left =1;
+        turn_continue_flag_right=0;
         break;
     case UGV_move_right:
         m_vel = control_target_velocity;
         m_dir = UGV_move_right;
         rst__left_side = mc_device.SetCommand(UGV_DEF_GO,1,m_vel*(2.2));
         rst_right_side = mc_device.SetCommand(UGV_DEF_GO,2,m_vel*(2.2));
+        turn_continue_flag_left =0;
+        turn_continue_flag_right=1;
         break;
     case UGV_move_differ_left:
         m_vel = control_target_velocity;
         m_dir = UGV_move_differ_left;
         rst__left_side = mc_device.SetCommand(UGV_DEF_GO,1,m_vel*(-1.8));
         rst_right_side = mc_device.SetCommand(UGV_DEF_GO,2,m_vel*(-3));
+        turn_continue_flag_left =0;
+        turn_continue_flag_right=0;
+        break;
+    case UGV_move_differ_right:
+        m_vel = control_target_velocity;
+        m_dir = UGV_move_differ_right;
+        rst__left_side = mc_device.SetCommand(UGV_DEF_GO,1,m_vel*(1.8));
+        rst_right_side = mc_device.SetCommand(UGV_DEF_GO,2,m_vel*(3));
+        turn_continue_flag_left =0;
+        turn_continue_flag_right=0;
         break;
     default:
         break;

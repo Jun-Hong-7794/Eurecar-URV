@@ -39,8 +39,11 @@
 #define DRIVE_INX_LRF_VEHICLE_HORIZEN  4
 
 #define MAX_VEL 200
+#define MAX_VEL_TURN 200
+
 #define MIN_VEL 80
 #define ACCEL_RATE 5
+#define TURN_ACCEL_RATE 1
 #define DECEL_RATE -15
 #define DECEL_START_DIST 2.0
 
@@ -192,6 +195,8 @@ public:
     bool DriveToPanel();
     bool ParkingFrontPanel();
     int VelGen(double);
+    int VelGen_turn_left();
+    int VelGen_turn_right();
 
     bool LRFVehicleHorizenControl();
     bool LRFVehicleAngleControl();

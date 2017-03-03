@@ -6,7 +6,7 @@
 # Define Variable
 global_bool gb_bool_kinova_force_ctrl_rst = true;
 
-# Title: Valve Recognition
+# Title: Fit To Valve
 
 ## Step0: Align to Panel
 KINOVA_ALIGN_TO_PANEL.do_init_motion = false
@@ -14,32 +14,13 @@ KINOVA_ALIGN_TO_PANEL_FUNCTION()
 
 A_Sleep(1000)
 
-## Step1: LRF-Kinova Vertical CTRL
-
-IF(gi_valve_size > 19)
-
-KINOVA_MANIPULATE_STRUCT.x = ==
-KINOVA_MANIPULATE_STRUCT.y = ==
-KINOVA_MANIPULATE_STRUCT.z = ++0.05
-/*KINOVA_MANIPULATE_STRUCT.z = 0.2223
-
-KINOVA_MANIPULATE_STRUCT.roll = ==
-KINOVA_MANIPULATE_STRUCT.pitch = ==
-KINOVA_MANIPULATE_STRUCT.yaw = ==
-
-KINOVA_MANIPULATE_STRUCT.force_threshold = 10
-
-KINOVA_MANIPULATE_FUNCTION()
-
-A_Sleep(500)
-
 ## Step2: LRF-Kinova Vertical CTRL(New)
 
 LRF_K_VERTICAL_CTRL_STRUCT.mode = 3
 
 LRF_K_VERTICAL_CTRL_STRUCT.only_sensing_moving = false
 
-LRF_K_VERTICAL_CTRL_STRUCT.desired_v_dst = 300
+LRF_K_VERTICAL_CTRL_STRUCT.desired_v_dst = 270
 LRF_K_VERTICAL_CTRL_STRUCT.error = 2
 
 LRF_K_VERTICAL_CTRL_STRUCT.s_deg = 10
@@ -65,7 +46,7 @@ LRF_V_HORIZEN_CTRL_STRUCT.error = 20
 LRF_V_HORIZEN_CTRL_STRUCT.s_deg = 10
 LRF_V_HORIZEN_CTRL_STRUCT.e_deg = 170
 
-LRF_V_HORIZEN_CTRL_STRUCT.velocity = 50
+LRF_V_HORIZEN_CTRL_STRUCT.velocity = 63
 
 LRF_V_HORIZEN_CTRL_STRUCT.inlier_lrf_dst = 1100
 
@@ -82,6 +63,26 @@ KINOVA_ALIGN_TO_PANEL.do_init_motion = false
 KINOVA_ALIGN_TO_PANEL_FUNCTION()
 
 A_Sleep(500)
+
+## Step1: LRF-Kinova Vertical CTRL
+
+IF(!gb_bool_kinova_force_ctrl_rst)
+
+KINOVA_MANIPULATE_STRUCT.x = ==
+KINOVA_MANIPULATE_STRUCT.y = ==
+KINOVA_MANIPULATE_STRUCT.z = 0.4564
+/*KINOVA_MANIPULATE_STRUCT.z = 0.2223
+
+KINOVA_MANIPULATE_STRUCT.roll = ==
+KINOVA_MANIPULATE_STRUCT.pitch = ==
+KINOVA_MANIPULATE_STRUCT.yaw = ==
+
+KINOVA_MANIPULATE_STRUCT.force_threshold = 10
+
+KINOVA_MANIPULATE_FUNCTION()
+
+A_Sleep(500)
+
 
 ## Step5: Wrench Grasp
 
@@ -327,7 +328,7 @@ KINOVA_ROTATE_VALVE_STRUCT.center_x = 0
 KINOVA_ROTATE_VALVE_STRUCT.center_y = 0
 KINOVA_ROTATE_VALVE_STRUCT.center_z = 0.1686
 
-KINOVA_ROTATE_VALVE_STRUCT.theta = 400
+KINOVA_ROTATE_VALVE_STRUCT.theta = 55
 
 KINOVA_ROTATE_VALVE_STRUCT.wrench_size = gi_valve_size
 KINOVA_ROTATE_VALVE_STRUCT.valve_rotation_angle = gb_valve_rotation

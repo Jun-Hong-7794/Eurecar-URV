@@ -1171,7 +1171,7 @@ int CManipulation::DataAnalisys(QVector<double> _data){//For Valve Recognition, 
     QVector<double> x(_data.size());
 
     int valve_index = 0;
-//    int min_error = 999999;/*Just... Big Number*/
+    int min_error = 999999;/*Just... Big Number*/
     int max_index = 0;
     int ary_error[6] = {-1, -1, -1, -1, -1, -1};
     int result_valve = 0;//16,17,18,19,22,24mm
@@ -1185,63 +1185,65 @@ int CManipulation::DataAnalisys(QVector<double> _data){//For Valve Recognition, 
     for(int i = 0; i < 35; i++){
 
         if(!mqvec_sorted_16mm.isEmpty()){
-//            ary_error[0] += fabs(_data[i] - mqvec_sorted_16mm[i]);
-            if(error_bound > fabs(_data[i] - mqvec_sorted_16mm[i]))
-                ary_error[0]++;
+            ary_error[0] += fabs(_data[i] - mqvec_sorted_16mm[i]);
+//            if(error_bound > fabs(_data[i] - mqvec_sorted_16mm[i]))
+//                ary_error[0]++;
         }
         if(!mqvec_sorted_17mm.isEmpty()){
-//            ary_error[1] += fabs(_data[i] - mqvec_sorted_17mm[i]);
-            if(error_bound > fabs(_data[i] - mqvec_sorted_17mm[i]))
-                ary_error[1]++;
+            ary_error[1] += fabs(_data[i] - mqvec_sorted_17mm[i]);
+//            if(error_bound > fabs(_data[i] - mqvec_sorted_17mm[i]))
+//                ary_error[1]++;
         }
         if(!mqvec_sorted_18mm.isEmpty()){
-//            ary_error[2] += fabs(_data[i] - mqvec_sorted_18mm[i]);
-            if(error_bound > fabs(_data[i] - mqvec_sorted_18mm[i]))
-                ary_error[2]++;
+            ary_error[2] += fabs(_data[i] - mqvec_sorted_18mm[i]);
+//            if(error_bound > fabs(_data[i] - mqvec_sorted_18mm[i]))
+//                ary_error[2]++;
         }
         if(!mqvec_sorted_19mm.isEmpty()){
-//            ary_error[3] += fabs(_data[i] - mqvec_sorted_19mm[i]);
-            if(error_bound > fabs(_data[i] - mqvec_sorted_19mm[i]))
-                ary_error[3]++;
+            ary_error[3] += fabs(_data[i] - mqvec_sorted_19mm[i]);
+//            if(error_bound > fabs(_data[i] - mqvec_sorted_19mm[i]))
+//                ary_error[3]++;
         }
         if(!mqvec_sorted_22mm.isEmpty()){
-//            ary_error[4] += fabs(_data[i] - mqvec_sorted_22mm[i]);
-            if(error_bound > fabs(_data[i] - mqvec_sorted_22mm[i]))
-                ary_error[4]++;
+            ary_error[4] += fabs(_data[i] - mqvec_sorted_22mm[i]);
+//            if(error_bound > fabs(_data[i] - mqvec_sorted_22mm[i]))
+//                ary_error[4]++;
         }
         if(!mqvec_sorted_24mm.isEmpty()){
-//            ary_error[5] += fabs(_data[i] - mqvec_sorted_24mm[i]);
-            if(error_bound > fabs(_data[i] - mqvec_sorted_24mm[i]))
-                ary_error[5]++;
+            ary_error[5] += fabs(_data[i] - mqvec_sorted_24mm[i]);
+//            if(error_bound > fabs(_data[i] - mqvec_sorted_24mm[i]))
+//                ary_error[5]++;
+        }
+    }
+
+    for(int i = 0; i < 6/*Number of Valve*/; i++){
+        if(ary_error[i] != -1){
+            if(min_error > ary_error[i]){
+                valve_index = i;
+                min_error = ary_error[i];
+            }
         }
     }
 
 //    for(int i = 0; i < 6/*Number of Valve*/; i++){
 //        if(ary_error[i] != -1){
-//            if(min_error > ary_error[i]){
+//            if(ary_error[i] > max_index){
 //                valve_index = i;
-//                min_error = ary_error[i];
+//                max_index = ary_error[i];
 //            }
 //        }
 //    }
 
-    for(int i = 0; i < 6/*Number of Valve*/; i++){
-        if(ary_error[i] != -1){
-            if(ary_error[i] > max_index){
-                valve_index = i;
-                max_index = ary_error[i];
-            }
-        }
-    }
+//    if(ary_error[valve_index] < 20)
+//        return -1;
 
-    if(ary_error[valve_index] < 20)
-        return -1;
+//    if(max_index == 0){
+//        return -1;
+//    }
+//    else
+//        result_valve = mary_valve_size[valve_index];
 
-    if(max_index == 0){
-        return -1;
-    }
-    else
-        result_valve = mary_valve_size[valve_index];
+    result_valve = mary_valve_size[valve_index];
 
     return result_valve;
 }
@@ -2805,11 +2807,11 @@ bool CManipulation::GripperKinovaValveSizeRecognition(){
 
         gripper_status = mpc_gripper->GetGripperStatus();
 
-        if(gripper_status.present_pose_1 < grasp_pose_1 + 5){
+        if(gripper_status.present_pose_1 < grasp_pose_1 + 15){
             fl_gripper_1_not_reach = true;
         }
 
-        if(gripper_status.present_pose_2 < grasp_pose_2 + 5){
+        if(gripper_status.present_pose_2 < grasp_pose_2 + 15){
             fl_gripper_2_not_reach = true;
         }
 

@@ -335,6 +335,7 @@
 #define UGV_move_left 3
 #define UGV_move_right 4
 #define UGV_move_differ_left 5
+#define UGV_move_differ_right 6
 
 
 #endif

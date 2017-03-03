@@ -64,6 +64,9 @@ public:
     void CheckVolt();
     void CheckEncoderValue();
 
+    bool turn_continue_flag_left =0;
+    bool turn_continue_flag_right =0;
+
 
     bool InitEncoder();
     vector<int> GetEncoderValue();
