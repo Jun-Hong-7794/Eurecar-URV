@@ -190,10 +190,14 @@ public:
     //-------------------------------------------------
     // Drive Class Main Function
     //-------------------------------------------------
-    bool DrivingMissionManager();
-
     bool DriveToPanel();
     bool ParkingFrontPanel();
+
+    void ParkingDistanceControl();
+    void ParkingDistanceControl(double _bias);
+
+
+
     int VelGen(double);
     int VelGen_turn_left();
     int VelGen_turn_right();
@@ -206,6 +210,8 @@ public:
     void PanelFrontDistanceControlByLMS511();
 
     double CalcDistErrorToCheckPoint(double _dist_m);
+
+    bool DrivingMissionManager();
 
 
 
