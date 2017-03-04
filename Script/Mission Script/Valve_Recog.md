@@ -38,7 +38,7 @@ CHECK_CURRENT_V_DISTANCE_STRUCT.s_deg = 10
 CHECK_CURRENT_V_DISTANCE_STRUCT.e_deg = 170
 
 CHECK_CURRENT_V_DISTANCE_STRUCT.maximum_lrf_dst = 1100
-CHECK_CURRENT_V_DISTANCE_STRUCT.desired_v_dst = 500
+CHECK_CURRENT_V_DISTANCE_STRUCT.desired_v_dst = 290
 
 CHECK_CURRENT_V_DISTANCE_STRUCT.error_bound = 50
 
@@ -47,14 +47,23 @@ gb_check_v_dst_rst = CHECK_CURRENT_V_DISTANCE_FUNCTION()
 
 A_Sleep(500)
 
-# Step3: Parking Retry
-/*IF(!gb_check_v_dst_rst)
+## Step4: Rotator
+IF(!gb_check_v_dst_rst)
 
-PARKING_RETRY_STRUCT.bias = gd_check_v_dst;
+ROTATOR_STRUCT.desired_position = -70000
+ROTATOR_STRUCT.fl_rotator_torque = true
+
+ROTATOR_FUNCTION()
+A_Sleep(500)
+
+# Step5: Parking Retry
+IF(!gb_check_v_dst_rst)
+
+PARKING_RETRY_STRUCT.bias = gd_check_v_dst
 PARKING_RETRY_FUNCTION()
 A_Sleep(1000)
 
-## Step5: LRF-Kinova Vertical CTRL(NEW)
+## Step6: LRF-Kinova Vertical CTRL(NEW)
 IF(gb_check_v_dst_rst)
 
 LRF_K_VERTICAL_CTRL_STRUCT.mode = 2
@@ -76,7 +85,7 @@ A_Sleep(300)
 
 ELSE(GoTo:3)
 
-## Step2: Vehicle Horizen Control(New, Using Kinova-LRF)
+## Step7: Vehicle Horizen Control(New, Using Kinova-LRF)
 
 LRF_V_HORIZEN_CTRL_STRUCT.mode = 2
 
@@ -97,7 +106,7 @@ LRF_V_HORIZEN_CTRL_FUNCTION()
 
 A_Sleep(300)
 
-## Step3: Gripper Release
+## Step8: Gripper Release
 
 GRIPPER_FORCE_CTRL_STRUCT.pose_1 = 2800
 GRIPPER_FORCE_CTRL_STRUCT.pose_2 = 2800
@@ -107,7 +116,7 @@ GRIPPER_FORCE_CTRL_FUNCTION()
 
 A_Sleep(500)
 
-## Step4: KINOVA Angle Control(New, Using Dynamixel Pro-LRF)
+## Step9: KINOVA Angle Control(New, Using Dynamixel Pro-LRF)
 /* mode =2 => Left
 LRF_K_ANGLE_CTRL_STRUCT.mode = 2
 
@@ -127,7 +136,7 @@ LRF_K_ANGLE_CTRL_FUNCTION()
 
 A_Sleep(300)
 
-## Step4: LRF-Kinova Vertical CTRL(NEW)
+## Step10: LRF-Kinova Vertical CTRL(NEW)
 
 LRF_K_VERTICAL_CTRL_STRUCT.mode = 2
 
