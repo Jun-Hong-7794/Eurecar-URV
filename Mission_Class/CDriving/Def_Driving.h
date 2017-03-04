@@ -7,7 +7,7 @@ typedef struct _Driving_struct{
     bool driving_mission;
 
     int direction;
-    int velocity;
+    double velocity;
 
 }DRIVING_STRUCT;
 

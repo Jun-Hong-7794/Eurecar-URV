@@ -50,7 +50,7 @@ A_Sleep(500)
 ## Step4: Rotator
 IF(!gb_check_v_dst_rst)
 
-ROTATOR_STRUCT.desired_position = -70000
+ROTATOR_STRUCT.desired_position = -90000
 ROTATOR_STRUCT.fl_rotator_torque = true
 
 ROTATOR_FUNCTION()
@@ -63,13 +63,23 @@ PARKING_RETRY_STRUCT.bias = gd_check_v_dst
 PARKING_RETRY_FUNCTION()
 A_Sleep(1000)
 
+## Step4: Rotator
+IF(!gb_check_v_dst_rst)
+
+ROTATOR_STRUCT.desired_position = 0
+ROTATOR_STRUCT.fl_rotator_torque = true
+
+ROTATOR_FUNCTION()
+A_Sleep(500)
+
+
 ## Step6: LRF-Kinova Vertical CTRL(NEW)
 IF(gb_check_v_dst_rst)
 
 LRF_K_VERTICAL_CTRL_STRUCT.mode = 2
 LRF_K_VERTICAL_CTRL_STRUCT.only_sensing_moving = false
 
-LRF_K_VERTICAL_CTRL_STRUCT.desired_v_dst = 260
+LRF_K_VERTICAL_CTRL_STRUCT.desired_v_dst = 240
 LRF_K_VERTICAL_CTRL_STRUCT.error = 2
 
 LRF_K_VERTICAL_CTRL_STRUCT.s_deg = 10

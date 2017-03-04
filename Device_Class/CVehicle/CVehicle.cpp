@@ -63,14 +63,20 @@ bool CVehicle::InitEncoder()
 
 vector<int> CVehicle::GetEncoderValue()
 {
-    vector<int> tmp;
-    int tmp_int;
-    int tmp_int2;
-    mc_device.GetValue(UGV_DEF_F,1,tmp_int);
-    mc_device.GetValue(UGV_DEF_F,2,tmp_int2);
-    tmp.push_back(abs(tmp_int));
-    tmp.push_back(abs(tmp_int2));
-    return tmp;
+//    vector<int> tmp;
+//    int tmp_int;
+//    int tmp_int2;
+//    mc_device.GetValue(UGV_DEF_F,1,tmp_int);
+//    mc_device.GetValue(UGV_DEF_F,2,tmp_int2);
+//    tmp.push_back(abs(tmp_int));
+//    tmp.push_back(abs(tmp_int2));
+//    return tmp;
+
+    vector<int> return_encoder_val = {0,0};
+    mtx_vehicle.lock();
+    return_encoder_val = {abs(m_enc_val.at(0)),abs(m_enc_val.at(1))};
+    mtx_vehicle.unlock();
+    return return_encoder_val;
 }
 
 vector<int> CVehicle::GetEncoderValueRaw()
@@ -188,7 +194,7 @@ bool CVehicle::Move(int _dir, int _vel){
     case UGV_move_differ_left:
         m_vel = control_target_velocity;
         m_dir = UGV_move_differ_left;
-        rst__left_side = mc_device.SetCommand(UGV_DEF_GO,1,m_vel*(-1.8));
+        rst__left_side = mc_device.SetCommand(UGV_DEF_GO,1,m_vel*(-2.2));
         rst_right_side = mc_device.SetCommand(UGV_DEF_GO,2,m_vel*(-3));
         turn_continue_flag_left =0;
         turn_continue_flag_right=0;
@@ -196,7 +202,7 @@ bool CVehicle::Move(int _dir, int _vel){
     case UGV_move_differ_right:
         m_vel = control_target_velocity;
         m_dir = UGV_move_differ_right;
-        rst__left_side = mc_device.SetCommand(UGV_DEF_GO,1,m_vel*(1.8));
+        rst__left_side = mc_device.SetCommand(UGV_DEF_GO,1,m_vel*(2.2));
         rst_right_side = mc_device.SetCommand(UGV_DEF_GO,2,m_vel*(3));
         turn_continue_flag_left =0;
         turn_continue_flag_right=0;
@@ -219,6 +225,85 @@ bool CVehicle::Move(int _dir, int _vel){
 
     return true;
 }
+
+//bool CVehicle::Move(int _dir, int _vel) { // use double velocity
+
+//    int control_target_velocity = _vel;
+//    int rst__left_side = -1;
+//    int rst_right_side = -1;
+
+//    cout << "double velocity is used" << endl;
+
+//    switch (_dir) {
+//    case UGV_move_forward:
+//        m_vel = control_target_velocity;
+//        m_dir = UGV_move_forward;
+//        rst__left_side = mc_device.SetCommand(UGV_DEF_GO,1,m_vel*(1.1));
+//        rst_right_side = mc_device.SetCommand(UGV_DEF_GO,2,m_vel*(-1.1));
+//        turn_continue_flag_left =0;
+//        turn_continue_flag_right=0;
+//        break;
+//    case UGV_move_backward:
+//        m_vel = control_target_velocity;
+//        m_dir = UGV_move_backward;
+//        rst__left_side = mc_device.SetCommand(UGV_DEF_GO,2,m_vel*(1.1));
+//        rst_right_side = mc_device.SetCommand(UGV_DEF_GO,1,m_vel*(-1.1));
+//        turn_continue_flag_left =0;
+//        turn_continue_flag_right=0;
+//        break;
+//    case UGV_move_left:
+//        m_vel = control_target_velocity;
+//        m_dir = UGV_move_left;
+//        rst__left_side = mc_device.SetCommand(UGV_DEF_GO,1,m_vel*(-2.2));
+//        rst_right_side = mc_device.SetCommand(UGV_DEF_GO,2,m_vel*(-2.2));
+//        turn_continue_flag_left =1;
+//        turn_continue_flag_right=0;
+//        break;
+//    case UGV_move_right:
+//        m_vel = control_target_velocity;
+//        m_dir = UGV_move_right;
+//        rst__left_side = mc_device.SetCommand(UGV_DEF_GO,1,m_vel*(2.2));
+//        rst_right_side = mc_device.SetCommand(UGV_DEF_GO,2,m_vel*(2.2));
+//        turn_continue_flag_left =0;
+//        turn_continue_flag_right=1;
+//        break;
+//    case UGV_move_differ_left:
+//        m_vel = control_target_velocity;
+//        m_dir = UGV_move_differ_left;
+//        rst__left_side = mc_device.SetCommand(UGV_DEF_GO,1,m_vel*(-1.8));
+//        rst_right_side = mc_device.SetCommand(UGV_DEF_GO,2,m_vel*(-3));
+//        turn_continue_flag_left =0;
+//        turn_continue_flag_right=0;
+//        break;
+//    case UGV_move_differ_right:
+//        m_vel = control_target_velocity;
+//        m_dir = UGV_move_differ_right;
+//        rst__left_side = mc_device.SetCommand(UGV_DEF_GO,1,m_vel*(1.8));
+//        rst_right_side = mc_device.SetCommand(UGV_DEF_GO,2,m_vel*(3));
+//        turn_continue_flag_left =0;
+//        turn_continue_flag_right=0;
+//        break;
+//    default:
+//        break;
+//    }
+
+//    if(rst__left_side != RQ_SUCCESS){
+//        std::cout << "Fail to Set Command on Left Side" << std::endl;
+//        return false;
+//    }
+
+//    if(rst_right_side != RQ_SUCCESS){
+//        std::cout << "Fail to Set Command on Right Side" << std::endl;
+//        return false;
+//    }
+
+//    sleepms(30);
+
+//    cout << "m_vel : " << m_vel << endl;
+
+//    return true;
+//}
+
 
 bool CVehicle::ActiveMagnet(bool _on_off){
 
