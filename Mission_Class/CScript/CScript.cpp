@@ -1447,7 +1447,17 @@ bool CScript::InterpreteCheckCurrentVDst(QString _line, STEP_INFO& _step_info){
 
         if(_line.contains("mode")){
             int colone_index = _line.indexOf("=");
-            _step_info.manipulation_option.check_v_distance_option.mode = _line.mid(colone_index + 1).trimmed().toInt();
+
+            if(_line.mid(colone_index + 1).trimmed().toInt() == 1){
+                _step_info.manipulation_option.check_v_distance_option.mode = L_M_ROUGH;
+            }
+            if(_line.mid(colone_index + 1).trimmed().toInt() == 2){
+                _step_info.manipulation_option.check_v_distance_option.mode = (L_M_PRECISE | L_M_DIR_LEFT | L_M_VALUE_RANSAC);
+            }
+            if(_line.mid(colone_index + 1).trimmed().toInt() == 3){
+                _step_info.manipulation_option.check_v_distance_option.mode = (L_M_PRECISE | L_M_DIR_RIGHT | L_M_VALUE_RANSAC);
+            }
+
             return true;
         }
 

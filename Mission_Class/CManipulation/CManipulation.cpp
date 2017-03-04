@@ -1890,17 +1890,17 @@ bool CManipulation::LRFK_VCheck(){
                                    check_v_dst.s_deg,check_v_dst.e_deg,
                                    check_v_dst.maximum_lrf_dst);
 
-    double v_diff = fabs(check_v_dst.desired_v_dst - info.vertical_dst);
+    double v_diff = check_v_dst.desired_v_dst - info.vertical_dst;
 
-    if(check_v_dst.error_bound > v_diff){
+    if(check_v_dst.error_bound > fabs(v_diff)){
         check_v_dst.biase = v_diff;
-        check_v_dst.check_v_dst_result = true;
+        check_v_dst.result = true;
         SetManipulationOption(check_v_dst);
         return true;
     }
     else{
         check_v_dst.biase = v_diff;
-        check_v_dst.check_v_dst_result = false;
+        check_v_dst.result = false;
         SetManipulationOption(check_v_dst);
         return false;
     }

@@ -24,37 +24,39 @@ KINOVA_ALIGN_TO_PANEL_FUNCTION()
 
 A_Sleep(1000)
 
-# Step2: Check Vertical Distance
-CHECK_CURRENT_V_DISTANCE_STRUCT.mode = 3
-
-CHECK_CURRENT_V_DISTANCE_STRUCT.s_deg = 10
-CHECK_CURRENT_V_DISTANCE_STRUCT.e_deg = 170
-
-CHECK_CURRENT_V_DISTANCE_STRUCT.maximum_lrf_dst = 1100
-CHECK_CURRENT_V_DISTANCE_STRUCT.desired_v_dst = 270
-
-CHECK_CURRENT_V_DISTANCE_STRUCT.error_bound = 50
-
-gd_check_v_dst = GET_CHECK_CURRENT_V_DISTANCE_BIAS()
-gb_check_v_dst_rst = CHECK_CURRENT_V_DISTANCE_FUNCTION()
-
-# Step3: Parking Retry
-IF(!gb_check_v_dst_rst)
-
-PARKING_RETRY_STRUCT.bias = gd_check_v_dst;
-PARKING_RETRY_FUNCTION()
-
-## Step4: Rotator
-IF(gb_check_v_dst_rst)
+## Step2: Rotator
 ROTATOR_STRUCT.desired_position = 0
 ROTATOR_STRUCT.fl_rotator_torque = true
 
 ROTATOR_FUNCTION()
 A_Sleep(2500)
 
-ELSE(GoTo:3)
+# Step3: Check Vertical Distance
+CHECK_CURRENT_V_DISTANCE_STRUCT.mode = 3
+
+CHECK_CURRENT_V_DISTANCE_STRUCT.s_deg = 10
+CHECK_CURRENT_V_DISTANCE_STRUCT.e_deg = 170
+
+CHECK_CURRENT_V_DISTANCE_STRUCT.maximum_lrf_dst = 1100
+CHECK_CURRENT_V_DISTANCE_STRUCT.desired_v_dst = 500
+
+CHECK_CURRENT_V_DISTANCE_STRUCT.error_bound = 50
+
+gd_check_v_dst = GET_CHECK_CURRENT_V_DISTANCE_BIAS()
+gb_check_v_dst_rst = CHECK_CURRENT_V_DISTANCE_FUNCTION()
+
+A_Sleep(500)
+
+# Step3: Parking Retry
+/*IF(!gb_check_v_dst_rst)
+
+PARKING_RETRY_STRUCT.bias = gd_check_v_dst;
+PARKING_RETRY_FUNCTION()
+A_Sleep(1000)
 
 ## Step5: LRF-Kinova Vertical CTRL(NEW)
+IF(gb_check_v_dst_rst)
+
 LRF_K_VERTICAL_CTRL_STRUCT.mode = 2
 LRF_K_VERTICAL_CTRL_STRUCT.only_sensing_moving = false
 
@@ -71,6 +73,8 @@ LRF_K_VERTICAL_CTRL_STRUCT.loop_sleep = 30
 LRF_K_VERTICAL_CTRL_FUNCTION()
 
 A_Sleep(300)
+
+ELSE(GoTo:3)
 
 ## Step2: Vehicle Horizen Control(New, Using Kinova-LRF)
 

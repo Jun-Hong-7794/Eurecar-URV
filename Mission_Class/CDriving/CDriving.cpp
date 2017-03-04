@@ -298,6 +298,13 @@ bool CDriving::SelectMainFunction(int _fnc_index_){
 
         return true;
     }
+
+    if(_fnc_index_ == DRIVE_INX_PARKING_RETRY){
+        m_main_fnc_index = DRIVE_INX_PARKING_RETRY;
+        this->start();
+
+        return true;
+    }
     else if(_fnc_index_ == DRIVE_INX_PARKING__PANEL){
         m_main_fnc_index = DRIVE_INX_PARKING__PANEL;
         this->start();
@@ -604,7 +611,7 @@ bool CDriving::DriveToPanel(){
             else
             {
                 driving_struct.direction = UGV_move_forward;
-                driving_struct.velocity = 200;
+                driving_struct.velocity = 100;
             }
         }
         else
@@ -622,7 +629,7 @@ bool CDriving::DriveToPanel(){
             else
             {
                 driving_struct.direction = UGV_move_forward;
-                driving_struct.velocity = 200;
+                driving_struct.velocity = 100;
             }
         }
 
