@@ -1431,12 +1431,12 @@ bool CScript::InterpreteParkingRetry(QString _line, STEP_INFO& _step_info){
 
         if(_line.contains("bias")){
             int colone_index = _line.indexOf("=");
-            _step_info.driving_option.parking_retry_option.bias = _line.mid(colone_index + 1).trimmed().toDouble();
+            _step_info.driving_option.parking_retry_option.str_bias = _line.mid(colone_index + 1).trimmed();
             return true;
         }
     }
     else if(_line.contains("PARKING_RETRY_FUNCTION")){
-        step_info.function_index = DR_PARKING_RETRY;
+        _step_info.function_index = DR_PARKING_RETRY;
     }
     return true;
 }
@@ -2967,10 +2967,16 @@ bool CScript::MissionPlayer(){
                 while(mpc_manipulation->isRunning());
             }
 
-            //
-
             if(mpary_mission_script[i].step_vecor.at(j).function_index == DR_PARKING_RETRY){
-                mpc_drivig->SetDrivingOption(mpary_mission_script[i].step_vecor.at(j).driving_option.parking_retry_option);
+
+                PARKING_RETRY_STRUCT parking_option;
+
+                QString str_bias;
+                str_bias = mpary_mission_script[i].step_vecor.at(j).driving_option.parking_retry_option.str_bias;
+
+                parking_option.bias = InterpreteDoubleVariable(str_bias, mpary_mission_script[i]);
+
+                mpc_drivig->SetManipulationOption(parking_option);
                 mpc_drivig->SelectMainFunction(DRIVE_INX_PARKING_RETRY);
 
                 while(mpc_drivig->isRunning());

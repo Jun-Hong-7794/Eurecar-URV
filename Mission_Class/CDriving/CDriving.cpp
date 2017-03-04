@@ -373,7 +373,7 @@ void CDriving::SetManipulationOption(PARKING_RETRY_STRUCT _driving_option){
 
     mxt_parking_retry.lock();
     {
-        mstruct_parking_retry = _manipulation_option;
+        mstruct_parking_retry = _driving_option;
     }
     mxt_parking_retry.unlock();
 }
@@ -530,7 +530,8 @@ bool CDriving::ParkingRetry(){
 
     PARKING_RETRY_STRUCT parking_option = GetParkingRetryOption();
 
-    parking_option.bias;
+
+    ParkingDistanceControl(parking_option.bias);
 
     return true;
 }
@@ -2599,8 +2600,7 @@ void CDriving::run(){
 
     switch (m_main_fnc_index) {
 
-
-    \case DRIVE_INX_PARKING_RETRY:
+    case DRIVE_INX_PARKING_RETRY:
         ParkingRetry();
         break;
     case DRIVE_INX_DRIVE_TO_PANEL:

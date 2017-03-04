@@ -1,5 +1,6 @@
 #ifndef DEF_DRIVING_H
 #define DEF_DRIVING_H
+#include <QString>
 
 typedef struct _Driving_struct{
 
@@ -19,6 +20,7 @@ typedef struct _Parking_struct{
 typedef struct _Parking_Retry_Struct{
 
     double bias;
+    QString str_bias;
 
 }PARKING_RETRY_STRUCT;
 
