@@ -134,6 +134,9 @@ private:
 
     bool InterpreteRotator(QString _line, STEP_INFO& _step_info);
 
+    bool InterpreteCheckCurrentVDst(QString _line, STEP_INFO& _step_info);
+    bool InterpreteParkingRetry(QString _line, STEP_INFO& _step_info);
+
     /*New LRF Kinova Control*/
     bool InterpreteLRFKVerticalCtrl(QString _line, STEP_INFO& _step_info);
     bool InterpreteLRFKHorizenCtrl(QString _line, STEP_INFO& _step_info);

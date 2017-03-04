@@ -24,6 +24,7 @@
 #define DR_LRF_VEHICLE_HORIZEN_CONTROL       0x1002
 #define DR_VEHICLE_DRIVE_TO_PANEL            0x1003
 #define DR_VEHICLE_PARKING                   0x1004
+#define DR_PARKING_RETRY                   0x1005
 
 //Manipulation
 /*New LRF Kinova Control*/
@@ -50,6 +51,8 @@
 #define MP_ROTATOR                           0x2023
 
 #define MP_KINOVA_LRF_VALVE_SEARCHING        0x2024
+
+#define MP_KINOVA_LRF_CHECK_V_DST            0x2025
 
 /*Old LRF Kinova Control*/
 #define MP_LRF_KINOVA_VERTIVAL_CONTROL       0x2008

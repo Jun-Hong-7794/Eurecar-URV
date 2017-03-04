@@ -364,6 +364,19 @@ PARKING_STRUCT CDriving::GetParkingOption(){
     return parking_struct;
 }
 
+PARKING_RETRY_STRUCT CDriving::GetParkingRetryOption(){
+
+    PARKING_RETRY_STRUCT parking_struct;
+
+    mxt_parking_retry.lock();
+    {
+        parking_struct = mstruct_parking_retry;
+    }
+    mxt_parking_retry.unlock();
+
+    return parking_struct;
+}
+
 void CDriving::SetManipulationOption(LRF_VEHICLE_HORIZEN_STRUCT _manipulation_option){
 
     mxt_lrf_vehicle.lock();
@@ -372,6 +385,16 @@ void CDriving::SetManipulationOption(LRF_VEHICLE_HORIZEN_STRUCT _manipulation_op
     }
     mxt_lrf_vehicle.unlock();
 }
+
+void CDriving::SetManipulationOption(PARKING_RETRY_STRUCT _driving_option){
+
+    mxt_parking_retry.lock();
+    {
+        mstruct_parking_retry = _driving_option;
+    }
+    mxt_parking_retry.unlock();
+}
+
 
 LRF_VEHICLE_HORIZEN_STRUCT CDriving::GetLRFVehicleHorizenOption(){
 
@@ -518,6 +541,16 @@ int CDriving::VelGen_turn_right()
         mpc_vehicle->turn_continue_flag_right = true;
     }
     return velocity;
+}
+
+bool CDriving::ParkingRetry(){
+
+    PARKING_RETRY_STRUCT parking_option = GetParkingRetryOption();
+
+
+    ParkingDistanceControl(parking_option.bias);
+
+    return true;
 }
 
 bool CDriving::DriveToPanel(){
@@ -2584,10 +2617,12 @@ void CDriving::run(){
 
     switch (m_main_fnc_index) {
 
+    case DRIVE_INX_PARKING_RETRY:
+        ParkingRetry();
+        break;
     case DRIVE_INX_DRIVE_TO_PANEL:
         DriveToPanel();
         break;
-
     case DRIVE_INX_PARKING__PANEL:
         ParkingFrontPanel();
         break;
