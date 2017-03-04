@@ -40,7 +40,24 @@ CDriving::CDriving(CIMU* _p_imu, CGPS* _p_gps, CLRF* _p_lrf, CCamera* _p_camera,
     mpc_drive_lrf = _p_lrf;
     mpc_camera = _p_camera;
     mpc_kinova = _p_kinova;
-    mpc_vehicle = _p_vehicle;
+    mpc_vehicle = _p_vehicle;int _s_deg = 0;
+    int _e_deg = 180;
+
+    double panel_length_margin = 0.15;
+    double front_center_margin = 1.0;
+
+    int s_lrf_index = (int)((_s_deg + 45) / ANGLE_RESOLUTION);
+    int e_lrf_index = (int)((_e_deg + 45) / ANGLE_RESOLUTION);
+
+    int number_of_point = e_lrf_index -s_lrf_index + 1;
+
+    long* lrf_distance = new long[number_of_point];
+
+    long* lrf_distance_raw = new long[1081];
+
+    bool front_heading_range_satisfiled = false;
+
+    vector<double> detected_panel_info;
     mpc_velodyne = _p_velodyne;
     mpc_lms511 = _p_lms511;
 
