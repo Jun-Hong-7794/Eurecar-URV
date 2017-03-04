@@ -602,7 +602,21 @@ bool CScript::InterpreteMissionScriptLine(QString _line, MISSION_SCRIPT* _missio
 //            return false;
     }
 
+    if(_line.contains("CHECK_CURRENT_V_DISTANCE")){
 
+        if(InterpreteCheckCurrentVDst(_line, _step_info))
+            return true;
+        else
+            return false;
+    }
+
+    if(_line.contains("PARKING_RETRY")){
+
+        if(InterpreteParkingRetry(_line, _step_info))
+            return true;
+        else
+            return false;
+    }
 
     if(_line.contains("WRENCH_RECOGNITION")){
 
@@ -1408,6 +1422,86 @@ bool CScript::InterpreteRotator(QString _line, STEP_INFO& _step_info){
         _step_info.function_index = MP_ROTATOR;
     }
 
+    return true;
+}
+
+bool CScript::InterpreteParkingRetry(QString _line, STEP_INFO& _step_info){
+
+    if(_line.contains("PARKING_RETRY_STRUCT")){
+
+        if(_line.contains("bias")){
+            int colone_index = _line.indexOf("=");
+            _step_info.driving_option.parking_retry_option.bias = _line.mid(colone_index + 1).trimmed().toDouble();
+            return true;
+        }
+    }
+    else if(_line.contains("PARKING_RETRY_FUNCTION")){
+        step_info.function_index = DR_PARKING_RETRY;
+    }
+    return true;
+}
+
+bool CScript::InterpreteCheckCurrentVDst(QString _line, STEP_INFO& _step_info){
+
+    if(_line.contains("CHECK_CURRENT_V_DISTANCE_STRUCT")){
+
+        if(_line.contains("mode")){
+            int colone_index = _line.indexOf("=");
+            _step_info.manipulation_option.check_v_distance_option.mode = _line.mid(colone_index + 1).trimmed().toInt();
+            return true;
+        }
+
+        if(_line.contains("s_deg")){
+            int colone_index = _line.indexOf("=");
+            _step_info.manipulation_option.check_v_distance_option.s_deg = _line.mid(colone_index + 1).trimmed().toDouble();
+            return true;
+        }
+
+        if(_line.contains("e_deg")){
+            int colone_index = _line.indexOf("=");
+            _step_info.manipulation_option.check_v_distance_option.e_deg = _line.mid(colone_index + 1).trimmed().toDouble();
+            return true;
+        }
+
+        if(_line.contains("maximum_lrf_dst")){
+            int colone_index = _line.indexOf("=");
+            _step_info.manipulation_option.check_v_distance_option.maximum_lrf_dst = _line.mid(colone_index + 1).trimmed().toDouble();
+            return true;
+        }
+
+        if(_line.contains("desired_v_dst")){
+            int colone_index = _line.indexOf("=");
+            _step_info.manipulation_option.check_v_distance_option.desired_v_dst = _line.mid(colone_index + 1).trimmed().toDouble();
+            return true;
+        }
+
+        if(_line.contains("error_bound")){
+            int colone_index = _line.indexOf("=");
+            _step_info.manipulation_option.check_v_distance_option.error_bound = _line.mid(colone_index + 1).trimmed().toDouble();
+            return true;
+        }
+
+    }
+    else if(_line.contains("GET_CHECK_CURRENT_V_DISTANCE_BIAS")){
+        int equal_index = _line.indexOf("=");
+
+        if(equal_index >= 0){
+            _step_info.manipulation_option.check_v_distance_option.str_bias=
+                    _line.mid(0, equal_index - 1).trimmed();
+        };
+    }
+    else if(_line.contains("CHECK_CURRENT_V_DISTANCE_FUNCTION")){
+        _step_info.function_index = MP_KINOVA_LRF_CHECK_V_DST;
+
+        int equal_index = _line.indexOf("=");
+
+        if(equal_index >= 0){
+            _step_info.manipulation_option.check_v_distance_option.str_result=
+                    _line.mid(0, equal_index - 1).trimmed();
+        };
+    }
+
+    return true;
 }
 
 bool CScript::InterpreteLRFVehicleAngleCtrl(QString _line, STEP_INFO& _step_info){
@@ -2851,8 +2945,6 @@ bool CScript::MissionPlayer(){
                 }
             }
 
-//            MP_ROTATOR
-
             if(mpary_mission_script[i].step_vecor.at(j).function_index == MP_ROTATOR){
 
                 mpc_manipulation->SetManipulationOption(mpary_mission_script[i].step_vecor.at(j).manipulation_option.rotator_option);
@@ -2873,6 +2965,15 @@ bool CScript::MissionPlayer(){
                 mpc_manipulation->SelectMainFunction(MANIPUL_INX_LRF_K_VEHICLE_ANGLE_CTRL);
 
                 while(mpc_manipulation->isRunning());
+            }
+
+            //
+
+            if(mpary_mission_script[i].step_vecor.at(j).function_index == DR_PARKING_RETRY){
+                mpc_drivig->SetDrivingOption(mpary_mission_script[i].step_vecor.at(j).driving_option.parking_retry_option);
+                mpc_drivig->SelectMainFunction(DRIVE_INX_PARKING_RETRY);
+
+                while(mpc_drivig->isRunning());
             }
 
             if(mpary_mission_script[i].step_vecor.at(j).function_index == DR_VEHICLE_DRIVE_TO_PANEL){
@@ -3070,6 +3171,31 @@ bool CScript::MissionPlayer(){
 
                 mpc_manipulation->SetValveSizeRecogResult(0);
             }
+
+            if(mpary_mission_script[i].step_vecor.at(j).function_index == MP_KINOVA_LRF_CHECK_V_DST){
+
+                mpc_manipulation->SetManipulationOption(mpary_mission_script[i].step_vecor.at(j).manipulation_option.check_v_distance_option);
+                mpc_manipulation->SelectMainFunction(MANIPUL_INX_KINOVA_LRF_CHECK_V_DST);
+
+                while(mpc_manipulation->isRunning());
+
+                bool check_result = mpc_manipulation->GetCheckVDstOption().result;
+                double bias = mpc_manipulation->GetCheckVDstOption().biase;
+
+                QString str_check_result = mpary_mission_script[i].step_vecor.at(j).manipulation_option.check_v_distance_option.str_result;
+                QString str_bias = mpary_mission_script[i].step_vecor.at(j).manipulation_option.check_v_distance_option.str_bias;
+
+                SetBoolVariable(str_check_result, mpary_mission_script[i], check_result);
+                SetDoubleVariable(str_bias, mpary_mission_script[i], bias);
+
+                CHECK_CURRENT_V_DISTANCE_STRUCT check_v_dst;
+
+                check_v_dst.biase = 0;
+                check_v_dst.fl_check_v_dst = false;
+
+                mpc_manipulation->SetManipulationOption(check_v_dst);
+            }
+
 
             if(mpary_mission_script[i].step_vecor.at(j).function_index == MP_KINOVA_ALIGN_TO_PANEL){
 

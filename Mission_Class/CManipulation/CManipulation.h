@@ -64,6 +64,7 @@
 #define MANIPUL_INX_ROTATOR                     24
 
 #define MANIPUL_INX_KINOVA_LRF_VALVE_SEARCHING  25
+#define MANIPUL_INX_KINOVA_LRF_CHECK_V_DST      26
 
 class CManipulation:public QThread{
     Q_OBJECT
@@ -171,6 +172,9 @@ private:
 
     KINOVA_LRF_VALVE_SEARCHING_STRUCT mstruct_valve_searching;
     QMutex mxt_valve_searching;
+
+    CHECK_CURRENT_V_DISTANCE_STRUCT mstruct_check_v_dst;
+    QMutex mxt__check_v_dst;
     //-------------------------------------------------
     // ElementTech Class
     //-------------------------------------------------
@@ -371,6 +375,9 @@ public:
     void SetManipulationOption(KINOVA_LRF_VALVE_SEARCHING_STRUCT _manipulation_option);
     KINOVA_LRF_VALVE_SEARCHING_STRUCT GetKinovaLRFValveSearchingOption();
 
+    void SetManipulationOption(CHECK_CURRENT_V_DISTANCE_STRUCT _manipulation_option);
+    CHECK_CURRENT_V_DISTANCE_STRUCT GetCheckVDstOption();
+
 private:
     //-------------------------------------------------
     // Dynamixel Pro Function
@@ -405,6 +412,7 @@ private:
     bool LRFK_VCtrl();
     bool LRFK_HCtrl();
     bool LRFK_ACtrl();
+    bool LRFK_VCheck();
 
     bool LRFV_ACtrl();
     bool LRFV_HCtrl();

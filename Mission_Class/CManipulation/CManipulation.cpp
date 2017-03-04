@@ -514,6 +514,13 @@ bool CManipulation::SelectMainFunction(int _fnc_index_){
         return true;
     }
 
+    else if(_fnc_index_ == MANIPUL_INX_KINOVA_LRF_CHECK_V_DST){
+        m_main_fnc_index = MANIPUL_INX_KINOVA_LRF_CHECK_V_DST;
+        this->start();
+
+        return true;
+    }
+
     else if(_fnc_index_ == MANIPUL_INX_LRF_V_HORIZEN_CTRL){
         m_main_fnc_index = MANIPUL_INX_LRF_V_HORIZEN_CTRL;
         this->start();
@@ -1056,6 +1063,29 @@ KINOVA_LRF_VALVE_SEARCHING_STRUCT CManipulation::GetKinovaLRFValveSearchingOptio
     mxt_fit_to_valve_pose.unlock();
 
     return valve_searching;
+}
+
+void CManipulation::SetManipulationOption(CHECK_CURRENT_V_DISTANCE_STRUCT _manipulation_option){
+
+    mxt__check_v_dst.lock();
+    {
+        mstruct_check_v_dst = _manipulation_option;
+    }
+    mxt__check_v_dst.unlock();
+
+}
+
+CHECK_CURRENT_V_DISTANCE_STRUCT CManipulation::GetCheckVDstOption(){
+
+    CHECK_CURRENT_V_DISTANCE_STRUCT check_v_dst;
+
+    mxt__check_v_dst.lock();
+    {
+        check_v_dst = mstruct_check_v_dst;
+    }
+    mxt__check_v_dst.unlock();
+
+    return check_v_dst;
 }
 
 //-------------------------------------------------
@@ -1840,6 +1870,39 @@ bool CManipulation::LRFLocalizationOnPanel(){
 //        PanelModeling(19, info.vertical_dst, info.horizen__dst, info.angle);
 
         msleep(30);
+    }
+
+    return true;
+}
+
+bool CManipulation::LRFK_VCheck(){
+
+    CHECK_CURRENT_V_DISTANCE_STRUCT check_v_dst = GetCheckVDstOption();
+
+    if(!mpc_lrf->IsLRFOn())
+        return false;
+    if(!mpc_kinova->IsKinovaInitialized())
+        return false;
+
+    LOCALIZATION_INFO_ON_PANEL info;
+
+    mpc_rgb_d->LocalizationOnPanel(info, check_v_dst.mode,
+                                   check_v_dst.s_deg,check_v_dst.e_deg,
+                                   check_v_dst.maximum_lrf_dst);
+
+    double v_diff = fabs(check_v_dst.desired_v_dst - info.vertical_dst);
+
+    if(check_v_dst.error_bound > v_diff){
+        check_v_dst.biase = v_diff;
+        check_v_dst.check_v_dst_result = true;
+        SetManipulationOption(check_v_dst);
+        return true;
+    }
+    else{
+        check_v_dst.biase = v_diff;
+        check_v_dst.check_v_dst_result = false;
+        SetManipulationOption(check_v_dst);
+        return false;
     }
 
     return true;
@@ -3158,6 +3221,9 @@ void CManipulation::run(){
         break;
     case MANIPUL_INX_LRF_V_ANGLE_CTRL:
         LRFV_ACtrl();
+        break;
+    case MANIPUL_INX_KINOVA_LRF_CHECK_V_DST:
+        LRFK_VCheck();
         break;
 
     /*Old LRF Kinova Control*/

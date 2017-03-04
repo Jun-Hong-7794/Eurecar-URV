@@ -16,6 +16,12 @@ typedef struct _Parking_struct{
 
 }PARKING_STRUCT;
 
+typedef struct _Parking_Retry_Struct{
+
+    double bias;
+
+}PARKING_RETRY_STRUCT;
+
 typedef struct _LRF_Vehicle_Horizen_Struct{
 
     bool lrf_vehicle_mission;
@@ -73,6 +79,8 @@ typedef struct _Driving_Option{
     DRIVING_STRUCT driving_option;
 
     PARKING_STRUCT parking_option;
+
+    PARKING_RETRY_STRUCT parking_retry_option;
 
     LRF_VEHICLE_ANGLE_STRUCT lrf_vehicle_angle_option;
 

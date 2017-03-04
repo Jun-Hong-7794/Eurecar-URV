@@ -2,6 +2,31 @@
 #define DEF_MANIPULATION_H
 #include <QString>
 
+
+typedef struct _Check_Current_V_Distance_Struct{
+
+    bool fl_check_v_dst;
+    bool check_v_dst_result;
+
+    QString str_result;
+    QString str_bias;
+
+    int mode;
+
+    double s_deg;
+    double e_deg;
+
+    double maximum_lrf_dst;
+
+    double desired_v_dst;
+    double error_bound;
+
+    bool result;
+    double biase;
+
+
+}CHECK_CURRENT_V_DISTANCE_STRUCT;
+
 typedef struct _Rotator_Struct{
 
     bool fl_torque_on_off;
@@ -522,6 +547,8 @@ typedef struct _Manipulation_Option{
 
     LRF_V_A_CTRL_STRUCT lrf_v_a_ctrl_struct;
     //--------------------------------------
+
+    CHECK_CURRENT_V_DISTANCE_STRUCT check_v_distance_option;
 
     LRF_KINOVA_VERTICAL_CTRL_STRUCT lrf_kinova_vertical_option;
 

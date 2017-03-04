@@ -8,6 +8,9 @@
 global_int gi_valve_size = 19
 global_double gb_valve_rotation = 30
 
+global_double gd_check_v_dst = 30
+global_bool gb_check_v_dst_rst = false
+
 ## Step0: Rotator
 
 ROTATOR_STRUCT.desired_position = -70000
@@ -23,6 +26,25 @@ KINOVA_ALIGN_TO_PANEL.do_init_motion = true
 KINOVA_ALIGN_TO_PANEL_FUNCTION()
 
 A_Sleep(1000)
+
+# Step1: Check Vertical Distance
+
+CHECK_CURRENT_V_DISTANCE_STRUCT.mode = 3
+
+CHECK_CURRENT_V_DISTANCE_STRUCT.s_deg = 10
+CHECK_CURRENT_V_DISTANCE_STRUCT.e_deg = 170
+
+CHECK_CURRENT_V_DISTANCE_STRUCT.maximum_lrf_dst = 1100
+CHECK_CURRENT_V_DISTANCE_STRUCT.desired_v_dst = 200
+
+CHECK_CURRENT_V_DISTANCE_STRUCT.error_bound = 50
+
+gd_check_v_dst = GET_CHECK_CURRENT_V_DISTANCE_BIAS()
+gb_check_v_dst_rst = CHECK_CURRENT_V_DISTANCE_FUNCTION()
+
+# Step3: Parking Retry
+
+IF(!gb_check_v_dst_rst)
 
 ## Step0: Rotator
 

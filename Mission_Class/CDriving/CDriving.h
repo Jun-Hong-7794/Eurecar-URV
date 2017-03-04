@@ -37,6 +37,7 @@
 #define DRIVE_INX_PARKING__PANEL       2
 #define DRIVE_INX_LRF_VEHICLE_ANGLE    3
 #define DRIVE_INX_LRF_VEHICLE_HORIZEN  4
+#define DRIVE_INX_PARKING_RETRY        5
 
 #define MAX_VEL 200
 #define MAX_VEL_TURN 200
@@ -65,12 +66,14 @@ private:
     PARKING_STRUCT mstruct_parking;
     LRF_VEHICLE_ANGLE_STRUCT mstruct_lrf_vehicle_angle;
     LRF_VEHICLE_HORIZEN_STRUCT mstruct_lrf_vehicle;
+    PARKING_RETRY_STRUCT mstruct_parking_retry;
 
     //Mutex
     QMutex mtx_driving_struct;
     QMutex mtx_parking_struct;
     QMutex mxt_lrf_vehicle;
     QMutex mxt_lrf_vehicle_angle;
+    QMutex mxt_parking_retry;
 
 
     // Aerna info
@@ -173,8 +176,10 @@ public:
 
     void SetDrivingOption(DRIVING_STRUCT _driving_option);
     void SetParkingOption(PARKING_STRUCT _driving_option);
+
     void SetManipulationOption(LRF_VEHICLE_ANGLE_STRUCT _driving_option);
     void SetManipulationOption(LRF_VEHICLE_HORIZEN_STRUCT _driving_option);
+    void SetManipulationOption(PARKING_RETRY_STRUCT _driving_option);
 
     vector<double> GetWaypointError(double _way_x,double _way_y);
 
@@ -183,6 +188,7 @@ public:
 
     DRIVING_STRUCT GetDrivingOption();
     PARKING_STRUCT GetParkingOption();
+    PARKING_RETRY_STRUCT GetParkingRetryOption();
 
     LRF_VEHICLE_ANGLE_STRUCT GetLRFVehicleAngleOption();
     LRF_VEHICLE_HORIZEN_STRUCT GetLRFVehicleHorizenOption();
@@ -197,6 +203,7 @@ public:
     int VelGen(double);
     int VelGen_turn_left();
     int VelGen_turn_right();
+    bool ParkingRetry();
 
     bool LRFVehicleHorizenControl();
     bool LRFVehicleAngleControl();
