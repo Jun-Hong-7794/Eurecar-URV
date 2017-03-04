@@ -543,6 +543,17 @@ bool CGripper::InitRotator(char* _device_port){
         mp_rotator_packetHandler->printRxPacketError(dxl_error);
 
     //ID - 3 Goal Positoin Setting
+    dxl_comm_result = mp_rotator_packetHandler->write4ByteTxRx(mp_rotator_portHandler, DXL3_ID, ADDR_PR_GOAL_POSITION, dxl_goal_position - 5000/*+DXL1_OFFSET*/, &dxl_error);
+
+    if(dxl_comm_result != COMM_SUCCESS)
+        mp_rotator_packetHandler->printTxRxResult(dxl_comm_result);
+    else if(dxl_error != 0)
+        mp_rotator_packetHandler->printRxPacketError(dxl_error);
+
+    dxl_comm_result = mp_pro_groupBulkRead_pos->txRxPacket();
+
+    msleep(1500);
+
     dxl_comm_result = mp_rotator_packetHandler->write4ByteTxRx(mp_rotator_portHandler, DXL3_ID, ADDR_PR_GOAL_POSITION, dxl_goal_position/*+DXL1_OFFSET*/, &dxl_error);
 
     if(dxl_comm_result != COMM_SUCCESS)
@@ -731,6 +742,16 @@ bool CGripper::InitGripper(char* _device_port){
     else if(dxl_error != 0) mp_gripper_packetHandler->printRxPacketError(dxl_error);
 
     //ID - 1 Goal Positoin Setting
+    dxl_comm_result = mp_gripper_packetHandler->write2ByteTxRx(mp_gripper_portHandler, DXL1_ID, ADDR_MX_GOAL_POSITION, dxl_goal_position + 30/*+DXL1_OFFSET*/, &dxl_error);
+    m_dxl1_present_position = DXL_INITIAL_POSITION_VALUE;
+
+    if(dxl_comm_result != COMM_SUCCESS)
+        mp_gripper_packetHandler->printTxRxResult(dxl_comm_result);
+    else if(dxl_error != 0)
+        mp_gripper_packetHandler->printRxPacketError(dxl_error);
+
+    msleep(500);
+
     dxl_comm_result = mp_gripper_packetHandler->write2ByteTxRx(mp_gripper_portHandler, DXL1_ID, ADDR_MX_GOAL_POSITION, dxl_goal_position/*+DXL1_OFFSET*/, &dxl_error);
     m_dxl1_present_position = DXL_INITIAL_POSITION_VALUE;
 
@@ -740,6 +761,16 @@ bool CGripper::InitGripper(char* _device_port){
         mp_gripper_packetHandler->printRxPacketError(dxl_error);
 
     //ID - 2 Goal Positoin Setting
+    dxl_comm_result = mp_gripper_packetHandler->write2ByteTxRx(mp_gripper_portHandler, DXL2_ID, ADDR_MX_GOAL_POSITION, dxl_goal_position + DXL2_OFFSET + 30, &dxl_error);
+    m_dxl2_present_position = DXL_INITIAL_POSITION_VALUE;
+
+    if(dxl_comm_result != COMM_SUCCESS)
+        mp_gripper_packetHandler->printTxRxResult(dxl_comm_result);
+    else if(dxl_error != 0)
+        mp_gripper_packetHandler->printRxPacketError(dxl_error);
+
+    msleep(500);
+
     dxl_comm_result = mp_gripper_packetHandler->write2ByteTxRx(mp_gripper_portHandler, DXL2_ID, ADDR_MX_GOAL_POSITION, dxl_goal_position + DXL2_OFFSET, &dxl_error);
     m_dxl2_present_position = DXL_INITIAL_POSITION_VALUE;
 
