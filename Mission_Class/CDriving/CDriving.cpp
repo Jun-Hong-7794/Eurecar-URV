@@ -554,6 +554,7 @@ bool CDriving::ParkingRetry(){
 
     PARKING_RETRY_STRUCT parking_option = GetParkingRetryOption();
 
+    std::cout << "Current Bias : " << parking_option.bias << std::endl;
 
     ParkingDistanceControl(parking_option.bias);
 
