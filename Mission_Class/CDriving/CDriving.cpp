@@ -598,39 +598,39 @@ bool CDriving::DriveToPanel(){
 
         if(_heading_constraint < PI)
         {
-            if(((_heading_constraint + heading_control_margin) < current_heading ) &&(current_heading < (_heading_constraint + PI)) )
-            {
-                driving_struct.direction = UGV_move_left;
-                driving_struct.velocity = VelGen_turn_left();
-            }
-            else if(((current_heading >= 0) && (current_heading < (_heading_constraint - heading_control_margin))) || ((current_heading > _heading_constraint + PI) && (current_heading < 2*PI)))
-            {
-                driving_struct.direction = UGV_move_right;
-                driving_struct.velocity = VelGen_turn_right();
-            }
-            else
-            {
+//            if(((_heading_constraint + heading_control_margin) < current_heading ) &&(current_heading < (_heading_constraint + PI)) )
+//            {
+//                driving_struct.direction = UGV_move_left;
+//                driving_struct.velocity = VelGen_turn_left();
+//            }
+//            else if(((current_heading >= 0) && (current_heading < (_heading_constraint - heading_control_margin))) || ((current_heading > _heading_constraint + PI) && (current_heading < 2*PI)))
+//            {
+//                driving_struct.direction = UGV_move_right;
+//                driving_struct.velocity = VelGen_turn_right();
+//            }
+//            else
+//            {
                 driving_struct.direction = UGV_move_forward;
                 driving_struct.velocity = 100;
-            }
+//            }
         }
         else
         {
-            if( ((current_heading > (_heading_constraint + heading_control_margin)) && (current_heading < 2*PI)) || ((current_heading >= 0) && (current_heading < _heading_constraint - PI) ))
-            {
-                driving_struct.direction = UGV_move_left;
-                driving_struct.velocity = VelGen_turn_left();;
-            }
-            else if((current_heading >=  _heading_constraint - PI) &&(current_heading < _heading_constraint - heading_control_margin) )
-            {
-                driving_struct.direction = UGV_move_right;
-                driving_struct.velocity = VelGen_turn_right();;
-            }
-            else
-            {
+//            if( ((current_heading > (_heading_constraint + heading_control_margin)) && (current_heading < 2*PI)) || ((current_heading >= 0) && (current_heading < _heading_constraint - PI) ))
+//            {
+//                driving_struct.direction = UGV_move_left;
+//                driving_struct.velocity = VelGen_turn_left();;
+//            }
+//            else if((current_heading >=  _heading_constraint - PI) &&(current_heading < _heading_constraint - heading_control_margin) )
+//            {
+//                driving_struct.direction = UGV_move_right;
+//                driving_struct.velocity = VelGen_turn_right();;
+//            }
+//            else
+//            {
                 driving_struct.direction = UGV_move_forward;
                 driving_struct.velocity = 100;
-            }
+//            }
         }
 
         mpc_vehicle->Move(driving_struct.direction,driving_struct.velocity);
