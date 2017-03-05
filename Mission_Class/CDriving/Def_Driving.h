@@ -9,6 +9,23 @@ typedef struct _Driving_struct{
     int direction;
     int velocity;
 
+    int drive_left;
+    int drive_differ_left;
+    int drive_right;
+    int drive_differ_right;
+
+    int parking_left;
+    int parking_differ_left;
+    int parking_right;
+    int parking_differ_right;
+    int parking_forward;
+    int parking_backward;
+
+    double panel_center_check_point;
+
+    double parking_dist;
+    double parking_thres;
+
 }DRIVING_STRUCT;
 
 typedef struct _Parking_struct{

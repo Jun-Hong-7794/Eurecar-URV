@@ -836,6 +836,75 @@ bool CScript::InterpreteVehicleDriveToPanel(QString _line, STEP_INFO& _step_info
             _step_info.driving_option.driving_option.velocity = _line.mid(colone_index + 1).trimmed().toDouble();
             return true;
         }
+
+        if(_line.contains("drive_left")){
+            int colone_index = _line.indexOf("=");
+            _step_info.driving_option.driving_option.drive_left = _line.mid(colone_index + 1).trimmed().toInt();
+            return true;
+        }
+        if(_line.contains("drive_differ_left")){
+            int colone_index = _line.indexOf("=");
+            _step_info.driving_option.driving_option.drive_differ_left = _line.mid(colone_index + 1).trimmed().toInt();
+            return true;
+        }
+        if(_line.contains("drive_right")){
+            int colone_index = _line.indexOf("=");
+            _step_info.driving_option.driving_option.drive_right = _line.mid(colone_index + 1).trimmed().toInt();
+            return true;
+        }
+        if(_line.contains("drive_differ_right")){
+            int colone_index = _line.indexOf("=");
+            _step_info.driving_option.driving_option.drive_differ_right = _line.mid(colone_index + 1).trimmed().toInt();
+            return true;
+        }
+
+        if(_line.contains("parking_left")){
+            int colone_index = _line.indexOf("=");
+            _step_info.driving_option.driving_option.parking_left = _line.mid(colone_index + 1).trimmed().toInt();
+            return true;
+        }
+        if(_line.contains("parking_right")){
+            int colone_index = _line.indexOf("=");
+            _step_info.driving_option.driving_option.parking_right = _line.mid(colone_index + 1).trimmed().toInt();
+            return true;
+        }
+        if(_line.contains("parking_differ_right")){
+            int colone_index = _line.indexOf("=");
+            _step_info.driving_option.driving_option.parking_differ_right = _line.mid(colone_index + 1).trimmed().toInt();
+            return true;
+        }
+        if(_line.contains("parking_differ_left")){
+            int colone_index = _line.indexOf("=");
+            _step_info.driving_option.driving_option.parking_differ_left = _line.mid(colone_index + 1).trimmed().toInt();
+            return true;
+        }
+        if(_line.contains("parking_forward")){
+            int colone_index = _line.indexOf("=");
+            _step_info.driving_option.driving_option.parking_forward = _line.mid(colone_index + 1).trimmed().toInt();
+            return true;
+        }
+        if(_line.contains("parking_backward")){
+            int colone_index = _line.indexOf("=");
+            _step_info.driving_option.driving_option.parking_backward = _line.mid(colone_index + 1).trimmed().toInt();
+            return true;
+        }
+
+        if(_line.contains("panel_center_check_point")){
+            int colone_index = _line.indexOf("=");
+            _step_info.driving_option.driving_option.panel_center_check_point = _line.mid(colone_index + 1).trimmed().toDouble();
+            return true;
+        }
+        if(_line.contains("parking_dist")){
+            int colone_index = _line.indexOf("=");
+            _step_info.driving_option.driving_option.parking_dist = _line.mid(colone_index + 1).trimmed().toDouble();
+            return true;
+        }
+        if(_line.contains("parking_thres")){
+            int colone_index = _line.indexOf("=");
+            _step_info.driving_option.driving_option.parking_thres = _line.mid(colone_index + 1).trimmed().toDouble();
+            return true;
+        }
+
     }
 
     else if(_line.contains("VEHICLE_DRIVE_TO_PANEL_FUNCTION")){

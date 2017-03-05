@@ -331,6 +331,23 @@ void CDriving::SetDrivingOption(DRIVING_STRUCT _driving_option){
 
     mtx_driving_struct.lock();
     {
+        drive_left = _driving_option.drive_left;
+        drive_differ_left = _driving_option.drive_differ_left;
+        drive_right = _driving_option.drive_right;
+        drive_differ_right = _driving_option.drive_differ_right;
+
+        parking_left = _driving_option.parking_left;
+        parking_differ_left = _driving_option.parking_differ_left;
+        parking_right = _driving_option.parking_right;
+        parking_differ_right = _driving_option.parking_differ_right;
+        parking_forward = _driving_option.parking_forward;
+        parking_backward = _driving_option.parking_backward;
+
+        panel_center_check_point = _driving_option.panel_center_check_point;
+
+        parking_dist = _driving_option.parking_dist;
+        parking_thres = _driving_option.parking_thres;
+
         mstruct_driving = _driving_option;
     }
     mtx_driving_struct.unlock();
