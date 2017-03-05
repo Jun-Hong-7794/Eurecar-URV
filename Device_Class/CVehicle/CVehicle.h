@@ -33,6 +33,7 @@ private:
     bool fl_connection;
 
     int m_vel;
+//    double m_vel_double;
     int m_timecnt;
     int m_dir;
     int m_status;
@@ -61,6 +62,7 @@ public:
     void Disconnect();
     int SetControl();
     bool Move(int _dir,int _vel);
+//    bool Move(int _dir,double _vel_double);
     void CheckVolt();
     void CheckEncoderValue();
 

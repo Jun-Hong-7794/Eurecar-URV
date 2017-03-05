@@ -1893,13 +1893,13 @@ bool CManipulation::LRFK_VCheck(){
     double v_diff = check_v_dst.desired_v_dst - info.vertical_dst;
 
     if(check_v_dst.error_bound > fabs(v_diff)){
-        check_v_dst.biase = v_diff;
+        check_v_dst.biase = v_diff * 0.001;
         check_v_dst.result = true;
         SetManipulationOption(check_v_dst);
         return true;
     }
     else{
-        check_v_dst.biase = v_diff;
+        check_v_dst.biase = v_diff * 0.001;
         check_v_dst.result = false;
         SetManipulationOption(check_v_dst);
         return false;

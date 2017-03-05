@@ -19,9 +19,9 @@ int parking_differ_right = 100;
 int parking_forward = 100;
 int parking_backward = 100;
 
-double panel_center_check_point = -0.2;
+double panel_center_check_point = -0.45;
 
-double parking_dist = 1.14;
+double parking_dist = 1.1;
 double parking_thres = 0.05;
 //-----------------------------------------
 
@@ -260,15 +260,16 @@ void CDriving::SetArenaShift(bool _shift_on)
 {
     if(_shift_on)
     {
-        // Init encoder
-        mpc_vehicle->InitEncoder();
-
         aligned_initial_heading = euler_angles.at(2);
         if(aligned_initial_heading < 0)
         {
             aligned_initial_heading += 2*PI;
         }
         arena_aligned_compensate = true;
+        Sleep(500);
+        // Init encoder
+        mpc_vehicle->InitEncoder();
+
     }
     else
     {
@@ -564,8 +565,49 @@ int CDriving::VelGen_turn_right()
         velocity= 100;
         mpc_vehicle->turn_continue_flag_right = true;
     }
+    cout << "velocity : " << velocity << endl;
+
     return velocity;
 }
+
+int CDriving::VelGen_parking_turn_left()
+{
+    int velocity=0;
+
+    if(mpc_vehicle->turn_continue_flag_left == true)
+    {
+        velocity= (mpc_vehicle->GetVel()+ PARKING_TURN_ACCEL_RATE);
+        if(velocity > MAX_VEL_PARKING_TURN)
+            velocity = MAX_VEL_PARKING_TURN;
+    }
+    else
+    {
+        velocity= 100;
+        mpc_vehicle->turn_continue_flag_left = true;
+    }
+
+    cout << "velocity : " << velocity << endl;
+    return velocity;
+}
+
+int CDriving::VelGen_parking_turn_right()
+{
+    int velocity=0.;
+
+    if(mpc_vehicle->turn_continue_flag_right == true)
+    {
+        velocity= (mpc_vehicle->GetVel()+ PARKING_TURN_ACCEL_RATE);
+        if(velocity > MAX_VEL_PARKING_TURN)
+            velocity = MAX_VEL_PARKING_TURN;
+    }
+    else
+    {
+        velocity= 100;
+        mpc_vehicle->turn_continue_flag_right = true;
+    }
+    return velocity;
+}
+
 
 bool CDriving::ParkingRetry(){
 
@@ -587,15 +629,16 @@ bool CDriving::DriveToPanel(){
         return false;
     }
 
-    // Init encoder
-    mpc_vehicle->InitEncoder();
-
     aligned_initial_heading = euler_angles.at(2);
     if(aligned_initial_heading < 0)
     {
         aligned_initial_heading += 2*PI;
     }
     arena_aligned_compensate = true;
+
+    Sleep(500);
+    // Init encoder
+    mpc_vehicle->InitEncoder();
 
     cout << "Driving Start " << endl;
     mpc_velodyne->SetVelodyneMode(VELODYNE_MODE_DRIVING);
@@ -604,72 +647,77 @@ bool CDriving::DriveToPanel(){
     double _heading_constraint = aligned_initial_heading;
     double heading_control_margin = 2.0/180.0*PI;
 
-    while(!panel_found)
-    {
+//    while(!panel_found)
+//    {
 
-        double current_heading = euler_angles.at(2);
+//        double current_heading = euler_angles.at(2);
 
-        if(current_heading < 0)
-        {
-            current_heading += 2*PI;
-        }
+//        if(current_heading < 0)
+//        {
+//            current_heading += 2*PI;
+//        }
 
-        if(_heading_constraint < PI)
-        {
-            if(((_heading_constraint + heading_control_margin) < current_heading ) &&(current_heading < (_heading_constraint + PI)) )
-            {
-                driving_struct.direction = UGV_move_left;
-                driving_struct.velocity = VelGen_turn_left();
-            }
-            else if(((current_heading >= 0) && (current_heading < (_heading_constraint - heading_control_margin))) || ((current_heading > _heading_constraint + PI) && (current_heading < 2*PI)))
-            {
-                driving_struct.direction = UGV_move_right;
-                driving_struct.velocity = VelGen_turn_right();
-            }
-            else
-            {
-                driving_struct.direction = UGV_move_forward;
-                driving_struct.velocity = 100;
-            }
-        }
-        else
-        {
-            if( ((current_heading > (_heading_constraint + heading_control_margin)) && (current_heading < 2*PI)) || ((current_heading >= 0) && (current_heading < _heading_constraint - PI) ))
-            {
-                driving_struct.direction = UGV_move_left;
-                driving_struct.velocity = VelGen_turn_left();;
-            }
-            else if((current_heading >=  _heading_constraint - PI) &&(current_heading < _heading_constraint - heading_control_margin) )
-            {
-                driving_struct.direction = UGV_move_right;
-                driving_struct.velocity = VelGen_turn_right();;
-            }
-            else
-            {
-                driving_struct.direction = UGV_move_forward;
-                driving_struct.velocity = 100;
-            }
-        }
+//        if(_heading_constraint < PI)
+//        {
+//            if(((_heading_constraint + heading_control_margin) < current_heading ) &&(current_heading < (_heading_constraint + PI)) )
+//            {
+//                driving_struct.direction = UGV_move_left;
+//                driving_struct.velocity = VelGen_turn_left();
+//            }
+//            else if(((current_heading >= 0) && (current_heading < (_heading_constraint - heading_control_margin))) || ((current_heading > _heading_constraint + PI) && (current_heading < 2*PI)))
+//            {
+//                driving_struct.direction = UGV_move_right;
+//                driving_struct.velocity = VelGen_turn_right();
+//            }
+//            else
+//            {
+//                driving_struct.direction = UGV_move_forward;
+//                driving_struct.velocity = 150;
+//            }
+//        }
+//        else
+//        {
+//            if( ((current_heading > (_heading_constraint + heading_control_margin)) && (current_heading < 2*PI)) || ((current_heading >= 0) && (current_heading < _heading_constraint - PI) ))
+//            {
+//                driving_struct.direction = UGV_move_left;
+//                driving_struct.velocity = VelGen_turn_left();;
+//            }
+//            else if((current_heading >=  _heading_constraint - PI) &&(current_heading < _heading_constraint - heading_control_margin) )
+//            {
+//                driving_struct.direction = UGV_move_right;
+//                driving_struct.velocity = VelGen_turn_right();;
+//            }
+//            else
+//            {
+//                driving_struct.direction = UGV_move_forward;
+//                driving_struct.velocity = 150;
+//            }
+//        }
 
-        mpc_vehicle->Move(driving_struct.direction,driving_struct.velocity);
-
-        if(arena_move_coordinate.at(0) < - 55)
-        {
-            cout << "Could not find panel" << endl;
-            return false;
-        }
-
-//        driving_struct.direction = UGV_move_forward;
-//        driving_struct.velocity =200;
 //        mpc_vehicle->Move(driving_struct.direction,driving_struct.velocity);
-//        if(arena_move_coordinate.at(0) < - 50)
+
+//        if(arena_move_coordinate.at(0) < - 55)
 //        {
 //            cout << "Could not find panel" << endl;
 //            return false;
 //        }
+//    }
+
+    if(!InitialSearching(10))
+    {
+        return false;
     }
 
     do{
+
+        if(!panel_found)
+        {
+            driving_struct.direction = UGV_move_forward;
+            driving_struct.velocity = 200;
+            mpc_vehicle->Move(driving_struct.direction, driving_struct.velocity);
+            Sleep(20);
+            continue;
+        }
 
         vector<double> way_point_error = GetWaypointError(mpc_velodyne->GetPanelCenterLoc().at(0) + 1.35,mpc_velodyne->GetPanelCenterLoc().at(1));
         cout << "panel center loc x : " << mpc_velodyne->GetPanelCenterLoc().at(0) << endl;
@@ -902,7 +950,7 @@ bool CDriving::DriveToPanel(){
         mpc_vehicle->Move(driving_struct.direction, driving_struct.velocity);
 
         cout << "turning for compensation" << endl;
-        Sleep(30);
+        Sleep(20);
     }
 
     driving_struct.direction = UGV_move_right;
@@ -960,8 +1008,10 @@ bool CDriving::ParkingFrontPanel(){
 
             if(!mpc_velodyne->GetLRFPanelFindStatus())
             {
-                driving_struct.direction = UGV_move_differ_left;
-                driving_struct.velocity =parking_differ_left;
+//                driving_struct.direction = UGV_move_differ_left;
+//                driving_struct.velocity =parking_differ_left;
+                driving_struct.direction = UGV_move_left;
+                driving_struct.velocity = VelGen_parking_turn_left();
             }
             else
             {
@@ -1055,11 +1105,15 @@ bool CDriving::ParkingFrontPanel(){
                         {
                             driving_struct.direction = UGV_move_differ_left;
                             driving_struct.velocity = parking_left;
+//                            driving_struct.direction = UGV_move_left;
+//                            driving_struct.velocity = VelGen_parking_turn_left();
                         }
                         else if ( ((panel_slope_norm_angle < (0.5*PI - (5.0/180.0*PI))) && (panel_slope_norm_angle >= 0)) || ((panel_slope_norm_angle > (1.5*PI + (5.0/180.0*PI))) && (panel_slope_norm_angle < 2*PI)))
                         {
                             driving_struct.direction = UGV_move_differ_right;
                             driving_struct.velocity = parking_differ_right;
+//                            driving_struct.direction = UGV_move_right;
+//                            driving_struct.velocity = VelGen_parking_turn_right();
                         }
                         else
                         {
@@ -1073,11 +1127,15 @@ bool CDriving::ParkingFrontPanel(){
                         {
                             driving_struct.direction = UGV_move_differ_left;
                             driving_struct.velocity = parking_differ_left;
+//                            driving_struct.direction = UGV_move_left;
+//                            driving_struct.velocity = VelGen_parking_turn_left();
                         }
                         else if ((panel_slope_norm_angle > (PI + (5.0/180.0*PI))) && (panel_slope_norm_angle < (2*PI - (5.0/180.0*PI))))
                         {
                             driving_struct.direction = UGV_move_differ_right;
                             driving_struct.velocity = parking_right;
+//                            driving_struct.direction = UGV_move_right;
+//                            driving_struct.velocity = VelGen_parking_turn_right();
                         }
                         else
                         {
@@ -1090,6 +1148,8 @@ bool CDriving::ParkingFrontPanel(){
                 {
                     driving_struct.direction = UGV_move_differ_left;
                     driving_struct.velocity =parking_differ_left;
+//                    driving_struct.direction = UGV_move_left;
+//                    driving_struct.velocity = VelGen_parking_turn_left();
 
                 }
                 else// front or back
@@ -1227,6 +1287,11 @@ bool CDriving::ParkingFrontPanel(){
 
                     double front_panel_center_x_to_ugv = sqrt((detected_panel_info.at(3) + panel_center_check_point)*(detected_panel_info.at(3) + panel_center_check_point) + detected_panel_info.at(4)*detected_panel_info.at(4)) * sin(angle_between_norm_origin);
 
+                    cout << " mean x : " << detected_panel_info.at(3) << " mean y : " << detected_panel_info.at(4) << endl;
+                    cout << " front panel center to origin x : " << -front_panel_center_to_origin_x << endl;
+                    cout << " front panel center to origin y : " << -front_panel_center_to_origin_y << endl;
+                    cout << " front panel center x to ugv : " << front_panel_center_x_to_ugv << endl;
+
 
                     double line_distance_to_origin;
 
@@ -1242,12 +1307,58 @@ bool CDriving::ParkingFrontPanel(){
                         line_distance_to_origin = abs(line_eq_b)/sqrt(line_eq_a*line_eq_a*+1);
                     }
 
-                    if ( (line_distance_to_origin < (side_center_margin + 0.25)) && (abs(panel_slope) > (75.0/180.0*PI)))
-                    {
-                        driving_struct.direction = UGV_move_forward;
-                        driving_struct.velocity = parking_forward;
-                    }
+//                    if ( (line_distance_to_origin < (side_center_margin + 0.25)) && (abs(panel_slope) > (75.0/180.0*PI)))
+//                    {
+//                        driving_struct.direction = UGV_move_forward;
+//                        driving_struct.velocity = parking_forward;
+//                    }
 
+//                    else
+//                    {
+
+                    if(front_heading_range_satisfiled == true)
+                    {
+                        double outer_product_check = front_panel_center_to_origin_x * panel_slope_norm_y - front_panel_center_to_origin_y * panel_slope_norm_x;
+                        if((panel_slope_norm_angle > (0.5*PI + (5.0/180.0*PI))) && (panel_slope_norm_angle < (1.5*PI - (5.0/180.0*PI))))
+                        {
+                            driving_struct.direction = UGV_move_differ_left;
+                            driving_struct.velocity = parking_differ_left;
+//                            driving_struct.direction = UGV_move_left;
+//                            driving_struct.velocity = VelGen_parking_turn_left();
+                            cout << "case 1" << endl;
+                        }
+                        else if (((panel_slope_norm_angle < (0.5*PI - (5.0/180.0*PI))) && (panel_slope_norm_angle >= 0)) || ((panel_slope_norm_angle > (1.5*PI + (5.0/180.0*PI))) && (panel_slope_norm_angle < 2*PI)))
+                        {
+                            driving_struct.direction = UGV_move_differ_right;
+                            driving_struct.velocity = parking_differ_right;
+//                            driving_struct.direction = UGV_move_right;
+//                            driving_struct.velocity = VelGen_parking_turn_right();
+                            cout << "case 2" << endl;
+                        }
+                        else
+                        {
+                            if(abs(front_panel_center_x_to_ugv) < 0.1)
+                            {
+                                break;
+                            }
+                            else
+                            {
+                                if (outer_product_check > 0)
+                                {
+                                    driving_struct.direction = UGV_move_forward;
+                                    driving_struct.velocity =70;
+                                    cout << "case 3" << endl;
+                                }
+                                else
+                                {
+                                    driving_struct.direction = UGV_move_backward;
+                                    driving_struct.velocity =70;
+                                    cout << "case 3" << endl;
+                                }
+                            }
+                        }
+
+                    }
                     else
                     {
                         if(outer_product_panel_center_norm  > 0)
@@ -1257,80 +1368,58 @@ bool CDriving::ParkingFrontPanel(){
                             {
                                 driving_struct.direction = UGV_move_differ_left;
                                 driving_struct.velocity = parking_differ_left;
+//                                driving_struct.direction = UGV_move_left;
+//                                driving_struct.velocity = VelGen_parking_turn_left();
+                                cout << "case 1" << endl;
                             }
                             else if (((panel_slope_norm_angle < (0.5*PI - (5.0/180.0*PI))) && (panel_slope_norm_angle >= 0)) || ((panel_slope_norm_angle > (1.5*PI + (5.0/180.0*PI))) && (panel_slope_norm_angle < 2*PI)))
                             {
                                 driving_struct.direction = UGV_move_differ_right;
                                 driving_struct.velocity = parking_differ_right;
+//                                driving_struct.direction = UGV_move_right;
+//                                driving_struct.velocity = VelGen_parking_turn_right();
+                                cout << "case 2" << endl;
                             }
                             else
                             {
-                                if(front_heading_range_satisfiled == true)
-                                {
-                                    if(abs(front_panel_center_x_to_ugv) < 0.1)
-                                    {
-                                        break;
-                                    }
-                                    else
-                                    {
-                                        driving_struct.direction = UGV_move_forward;
-                                        driving_struct.velocity =70;
-                                    }
-                                }
-                                else
-                                {
-                                    driving_struct.direction = UGV_move_forward;
-                                    driving_struct.velocity = parking_forward;
-                                }
+                                driving_struct.direction = UGV_move_forward;
+                                driving_struct.velocity = parking_forward;
+                                cout << "case 4" << endl;
                             }
                         }
                         else
                         {
-                            if(front_heading_range_satisfiled == false)
+                            if((panel_slope_norm_angle > (0.0 + (5.0/180.0*PI))) && (panel_slope_norm_angle < (PI - (5.0/180.0*PI))))
                             {
-                                if((panel_slope_norm_angle > (0.0 + (5.0/180.0*PI))) && (panel_slope_norm_angle < (PI - (5.0/180.0*PI))))
-                                {
-                                    driving_struct.direction = UGV_move_differ_left;
-                                    driving_struct.velocity = parking_differ_left;
-                                }
-                                else if ((panel_slope_norm_angle > (PI + (5.0/180.0*PI))) && (panel_slope_norm_angle < (2*PI - (5.0/180.0*PI))))
-                                {
-                                    driving_struct.direction = UGV_move_differ_right;
-                                    driving_struct.velocity = parking_differ_right;
-                                }
-                                else
-                                {
-                                    driving_struct.direction = UGV_move_forward;
-                                    driving_struct.velocity = parking_forward;
-                                }
+                                driving_struct.direction = UGV_move_differ_left;
+                                driving_struct.velocity = parking_differ_left;
+//                                driving_struct.direction = UGV_move_left;
+//                                driving_struct.velocity = VelGen_parking_turn_left();
+                                cout << "case 5" << endl;
+                            }
+                            else if ((panel_slope_norm_angle > (PI + (5.0/180.0*PI))) && (panel_slope_norm_angle < (2*PI - (5.0/180.0*PI))))
+                            {
+                                driving_struct.direction = UGV_move_differ_right;
+                                driving_struct.velocity = parking_differ_right;
+//                                driving_struct.direction = UGV_move_right;
+//                                driving_struct.velocity = VelGen_parking_turn_right();
+                                cout << "case 6" << endl;
                             }
                             else
                             {
-                                if(panel_slope_norm_angle > (0.5*PI + (5.0/180.0*PI)))
-                                {
-                                    driving_struct.direction = UGV_move_differ_left;
-                                    driving_struct.velocity = parking_differ_left;
-                                }
-                                else if (panel_slope_norm_angle < (0.5*PI - (5.0/180.0*PI)))
-                                {
-                                    driving_struct.direction = UGV_move_differ_right;
-                                    driving_struct.velocity = parking_differ_right;
-                                }
-                                else if (front_panel_center_x_to_ugv > 0.2)
-                                {
-                                    driving_struct.direction = UGV_move_backward;
-                                    driving_struct.velocity = 70;
-                                }
-                                else
-                                {
-                                    break;
-                                }
+                                driving_struct.direction = UGV_move_forward;
+                                driving_struct.velocity = parking_forward;
+                                cout << "case 7" << endl;
                             }
                         }
                     }
+
+//                    }
                 }
 
             }
+
+            cout << "driving direction : " << driving_struct.direction << endl;
 
             mpc_vehicle->Move(driving_struct.direction, driving_struct.velocity);
         }
@@ -1353,8 +1442,10 @@ bool CDriving::ParkingFrontPanel(){
 
         if(!mpc_velodyne->GetLRFPanelFindStatus())
         {
-            driving_struct.direction = UGV_move_differ_left;
-            driving_struct.velocity = parking_differ_left;
+//            driving_struct.direction = UGV_move_differ_left;
+//            driving_struct.velocity = parking_differ_left;
+            driving_struct.direction = UGV_move_right;
+            driving_struct.velocity = VelGen_parking_turn_right();
         }
         else
         {
@@ -1477,6 +1568,10 @@ bool CDriving::ParkingFrontPanel(){
         ParkingDistanceControl();
     }
 
+//    DrivieByOdometer(euler_angles.at(2),0.5);
+
+    Sleep(2000);
+
     //
     //
     // -----------------------------------------------------------------------------------------------
@@ -1522,6 +1617,7 @@ void CDriving::ParkingDistanceControl()
                 detected_panel_info = mpc_velodyne->GetLRFPanelInfo();
             }while((detected_panel_info.at(0) == 0) &&(detected_panel_info.at(1) == 0));
 
+
             double panel_slope_atan2 = atan2(detected_panel_info.at(1),detected_panel_info.at(0));
 
             if(panel_slope_atan2 < 0)
@@ -1541,6 +1637,20 @@ void CDriving::ParkingDistanceControl()
             }
 
             double panel_length = detected_panel_info.at(2);
+
+
+            cout << "LRF panel status : " << mpc_velodyne->GetLRFPanelFindStatus() << endl;
+            cout << "panel length : " << panel_length << endl;
+            if((!mpc_velodyne->GetLRFPanelFindStatus()) || (panel_length <= 0.3))
+            {
+
+                cout << "can not find panel" << endl;
+                driving_struct.direction = UGV_move_right;
+                driving_struct.velocity= VelGen_parking_turn_right();
+                mpc_vehicle->Move(driving_struct.direction,driving_struct.velocity);
+                Sleep(30);
+                continue;
+            }
 
             if(panel_length > 0.10) // any panel
             {
@@ -1618,24 +1728,24 @@ void CDriving::ParkingDistanceControl()
                 if((panel_slope_norm_angle > (0.0 + (5.0/180.0*PI))) && (panel_slope_norm_angle < (PI)))
                 {
                     driving_struct.direction = UGV_move_left;
-                    driving_struct.velocity = VelGen_turn_left();
+                    driving_struct.velocity = VelGen_parking_turn_left();
                 }
                 else if ((panel_slope_norm_angle >= (PI)) && (panel_slope_norm_angle < (2*PI - (5.0/180.0*PI))))
                 {
                     driving_struct.direction = UGV_move_right;
-                    driving_struct.velocity = VelGen_turn_right();
+                    driving_struct.velocity= VelGen_parking_turn_right();
                 }
                 else
                 {
                     if (dist_to_ugv_center > (parking_dist+ parking_thres))
                     {
                         driving_struct.direction = UGV_move_forward;
-                        driving_struct.velocity = parking_forward;
+                        driving_struct.velocity = 70;
                     }
                     else if (dist_to_ugv_center < (parking_dist - parking_thres))
                     {
                         driving_struct.direction = UGV_move_backward;
-                        driving_struct.velocity = parking_backward;
+                        driving_struct.velocity = 70;
                     }
                     else
                     {
@@ -1757,12 +1867,12 @@ void CDriving::ParkingDistanceControl()
                 if((panel_slope_norm_angle > (0.5*PI + (10.0/180.0*PI))) && (panel_slope_norm_angle < (1.5*PI)))
                 {
                     driving_struct.direction = UGV_move_left;
-                    driving_struct.velocity = VelGen_turn_left();
+                    driving_struct.velocity = VelGen_parking_turn_left();
                 }
                 else if (((panel_slope_norm_angle < (0.5*PI - (10.0/180.0*PI))) && (panel_slope_norm_angle >= 0)) || ((panel_slope_norm_angle > (1.5*PI)) && (panel_slope_norm_angle < 2*PI)))
                 {
                     driving_struct.direction = UGV_move_right;
-                    driving_struct.velocity = VelGen_turn_right();
+                    driving_struct.velocity = VelGen_parking_turn_right();
                 }
                 else
                 {
@@ -2268,6 +2378,224 @@ bool CDriving::DrivieByOdometer(double _heading_constraint, double _distance_con
     }while(current_encoder_value < target_encoder_value);
 
     return true;
+}
+
+bool CDriving::InitialSearching(double _StraightDistance)
+{
+    DRIVING_STRUCT driving_struct;
+
+    double heading_control_margin = 2.0/180.0*PI;
+
+    double _heading_constraint = euler_angles.at(2);
+
+    if(_heading_constraint < 0)
+    {
+        _heading_constraint += 2*PI;
+    }
+
+    double _heading_constraint_left = _heading_constraint - 0.5*PI;
+
+    if(_heading_constraint_left < 0)
+    {
+        _heading_constraint_left += 2*PI;
+    }
+    else if (_heading_constraint_left >= 2*PI)
+    {
+        _heading_constraint_left -= 2*PI;
+    }
+
+    double _heading_constraint_right = _heading_constraint + 0.5*PI;
+
+    if(_heading_constraint_right < 0)
+    {
+        _heading_constraint_right += 2*PI;
+    }
+    else if (_heading_constraint_right >= 2*PI)
+    {
+        _heading_constraint_right -= 2*PI;
+    }
+
+
+    int target_encoder_value = mpc_vehicle->CalcDistToEnc_m(_StraightDistance);
+
+    target_encoder_value = 0.5*(mpc_vehicle->GetEncoderValue().at(0) + mpc_vehicle->GetEncoderValue().at(1)) + target_encoder_value * 1000;
+
+    int current_encoder_value;
+
+    do{
+        if(panel_found)
+            return true;
+
+        current_encoder_value = 0.5*(mpc_vehicle->GetEncoderValue().at(0) + mpc_vehicle->GetEncoderValue().at(1));
+        double current_heading = euler_angles.at(2);
+
+        if(current_heading < 0)
+        {
+            current_heading += 2*PI;
+        }
+
+        if(_heading_constraint < PI)
+        {
+            if(((_heading_constraint + heading_control_margin) < current_heading ) &&(current_heading < (_heading_constraint + PI)) )
+            {
+                driving_struct.direction = UGV_move_left;
+                driving_struct.velocity = VelGen_turn_left();
+            }
+            else if(((current_heading >= 0) && (current_heading < (_heading_constraint - heading_control_margin))) || ((current_heading > _heading_constraint + PI) && (current_heading < 2*PI)))
+            {
+                driving_struct.direction = UGV_move_right;
+                driving_struct.velocity = VelGen_turn_right();
+            }
+            else
+            {
+                driving_struct.direction = UGV_move_forward;
+                driving_struct.velocity = 200;
+            }
+        }
+        else
+        {
+            if( ((current_heading > (_heading_constraint + heading_control_margin)) && (current_heading < 2*PI)) || ((current_heading >= 0) && (current_heading < _heading_constraint - PI) ))
+            {
+                driving_struct.direction = UGV_move_left;
+                driving_struct.velocity = VelGen_turn_left();
+            }
+            else if((current_heading >=  _heading_constraint - PI) &&(current_heading < _heading_constraint - heading_control_margin) )
+            {
+                driving_struct.direction = UGV_move_right;
+                driving_struct.velocity = VelGen_turn_right();
+            }
+            else
+            {
+                driving_struct.direction = UGV_move_forward;
+                driving_struct.velocity = 200;
+            }
+        }
+        mpc_vehicle->Move(driving_struct.direction, driving_struct.velocity);
+
+    }while(current_encoder_value < target_encoder_value);
+
+
+    driving_struct.direction = UGV_move_forward;
+    driving_struct.velocity = 0;
+    mpc_vehicle->Move(driving_struct.direction, driving_struct.velocity);
+
+    Sleep(1000);
+
+    // Turn left 90 degree
+
+    while(1)
+    {
+        double current_heading = euler_angles.at(2);
+
+        if(current_heading < 0)
+        {
+            current_heading += 2*PI;
+        }
+
+        if(_heading_constraint_left < PI)
+        {
+            if(((_heading_constraint_left + heading_control_margin) < current_heading ) &&(current_heading < (_heading_constraint_left + PI)) )
+            {
+                driving_struct.direction = UGV_move_left;
+                driving_struct.velocity = VelGen_turn_left();
+            }
+            else if(((current_heading >= 0) && (current_heading < (_heading_constraint_left - heading_control_margin))) || ((current_heading > _heading_constraint_left + PI) && (current_heading < 2*PI)))
+            {
+                driving_struct.direction = UGV_move_right;
+                driving_struct.velocity = VelGen_turn_right();
+            }
+            else
+            {
+                break;
+            }
+        }
+        else
+        {
+            if( ((current_heading > (_heading_constraint_left + heading_control_margin)) && (current_heading < 2*PI)) || ((current_heading >= 0) && (current_heading < _heading_constraint_left - PI) ))
+            {
+                driving_struct.direction = UGV_move_left;
+                driving_struct.velocity = VelGen_turn_left();
+            }
+            else if((current_heading >=  _heading_constraint_left - PI) &&(current_heading < _heading_constraint_left - heading_control_margin) )
+            {
+                driving_struct.direction = UGV_move_right;
+                driving_struct.velocity = VelGen_turn_right();
+            }
+            else
+            {
+                break;
+            }
+        }
+        mpc_vehicle->Move(driving_struct.direction, driving_struct.velocity);
+    }
+
+    driving_struct.direction = UGV_move_left;
+    driving_struct.velocity = 0;
+    mpc_vehicle->Move(driving_struct.direction, driving_struct.velocity);
+
+    if(panel_found)
+        return true;
+
+
+    // Turn right 90 degree
+
+    while(1)
+    {
+
+        double current_heading = euler_angles.at(2);
+
+        if(current_heading < 0)
+        {
+            current_heading += 2*PI;
+        }
+
+        if(_heading_constraint_right < PI)
+        {
+            if(((_heading_constraint_right + heading_control_margin) < current_heading ) &&(current_heading < (_heading_constraint_right + PI)) )
+            {
+                driving_struct.direction = UGV_move_left;
+                driving_struct.velocity = VelGen_turn_left();
+            }
+            else if(((current_heading >= 0) && (current_heading < (_heading_constraint_right - heading_control_margin))) || ((current_heading > _heading_constraint_right + PI) && (current_heading < 2*PI)))
+            {
+                driving_struct.direction = UGV_move_right;
+                driving_struct.velocity = VelGen_turn_right();
+            }
+            else
+            {
+                break;
+            }
+        }
+        else
+        {
+            if( ((current_heading > (_heading_constraint_right + heading_control_margin)) && (current_heading < 2*PI)) || ((current_heading >= 0) && (current_heading < _heading_constraint_right - PI) ))
+            {
+                driving_struct.direction = UGV_move_left;
+                driving_struct.velocity = VelGen_turn_left();
+            }
+            else if((current_heading >=  _heading_constraint_right - PI) &&(current_heading < _heading_constraint_right - heading_control_margin) )
+            {
+                driving_struct.direction = UGV_move_right;
+                driving_struct.velocity = VelGen_turn_right();
+            }
+            else
+            {
+                break;
+            }
+        }
+        mpc_vehicle->Move(driving_struct.direction, driving_struct.velocity);
+    }
+
+
+    if(panel_found)
+    {
+        return true;
+    }
+    else
+    {
+        return false;
+    }
+
 }
 
 void CDriving::PanelFrontDistanceControlByLMS511()

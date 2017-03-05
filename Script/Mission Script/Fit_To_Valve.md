@@ -301,7 +301,7 @@ A_Sleep(1000)
 
 IF(gb_bool_kinova_force_ctrl_rst)
 
-GRIPPER_FORCE_CTRL_STRUCT.pose_1 = 1900
+GRIPPER_FORCE_CTRL_STRUCT.pose_1 = 1550
 GRIPPER_FORCE_CTRL_STRUCT.pose_2 = 1550
 GRIPPER_FORCE_CTRL_STRUCT.force_threshold = 360
 
