@@ -1155,9 +1155,9 @@ Shift</string>
   <widget class="QGroupBox" name="groupBox_2">
    <property name="geometry">
     <rect>
-     <x>360</x>
+     <x>430</x>
      <y>560</y>
-     <width>171</width>
+     <width>131</width>
      <height>101</height>
     </rect>
    </property>
@@ -1222,10 +1222,10 @@ Shift</string>
   <widget class="QPushButton" name="bt_drive_manager">
    <property name="geometry">
     <rect>
-     <x>540</x>
-     <y>530</y>
-     <width>121</width>
-     <height>131</height>
+     <x>570</x>
+     <y>550</y>
+     <width>91</width>
+     <height>111</height>
     </rect>
    </property>
    <property name="font">
@@ -1240,6 +1240,27 @@ Shift</string>
     <string>Drive
 Manager
 Start</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="bt_refresh">
+   <property name="geometry">
+    <rect>
+     <x>350</x>
+     <y>580</y>
+     <width>80</width>
+     <height>71</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <family>Serif</family>
+     <pointsize>8</pointsize>
+     <weight>75</weight>
+     <bold>true</bold>
+    </font>
+   </property>
+   <property name="text">
+    <string>Refresh</string>
    </property>
   </widget>
  </widget>

@@ -77,7 +77,7 @@ vector<vector<int>> CSSD::GetSSDImage(cv::Mat& _org_image) {
 
   vector<vector<int>> bb_info;
   /* Print the detection results. */
-  for (int i = 0; i < detections.size(); ++i) {
+  for (unsigned int i = 0; i < detections.size(); ++i) {
     const vector<float>& d = detections[i];
     // Detection format: [image_id, label, score, xmin, ymin, xmax, ymax].
     CHECK_EQ(d.size(), 7);

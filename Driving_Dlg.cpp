@@ -41,7 +41,10 @@ Driving_Dlg::Driving_Dlg(CDriving* _pc_driving,QWidget *parent):
     connect(ui->bt_drive_manager,SIGNAL(clicked()),this,SLOT(SlotButtonDriveManger()));
     connect(ui->bt_boundary_update,SIGNAL(clicked()),this,SLOT(SlotButtonBoundaryUpdate()));
     connect(ui->ch_boundary_shift,SIGNAL(clicked()),this,SLOT(SlotButtonBoundaryShift()));
+    connect(ui->bt_refresh,SIGNAL(clicked()),this,SLOT(SlotButtonRefresh()));
+
     connect(ui->bt_panel_distance_apply,SIGNAL(clicked()),this,SLOT(SlotButtonPanelDistanceApply()));
+
 
     //Driving Class Init
     mpc_drivig = _pc_driving;
@@ -291,6 +294,10 @@ void Driving_Dlg::SlotButtonBoundaryShift(){
     {
         mpc_drivig->SetArenaShift(false);
     }
+}
+
+void Driving_Dlg::SlotButtonRefresh(){
+    mpc_drivig->RefreshArena();
 }
 
 void Driving_Dlg::SlotButtonPanelDistanceApply(){

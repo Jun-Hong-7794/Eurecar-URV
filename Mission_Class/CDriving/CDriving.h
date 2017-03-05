@@ -170,6 +170,7 @@ public:
     void SetArenaInfo(vector<double> _lb, vector<double> _lt, vector<double> _rt, vector<double> _rb);
     void SetArenaShift(bool _shift_on);
     void SetPanelDistance(double _panel_dist_dri, double _panel_dist_par);
+    void RefreshArena();
 
     //-------------------------------------------------
     // Drive Class Option Function

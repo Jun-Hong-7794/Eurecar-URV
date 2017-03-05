@@ -40,24 +40,7 @@ CDriving::CDriving(CIMU* _p_imu, CGPS* _p_gps, CLRF* _p_lrf, CCamera* _p_camera,
     mpc_drive_lrf = _p_lrf;
     mpc_camera = _p_camera;
     mpc_kinova = _p_kinova;
-    mpc_vehicle = _p_vehicle;int _s_deg = 0;
-    int _e_deg = 180;
-
-    double panel_length_margin = 0.15;
-    double front_center_margin = 1.0;
-
-    int s_lrf_index = (int)((_s_deg + 45) / ANGLE_RESOLUTION);
-    int e_lrf_index = (int)((_e_deg + 45) / ANGLE_RESOLUTION);
-
-    int number_of_point = e_lrf_index -s_lrf_index + 1;
-
-    long* lrf_distance = new long[number_of_point];
-
-    long* lrf_distance_raw = new long[1081];
-
-    bool front_heading_range_satisfiled = false;
-
-    vector<double> detected_panel_info;
+    mpc_vehicle = _p_vehicle;
     mpc_velodyne = _p_velodyne;
     mpc_lms511 = _p_lms511;
 
@@ -281,6 +264,49 @@ void CDriving::SetPanelDistance(double _panel_dist_dri, double _panel_dist_par)
 {
     side_center_margin = _panel_dist_dri;
     desirable_parking_dist = _panel_dist_par;
+}
+
+void CDriving::RefreshArena()
+{
+    // Aerna info
+    m_arena_info = {{0,-45},{-60,-45},{-60,45},{0,45}};
+    arena_aligned_compensate = false;
+    IMU_update_finished = true;
+
+    // Aligned initial heading
+    aligned_initial_heading = 0.0;
+    aligned_heading_to_current_differ = 0.0;
+    past_encoder_value = {0,0};
+    current_encoder_value = {0,0};
+    encoder_bias_update = false;
+    encoder_bias_1 = 0;
+    encoder_bias_2 = 0;
+    arena_move_coordinate = {0,0};
+    arena_move_coordinate_old = {0,0};
+    total_move_distance = 0;
+
+
+
+    // parking parameter
+    side_center_margin = 0.9;
+    desirable_parking_dist = 0.9;
+
+    // ugv info variables
+    ugv_heading = 0.0;
+    final_parking_heading = -PI;
+
+    panel_slope_norm_x = 0.0;
+    panel_slope_norm_y = 0.0;
+    panel_way_x = 0.0;
+    panel_way_y = 0.0;
+    parking_short = true;
+    panel_found = true;
+
+    m_dist_error_from_p1_km=0.0;
+
+    euler_angles = {0,0,0};
+
+    mpc_velodyne->SetArenaBoundary(m_arena_info,0,0,0);
 }
 
 //----------------------------------------------------------------
@@ -643,66 +669,6 @@ bool CDriving::DriveToPanel(){
     cout << "Driving Start " << endl;
     mpc_velodyne->SetVelodyneMode(VELODYNE_MODE_DRIVING);
 
-
-    double _heading_constraint = aligned_initial_heading;
-    double heading_control_margin = 2.0/180.0*PI;
-
-//    while(!panel_found)
-//    {
-
-//        double current_heading = euler_angles.at(2);
-
-//        if(current_heading < 0)
-//        {
-//            current_heading += 2*PI;
-//        }
-
-//        if(_heading_constraint < PI)
-//        {
-//            if(((_heading_constraint + heading_control_margin) < current_heading ) &&(current_heading < (_heading_constraint + PI)) )
-//            {
-//                driving_struct.direction = UGV_move_left;
-//                driving_struct.velocity = VelGen_turn_left();
-//            }
-//            else if(((current_heading >= 0) && (current_heading < (_heading_constraint - heading_control_margin))) || ((current_heading > _heading_constraint + PI) && (current_heading < 2*PI)))
-//            {
-//                driving_struct.direction = UGV_move_right;
-//                driving_struct.velocity = VelGen_turn_right();
-//            }
-//            else
-//            {
-//                driving_struct.direction = UGV_move_forward;
-//                driving_struct.velocity = 150;
-//            }
-//        }
-//        else
-//        {
-//            if( ((current_heading > (_heading_constraint + heading_control_margin)) && (current_heading < 2*PI)) || ((current_heading >= 0) && (current_heading < _heading_constraint - PI) ))
-//            {
-//                driving_struct.direction = UGV_move_left;
-//                driving_struct.velocity = VelGen_turn_left();;
-//            }
-//            else if((current_heading >=  _heading_constraint - PI) &&(current_heading < _heading_constraint - heading_control_margin) )
-//            {
-//                driving_struct.direction = UGV_move_right;
-//                driving_struct.velocity = VelGen_turn_right();;
-//            }
-//            else
-//            {
-//                driving_struct.direction = UGV_move_forward;
-//                driving_struct.velocity = 150;
-//            }
-//        }
-
-//        mpc_vehicle->Move(driving_struct.direction,driving_struct.velocity);
-
-//        if(arena_move_coordinate.at(0) < - 55)
-//        {
-//            cout << "Could not find panel" << endl;
-//            return false;
-//        }
-//    }
-
     if(!InitialSearching(10))
     {
         return false;
@@ -1020,7 +986,6 @@ bool CDriving::ParkingFrontPanel(){
                     detected_panel_info = mpc_velodyne->GetLRFPanelInfo();
                 }while((detected_panel_info.at(0) == 0) &&(detected_panel_info.at(0) == 0));
 
-                double panel_slope = detected_panel_info.at(1)/detected_panel_info.at(0);
                 double panel_slope_atan2 = atan2(detected_panel_info.at(1),detected_panel_info.at(0));
 
                 if(panel_slope_atan2 < 0)
@@ -1293,7 +1258,7 @@ bool CDriving::ParkingFrontPanel(){
                     cout << " front panel center x to ugv : " << front_panel_center_x_to_ugv << endl;
 
 
-                    double line_distance_to_origin;
+                    double line_distance_to_origin = 0;
 
                     if (detected_panel_info.at(0) == 0)
                     {
@@ -1589,9 +1554,6 @@ void CDriving::ParkingDistanceControl()
     int _s_deg = 0;
     int _e_deg = 180;
 
-    double panel_length_margin = 0.15;
-    double front_center_margin = 1.0;
-
     int s_lrf_index = (int)((_s_deg + 45) / ANGLE_RESOLUTION);
     int e_lrf_index = (int)((_e_deg + 45) / ANGLE_RESOLUTION);
 
@@ -1676,7 +1638,14 @@ void CDriving::ParkingDistanceControl()
 
                 panel_length = detected_panel_info.at(2);
 
-
+                if((!mpc_velodyne->GetLMS511PanelFindStatus()) || (panel_length <= 0.1))
+                {
+                    driving_struct.direction = UGV_move_right;
+                    driving_struct.velocity= VelGen_parking_turn_right();
+                    mpc_vehicle->Move(driving_struct.direction,driving_struct.velocity);
+                    Sleep(30);
+                    continue;
+                }
             }
 
             if(panel_length > 0.10) // any panel
@@ -1728,11 +1697,6 @@ void CDriving::ParkingDistanceControl()
 
                 panel_way_x = panel_way_anchor_x + side_center_margin*(-panel_slope_norm_y_norm);
                 panel_way_y = panel_way_anchor_y + side_center_margin*(panel_slope_norm_x_norm);
-
-                double panel_center_to_way_x = panel_way_x - detected_panel_info.at(3);
-                double panel_center_to_way_y = panel_way_y - detected_panel_info.at(4);
-
-                double outer_product_panel_center_norm = panel_center_to_origin_x*panel_center_to_way_y - panel_center_to_origin_y*panel_center_to_way_x;
 
                 //// ------------------------------////////////////
                 double dist_to_ugv_center = 0;
@@ -1868,10 +1832,6 @@ void CDriving::ParkingDistanceControl()
                 panel_way_x = panel_way_anchor_x + side_center_margin*(-panel_slope_norm_y_norm);
                 panel_way_y = panel_way_anchor_y + side_center_margin*(panel_slope_norm_x_norm);
 
-                double panel_center_to_way_x = panel_way_x - detected_panel_info.at(3);
-                double panel_center_to_way_y = panel_way_y - detected_panel_info.at(4);
-
-                double outer_product_panel_center_norm = panel_center_to_origin_x*panel_center_to_way_y - panel_center_to_origin_y*panel_center_to_way_x;
 
                 //// ------------------------------////////////////
                 double dist_to_ugv_center = 0;
@@ -1922,9 +1882,6 @@ void CDriving::ParkingDistanceControl(double _bias)
 
     int _s_deg = 0;
     int _e_deg = 180;
-
-    double panel_length_margin = 0.15;
-    double front_center_margin = 1.0;
 
     int s_lrf_index = (int)((_s_deg + 45) / ANGLE_RESOLUTION);
     int e_lrf_index = (int)((_e_deg + 45) / ANGLE_RESOLUTION);
@@ -2021,10 +1978,6 @@ void CDriving::ParkingDistanceControl(double _bias)
                 panel_way_x = panel_way_anchor_x + side_center_margin*(-panel_slope_norm_y_norm);
                 panel_way_y = panel_way_anchor_y + side_center_margin*(panel_slope_norm_x_norm);
 
-                double panel_center_to_way_x = panel_way_x - detected_panel_info.at(3);
-                double panel_center_to_way_y = panel_way_y - detected_panel_info.at(4);
-
-                double outer_product_panel_center_norm = panel_center_to_origin_x*panel_center_to_way_y - panel_center_to_origin_y*panel_center_to_way_x;
 
                 //// ------------------------------////////////////
                 double dist_to_ugv_center = 0;
@@ -2160,10 +2113,6 @@ void CDriving::ParkingDistanceControl(double _bias)
                 panel_way_x = panel_way_anchor_x + side_center_margin*(-panel_slope_norm_y_norm);
                 panel_way_y = panel_way_anchor_y + side_center_margin*(panel_slope_norm_x_norm);
 
-                double panel_center_to_way_x = panel_way_x - detected_panel_info.at(3);
-                double panel_center_to_way_y = panel_way_y - detected_panel_info.at(4);
-
-                double outer_product_panel_center_norm = panel_center_to_origin_x*panel_center_to_way_y - panel_center_to_origin_y*panel_center_to_way_x;
 
                 //// ------------------------------////////////////
                 double dist_to_ugv_center = 0;
@@ -3039,9 +2988,7 @@ void CDriving::SlotVelodynePanelFound(bool _panel_found)
 
 void CDriving::SlotLMS511UpdatePoints(vector<vector<double>> _point_list)
 {
-//    mpc_lms511->mtx_lms.lock();
-//    mpc_velodyne->SetLMS511DataToPCL(_point_list);
-//    mpc_lms511->mtx_lms.unlock();
+
 }
 
 //----------------------------------------------------------------

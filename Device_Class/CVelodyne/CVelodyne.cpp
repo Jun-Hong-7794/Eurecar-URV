@@ -150,7 +150,6 @@ bool CVelodyne::RunVelodyne(){
 
     double clustering_tolerence = 0.1;
     double clustering_count_tolerence = 50;
-    double waypoint_converged_margin = 0.15;
 
     while(fl_velodyne_thread)
     {
@@ -271,7 +270,7 @@ bool CVelodyne::RunVelodyne(){
 
 
                 // Calculate ransac mean
-                for(int i = 0; i < lms511_point_parking_ransac->points.size();i++)
+                for(unsigned int i = 0; i < lms511_point_parking_ransac->points.size();i++)
                 {
                     lms511_ransac_line_sum_x += lms511_point_parking_ransac->points[i].x;
                     lms511_ransac_line_sum_y += lms511_point_parking_ransac->points[i].y;
@@ -283,7 +282,7 @@ bool CVelodyne::RunVelodyne(){
                 // Calculate maximum distance
 
                 double lms511_maximum_dist_from_ransac_mean = 0;
-                for(int i = 0; i < lms511_point_parking_ransac->points.size();i++)
+                for(unsigned int i = 0; i < lms511_point_parking_ransac->points.size();i++)
                 {
                     double lms511_dist_from_ransac_mean = sqrt((lms511_ransac_line_mean_x - lms511_point_parking_ransac->points[i].x)*(lms511_ransac_line_mean_x - lms511_point_parking_ransac->points[i].x) + (lms511_ransac_line_mean_y - lms511_point_parking_ransac->points[i].y)*(lms511_ransac_line_mean_y - lms511_point_parking_ransac->points[i].y));
                     if (lms511_maximum_dist_from_ransac_mean < lms511_dist_from_ransac_mean)
@@ -306,10 +305,12 @@ bool CVelodyne::RunVelodyne(){
                 }
 
             }
+            else
+            {
+                lms511_find_panel = false;
+            }
             //
             // --------------------------------------------------------------------------------
-
-
 
 
             (*inliers).indices.clear();
@@ -328,7 +329,7 @@ bool CVelodyne::RunVelodyne(){
 
             mpc_pcl->panelpoint_cloud->points.resize(6);
 
-            for(int i = 0;i < mpc_pcl->panelpoint_cloud->points.size();i++)
+            for(unsigned int i = 0;i < mpc_pcl->panelpoint_cloud->points.size();i++)
             {
                 mpc_pcl->panelpoint_cloud->points[i].x = 0;
                 mpc_pcl->panelpoint_cloud->points[i].y = 0;
@@ -338,7 +339,6 @@ bool CVelodyne::RunVelodyne(){
 
 
             double minimum_z = 0.;
-            double tolerence = 0.;
 
 
             pcl::ExtractIndices<pcl::PointXYZRGBA> eifilter(true);
@@ -587,7 +587,7 @@ bool CVelodyne::RunVelodyne(){
 
 
                 // Calculate ransac mean
-                for(int i = 0; i < ransac_result_lrf->points.size();i++)
+                for(unsigned int i = 0; i < ransac_result_lrf->points.size();i++)
                 {
                     lrf_ransac_line_sum_x += ransac_result_lrf->points[i].x;
                     lrf_ransac_line_sum_y += ransac_result_lrf->points[i].y;
@@ -599,7 +599,7 @@ bool CVelodyne::RunVelodyne(){
                 // Calculate maximum distance
 
                 double lrf_maximum_dist_from_ransac_mean = 0;
-                for(int i = 0; i < ransac_result_lrf->points.size();i++)
+                for(unsigned int i = 0; i < ransac_result_lrf->points.size();i++)
                 {
                     double lrf_dist_from_ransac_mean = sqrt((lrf_ransac_line_mean_x - ransac_result_lrf->points[i].x)*(lrf_ransac_line_mean_x - ransac_result_lrf->points[i].x) + (lrf_ransac_line_mean_y - ransac_result_lrf->points[i].y)*(lrf_ransac_line_mean_y - ransac_result_lrf->points[i].y));
                     if (lrf_maximum_dist_from_ransac_mean < lrf_dist_from_ransac_mean)
@@ -946,7 +946,7 @@ bool CVelodyne::RunVelodyne(){
 
                                     for(unsigned int i = 1; i < mpc_pcl->waypoint_cloud->points.size();i++)
                                     {
-                                        if(i < (current_waypoint_index+1))
+                                        if(i < (unsigned int)(current_waypoint_index+1))
                                         {
                                             mpc_pcl->waypoint_cloud->points[i].r = 0;
                                             mpc_pcl->waypoint_cloud->points[i].g = 255;
@@ -1079,7 +1079,7 @@ bool CVelodyne::RunVelodyne(){
 
                                     for(unsigned int i = 1; i < mpc_pcl->waypoint_cloud->points.size();i++)
                                     {
-                                        if(i < (current_waypoint_index+1))
+                                        if(i < (unsigned int)(current_waypoint_index+1))
                                         {
                                             mpc_pcl->waypoint_cloud->points[i].r = 0;
                                             mpc_pcl->waypoint_cloud->points[i].g = 255;
@@ -1103,14 +1103,14 @@ bool CVelodyne::RunVelodyne(){
                         else // back
                         {
 
-                            double waypoint_direct_vec_x = ransac_line1_mean_x - ransac_line_mean_x;
-                            double waypoint_direct_vec_y = ransac_line1_mean_y - ransac_line_mean_y;
+//                            double waypoint_direct_vec_x = ransac_line1_mean_x - ransac_line_mean_x;
+//                            double waypoint_direct_vec_y = ransac_line1_mean_y - ransac_line_mean_y;
 
-                            double waypoint_direct_vec_x_norm = waypoint_direct_vec_x/sqrt(waypoint_direct_vec_x*waypoint_direct_vec_x + waypoint_direct_vec_y*waypoint_direct_vec_y);
-                            double waypoint_direct_vec_y_norm = waypoint_direct_vec_y/sqrt(waypoint_direct_vec_x*waypoint_direct_vec_x + waypoint_direct_vec_y*waypoint_direct_vec_y);
+//                            double waypoint_direct_vec_x_norm = waypoint_direct_vec_x/sqrt(waypoint_direct_vec_x*waypoint_direct_vec_x + waypoint_direct_vec_y*waypoint_direct_vec_y);
+//                            double waypoint_direct_vec_y_norm = waypoint_direct_vec_y/sqrt(waypoint_direct_vec_x*waypoint_direct_vec_x + waypoint_direct_vec_y*waypoint_direct_vec_y);
 
 
-                            double outer_product_result = ransac_line_mean_x*waypoint_direct_vec_y_norm - ransac_line_mean_y*waypoint_direct_vec_x_norm;
+//                            double outer_product_result = ransac_line_mean_x*waypoint_direct_vec_y_norm - ransac_line_mean_y*waypoint_direct_vec_x_norm;
 
                             if (coeff[3] != 0)
                             {
@@ -1228,7 +1228,7 @@ bool CVelodyne::RunVelodyne(){
 
                                     for(unsigned int i = 1; i < mpc_pcl->waypoint_cloud->points.size();i++)
                                     {
-                                        if(i < (current_waypoint_index+1))
+                                        if(i < (unsigned int)(current_waypoint_index+1))
                                         {
                                             mpc_pcl->waypoint_cloud->points[i].r = 0;
                                             mpc_pcl->waypoint_cloud->points[i].g = 255;
@@ -1360,7 +1360,7 @@ bool CVelodyne::RunVelodyne(){
 
                                     for(unsigned int i = 1; i < mpc_pcl->waypoint_cloud->points.size();i++)
                                     {
-                                        if(i < (current_waypoint_index+1))
+                                        if(i < (unsigned int)(current_waypoint_index+1))
                                         {
                                             mpc_pcl->waypoint_cloud->points[i].r = 0;
                                             mpc_pcl->waypoint_cloud->points[i].g = 255;
@@ -1531,7 +1531,7 @@ bool CVelodyne::RunVelodyne(){
 
                                 for(unsigned int i = 1; i < mpc_pcl->waypoint_cloud->points.size();i++)
                                 {
-                                    if(i < (current_waypoint_index+1))
+                                    if(i < (unsigned int)(current_waypoint_index+1))
                                     {
                                         mpc_pcl->waypoint_cloud->points[i].r = 0;
                                         mpc_pcl->waypoint_cloud->points[i].g = 255;
@@ -1679,7 +1679,7 @@ bool CVelodyne::RunVelodyne(){
 
                                 for(unsigned int i = 1; i < mpc_pcl->waypoint_cloud->points.size();i++)
                                 {
-                                    if(i < (current_waypoint_index+1))
+                                    if(i < (unsigned int)(current_waypoint_index+1))
                                     {
                                         mpc_pcl->waypoint_cloud->points[i].r = 0;
                                         mpc_pcl->waypoint_cloud->points[i].g = 255;
@@ -1841,7 +1841,7 @@ void CVelodyne::SetLMS511DataToPCL(vector<vector<double> > _x_and_y)
     mpc_pcl->lms511_cloud->clear();
 
 //    cout << _x_and_y.size() << endl;
-    for(int i = 0; i < _x_and_y.size();i++)
+    for(unsigned int i = 0; i < _x_and_y.size();i++)
     {
         pcl::PointXYZRGBA point_lms511;
         point_lms511.x = -(_x_and_y.at(i)).at(1);
@@ -1866,7 +1866,7 @@ void CVelodyne::SlotLMS511UpdatePoints(vector<vector<double>> _x_and_y)
 
         mpc_pcl->lms511_cloud->clear();
 
-        for(int i = 0; i < _x_and_y.size();i++)
+        for(unsigned int i = 0; i < _x_and_y.size();i++)
         {
             pcl::PointXYZRGBA point_lms511;
             point_lms511.x = -(_x_and_y.at(i)).at(1);
@@ -1937,6 +1937,11 @@ bool CVelodyne::IsPanelFound()
 bool CVelodyne::GetLRFPanelFindStatus()
 {
     return lrf_find_panel;
+}
+
+bool CVelodyne::GetLMS511PanelFindStatus()
+{
+    return lms511_find_panel;
 }
 
 double* CVelodyne::GetPanelPoint_x()
@@ -2013,23 +2018,6 @@ bool CVelodyne::CheckInBoundary(double _x, double _y)
 
 }
 
-void CVelodyne::viewer_update_geofence(pcl::visualization::PCLVisualizer& viewer)
-{
-    if(!((ground_point[0].x == 0) &&  (ground_point[0].y == 0)))
-    {
-        vector<pcl::PointXYZRGBA> pcl_pt_ground;
-
-        for(int i = 0; i < 4; i++)
-        {
-            pcl::PointXYZRGBA pcl_pt_tmp;
-            pcl_pt_tmp.x = ground_point[i].x;
-            pcl_pt_tmp.y = ground_point[i].y;
-            pcl_pt_tmp.z = 0;
-            pcl_pt_ground.push_back(pcl_pt_tmp);
-        }
-
-    }
-}
 //----------------------------------------------------------------
 //
 //                            Run Thread

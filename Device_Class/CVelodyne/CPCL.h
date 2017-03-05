@@ -99,7 +99,6 @@ public:
     VELODYNE_DATA m_velodyne_data_ary[VELODYNE_TOTAL_PACKET_NUMBER];//360 deg Data
 
     void Set_Velodyne_Data(double **_x_ary, double **_y_ary, double **_z_ary){
-        int count = 0;
         for (int k = 0; k < VELODYNE_LASERS_NUM; k++){
             for (int i = 0; i < VELODYNE_TOTAL_PACKET_NUMBER; i++){
                 for (int j = 0; j < VELODYNE_BOLCKS_NUM; j++){

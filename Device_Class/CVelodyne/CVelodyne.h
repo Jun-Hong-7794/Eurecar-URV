@@ -183,6 +183,7 @@ public:
     // Set lms511 data
     void SetLMS511DataToPCL(vector<vector<double>> _x_and_y);
     std::vector<double> GetLMS511PanelInfo();
+    bool GetLMS511PanelFindStatus();
 
     void SetVelodyneRange(double _range);
 
@@ -202,10 +203,6 @@ public:
 
     //calc ground gps points to body coordiante
 //    Ground_Bodypoint GetGroundGPS_Body();
-
-    void viewer_update_geofence(pcl::visualization::PCLVisualizer& viewer);
-
-
 
 //    // Velodyne with IMU
 //    vector<cv::Point2f> CalcGroundBodyPoint_IMU();

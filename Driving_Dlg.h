@@ -85,6 +85,7 @@ public slots:
     void SlotButtonBoundaryUpdate();
     void SlotButtonBoundaryShift();
     void SlotButtonPanelDistanceApply();
+    void SlotButtonRefresh();
 //    void SlotButtonGpsConnect();
 
     //-------------------------------------------------

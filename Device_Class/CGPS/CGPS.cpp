@@ -163,8 +163,6 @@ double CGPS::BearingCalc_Gps2Gps(Gpspoint _cur_point, Gpspoint _target_point)
     double y = sin(dlon) * cos(_target_point.lat * PI / 180);
     double x = cos(_cur_point.lat * PI / 180) * sin(_target_point.lat * PI / 180) - sin(_cur_point.lat * PI / 180)*cos(_target_point.lat * PI / 180)*cos(dlon);
 
-
-    double dPhi = log(tan(_target_point.lat * PI / 180 / 2.0 + PI / 4.0) / tan(_cur_point.lat * PI / 180 / 2.0 + PI / 4.0));
     if (abs(dlon) > PI)
     {
         if (dlon > 0.0)
@@ -190,7 +188,9 @@ vector<cv::Point2f> CGPS::CalcBodypoint_Ground()
     cur_heading = (1.0) * cur_heading * 180.0 / PI;
 
     if(m_init_heading != 0)
-        double cur_heading_diff = -(cur_heading - m_init_heading);
+    {
+
+    }
     else
     {
         cout << "initial heading value is not set"<<endl;
