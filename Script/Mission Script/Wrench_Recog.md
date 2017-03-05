@@ -2,7 +2,7 @@
 /* Made By Jun Hong 28.01.2017
 /* This Script is for 2107 MBZIRC Challenge2
 
-global_int gi_wrench_hanger_index = 6
+global_int gi_wrench_hanger_index = 3
 /*gi_valve_size
 
 # Title: Valve Recognition

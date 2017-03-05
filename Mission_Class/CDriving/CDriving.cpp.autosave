@@ -576,7 +576,7 @@ int CDriving::VelGen_turn_left()
     }
     else
     {
-        velocity= 100;
+        velocity= 120;
         mpc_vehicle->turn_continue_flag_left = true;
     }
     return velocity;
@@ -594,7 +594,7 @@ int CDriving::VelGen_turn_right()
     }
     else
     {
-        velocity= 100;
+        velocity= 120;
         mpc_vehicle->turn_continue_flag_right = true;
     }
     cout << "velocity : " << velocity << endl;

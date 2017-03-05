@@ -1747,7 +1747,7 @@ bool CVelodyne::RunVelodyne(){
         count++;
 
     }
-
+    while(this->isRunning());
     return true;
 }
 
