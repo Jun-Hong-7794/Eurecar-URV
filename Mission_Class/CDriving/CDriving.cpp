@@ -1624,15 +1624,42 @@ void CDriving::ParkingDistanceControl()
 
             cout << "LRF panel status : " << mpc_velodyne->GetLRFPanelFindStatus() << endl;
             cout << "panel length : " << panel_length << endl;
-            if((!mpc_velodyne->GetLRFPanelFindStatus()) || (panel_length <= 0.3))
+            if((!mpc_velodyne->GetLRFPanelFindStatus()) || (panel_length <= 0.1))
             {
 
                 cout << "can not find panel" << endl;
-                driving_struct.direction = UGV_move_right;
-                driving_struct.velocity= VelGen_parking_turn_right();
-                mpc_vehicle->Move(driving_struct.direction,driving_struct.velocity);
-                Sleep(30);
-                continue;
+//                driving_struct.direction = UGV_move_right;
+//                driving_struct.velocity= VelGen_parking_turn_right();
+//                mpc_vehicle->Move(driving_struct.direction,driving_struct.velocity);
+//                Sleep(30);
+//                continue;
+
+                do{
+                    detected_panel_info = mpc_velodyne->GetLMS511PanelInfo();
+                }while((detected_panel_info.at(0) == 0) &&(detected_panel_info.at(1) == 0));
+
+
+                panel_slope_atan2 = atan2(detected_panel_info.at(1),detected_panel_info.at(0));
+
+                if(panel_slope_atan2 < 0)
+                {
+                    panel_slope_atan2 += 2.0*PI;
+                }
+
+                panel_slope_norm_x = -detected_panel_info.at(1);
+                panel_slope_norm_y = detected_panel_info.at(0);
+
+
+                panel_slope_norm = atan2(panel_slope_norm_y,panel_slope_norm_x);
+
+                if(panel_slope_norm < 0)
+                {
+                    panel_slope_norm += 2.0*PI;
+                }
+
+                panel_length = detected_panel_info.at(2);
+
+
             }
 
             if(panel_length > 0.10) // any panel
