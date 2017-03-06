@@ -3055,7 +3055,7 @@ bool CManipulation::GripperKinovaValveSizeRecognition(){
 
     //Minimum Diff Index * (Step Rotation Angle)
     double rotation_angle =
-            (vec_gripper_data.at(0).x * (KINOVA_PI / grasp_trial) * (180 / KINOVA_PI) /*Rad to Deg*/);
+            (vec_gripper_data.at(0).x * (gripper_kinova_valve_recog.rotation_angle / grasp_trial) /*Rad to Deg*/);
 
      //Find Valve Size
     int valve_size_recog = DataAnalisys(DataSort(gripper_data_y));
