@@ -147,7 +147,6 @@ LRF_K_HORIZEN_CTRL_FUNCTION()
 
 A_Sleep(500)
 
-
 ## Step5: Kinova Arm Dw
 
 KINOVA_MANIPULATE_STRUCT.x = ==
