@@ -68,6 +68,7 @@ Manipulation_Dlg::Manipulation_Dlg(CManipulation* _pc_manipulation, QWidget *par
     connect(ui->bt_lrf_horizent_distance, SIGNAL(clicked()), this, SLOT(SlotButtonHorizenDistance()));
 
     connect(ui->bt_panel_localization, SIGNAL(clicked()), this, SLOT(SlotButtonPanelLocalization()));
+    connect(ui->bt_get_camera_image, SIGNAL(clicked()), this, SLOT(SlotButtonGetCameraImage()));
 
     connect(ui->bt_end_effector_grasp_2, SIGNAL(clicked()), this, SLOT(SlotButtonEEffectorGrasp()));
     connect(ui->bt_end_effector_present_pos_check, SIGNAL(clicked()), this, SLOT(SlotButtonEEffectorPoseCheck()));
@@ -574,6 +575,25 @@ void Manipulation_Dlg::SlotButtonLRFKinovaCtrl(){
 
 
 //Camera
+void Manipulation_Dlg::SlotButtonGetCameraImage(){
+    if(!mpc_manipulation->IsCameraConnected()){
+        QMessageBox::information(this, tr("Fail to Connect Camera"), tr("Check Camera Status"));
+    }
+    else{
+        cv::Mat image;
+
+        if(!mpc_manipulation->GetCameraImage(image))
+            QMessageBox::information(this, tr("Fail to Get Image"), tr("Check Camera Status"));
+        else{
+            QString str_name = "/home/winner/Workspace/2017MBZIRC_Code/Eurecar-URV/Eurecar-URV/CameraData/" +
+                    mpc_manipulation->GetCurrentTime() + ".png";
+
+            std::string image_name = str_name.toUtf8().constData();
+            cv::imwrite(image_name,image);
+        }
+    }
+}
+
 void Manipulation_Dlg::SlotButtonCameraOn(){
     if(!mpc_manipulation->IsCameraConnected()){
         if(!mpc_manipulation->InitCamera()){

@@ -294,6 +294,8 @@ public:
 
     void SetForceCheckThread(bool _data);
 
+    bool GetCameraImage(cv::Mat &_image);
+    QString GetCurrentTime();
 public:
     bool SelectMainFunction(int _fnc_index_);
 

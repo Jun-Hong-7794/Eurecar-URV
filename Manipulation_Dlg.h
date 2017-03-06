@@ -153,6 +153,7 @@ public slots:
 
     //Camera
     void SlotButtonCameraOn();
+    void SlotButtonGetCameraImage();
     void SlotButtonSegnetOn(bool _check);
 
     //End Effector

@@ -2,7 +2,7 @@
 /* Made By Jun Hong 28.01.2017
 /* This Script is for 2107 MBZIRC Challenge2
 
-global_int gi_wrench_hanger_index = 3
+global_int gi_wrench_hanger_index = 2
 /*gi_valve_size
 
 # Title: Valve Recognition
@@ -12,6 +12,18 @@ KINOVA_ALIGN_TO_PANEL.do_init_motion = false
 KINOVA_ALIGN_TO_PANEL_FUNCTION()
 
 A_Sleep(1000)
+
+
+## Step5: Gripper Release
+
+GRIPPER_FORCE_CTRL_STRUCT.pose_1 = 2800
+GRIPPER_FORCE_CTRL_STRUCT.pose_2 = 2800
+GRIPPER_FORCE_CTRL_STRUCT.force_threshold = -2
+
+GRIPPER_FORCE_CTRL_FUNCTION()
+
+A_Sleep(500)
+
 
 ## Step1: LRF-Kinova Vertical CTRL(NEW)
 
@@ -177,9 +189,9 @@ A_Sleep(500)
 WRENCH_RECOGNITION_STRUCT.num_of_wrench = 6
 WRENCH_RECOGNITION_STRUCT.loop_count = 50
 WRENCH_RECOGNITION_STRUCT.valve_size = gi_valve_size
-WRENCH_RECOGNITION_STRUCT.valve_size = 16
+/*WRENCH_RECOGNITION_STRUCT.valve_size = 16
 /*gi_wrench_hanger_index = WRENCH_RECOGNITION_FUNCTION()
-
+WRENCH_RECOGNITION_FUNCTION()
 A_Sleep(2000)
 
 ## Step13: Align to Panel

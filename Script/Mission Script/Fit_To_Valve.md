@@ -177,7 +177,7 @@ LRF_K_HORIZEN_CTRL_STRUCT.mode = 2
 
 LRF_K_HORIZEN_CTRL_STRUCT.only_sensing_moving = false
 
-LRF_K_HORIZEN_CTRL_STRUCT.desired_h_dst = 335
+LRF_K_HORIZEN_CTRL_STRUCT.desired_h_dst = 345
 /*Center Point
 /*LRF_K_HORIZEN_CTRL_STRUCT.desired_h_dst = 335
 

@@ -399,8 +399,8 @@ LINE_PARAM CRGBD::EstimateLineEquation(std::vector<POINT_PARAM>& _point_vec){
     line_parameter.Distance =
             (fabs(line_parameter.b) / sqrt(pow((line_parameter.a),2) + 1));
 
-    std::cout << "a : " << a << "b : " << b << std::endl;
-    std::cout << "yaw : " << line_parameter.yaw << std::endl;
+//    std::cout << "a : " << a << "b : " << b << std::endl;
+//    std::cout << "yaw : " << line_parameter.yaw << std::endl;
 
     return line_parameter;
 }

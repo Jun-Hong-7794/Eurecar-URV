@@ -153,21 +153,21 @@ LRF_K_VERTICAL_CTRL_STRUCT.only_sensing_moving = false
 /*LRF_K_HORIZEN_CTRL_STRUCT.wrench_hanger_index = 5
 LRF_K_HORIZEN_CTRL_STRUCT.wrench_hanger_index = gi_wrench_hanger_index
 
-LRF_K_HORIZEN_CTRL_STRUCT.wrench_location_1 = 707 
-LRF_K_HORIZEN_CTRL_STRUCT.wrench_location_2 = 757 
-LRF_K_HORIZEN_CTRL_STRUCT.wrench_location_3 = 807 
+LRF_K_HORIZEN_CTRL_STRUCT.wrench_location_1 = 704 
+LRF_K_HORIZEN_CTRL_STRUCT.wrench_location_2 = 754 
+LRF_K_HORIZEN_CTRL_STRUCT.wrench_location_3 = 804 
 LRF_K_HORIZEN_CTRL_STRUCT.wrench_location_4 = 857
 LRF_K_HORIZEN_CTRL_STRUCT.wrench_location_5 = 900 
 LRF_K_HORIZEN_CTRL_STRUCT.wrench_location_6 = 950
 
 LRF_K_HORIZEN_CTRL_STRUCT.desired_h_dst = 0
 
-LRF_K_HORIZEN_CTRL_STRUCT.error = 3
+LRF_K_HORIZEN_CTRL_STRUCT.error = 1
 
 LRF_K_HORIZEN_CTRL_STRUCT.s_deg = 10 
 LRF_K_HORIZEN_CTRL_STRUCT.e_deg = 170
 
-LRF_K_HORIZEN_CTRL_STRUCT.inlier_lrf_dst = 1100
+LRF_K_HORIZEN_CTRL_STRUCT.inlier_lrf_dst = 800
 
 LRF_K_HORIZEN_CTRL_STRUCT.loop_sleep = 30 
 

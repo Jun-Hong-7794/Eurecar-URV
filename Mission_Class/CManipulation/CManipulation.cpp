@@ -1212,7 +1212,7 @@ int CManipulation::DataAnalisys(QVector<double> _data){//For Valve Recognition, 
 
     double error_bound = 10;
 
-    for(int i = 0; i < 35; i++){
+    for(int i = 0; i < _data.size(); i++){
 
         if(!mqvec_sorted_16mm.isEmpty()){
             ary_error[0] += fabs(_data[i] - mqvec_sorted_16mm[i]);
@@ -1469,6 +1469,10 @@ void CManipulation::PanelModeling(int _valve_size, int _virtical_dst/*mm*/, int 
     cv::arrowedLine(mat_panel, point_lrf_center, point_lrf_c_to_theta_panel, cv::Scalar(0,0,255), 3);
 
     emit SignalPanelImage(mat_panel);
+}
+
+bool CManipulation::GetCameraImage(cv::Mat &_image){
+    return mpc_camera->GetCameraImage(_image);
 }
 
 //----------------------------------------------------------------
@@ -1938,6 +1942,10 @@ bool CManipulation::LRFK_VCtrl(){
     if(!lrf_kinova_struct.fl_only_sensing_moving){
         mpc_kinova->Kinova_GetCartesianPosition(position);
 
+        position.Coordinates.ThetaX = ALIGN_TO_PANEL_YAW_VALUE;
+        position.Coordinates.ThetaY = ALIGN_TO_PANEL_PITCH_VALUE;
+        position.Coordinates.ThetaZ = ALIGN_TO_PANEL_ROLL_VALUE;
+
         if(info.angle == 0 && info.horizen__dst == 0 && info.vertical_dst == 0);
         else{
             if(error_dst > 0){
@@ -1995,6 +2003,8 @@ bool CManipulation::LRFK_HCtrl(){
 
     LRF_K_H_CTRL_STRUCT lrf_kinova_struct = GetLRFKHorizenCtrlOption();
 
+    int count = 1;
+
     if(!mpc_lrf->IsLRFOn())
         return false;
     if(!mpc_kinova->IsKinovaInitialized())
@@ -2047,6 +2057,10 @@ bool CManipulation::LRFK_HCtrl(){
     if(lrf_kinova_struct.fl_only_sensing_moving){
         mpc_kinova->Kinova_GetCartesianPosition(position);
 
+        position.Coordinates.ThetaX = ALIGN_TO_PANEL_YAW_VALUE;
+        position.Coordinates.ThetaY = ALIGN_TO_PANEL_PITCH_VALUE;
+        position.Coordinates.ThetaZ = ALIGN_TO_PANEL_ROLL_VALUE;
+
         if(info.angle == 0 && info.horizen__dst == 0 && info.vertical_dst == 0);
 
         else{
@@ -2065,6 +2079,8 @@ bool CManipulation::LRFK_HCtrl(){
     // Precise Move
     //-----------------------------------------------
     double desired_h_distance = lrf_kinova_struct.desired_h_location;
+    double current_h_distance = 0;
+    lrf_kinova_struct.avr_count = 20;
     do{
         mpc_rgb_d->LocalizationOnPanel(info, lrf_kinova_struct.lrf_info_struct.mode,
                                        lrf_kinova_struct.lrf_info_struct.s_deg,lrf_kinova_struct.lrf_info_struct.e_deg,
@@ -2073,13 +2089,29 @@ bool CManipulation::LRFK_HCtrl(){
         if(info.angle == 0 && info.horizen__dst == 0 && info.vertical_dst == 0)
             continue;
 
-        PanelModeling(m_valve_size, info.vertical_dst, info.horizen__dst, info.angle);
+        if( lrf_kinova_struct.avr_count > count){
+            count++;
+            current_h_distance += info.horizen__dst;
+            std::cout << "h_Distance : " <<info.horizen__dst  <<std::endl;
+            continue;
+        }
+        else{
+            current_h_distance /= lrf_kinova_struct.avr_count;
+            std::cout << "current_h_distance : " << current_h_distance <<std::endl;
+            count = 0;
+        }
+
+//        PanelModeling(m_valve_size, info.vertical_dst, info.horizen__dst, info.angle);
+        PanelModeling(m_valve_size, info.vertical_dst, current_h_distance, info.angle);
 
         desired_h_distance = lrf_kinova_struct.desired_h_location * cos(info.angle * RGBD_D2R);
 //        desired_h_distance = lrf_kinova_struct.desired_h_location;
 
-        error_dst = desired_h_distance - info.horizen__dst;
+        error_dst = desired_h_distance - current_h_distance;
+//        error_dst = desired_h_distance - info.horizen__dst;
         error_dst_m = ((double)error_dst) * 0.001;
+        current_h_distance = 0;
+
 
         if(lrf_kinova_struct.error > fabs(error_dst)){
             break;
@@ -2087,13 +2119,15 @@ bool CManipulation::LRFK_HCtrl(){
 
         if(error_dst_m > 0){
             mpc_kinova->KinovaMoveUnitStepRi();
+
         }
         else if(error_dst_m < 0){
             mpc_kinova->KinovaMoveUnitStepLe();
         }
 
-        if(lrf_kinova_struct.loop_sleep != 0)
+        if(lrf_kinova_struct.loop_sleep != 0){
             msleep(lrf_kinova_struct.loop_sleep/*msec*/);
+        }
 
     }
     while(true);
@@ -2119,7 +2153,9 @@ bool CManipulation::LRFK_ACtrl(){
                                    lrf_kinova_struct.lrf_info_struct.inlier_distance);
 
     PanelModeling(m_valve_size, info.vertical_dst, info.horizen__dst, info.angle);
-
+    int avr_count = 10;
+    int count = 0;
+    double current_angle = 0;
     do{
         int direction = 0;
 
@@ -2131,7 +2167,20 @@ bool CManipulation::LRFK_ACtrl(){
 
         PanelModeling(m_valve_size, info.vertical_dst, info.horizen__dst, info.angle);
 
-        slope_error = lrf_kinova_struct.desired_angle - info.angle;
+        if( avr_count > count){
+            count++;
+            current_angle += info.angle;
+            std::cout << "Angle : " <<info.angle  <<std::endl;
+            continue;
+        }
+        else{
+            current_angle /= avr_count;
+            std::cout << "current_Angle : " << current_angle <<std::endl;
+            count = 0;
+        }
+
+//        slope_error = lrf_kinova_struct.desired_angle - info.angle;
+        slope_error = lrf_kinova_struct.desired_angle - current_angle;
 
         if(lrf_kinova_struct.error > fabs(slope_error)){
             break;
@@ -2963,17 +3012,22 @@ bool CManipulation::GripperKinovaValveSizeRecognition(){
         mpc_gripper->GripperGoToThePositionLoadCheck(release_pose_1, release_pose_2, -2);
         msleep(300);
 
+
+        roll_angle += ((gripper_kinova_valve_recog.rotation_angle * D2R) / grasp_trial);
+        current_pose.Coordinates.ThetaZ += ((gripper_kinova_valve_recog.rotation_angle * D2R) / grasp_trial);
+
         // KINOVA_PI / grasp_trial => if(i == grasp_trial) => Half Rotation
-        if((grasp_trial/2) > (i) ){
-            roll_angle += (KINOVA_PI / grasp_trial);
-            current_pose.Coordinates.ThetaZ += (KINOVA_PI / grasp_trial);
-        }
-        else{
-            roll_angle -= (KINOVA_PI / grasp_trial);
-            current_pose.Coordinates.ThetaZ -= (KINOVA_PI / grasp_trial);
-        }
+//        if((grasp_trial/2) > (i) ){
+//            roll_angle += (KINOVA_PI / grasp_trial);
+//            current_pose.Coordinates.ThetaZ += (KINOVA_PI / grasp_trial);
+//        }
+//        else{
+//            roll_angle -= (KINOVA_PI / grasp_trial);
+//            current_pose.Coordinates.ThetaZ -= (KINOVA_PI / grasp_trial);
+//        }
+
         mpc_kinova->KinovaDoManipulate(current_pose, 3);
-    };
+    }
 
     m_valve_size_graph_index++;
 
@@ -3003,12 +3057,8 @@ bool CManipulation::GripperKinovaValveSizeRecognition(){
     double rotation_angle =
             (vec_gripper_data.at(0).x * (KINOVA_PI / grasp_trial) * (180 / KINOVA_PI) /*Rad to Deg*/);
 
-    //    gripper_kinova_valve_recog.rotation_angle =
-//    (vec_gripper_data.at(0).x * (KINOVA_PI / grasp_trial) * (180 / KINOVA_PI) /*Rad to Deg*/);
-
      //Find Valve Size
     int valve_size_recog = DataAnalisys(DataSort(gripper_data_y));
-
 
     std::cout << "Rotation Angle: " << rotation_angle << std::endl;
 
@@ -3097,6 +3147,28 @@ bool CManipulation::GripperMagnetCtrl(){
     return true;
 }
 
+QString CManipulation::GetCurrentTime(){
+
+    QString date_and_time = "";
+
+    date_and_time += QString::number(QDateTime::currentDateTime().date().year());
+    date_and_time += "-";
+    date_and_time += QString::number(QDateTime::currentDateTime().date().month());
+    date_and_time += "-";
+    date_and_time += QString::number(QDateTime::currentDateTime().date().day());
+    date_and_time += "-";
+
+    date_and_time += QString::number(QDateTime::currentDateTime().time().hour());
+    date_and_time += "-";
+    date_and_time += QString::number(QDateTime::currentDateTime().time().minute());
+    date_and_time += "-";
+    date_and_time += QString::number(QDateTime::currentDateTime().time().second());
+    date_and_time += "-";
+    date_and_time += QString::number(QDateTime::currentDateTime().time().msec());
+
+    return date_and_time;
+}
+
 bool CManipulation::WrenchRecognition(){
 
     WRENCH_RECOGNITION wrench_recognition = GetWrenchRecognitionOption();
@@ -3114,6 +3186,15 @@ bool CManipulation::WrenchRecognition(){
 
     if(!mpc_camera->GetCameraImage(camera_image))
         return false;
+
+    QString str_name = "/home/winner/Workspace/2017MBZIRC_Code/Eurecar-URV/Eurecar-URV/CameraData/" +
+            GetCurrentTime() + ".png";
+
+    std::string image_name = str_name.toUtf8().constData();
+
+    cv::imwrite(image_name,camera_image);
+
+    return true;
 
     bb_info = mpc_ssd->GetSSDImage(camera_image);
 

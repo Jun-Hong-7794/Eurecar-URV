@@ -332,7 +332,17 @@ bool CKinova::KinovaMoveUnitStepRi(){
         usleep(SLEEP_TIME);
     }
     emit SignalKinovaPosition(KinovaGetPosition());
-    sleep(0.5);
+    msleep(800);
+
+    CartesianPosition position;
+
+    Kinova_GetCartesianPosition(position);
+
+    position.Coordinates.ThetaX = ALIGN_TO_PANEL_YAW_VALUE;
+    position.Coordinates.ThetaY = ALIGN_TO_PANEL_PITCH_VALUE;
+    position.Coordinates.ThetaZ = ALIGN_TO_PANEL_ROLL_VALUE;
+
+    KinovaDoManipulate(position, 3, 100);
 
     return true;
 }
@@ -359,8 +369,19 @@ bool CKinova::KinovaMoveUnitStepLe(){
         KinovaUnitStepMoving(pointToSend);
         usleep(SLEEP_TIME);
     }
+
     emit SignalKinovaPosition(KinovaGetPosition());
-    sleep(0.5);
+    msleep(800);
+
+    CartesianPosition position;
+
+    Kinova_GetCartesianPosition(position);
+
+    position.Coordinates.ThetaX = ALIGN_TO_PANEL_YAW_VALUE;
+    position.Coordinates.ThetaY = ALIGN_TO_PANEL_PITCH_VALUE;
+    position.Coordinates.ThetaZ = ALIGN_TO_PANEL_ROLL_VALUE;
+
+    KinovaDoManipulate(position, 3, 100);
 
     return true;
 }
@@ -417,6 +438,7 @@ bool CKinova::KinovaMoveUnitStepBw(){
     }
     emit SignalKinovaPosition(KinovaGetPosition());
     sleep(0.5);
+
 
     return true;
 }
@@ -941,7 +963,6 @@ bool CKinova::KinovaDoManipulate(CartesianPosition _desired_position,int _mode, 
     }
     else if(_mode == 3){ // Mode 3 : Roll
         double error0;
-
         Kinova_SendAdvanceTrajectory(desired_position);
         msleep(300);
 

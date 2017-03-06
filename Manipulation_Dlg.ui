@@ -749,7 +749,7 @@
      </rect>
     </property>
     <property name="currentIndex">
-     <number>5</number>
+     <number>6</number>
     </property>
     <widget class="QWidget" name="tab_lrf_kinova_distance_ctrl">
      <attribute name="title">
@@ -1619,6 +1619,24 @@
       </property>
       <property name="text">
        <string>Rotate</string>
+      </property>
+     </widget>
+    </widget>
+    <widget class="QWidget" name="tab_10">
+     <attribute name="title">
+      <string>Cameara</string>
+     </attribute>
+     <widget class="QPushButton" name="bt_get_camera_image">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>10</y>
+        <width>91</width>
+        <height>41</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Get Image</string>
       </property>
      </widget>
     </widget>

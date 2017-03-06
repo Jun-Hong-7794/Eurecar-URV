@@ -93,6 +93,8 @@ typedef struct _LRFK_HCtrl_Struct{
 
     int loop_sleep; /*msec*/
 
+    int avr_count;
+
     LRF_SENSING_INFO_STRUCT lrf_info_struct;
 
 }LRF_K_H_CTRL_STRUCT;
