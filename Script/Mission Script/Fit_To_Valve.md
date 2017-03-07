@@ -59,6 +59,7 @@ A_Sleep(500)
 ## Step0: Align to Panel
 
 IF(!gb_bool_kinova_force_ctrl_rst)
+
 KINOVA_ALIGN_TO_PANEL.do_init_motion = false
 KINOVA_ALIGN_TO_PANEL_FUNCTION()
 
@@ -82,7 +83,6 @@ KINOVA_MANIPULATE_STRUCT.force_threshold = 10
 KINOVA_MANIPULATE_FUNCTION()
 
 A_Sleep(500)
-
 
 ## Step5: Wrench Grasp
 
@@ -116,8 +116,8 @@ GRIPPER_FORCE_CTRL_FUNCTION()
 /* mode =2 => Left
 LRF_K_ANGLE_CTRL_STRUCT.mode = 2
 
-LRF_K_ANGLE_CTRL_STRUCT.error = 0.3
-LRF_K_ANGLE_CTRL_STRUCT.desired_angle = -0.5
+LRF_K_ANGLE_CTRL_STRUCT.error = 0.1
+LRF_K_ANGLE_CTRL_STRUCT.desired_angle = 0
 
 LRF_K_ANGLE_CTRL_STRUCT.inlier_lrf_dst = 1100
 
@@ -177,7 +177,7 @@ LRF_K_HORIZEN_CTRL_STRUCT.mode = 2
 
 LRF_K_HORIZEN_CTRL_STRUCT.only_sensing_moving = false
 
-LRF_K_HORIZEN_CTRL_STRUCT.desired_h_dst = 345
+LRF_K_HORIZEN_CTRL_STRUCT.desired_h_dst = 338
 /*Center Point
 /*LRF_K_HORIZEN_CTRL_STRUCT.desired_h_dst = 335
 
@@ -288,6 +288,7 @@ KINOVA_MANIPULATE_FUNCTION()
 A_Sleep(1000)
 
 ## Step18: Grasp1
+IF(gb_bool_kinova_force_ctrl_rst)
 
 GRIPPER_FORCE_CTRL_STRUCT.pose_1 = 1900
 GRIPPER_FORCE_CTRL_STRUCT.pose_2 = 1900
@@ -295,23 +296,36 @@ GRIPPER_FORCE_CTRL_STRUCT.force_threshold = -2
 
 GRIPPER_FORCE_CTRL_FUNCTION()
 
-A_Sleep(1000)
+/*Else Go to 0 Step*/DGDG
+ELSE(GoTo:3)
+
+A_Sleep(500)
 
 ## Step15: Gripper Close
 
-IF(gb_bool_kinova_force_ctrl_rst)
+IF(gb_valve_rotation > 40)
 
 GRIPPER_FORCE_CTRL_STRUCT.pose_1 = 1550
-GRIPPER_FORCE_CTRL_STRUCT.pose_2 = 1550
-GRIPPER_FORCE_CTRL_STRUCT.force_threshold = 360
+GRIPPER_FORCE_CTRL_STRUCT.pose_2 = 1900
+GRIPPER_FORCE_CTRL_STRUCT.force_threshold = 150
 
 GRIPPER_FORCE_CTRL_FUNCTION()
 
-/*Else Go to 0 Step*/DGDG
-ELSE(GoTo:5)
 
-A_Sleep(1000)
+A_Sleep(500)
 
+## Step15: Gripper Close
+
+IF(gb_valve_rotation < 45)
+/*>
+
+GRIPPER_FORCE_CTRL_STRUCT.pose_1 = 1900
+GRIPPER_FORCE_CTRL_STRUCT.pose_2 = 1550
+GRIPPER_FORCE_CTRL_STRUCT.force_threshold = 150
+
+GRIPPER_FORCE_CTRL_FUNCTION()
+
+A_Sleep(500)
 
 ## Step16: Magnet OFF
 
