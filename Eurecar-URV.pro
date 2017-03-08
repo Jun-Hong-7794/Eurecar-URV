@@ -46,7 +46,8 @@ SOURCES += main.cpp\
     Device_Class/CIMU/3DM-GX/mip.cpp \
     Device_Class/CIMU/3DM-GX/ring_buffer.cpp \
     Device_Class/CIMU/CIMU.cpp \
-    Device_Class/CLMS511/CLMS511.cpp
+    Device_Class/CLMS511/CLMS511.cpp \
+    ElementTech_Class/CRGBD/CCamCalibration.cpp
 
 
 HEADERS  += EurecarURV_Dlg.h \
@@ -106,7 +107,8 @@ HEADERS  += EurecarURV_Dlg.h \
     Device_Class/CIMU/CIMU.h \
     Device_Class/CVelodyne/velodyne_parser.h \
     Device_Class/CLMS511/CLMS511.h \
-    Device_Class/CLMS511/LMS511_parser.h
+    Device_Class/CLMS511/LMS511_parser.h \
+    ElementTech_Class/CRGBD/CCamCalibration.h
 
 FORMS    += EurecarURV_Dlg.ui \
     Driving_Dlg.ui \

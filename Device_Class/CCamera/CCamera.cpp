@@ -59,7 +59,6 @@ bool CCamera::GetCameraImage(cv::Mat &_image){
     mtx_camera.lock();
     {
          _image = m_mat_original_image.clone();
-//       m_cam >> _image;
     }
     mtx_camera.unlock();
     return true;
@@ -77,7 +76,14 @@ void CCamera::run(){
 
         mtx_camera.lock();
         {
-            m_cam >> m_mat_original_image;
+            cv::Mat ori_img, remap_img;
+            m_cam >> ori_img;
+            if(ori_img.empty())
+            {
+                continue;
+            }
+            remap_img = calib_obj.ReMap(ori_img);
+            remap_img.copyTo(m_mat_original_image);
             emit SignalCameraImage(m_mat_original_image);
         }
         mtx_camera.unlock();

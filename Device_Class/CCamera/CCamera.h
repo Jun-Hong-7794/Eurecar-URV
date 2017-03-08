@@ -8,6 +8,7 @@
 #include "../../opencv_header.h"
 
 #include "ElementTech_Class/CSSD/CSSD.h"
+#include "ElementTech_Class/CRGBD/CCamCalibration.h"
 
 #define CAMERA_DEVICE_NUMBER 1
 
@@ -27,6 +28,8 @@ private:
 
     cv::Mat m_mat_original_image;
     cv::VideoCapture m_cam;
+
+    CCAMCalibration calib_obj;
 
     QMutex mtx_camera;
 
