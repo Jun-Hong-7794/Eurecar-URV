@@ -2,7 +2,7 @@
 /* Made By Jun Hong 28.01.2017
 /* This Script is for 2107 MBZIRC Challenge2
 
-global_int gi_wrench_hanger_index = 2
+global_int gi_wrench_hanger_index = 3
 /*gi_valve_size
 
 # Title: Valve Recognition
@@ -58,7 +58,7 @@ LRF_K_ANGLE_CTRL_STRUCT.inlier_lrf_dst = 1100
 LRF_K_ANGLE_CTRL_STRUCT.s_deg = 10
 LRF_K_ANGLE_CTRL_STRUCT.e_deg = 170
 
-LRF_K_ANGLE_CTRL_STRUCT.unit_deg = 0.3
+LRF_K_ANGLE_CTRL_STRUCT.unit_deg = 0.8
 
 LRF_K_ANGLE_CTRL_STRUCT.loop_sleep = 30
 
@@ -134,7 +134,7 @@ LRF_K_HORIZEN_CTRL_STRUCT.only_sensing_moving = false
 
 LRF_K_HORIZEN_CTRL_STRUCT.desired_h_dst = 850
 
-LRF_K_HORIZEN_CTRL_STRUCT.error = 2
+LRF_K_HORIZEN_CTRL_STRUCT.error = 3
 
 LRF_K_HORIZEN_CTRL_STRUCT.s_deg = 10 
 LRF_K_HORIZEN_CTRL_STRUCT.e_deg = 170

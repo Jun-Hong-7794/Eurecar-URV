@@ -354,6 +354,14 @@ bool CManipulation::RotatorGoThePose(int _step){
     return true;
 }
 
+bool CManipulation::ScaraRotatorMoveErrorDist(double _dst_error){
+
+    if(!mpc_gripper->CatesianRotatorGoToThePosition(_dst_error))
+        return false;
+
+    return true;
+}
+
 //----------------------------------------------------------------
 // Option Function
 //----------------------------------------------------------------
@@ -1925,6 +1933,11 @@ bool CManipulation::LRFK_VCtrl(){
     // First of all, Big Move. And Then, Precise Move
     //-----------------------------------------------
     LOCALIZATION_INFO_ON_PANEL info;
+    int mode = 0;
+    if(lrf_kinova_struct.lrf_info_struct.mode == 4){
+        lrf_kinova_struct.lrf_info_struct.mode = (L_M_PRECISE | L_M_DIR_LEFT | L_M_VALUE_RANSAC);
+        mode = 4;
+    }
 
     mpc_rgb_d->LocalizationOnPanel(info, lrf_kinova_struct.lrf_info_struct.mode,
                                    lrf_kinova_struct.lrf_info_struct.s_deg,lrf_kinova_struct.lrf_info_struct.e_deg,
@@ -1934,6 +1947,16 @@ bool CManipulation::LRFK_VCtrl(){
 
     int error_dst =
             lrf_kinova_struct.desired_v_dst - info.vertical_dst;
+
+    if(mode == 4){
+        if(error_dst < 0){
+            if(fabs(error_dst) < 162)
+                mpc_gripper->CatesianRotatorGoToThePosition(fabs(error_dst));
+            else
+                mpc_gripper->CatesianRotatorGoToThePosition(162.5);
+        }
+        return true;
+    }
 
     CartesianPosition position;
 
@@ -2074,7 +2097,7 @@ bool CManipulation::LRFK_HCtrl(){
             }
         }
     }
-    msleep(800);
+    msleep(500);
     //-----------------------------------------------
     // Precise Move
     //-----------------------------------------------
@@ -2673,7 +2696,7 @@ bool CManipulation::KinovaRotateValveMotion(){
     kinova_rotate_valve.radius += kinova_rotate_valve.radius_offset_mm;
 
     //Move Kinova Arm...
-    if(kinova_rotate_valve.valve_rotation_angle != -1){
+    if(kinova_rotate_valve.valve_rotation_angle > 0){
 
         //Get Present Position
         CartesianPosition present_position;
@@ -2686,17 +2709,17 @@ bool CManipulation::KinovaRotateValveMotion(){
         msleep(500);
 
         if(kinova_rotate_valve.valve_rotation_angle < 45){//CW
-            if(kinova_rotate_valve.theta < 0)
+            if(kinova_rotate_valve.theta > 0)
                 kinova_rotate_valve.theta = (-1)* kinova_rotate_valve.theta;
         }
-        else if(kinova_rotate_valve.valve_rotation_angle >= 45){//CW
-            if(kinova_rotate_valve.theta > 0)
+        else if(kinova_rotate_valve.valve_rotation_angle >= 45){//CCW
+            if(kinova_rotate_valve.theta < 0)
                 kinova_rotate_valve.theta = (-1)* kinova_rotate_valve.theta;
         }
     }
 
     if(kinova_rotate_valve.theta < 0){
-        kinova_rotate_valve.theta = (-1)* kinova_rotate_valve.theta;
+        kinova_rotate_valve.theta = (-1) * kinova_rotate_valve.theta;
         mpc_kinova->KinovaRotateValveMotion(VALVE_ROTATE_DIR(CW), kinova_rotate_valve.radius, kinova_rotate_valve.theta);
     }
     else{

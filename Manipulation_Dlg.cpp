@@ -102,6 +102,7 @@ Manipulation_Dlg::Manipulation_Dlg(CManipulation* _pc_manipulation, QWidget *par
     //Rotator
     connect(ui->bt_rotator, SIGNAL(clicked()), this, SLOT(SlotButtonRotatorConnection()));
     connect(ui->bt_rotator_rotate, SIGNAL(clicked()), this, SLOT(SlotButtonRotatorRotate()));
+    connect(ui->bt_scara_dst_move, SIGNAL(clicked()), this, SLOT(SlotButtonMoveDstError()));
 
     //Edit Update
     connect(mpc_manipulation, SIGNAL(SignalLRFKinovaAngleStruct(LRF_KINOVA_ANGLE_CTRL_STRUCT)),
@@ -832,6 +833,15 @@ void Manipulation_Dlg::SlotButtonRotatorRotate(){
     int goal_step = ui->ed_rotator_goal_pose->text().toInt();
 
     if(!mpc_manipulation->RotatorGoThePose(goal_step)){
+        QMessageBox::information(this, tr("Fail to Init Rotator"), tr("Check the dynamixel pro!!"));
+    }
+}
+
+void Manipulation_Dlg::SlotButtonMoveDstError(){
+
+    double error_dst = ui->ed_scara_rotator_dst->text().toDouble();
+
+    if(!mpc_manipulation->ScaraRotatorMoveErrorDist(error_dst)){
         QMessageBox::information(this, tr("Fail to Init Rotator"), tr("Check the dynamixel pro!!"));
     }
 }

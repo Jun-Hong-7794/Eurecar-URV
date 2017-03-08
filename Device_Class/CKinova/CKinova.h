@@ -18,7 +18,7 @@
 #define KINOVA_D2R (3.141592/180)
 #define KINOVA_R2D (180/3.141592)
 
-#define VEL             0.09 //[cm/s]
+#define VEL             0.095 //[cm/s]
 #define ROT             0.5 //[cm/s]
 #define STEP_NUM        5 // unit
 #define SLEEP_TIME      5000

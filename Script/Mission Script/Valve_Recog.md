@@ -6,13 +6,13 @@
 # Title: Valve Recognition
 
 global_int gi_valve_size = 19
-global_double gb_valve_rotation = 30
+global_double gb_valve_rotation = 60
 
 global_double gd_check_v_dst = 30
 global_bool gb_check_v_dst_rst = false
 
 ## Step0: Rotator
-ROTATOR_STRUCT.desired_position = -70000
+ROTATOR_STRUCT.desired_position = -195475
 ROTATOR_STRUCT.fl_rotator_torque = true
 
 ROTATOR_FUNCTION()
@@ -25,30 +25,52 @@ KINOVA_ALIGN_TO_PANEL_FUNCTION()
 A_Sleep(1000)
 
 ## Step2: Rotator
-ROTATOR_STRUCT.desired_position = 0
+/*ROTATOR_STRUCT.desired_position = 0
+ROTATOR_STRUCT.desired_position = -125475
 ROTATOR_STRUCT.fl_rotator_torque = true
 
 ROTATOR_FUNCTION()
 A_Sleep(2500)
 
-## Step11: Kinova Arm Up
+## Step6: KINOVA Angle Control(New, Using Dynamixel Pro-LRF)
+/* mode =2 => Left
+LRF_K_ANGLE_CTRL_STRUCT.mode = 2
 
-KINOVA_MANIPULATE_STRUCT.mode = 2
+LRF_K_ANGLE_CTRL_STRUCT.error = 0.3
+LRF_K_ANGLE_CTRL_STRUCT.desired_angle = 0
+/*LRF_K_ANGLE_CTRL_STRUCT.desired_angle = 0
 
-KINOVA_MANIPULATE_STRUCT.x = ==
-KINOVA_MANIPULATE_STRUCT.y = ==
-KINOVA_MANIPULATE_STRUCT.z = 0.4143
-/*KINOVA_MANIPULATE_STRUCT.z = 0.1723
+LRF_K_ANGLE_CTRL_STRUCT.inlier_lrf_dst = 1100
 
-KINOVA_MANIPULATE_STRUCT.roll = 2.1374
-KINOVA_MANIPULATE_STRUCT.pitch = 1.5575
-KINOVA_MANIPULATE_STRUCT.yaw = -2.2821
+LRF_K_ANGLE_CTRL_STRUCT.s_deg = 10
+LRF_K_ANGLE_CTRL_STRUCT.e_deg = 170
 
-KINOVA_MANIPULATE_STRUCT.force_threshold = 10
+LRF_K_ANGLE_CTRL_STRUCT.unit_deg = 1
 
-KINOVA_MANIPULATE_FUNCTION()
+LRF_K_ANGLE_CTRL_STRUCT.loop_sleep = 30
 
-A_Sleep(1000)
+LRF_K_ANGLE_CTRL_FUNCTION()
+
+A_Sleep(300)
+
+## Step3: LRF-Kinova Vertical CTRL(NEW Using Scara)
+
+LRF_K_VERTICAL_CTRL_STRUCT.mode = 4
+LRF_K_VERTICAL_CTRL_STRUCT.only_sensing_moving = false
+
+LRF_K_VERTICAL_CTRL_STRUCT.desired_v_dst = 290
+LRF_K_VERTICAL_CTRL_STRUCT.error = 2
+
+LRF_K_VERTICAL_CTRL_STRUCT.s_deg = 10
+LRF_K_VERTICAL_CTRL_STRUCT.e_deg = 170
+
+LRF_K_VERTICAL_CTRL_STRUCT.inlier_lrf_dst = 1100
+
+LRF_K_VERTICAL_CTRL_STRUCT.loop_sleep = 30
+
+LRF_K_VERTICAL_CTRL_FUNCTION()
+
+A_Sleep(2500)
 
 ## Step3: LRF-Kinova Vertical CTRL(NEW)
 
@@ -106,7 +128,7 @@ LRF_K_ANGLE_CTRL_STRUCT.mode = 2
 
 LRF_K_ANGLE_CTRL_STRUCT.error = 0.3
 LRF_K_ANGLE_CTRL_STRUCT.desired_angle = 0
-/*LRF_K_ANGLE_CTRL_STRUCT.desired_angle = -0.5
+/*LRF_K_ANGLE_CTRL_STRUCT.desired_angle = 0
 
 LRF_K_ANGLE_CTRL_STRUCT.inlier_lrf_dst = 1100
 
@@ -147,7 +169,7 @@ LRF_K_ANGLE_CTRL_STRUCT.mode = 2
 
 LRF_K_ANGLE_CTRL_STRUCT.error = 0.1
 LRF_K_ANGLE_CTRL_STRUCT.desired_angle = 0
-/*LRF_K_ANGLE_CTRL_STRUCT.desired_angle = -0.5
+/*LRF_K_ANGLE_CTRL_STRUCT.desired_angle = 0
 
 LRF_K_ANGLE_CTRL_STRUCT.inlier_lrf_dst = 1100
 
@@ -168,18 +190,18 @@ LRF_K_HORIZEN_CTRL_STRUCT.mode = 2
 
 LRF_K_HORIZEN_CTRL_STRUCT.only_sensing_moving = false
 
-LRF_K_HORIZEN_CTRL_STRUCT.desired_h_dst = 338
+LRF_K_HORIZEN_CTRL_STRUCT.desired_h_dst = 345
 /*Center Point
 /*LRF_K_HORIZEN_CTRL_STRUCT.desired_h_dst = 335
 
-LRF_K_HORIZEN_CTRL_STRUCT.error = 1.0
+LRF_K_HORIZEN_CTRL_STRUCT.error = 2.0
 
 LRF_K_HORIZEN_CTRL_STRUCT.s_deg = 10 
 LRF_K_HORIZEN_CTRL_STRUCT.e_deg = 170
 
 LRF_K_HORIZEN_CTRL_STRUCT.inlier_lrf_dst = 800
 
-LRF_K_HORIZEN_CTRL_STRUCT.loop_sleep = 30 
+LRF_K_HORIZEN_CTRL_STRUCT.loop_sleep = 10 
 
 LRF_K_HORIZEN_CTRL_FUNCTION()
 
@@ -192,8 +214,8 @@ KINOVA_MANIPULATE_STRUCT.mode = 2
 
 KINOVA_MANIPULATE_STRUCT.x = ==
 KINOVA_MANIPULATE_STRUCT.y = ==
+/*KINOVA_MANIPULATE_STRUCT.z = 0.1583
 KINOVA_MANIPULATE_STRUCT.z = 0.1823
-/*KINOVA_MANIPULATE_STRUCT.z = 0.1723
 
 KINOVA_MANIPULATE_STRUCT.roll = 2.1374
 KINOVA_MANIPULATE_STRUCT.pitch = 1.5575

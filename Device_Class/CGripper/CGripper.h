@@ -17,6 +17,7 @@
 
 #include "dynamixel_sdk.h"
 
+#define DMX_PI                          3.1415926279
 #define ADDR_MX_TORQUE_ENABLE           24
 #define ADDR_MX_GOAL_POSITION           30
 #define ADDR_MX_PRESENT_POSITION        36
@@ -55,6 +56,7 @@
 #define DXL1_ID                         1
 #define DXL2_ID                         2
 #define DXL3_ID                         3
+#define DXL4_ID                         4
 
 #define DXL_MINIMUM_POSITION_VALUE      100
 #define DXL_MAXIMUM_POSITION_VALUE      4000
@@ -80,13 +82,16 @@
 #define ADDR_PR_PRESENT_POSITION        611
 #define ADDR_PR_GOAL_SPEED              600
 
-#define DXL_PR_GOAL_SPEED               1700
+#define DXL_PR_GOAL_SPEED               2300
 #define DXL_PR_INITIAL_POSITION_VALUE   0
 
 #define LEN_PR_GOAL_POSITION            4
 #define LEN_PR_PRESENT_POSITION         4
 #define LEN_PR_PRESENT_SPEED            4
 #define LEN_PR_IS_MOVING                1
+
+#define DXL_PR_3_INIT_POSE              -125475
+#define DXL_PR_4_INIT_POSE              125475
 
 typedef struct _Gripper_Status{
 
@@ -169,10 +174,14 @@ private:
     int m_dxl_pro_goal_position;
     int m_dxl_pro_current_position;
 
+    int m_dxl_pro_catesian_goal_position;
+    int m_dxl_pro_catesian_current_position;
+
     uint8_t dxl_error;
     uint16_t m_dxl1_present_position;
     uint16_t m_dxl2_present_position;
     int dxl3_present_position;
+    int dxl4_present_position;
     uint16_t dxl1_present_load;
     uint16_t dxl2_present_load;
 
@@ -180,6 +189,7 @@ private:
 private://Mutex
     QMutex mtx_dmx_handle;
     QMutex mtx_gripper_handle;
+    QMutex mtx_rotator_handle;
     QMutex mtx_gripper_status;
 
 public:
@@ -222,6 +232,9 @@ public:
 
     bool RotatorGoToThePosition(int _step); // Go to The Position
     bool RotatorGoToRelPosition(int _step); // Go to Relative Position From Present Position
+
+    bool CatesianRotatorGoToThePosition(double _dist_error); // Go to The Position // _dist_error = current depth - ref depth [mm]
+    bool CatesianRotatorGoToRelPosition(int _step); // Go to Relative Position From Present Position
 
     //Gripper
     bool InitGripper(char* _device_port = (char *)"/dev/ttyUSB0");

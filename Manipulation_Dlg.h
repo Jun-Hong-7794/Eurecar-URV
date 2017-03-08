@@ -167,6 +167,7 @@ public slots:
 
     //Rotator
     void SlotButtonRotatorRotate();
+    void SlotButtonMoveDstError();
     void SlotButtonRotatorConnection();
 
     //Valve Recognition

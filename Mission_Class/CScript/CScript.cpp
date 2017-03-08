@@ -1717,6 +1717,9 @@ bool CScript::InterpreteLRFKVerticalCtrl(QString _line, STEP_INFO& _step_info){
             if(_line.mid(colone_index + 1).trimmed().toInt() == 3){
                 _step_info.manipulation_option.lrf_k_v_ctrl_struct.lrf_info_struct.mode = (L_M_PRECISE | L_M_DIR_RIGHT | L_M_VALUE_RANSAC);
             }
+            if(_line.mid(colone_index + 1).trimmed().toInt() == 4){
+                _step_info.manipulation_option.lrf_k_v_ctrl_struct.lrf_info_struct.mode = 4;
+            }
             return true;
         }
 
@@ -2878,6 +2881,12 @@ double CScript::InterpreteDoubleVariable(QString _line, MISSION_SCRIPT _mission_
     QString str_option;
     str_option = _line;
 
+//    QRegExp re("\\d*");
+//    if (re.exactMatch(str_option)){
+//        double rst =  _line.toDouble();
+//        return rst;
+//    }
+
     //Check Local Double Value
     vector<SCRIPT_DOUBLE>::iterator iter;
     for( iter = _mission_script.vec_lc_double.begin();
@@ -2902,7 +2911,12 @@ double CScript::InterpreteDoubleVariable(QString _line, MISSION_SCRIPT _mission_
         }
     }
 
-    return UNDEFINE_VARIABLE;
+    //else double number
+    double rst =  _line.toDouble();
+
+    return rst;
+
+//    return UNDEFINE_VARIABLE;
 }
 
 //----------------------------------------------------------------

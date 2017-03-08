@@ -2,7 +2,6 @@
 /* Made By Jun Hong 28.01.2017
 /* This Script is for 2107 MBZIRC Challenge2
 /*
-
 # Define Variable
 global_bool gb_bool_kinova_force_ctrl_rst = true;
 
@@ -20,7 +19,7 @@ LRF_K_VERTICAL_CTRL_STRUCT.mode = 3
 
 LRF_K_VERTICAL_CTRL_STRUCT.only_sensing_moving = false
 
-LRF_K_VERTICAL_CTRL_STRUCT.desired_v_dst = 270
+LRF_K_VERTICAL_CTRL_STRUCT.desired_v_dst = 260
 LRF_K_VERTICAL_CTRL_STRUCT.error = 2
 
 LRF_K_VERTICAL_CTRL_STRUCT.s_deg = 10
@@ -72,7 +71,6 @@ IF(!gb_bool_kinova_force_ctrl_rst)
 KINOVA_MANIPULATE_STRUCT.x = ==
 KINOVA_MANIPULATE_STRUCT.y = ==
 KINOVA_MANIPULATE_STRUCT.z = 0.4564
-/*KINOVA_MANIPULATE_STRUCT.z = 0.2223
 
 KINOVA_MANIPULATE_STRUCT.roll = ==
 KINOVA_MANIPULATE_STRUCT.pitch = ==
@@ -84,7 +82,7 @@ KINOVA_MANIPULATE_FUNCTION()
 
 A_Sleep(500)
 
-## Step5: Wrench Grasp
+## Step5: Wrench Grasp-ReleasePose
 
 GRIPPER_FORCE_CTRL_STRUCT.pose_1 = 1800
 GRIPPER_FORCE_CTRL_STRUCT.pose_2 = 1800
@@ -94,7 +92,7 @@ GRIPPER_FORCE_CTRL_FUNCTION()
 
 A_Sleep(500)
 
-## Step5: Wrench Grasp111
+## Step5: Wrench Grasp-GraspPose
 
 GRIPPER_FORCE_CTRL_STRUCT.pose_1 = 1550
 GRIPPER_FORCE_CTRL_STRUCT.pose_2 = 1550
@@ -141,10 +139,10 @@ LRF_K_VERTICAL_CTRL_STRUCT.only_sensing_moving = false
 LRF_K_VERTICAL_CTRL_STRUCT.desired_v_dst = 240
 LRF_K_VERTICAL_CTRL_STRUCT.error = 2
 
-LRF_K_VERTICAL_CTRL_STRUCT.s_deg = 10
+LRF_K_VERTICAL_CTRL_STRUCT.s_deg = 110
 LRF_K_VERTICAL_CTRL_STRUCT.e_deg = 170
 
-LRF_K_VERTICAL_CTRL_STRUCT.inlier_lrf_dst = 1100
+LRF_K_VERTICAL_CTRL_STRUCT.inlier_lrf_dst = 800
 
 LRF_K_VERTICAL_CTRL_STRUCT.loop_sleep = 30
 
@@ -156,12 +154,12 @@ A_Sleep(500)
 /* mode =2 => Left
 LRF_K_ANGLE_CTRL_STRUCT.mode = 2
 
-LRF_K_ANGLE_CTRL_STRUCT.error = 0.3
-LRF_K_ANGLE_CTRL_STRUCT.desired_angle = -0.5
+LRF_K_ANGLE_CTRL_STRUCT.error = 0.1
+LRF_K_ANGLE_CTRL_STRUCT.desired_angle = 0
 
 LRF_K_ANGLE_CTRL_STRUCT.inlier_lrf_dst = 1100
 
-LRF_K_ANGLE_CTRL_STRUCT.s_deg = 10
+LRF_K_ANGLE_CTRL_STRUCT.s_deg = 110
 LRF_K_ANGLE_CTRL_STRUCT.e_deg = 170
 
 LRF_K_ANGLE_CTRL_STRUCT.unit_deg = 0.3
@@ -172,12 +170,38 @@ LRF_K_ANGLE_CTRL_FUNCTION()
 
 A_Sleep(500)
 
-## Step9: LRF-Kinova Horizen CTRL
+## Step9: LRF-Kinova Horizen CTRL( > 40)
+IF(gb_valve_rotation > 40)
+
 LRF_K_HORIZEN_CTRL_STRUCT.mode = 2
 
 LRF_K_HORIZEN_CTRL_STRUCT.only_sensing_moving = false
 
-LRF_K_HORIZEN_CTRL_STRUCT.desired_h_dst = 338
+LRF_K_HORIZEN_CTRL_STRUCT.desired_h_dst = 335
+/*Center Point
+/*LRF_K_HORIZEN_CTRL_STRUCT.desired_h_dst = 335
+
+LRF_K_HORIZEN_CTRL_STRUCT.error = 1.0
+
+LRF_K_HORIZEN_CTRL_STRUCT.s_deg = 10 
+LRF_K_HORIZEN_CTRL_STRUCT.e_deg = 170
+
+LRF_K_HORIZEN_CTRL_STRUCT.inlier_lrf_dst = 800
+
+LRF_K_HORIZEN_CTRL_STRUCT.loop_sleep = 30 
+
+LRF_K_HORIZEN_CTRL_FUNCTION()
+
+A_Sleep(500)
+
+## Step9: LRF-Kinova Horizen CTRL( < 45)
+IF(gb_valve_rotation < 45) 
+/*>
+LRF_K_HORIZEN_CTRL_STRUCT.mode = 2
+
+LRF_K_HORIZEN_CTRL_STRUCT.only_sensing_moving = false
+
+LRF_K_HORIZEN_CTRL_STRUCT.desired_h_dst = 325
 /*Center Point
 /*LRF_K_HORIZEN_CTRL_STRUCT.desired_h_dst = 335
 
@@ -200,13 +224,13 @@ LRF_K_VERTICAL_CTRL_STRUCT.mode = 2
 
 LRF_K_VERTICAL_CTRL_STRUCT.only_sensing_moving = false
 
-LRF_K_VERTICAL_CTRL_STRUCT.desired_v_dst = 180
+LRF_K_VERTICAL_CTRL_STRUCT.desired_v_dst = 170
 LRF_K_VERTICAL_CTRL_STRUCT.error = 2
 
 LRF_K_VERTICAL_CTRL_STRUCT.s_deg = 10
 LRF_K_VERTICAL_CTRL_STRUCT.e_deg = 170
 
-LRF_K_VERTICAL_CTRL_STRUCT.inlier_lrf_dst = 1100
+LRF_K_VERTICAL_CTRL_STRUCT.inlier_lrf_dst = 800
 
 LRF_K_VERTICAL_CTRL_STRUCT.loop_sleep = 30
 
@@ -220,7 +244,7 @@ KINOVA_FIT_TO_VALVE_POSE_STRUCT.valve_size = gi_valve_size
 KINOVA_FIT_TO_VALVE_POSE_STRUCT.valve_rotation_angle = gb_valve_rotation
 
 /*[cm/s]
-KINOVA_FIT_TO_VALVE_POSE_STRUCT.move_step = 1.8 
+KINOVA_FIT_TO_VALVE_POSE_STRUCT.move_step = 2.3 
 
 KINOVA_FIT_TO_VALVE_POSE_STRUCT.angle_step = 19
 
@@ -228,7 +252,6 @@ KINOVA_FIT_TO_VALVE_POSE_FUNCTION()
 
 ## Step12: KINOVA Force CTRL(Down)
 
-/*gi_valve_size
 KINOVA_FORCE_CTRL_STRUCT.mode = 2
 KINOVA_FORCE_CTRL_STRUCT.step_count = 100
 
@@ -248,7 +271,25 @@ KINOVA_FORCE_CTRL_STRUCT.move_step_z = -0.05
 
 gb_bool_kinova_force_ctrl_rst = KINOVA_FORCE_CTRL_FUNCTION()
 
-A_Sleep(1000)
+A_Sleep(500)
+
+## Step14: If FALE to fit...Back
+
+IF(!gb_bool_kinova_force_ctrl_rst)
+
+KINOVA_MANIPULATE_STRUCT.x = --0.08
+KINOVA_MANIPULATE_STRUCT.y = ==
+KINOVA_MANIPULATE_STRUCT.z = ==
+
+KINOVA_MANIPULATE_STRUCT.roll = ==
+KINOVA_MANIPULATE_STRUCT.pitch = ==
+KINOVA_MANIPULATE_STRUCT.yaw = ==
+
+KINOVA_MANIPULATE_STRUCT.force_threshold = 10
+
+KINOVA_MANIPULATE_FUNCTION()
+
+A_Sleep(500)
 
 ## Step13: If FALE to fit...Up
 
@@ -267,31 +308,13 @@ KINOVA_MANIPULATE_STRUCT.force_threshold = 10
 
 KINOVA_MANIPULATE_FUNCTION()
 
-A_Sleep(1000)
-
-## Step14: If FALE to fit...Back
-
-IF(!gb_bool_kinova_force_ctrl_rst)
-
-KINOVA_MANIPULATE_STRUCT.x = --0.08
-KINOVA_MANIPULATE_STRUCT.y = ==
-KINOVA_MANIPULATE_STRUCT.z = ==
-
-KINOVA_MANIPULATE_STRUCT.roll = ==
-KINOVA_MANIPULATE_STRUCT.pitch = ==
-KINOVA_MANIPULATE_STRUCT.yaw = ==
-
-KINOVA_MANIPULATE_STRUCT.force_threshold = 10
-
-KINOVA_MANIPULATE_FUNCTION()
-
-A_Sleep(1000)
+A_Sleep(500)
 
 ## Step18: Grasp1
 IF(gb_bool_kinova_force_ctrl_rst)
 
-GRIPPER_FORCE_CTRL_STRUCT.pose_1 = 1900
-GRIPPER_FORCE_CTRL_STRUCT.pose_2 = 1900
+GRIPPER_FORCE_CTRL_STRUCT.pose_1 = 1800
+GRIPPER_FORCE_CTRL_STRUCT.pose_2 = 1800
 GRIPPER_FORCE_CTRL_STRUCT.force_threshold = -2
 
 GRIPPER_FORCE_CTRL_FUNCTION()
@@ -301,12 +324,12 @@ ELSE(GoTo:3)
 
 A_Sleep(500)
 
-## Step15: Gripper Close
+## Step15: Gripper Close( > 40 )
 
 IF(gb_valve_rotation > 40)
 
 GRIPPER_FORCE_CTRL_STRUCT.pose_1 = 1550
-GRIPPER_FORCE_CTRL_STRUCT.pose_2 = 1900
+GRIPPER_FORCE_CTRL_STRUCT.pose_2 = 1750
 GRIPPER_FORCE_CTRL_STRUCT.force_threshold = 150
 
 GRIPPER_FORCE_CTRL_FUNCTION()
@@ -314,12 +337,12 @@ GRIPPER_FORCE_CTRL_FUNCTION()
 
 A_Sleep(500)
 
-## Step15: Gripper Close
+## Step15: Gripper Close( < 45 )
 
 IF(gb_valve_rotation < 45)
 /*>
 
-GRIPPER_FORCE_CTRL_STRUCT.pose_1 = 1900
+GRIPPER_FORCE_CTRL_STRUCT.pose_1 = 1750
 GRIPPER_FORCE_CTRL_STRUCT.pose_2 = 1550
 GRIPPER_FORCE_CTRL_STRUCT.force_threshold = 150
 
@@ -332,9 +355,9 @@ A_Sleep(500)
 GRIPPER_MAGNET_CTRL_STRUCT.fl_magnet = false
 
 GRIPPER_MAGNET_CTRL_FUNCTION()
-A_Sleep(5000)
+A_Sleep(3000)
 
-## Step17: Rotate Valve(Turn Left)
+## Step17: Rotate Valve
  
 KINOVA_ROTATE_VALVE_STRUCT.using_current_coord = false
 
@@ -352,9 +375,9 @@ KINOVA_ROTATE_VALVE_STRUCT.valve_rotation_angle = gb_valve_rotation
 
 KINOVA_ROTATE_VALVE_STRUCT.radius_16mm = 12
 KINOVA_ROTATE_VALVE_STRUCT.radius_17mm = 14
-KINOVA_ROTATE_VALVE_STRUCT.radius_18mm = 16
-KINOVA_ROTATE_VALVE_STRUCT.radius_19mm = 16
-KINOVA_ROTATE_VALVE_STRUCT.radius_22mm = 17
+KINOVA_ROTATE_VALVE_STRUCT.radius_18mm = 18
+KINOVA_ROTATE_VALVE_STRUCT.radius_19mm = 18
+KINOVA_ROTATE_VALVE_STRUCT.radius_22mm = 18
 KINOVA_ROTATE_VALVE_STRUCT.radius_24mm = 18
 
 KINOVA_ROTATE_VALVE_STRUCT.radius_offset_mm = 1.5

@@ -749,7 +749,7 @@
      </rect>
     </property>
     <property name="currentIndex">
-     <number>6</number>
+     <number>5</number>
     </property>
     <widget class="QWidget" name="tab_lrf_kinova_distance_ctrl">
      <attribute name="title">
@@ -1531,7 +1531,7 @@
        <rect>
         <x>10</x>
         <y>10</y>
-        <width>80</width>
+        <width>61</width>
         <height>22</height>
        </rect>
       </property>
@@ -1611,14 +1611,50 @@
      <widget class="QPushButton" name="bt_rotator_rotate">
       <property name="geometry">
        <rect>
-        <x>110</x>
+        <x>75</x>
         <y>10</y>
-        <width>80</width>
+        <width>61</width>
         <height>22</height>
        </rect>
       </property>
       <property name="text">
        <string>Rotate</string>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label_66">
+      <property name="geometry">
+       <rect>
+        <x>110</x>
+        <y>89</y>
+        <width>91</width>
+        <height>16</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Error Dst</string>
+      </property>
+     </widget>
+     <widget class="QLineEdit" name="ed_scara_rotator_dst">
+      <property name="geometry">
+       <rect>
+        <x>110</x>
+        <y>103</y>
+        <width>91</width>
+        <height>22</height>
+       </rect>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="bt_scara_dst_move">
+      <property name="geometry">
+       <rect>
+        <x>140</x>
+        <y>10</y>
+        <width>61</width>
+        <height>22</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Dst Move</string>
       </property>
      </widget>
     </widget>

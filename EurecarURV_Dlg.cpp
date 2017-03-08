@@ -213,6 +213,10 @@ void EurecarURV_Dlg::SlotButtonRotatorSwitch(){
         {
             QMessageBox::information(this, tr("Fail to Connect Dyanmixel Pro"),tr("Check Dyanmixel"));
         }
+        else if(!mpc_gripper->InitRotator())
+        {
+            QMessageBox::information(this, tr("Fail to Connect Dyanmixel Pro"),tr("Check Dyanmixel"));
+        }
         else
         {
             ui->bt_rotator->setText("Rotator Off");

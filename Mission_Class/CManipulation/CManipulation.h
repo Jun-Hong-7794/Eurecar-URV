@@ -281,6 +281,7 @@ public:
     bool CloseRotator();
 
     bool RotatorGoThePose(int _step);
+    bool ScaraRotatorMoveErrorDist(double _dist_error);
 
 public:
     bool GetMainFunctionResult();

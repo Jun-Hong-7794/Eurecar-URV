@@ -314,6 +314,9 @@ bool CKinova::KinovaMoveUnitStepRi(){
     if(!(fl_kinova_init && fl_kinova_init_position))
         return false;
 
+    CartesianPosition position_z_pose;
+    Kinova_GetCartesianPosition(position_z_pose);
+
     TrajectoryPoint pointToSend;
     pointToSend.InitStruct();
 
@@ -332,17 +335,20 @@ bool CKinova::KinovaMoveUnitStepRi(){
         usleep(SLEEP_TIME);
     }
     emit SignalKinovaPosition(KinovaGetPosition());
-    msleep(800);
+    msleep(300);
 
-    CartesianPosition position;
 
-    Kinova_GetCartesianPosition(position);
+    CartesianPosition position_rpy_pose;
+    Kinova_GetCartesianPosition(position_rpy_pose);
 
-    position.Coordinates.ThetaX = ALIGN_TO_PANEL_YAW_VALUE;
-    position.Coordinates.ThetaY = ALIGN_TO_PANEL_PITCH_VALUE;
-    position.Coordinates.ThetaZ = ALIGN_TO_PANEL_ROLL_VALUE;
+    position_rpy_pose.Coordinates.X = position_z_pose.Coordinates.X;
+    position_rpy_pose.Coordinates.Z = position_z_pose.Coordinates.Z;
 
-    KinovaDoManipulate(position, 3, 100);
+    position_rpy_pose.Coordinates.ThetaX = ALIGN_TO_PANEL_YAW_VALUE;
+    position_rpy_pose.Coordinates.ThetaY = ALIGN_TO_PANEL_PITCH_VALUE;
+    position_rpy_pose.Coordinates.ThetaZ = ALIGN_TO_PANEL_ROLL_VALUE;
+
+    KinovaDoManipulate(position_rpy_pose, 3, 100);
 
     return true;
 }
@@ -351,6 +357,9 @@ bool CKinova::KinovaMoveUnitStepLe(){
 
     if(!(fl_kinova_init && fl_kinova_init_position))
         return false;
+
+    CartesianPosition position_z_pose;
+    Kinova_GetCartesianPosition(position_z_pose);
 
     TrajectoryPoint pointToSend;
     pointToSend.InitStruct();
@@ -371,17 +380,19 @@ bool CKinova::KinovaMoveUnitStepLe(){
     }
 
     emit SignalKinovaPosition(KinovaGetPosition());
-    msleep(800);
+    msleep(300);
 
-    CartesianPosition position;
+    CartesianPosition position_rpy_pose;
+    Kinova_GetCartesianPosition(position_rpy_pose);
 
-    Kinova_GetCartesianPosition(position);
+    position_rpy_pose.Coordinates.X = position_z_pose.Coordinates.X;
+    position_rpy_pose.Coordinates.Z = position_z_pose.Coordinates.Z;
 
-    position.Coordinates.ThetaX = ALIGN_TO_PANEL_YAW_VALUE;
-    position.Coordinates.ThetaY = ALIGN_TO_PANEL_PITCH_VALUE;
-    position.Coordinates.ThetaZ = ALIGN_TO_PANEL_ROLL_VALUE;
+    position_rpy_pose.Coordinates.ThetaX = ALIGN_TO_PANEL_YAW_VALUE;
+    position_rpy_pose.Coordinates.ThetaY = ALIGN_TO_PANEL_PITCH_VALUE;
+    position_rpy_pose.Coordinates.ThetaZ = ALIGN_TO_PANEL_ROLL_VALUE;
 
-    KinovaDoManipulate(position, 3, 100);
+    KinovaDoManipulate(position_rpy_pose, 3, 100);
 
     return true;
 }
@@ -491,14 +502,15 @@ void CKinova::KinovaRotateValveMotion(VALVE_ROTATE_DIR _dir, int _radius, int _t
     CartesianPosition position;
     CartesianPosition current_position;
     TrajectoryPoint desired_point;
+
     desired_point.InitStruct();
 
     Kinova_GetCartesianPosition(current_position);
 
     if(fl_using_current_coor){
-        x_coord = current_position.Coordinates.X;
-        y_coord = current_position.Coordinates.Y + 0.01*_radius*sin(initialAngle*3.141592/180);
-        z_coord = current_position.Coordinates.Z - 0.01*_radius*cos(initialAngle*3.141592/180);
+//        x_coord = current_position.Coordinates.X;
+//        y_coord = current_position.Coordinates.Y + 0.01*_radius*sin(initialAngle*3.141592/180);
+//        z_coord = current_position.Coordinates.Z - 0.01*_radius*cos(initialAngle*3.141592/180);
     }
     else{
         if(x_coord == 0)
@@ -521,9 +533,9 @@ void CKinova::KinovaRotateValveMotion(VALVE_ROTATE_DIR _dir, int _radius, int _t
         }
 
         position.Coordinates.X = x_coord; //0.38487;
-        position.Coordinates.Y = y_coord - _radius*0.01*sin(initialAngle*3.14159265359/180+theta); //0.22056 - _param2*0.01*sin(theta);
+        position.Coordinates.Y = y_coord + _radius*0.01*sin(initialAngle*3.14159265359/180+theta); //0.22056 - _param2*0.01*sin(theta);
         position.Coordinates.Z = z_coord + _radius*0.01*cos(initialAngle*3.14159265359/180+theta); //0.28821 + _param2*0.01*cos(theta);
-        position.Coordinates.ThetaZ = ALIGN_TO_PANEL_ROLL_VALUE + initialAngle * 3.14159265359/180 + theta;
+        position.Coordinates.ThetaZ = ALIGN_TO_PANEL_ROLL_VALUE - initialAngle * 3.14159265359/180 - theta;
 
         position.Coordinates.ThetaY = ALIGN_TO_PANEL_PITCH_VALUE;
         position.Coordinates.ThetaX = ALIGN_TO_PANEL_YAW_VALUE;
@@ -532,10 +544,10 @@ void CKinova::KinovaRotateValveMotion(VALVE_ROTATE_DIR _dir, int _radius, int _t
         msleep(800);
     }
     if(_dir == CW){
-        initialAngle += _theta;
+        initialAngle -= _theta;
     }
     else if(_dir == CCW){
-        initialAngle -= _theta;
+        initialAngle += _theta;
     }
     return;
 }
@@ -957,14 +969,13 @@ bool CKinova::KinovaDoManipulate(CartesianPosition _desired_position,int _mode, 
 //            std::cout << "Ya: "<< desired_position.Position.CartesianPosition.ThetaX <<std::endl;
 
             Kinova_SendAdvanceTrajectory(desired_position);
+            msleep(10);
         }
-
-        msleep(100);
     }
     else if(_mode == 3){ // Mode 3 : Roll
         double error0;
         Kinova_SendAdvanceTrajectory(desired_position);
-        msleep(300);
+        msleep(100);
 
 //        Kinova_GetCartesianPosition(position);
 
