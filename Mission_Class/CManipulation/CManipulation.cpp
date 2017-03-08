@@ -2524,7 +2524,6 @@ bool CManipulation::KinovaForceCtrl(){
                     }
                 }
             }
-
         }
 
         if(kinova_force_ctrl.force_threshold_z != 0){
@@ -2708,11 +2707,11 @@ bool CManipulation::KinovaRotateValveMotion(){
 
         msleep(500);
 
-        if(kinova_rotate_valve.valve_rotation_angle < 45){//CW
+        if(kinova_rotate_valve.valve_rotation_angle <= 35){//CW
             if(kinova_rotate_valve.theta > 0)
                 kinova_rotate_valve.theta = (-1)* kinova_rotate_valve.theta;
         }
-        else if(kinova_rotate_valve.valve_rotation_angle >= 45){//CCW
+        else if(kinova_rotate_valve.valve_rotation_angle > 35){//CCW
             if(kinova_rotate_valve.theta < 0)
                 kinova_rotate_valve.theta = (-1)* kinova_rotate_valve.theta;
         }
@@ -2778,16 +2777,16 @@ bool CManipulation::KinovaLRFValveSearching(){
     }
     while(true);
 
-    msleep(300);
+    msleep(100);
 
     position = mpc_kinova->KinovaGetPosition();
 
     if(valve_searching.mode == 1){
-        position.Coordinates.Y -= (valve_searching.offset * 0.01)/*m*/;
+//        position.Coordinates.Y -= (valve_searching.offset * 0.01)/*m*/;
         mpc_kinova->KinovaDoManipulate(position, 2);
     }
     else if(valve_searching.mode == 2){
-        position.Coordinates.Y += (valve_searching.offset * 0.01)/*m*/;
+//        position.Coordinates.Y += (valve_searching.offset * 0.01)/*m*/;
         mpc_kinova->KinovaDoManipulate(position, 2);
     }
 
@@ -2982,10 +2981,10 @@ bool CManipulation::GripperKinovaValveSizeRecognition(){
             }
 
             mpc_gripper->GripperGoToThePositionLoadCheck(release_pose_1, release_pose_2, -2);
-            msleep(500);
+            msleep(200);
 
             mpc_kinova->KinovaMoveUnitStep(0, y_step, z_step);
-            msleep(500);
+            msleep(200);
 
             current_pose = mpc_kinova->KinovaGetPosition();
             mpc_kinova->KinovaDoManipulate(current_pose, 2);

@@ -15,7 +15,7 @@ A_Sleep(1000)
 
 ## Step2: LRF-Kinova Vertical CTRL(New)
 
-LRF_K_VERTICAL_CTRL_STRUCT.mode = 3
+LRF_K_VERTICAL_CTRL_STRUCT.mode = 2
 
 LRF_K_VERTICAL_CTRL_STRUCT.only_sensing_moving = false
 
@@ -65,8 +65,6 @@ KINOVA_ALIGN_TO_PANEL_FUNCTION()
 A_Sleep(500)
 
 ## Step1: LRF-Kinova Vertical CTRL
-
-IF(!gb_bool_kinova_force_ctrl_rst)
 
 KINOVA_MANIPULATE_STRUCT.x = ==
 KINOVA_MANIPULATE_STRUCT.y = ==
@@ -136,7 +134,7 @@ LRF_K_VERTICAL_CTRL_STRUCT.mode = 2
 
 LRF_K_VERTICAL_CTRL_STRUCT.only_sensing_moving = false
 
-LRF_K_VERTICAL_CTRL_STRUCT.desired_v_dst = 240
+LRF_K_VERTICAL_CTRL_STRUCT.desired_v_dst = 170
 LRF_K_VERTICAL_CTRL_STRUCT.error = 2
 
 LRF_K_VERTICAL_CTRL_STRUCT.s_deg = 110
@@ -177,16 +175,16 @@ LRF_K_HORIZEN_CTRL_STRUCT.mode = 2
 
 LRF_K_HORIZEN_CTRL_STRUCT.only_sensing_moving = false
 
-LRF_K_HORIZEN_CTRL_STRUCT.desired_h_dst = 335
+LRF_K_HORIZEN_CTRL_STRUCT.desired_h_dst = 320
 /*Center Point
-/*LRF_K_HORIZEN_CTRL_STRUCT.desired_h_dst = 335
+/*LRF_K_HORIZEN_CTRL_STRUCT.desired_h_dst = 340
 
 LRF_K_HORIZEN_CTRL_STRUCT.error = 1.0
 
-LRF_K_HORIZEN_CTRL_STRUCT.s_deg = 10 
+LRF_K_HORIZEN_CTRL_STRUCT.s_deg = 110 
 LRF_K_HORIZEN_CTRL_STRUCT.e_deg = 170
 
-LRF_K_HORIZEN_CTRL_STRUCT.inlier_lrf_dst = 800
+LRF_K_HORIZEN_CTRL_STRUCT.inlier_lrf_dst = 1100
 
 LRF_K_HORIZEN_CTRL_STRUCT.loop_sleep = 30 
 
@@ -201,16 +199,16 @@ LRF_K_HORIZEN_CTRL_STRUCT.mode = 2
 
 LRF_K_HORIZEN_CTRL_STRUCT.only_sensing_moving = false
 
-LRF_K_HORIZEN_CTRL_STRUCT.desired_h_dst = 325
+LRF_K_HORIZEN_CTRL_STRUCT.desired_h_dst = 320
 /*Center Point
-/*LRF_K_HORIZEN_CTRL_STRUCT.desired_h_dst = 335
+/*LRF_K_HORIZEN_CTRL_STRUCT.desired_h_dst = 340
 
 LRF_K_HORIZEN_CTRL_STRUCT.error = 1.0
 
-LRF_K_HORIZEN_CTRL_STRUCT.s_deg = 10 
+LRF_K_HORIZEN_CTRL_STRUCT.s_deg = 110
 LRF_K_HORIZEN_CTRL_STRUCT.e_deg = 170
 
-LRF_K_HORIZEN_CTRL_STRUCT.inlier_lrf_dst = 800
+LRF_K_HORIZEN_CTRL_STRUCT.inlier_lrf_dst = 1100
 
 LRF_K_HORIZEN_CTRL_STRUCT.loop_sleep = 30 
 
@@ -218,19 +216,19 @@ LRF_K_HORIZEN_CTRL_FUNCTION()
 
 A_Sleep(500)
 
-## Step10: LRF-Kinova Vertical CTRL
+## Step2: LRF-Kinova Vertical CTRL(New)
 
 LRF_K_VERTICAL_CTRL_STRUCT.mode = 2
 
 LRF_K_VERTICAL_CTRL_STRUCT.only_sensing_moving = false
 
-LRF_K_VERTICAL_CTRL_STRUCT.desired_v_dst = 170
+LRF_K_VERTICAL_CTRL_STRUCT.desired_v_dst = 160
 LRF_K_VERTICAL_CTRL_STRUCT.error = 2
 
 LRF_K_VERTICAL_CTRL_STRUCT.s_deg = 10
 LRF_K_VERTICAL_CTRL_STRUCT.e_deg = 170
 
-LRF_K_VERTICAL_CTRL_STRUCT.inlier_lrf_dst = 800
+LRF_K_VERTICAL_CTRL_STRUCT.inlier_lrf_dst = 1100
 
 LRF_K_VERTICAL_CTRL_STRUCT.loop_sleep = 30
 
@@ -277,7 +275,7 @@ A_Sleep(500)
 
 IF(!gb_bool_kinova_force_ctrl_rst)
 
-KINOVA_MANIPULATE_STRUCT.x = --0.08
+KINOVA_MANIPULATE_STRUCT.x = --0.10
 KINOVA_MANIPULATE_STRUCT.y = ==
 KINOVA_MANIPULATE_STRUCT.z = ==
 
@@ -324,31 +322,6 @@ ELSE(GoTo:3)
 
 A_Sleep(500)
 
-## Step15: Gripper Close( > 40 )
-
-IF(gb_valve_rotation > 40)
-
-GRIPPER_FORCE_CTRL_STRUCT.pose_1 = 1550
-GRIPPER_FORCE_CTRL_STRUCT.pose_2 = 1750
-GRIPPER_FORCE_CTRL_STRUCT.force_threshold = 150
-
-GRIPPER_FORCE_CTRL_FUNCTION()
-
-
-A_Sleep(500)
-
-## Step15: Gripper Close( < 45 )
-
-IF(gb_valve_rotation < 45)
-/*>
-
-GRIPPER_FORCE_CTRL_STRUCT.pose_1 = 1750
-GRIPPER_FORCE_CTRL_STRUCT.pose_2 = 1550
-GRIPPER_FORCE_CTRL_STRUCT.force_threshold = 150
-
-GRIPPER_FORCE_CTRL_FUNCTION()
-
-A_Sleep(500)
 
 ## Step16: Magnet OFF
 
@@ -357,13 +330,39 @@ GRIPPER_MAGNET_CTRL_STRUCT.fl_magnet = false
 GRIPPER_MAGNET_CTRL_FUNCTION()
 A_Sleep(3000)
 
+## Step15: Gripper Close( > 35 CCW)
+
+IF(gb_valve_rotation > 30)
+
+GRIPPER_FORCE_CTRL_STRUCT.pose_1 = 1550
+GRIPPER_FORCE_CTRL_STRUCT.pose_2 = 1900
+GRIPPER_FORCE_CTRL_STRUCT.force_threshold = 350
+
+GRIPPER_FORCE_CTRL_FUNCTION()
+
+
+A_Sleep(500)
+
+## Step15: Gripper Close( < 40,  CW )
+
+IF(gb_valve_rotation < 35)
+/*>
+
+GRIPPER_FORCE_CTRL_STRUCT.pose_1 = 1900
+GRIPPER_FORCE_CTRL_STRUCT.pose_2 = 1550
+GRIPPER_FORCE_CTRL_STRUCT.force_threshold = 350
+
+GRIPPER_FORCE_CTRL_FUNCTION()
+
+A_Sleep(500)
+
 ## Step17: Rotate Valve
  
 KINOVA_ROTATE_VALVE_STRUCT.using_current_coord = false
 
 KINOVA_ROTATE_VALVE_STRUCT.center_x = 0
 KINOVA_ROTATE_VALVE_STRUCT.center_y = 0
-KINOVA_ROTATE_VALVE_STRUCT.center_z = 0.1686
+KINOVA_ROTATE_VALVE_STRUCT.center_z = 0.1741
 
 KINOVA_ROTATE_VALVE_STRUCT.theta = 55
 
@@ -375,16 +374,20 @@ KINOVA_ROTATE_VALVE_STRUCT.valve_rotation_angle = gb_valve_rotation
 
 KINOVA_ROTATE_VALVE_STRUCT.radius_16mm = 12
 KINOVA_ROTATE_VALVE_STRUCT.radius_17mm = 14
-KINOVA_ROTATE_VALVE_STRUCT.radius_18mm = 18
-KINOVA_ROTATE_VALVE_STRUCT.radius_19mm = 18
+KINOVA_ROTATE_VALVE_STRUCT.radius_18mm = 16
+KINOVA_ROTATE_VALVE_STRUCT.radius_19mm = 17
 KINOVA_ROTATE_VALVE_STRUCT.radius_22mm = 18
-KINOVA_ROTATE_VALVE_STRUCT.radius_24mm = 18
+KINOVA_ROTATE_VALVE_STRUCT.radius_24mm = 20
 
 KINOVA_ROTATE_VALVE_STRUCT.radius_offset_mm = 1.5
 
 KINOVA_ROTATE_VALVE_STRUCT.init_angle = false
 
 KINOVA_ROTATE_VALVE_FUNCTION()
+
+A_Sleep(1000)
+
+
 
 ## Step18: Grasp1
 
