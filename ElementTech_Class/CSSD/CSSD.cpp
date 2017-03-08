@@ -4,7 +4,7 @@
 CSSD::CSSD()
 {
     mstr_model_path = "/home/winner/caffe-ssd/models/VGGNet/mbzirc/SSD_300x300/deploy.prototxt";
-    mstr_weight_path = "/home/winner/caffe-ssd/models/VGGNet/mbzirc/SSD_300x300/VGG_mbzirc_SSD_300x300_iter_200000.caffemodel";
+    mstr_weight_path = "/home/winner/caffe-ssd/models/VGGNet/mbzirc/SSD_300x300/VGG_mbzirc_SSD_300x300_iter_41662.caffemodel";
     mstr_mean_value =  "104,117,123";
 
     NetInitialize(mstr_model_path, mstr_weight_path, mstr_mean_value);

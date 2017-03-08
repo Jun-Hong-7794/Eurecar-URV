@@ -3217,7 +3217,7 @@ bool CManipulation::WrenchRecognition(){
 
     cv::imwrite(image_name,camera_image);
 
-    return true;
+//    return true;
 
     bb_info = mpc_ssd->GetSSDImage(camera_image);
 
@@ -3238,6 +3238,7 @@ bool CManipulation::WrenchRecognition(){
 
         loop_count++;
     }
+
 
     for(vector<vector<int>>::iterator it = bb_info.begin();it < bb_info.end();++it)
     {
