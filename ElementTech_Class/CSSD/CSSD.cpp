@@ -45,6 +45,7 @@ void CSSD::NetInitialize(const string& model_file,
 }
 
 vector<vector<int>> CSSD::GetSSDImage(cv::Mat& _org_image) {
+  mtx_ssd.lock();
   Blob<float>* input_layer = net_->input_blobs()[0];
   input_layer->Reshape(1, num_channels_,
                        input_geometry_.height, input_geometry_.width);
@@ -82,7 +83,7 @@ vector<vector<int>> CSSD::GetSSDImage(cv::Mat& _org_image) {
     // Detection format: [image_id, label, score, xmin, ymin, xmax, ymax].
     CHECK_EQ(d.size(), 7);
     const float score = d[2];
-    if (score >= 0.3) {
+    if (score >= 0.27) {
       if(!((d[1] == 1)|| (d[1] == 2)))
             continue;
       cv::Point2d tl,br;
@@ -120,6 +121,7 @@ vector<vector<int>> CSSD::GetSSDImage(cv::Mat& _org_image) {
     }
   }
 
+  mtx_ssd.unlock();
 
   return bb_info;
 }

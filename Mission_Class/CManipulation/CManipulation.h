@@ -65,6 +65,7 @@
 
 #define MANIPUL_INX_KINOVA_LRF_VALVE_SEARCHING  25
 #define MANIPUL_INX_KINOVA_LRF_CHECK_V_DST      26
+#define MANIPUL_INX_GRIPPER_FIND_VALVE_LOCATION 27
 
 class CManipulation:public QThread{
     Q_OBJECT
@@ -164,6 +165,9 @@ private:
     GRIPPER_KINOVA_VALVE_SIZE_RECOG_STRUCT mstruct_gripper_kinova_valve_recog;
     QMutex mxt_gripper_kinova_valve_recog;
 
+    GRIPPER_KINOVA_FIND_VALVE_LOCATION_STRUCT mstruct_gripper_kinova_valve_location;
+    QMutex mxt_valve_location;
+
     WRENCH_RECOGNITION mstruct_wrench_recognition;
     QMutex mxt_wrench_recognition;
 
@@ -248,7 +252,7 @@ public:
 
     bool KinovaRotateBase(double _rot_deg);
 
-    bool KinovaForceCheck(double _force_x, double _force_y, double _force_z); // true: force occured!
+    bool KinovaForceCheck(double _force_x, double _force_y, double _force_z, int _mode = 1); // true: force occured!
 
     //LRF
     bool InitLRF(char* _dev_path = (char *)"/dev/ttyACM0", int _dev_type = UST_20LX);
@@ -369,6 +373,9 @@ public:
     void SetManipulationOption(GRIPPER_KINOVA_VALVE_SIZE_RECOG_STRUCT _manipulation_option);
     GRIPPER_KINOVA_VALVE_SIZE_RECOG_STRUCT GetGripperKinovaValveRecogOption();
 
+    void SetManipulationOption(GRIPPER_KINOVA_FIND_VALVE_LOCATION_STRUCT _manipulation_option);
+    GRIPPER_KINOVA_FIND_VALVE_LOCATION_STRUCT GetGripperKinovaFindValveLocationOption();
+
     void SetManipulationOption(WRENCH_RECOGNITION _manipulation_option);
     WRENCH_RECOGNITION GetWrenchRecognitionOption();
 
@@ -430,6 +437,7 @@ private:
 
     bool KinovaFitToValvePose();
 
+    bool GripperKinovaFindValveLocation();
     bool GripperKinovaValveSizeRecognition();
     bool GripperGoToRelPose();
 

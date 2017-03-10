@@ -1093,6 +1093,10 @@ bool CGripper::GripperGoToRelPosition(int _rel_pose_1, int _rel_pose_2){ // Go t
 
     mtx_gripper_handle.lock();
     {
+        dxl_comm_result = mp_gripper_packetHandler->read2ByteTxRx(mp_gripper_portHandler, DXL1_ID, ADDR_MX_PRESENT_POSITION, &m_dxl1_present_position, &dxl_error);
+        dxl_comm_result = mp_gripper_packetHandler->read2ByteTxRx(mp_gripper_portHandler, DXL2_ID, ADDR_MX_PRESENT_POSITION, &m_dxl2_present_position, &dxl_error);
+
+        m_dxl2_present_position -= DXL2_OFFSET;
 
         m_dxl1_present_position = m_dxl1_present_position + _rel_pose_1;
         dxl_comm_result = mp_gripper_packetHandler->write2ByteTxRx(mp_gripper_portHandler, DXL1_ID, ADDR_MX_GOAL_POSITION, m_dxl1_present_position , &dxl_error);
@@ -1137,6 +1141,10 @@ bool CGripper::GripperGoToThePositionLoadCheck(int _goal_pos_1, int _goal_pos_2,
 
       mtx_gripper_handle.lock();
       {
+          dxl_comm_result = mp_gripper_packetHandler->read2ByteTxRx(mp_gripper_portHandler, DXL1_ID, ADDR_MX_PRESENT_POSITION, &m_dxl1_present_position, &dxl_error);
+          dxl_comm_result = mp_gripper_packetHandler->read2ByteTxRx(mp_gripper_portHandler, DXL2_ID, ADDR_MX_PRESENT_POSITION, &m_dxl2_present_position, &dxl_error);
+
+          m_dxl2_present_position -= DXL2_OFFSET;
 
           if(_load_threshold == -2){// Go to the position no load and no unit step
 

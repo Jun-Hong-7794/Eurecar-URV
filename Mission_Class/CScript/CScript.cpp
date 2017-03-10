@@ -634,6 +634,14 @@ bool CScript::InterpreteMissionScriptLine(QString _line, MISSION_SCRIPT* _missio
             return false;
     }
 
+    if(_line.contains("FIND_VALVE_LOCATION")){
+
+        if(InterpreteGripperFindValveLocation(_line, _step_info))
+            return true;
+        else
+            return false;
+    }
+
     if(_line.contains("MISSION_END")){
 
         if(_step_info.step_title != "Empty"){
@@ -1375,6 +1383,77 @@ bool CScript::InterpreteKinovaLRFValveSearching(QString _line, STEP_INFO& _step_
         _step_info.function_index = MP_KINOVA_LRF_VALVE_SEARCHING;
     }
 
+    else
+        return false;
+
+    return true;
+}
+
+bool CScript::InterpreteGripperFindValveLocation(QString _line, STEP_INFO& _step_info){
+
+    if(_line.contains("FIND_VALVE_LOCATION_STRUCT")){
+
+        if(_line.contains("grap_error")){
+            int colone_index = _line.indexOf("=");
+            _step_info.manipulation_option.gripper_kinova_valve_location_option.grap_error =
+                    _line.mid(colone_index + 1).trimmed().toInt();
+            return true;
+        }
+
+        if(_line.contains("grasp_pose_1")){
+            int colone_index = _line.indexOf("=");
+            _step_info.manipulation_option.gripper_kinova_valve_location_option.grasp_pose_1 =
+                    _line.mid(colone_index + 1).trimmed().toDouble();
+            return true;
+        }
+        if(_line.contains("grasp_pose_2")){
+            int colone_index = _line.indexOf("=");
+            _step_info.manipulation_option.gripper_kinova_valve_location_option.grasp_pose_2 =
+                    _line.mid(colone_index + 1).trimmed().toDouble();
+            return true;
+        }
+        if(_line.contains("release_pose_1")){
+            int colone_index = _line.indexOf("=");
+            _step_info.manipulation_option.gripper_kinova_valve_location_option.release_pose_1 =
+                    _line.mid(colone_index + 1).trimmed().toDouble();
+            return true;
+        }
+        if(_line.contains("release_pose_2")){
+            int colone_index = _line.indexOf("=");
+            _step_info.manipulation_option.gripper_kinova_valve_location_option.release_pose_2 =
+                    _line.mid(colone_index + 1).trimmed().toDouble();
+            return true;
+        }
+        if(_line.contains("force_threshold")){
+            int colone_index = _line.indexOf("=");
+            _step_info.manipulation_option.gripper_kinova_valve_location_option.force_threshold =
+                    _line.mid(colone_index + 1).trimmed().toDouble();
+            return true;
+        }
+
+        if(_line.contains("trial")){
+            int colone_index = _line.indexOf("=");
+            _step_info.manipulation_option.gripper_kinova_valve_location_option.trial =
+                    _line.mid(colone_index + 1).trimmed().toInt();
+            return true;
+        }
+
+        if(_line.contains("valve_size")){
+            int colone_index = _line.indexOf("=");
+            _step_info.manipulation_option.gripper_kinova_valve_location_option.str_valve_size  =
+                    _line.mid(colone_index + 1).trimmed();
+            return true;
+        }
+        if(_line.contains("valve_rotation")){
+            int colone_index = _line.indexOf("=");
+            _step_info.manipulation_option.gripper_kinova_valve_location_option.str_valve_rotation  =
+                    _line.mid(colone_index + 1).trimmed();
+            return true;
+        }
+    }
+   else if(_line.contains("FIND_VALVE_LOCATION_FUNCTION")){
+        _step_info.function_index = MP_GRIPPER_FIND_VALVE_LOCATION;
+    }
     else
         return false;
 
@@ -3253,6 +3332,30 @@ bool CScript::MissionPlayer(){
 
                 while(mpc_manipulation->isRunning());
             }
+
+            if(mpary_mission_script[i].step_vecor.at(j).function_index == MP_GRIPPER_FIND_VALVE_LOCATION){
+
+                int valve_size = 0;
+                QString str_valve_size;
+                str_valve_size = mpary_mission_script[i].step_vecor.at(j).manipulation_option.gripper_kinova_valve_location_option.str_valve_size;
+
+                valve_size = InterpreteIntVariable(str_valve_size, mpary_mission_script[i]);
+                mpary_mission_script[i].step_vecor.at(j).manipulation_option.gripper_kinova_valve_location_option.valve_size = valve_size;
+
+                double valve_rotation = 0;
+                QString str_valve_rotation;
+                str_valve_rotation = mpary_mission_script[i].step_vecor.at(j).manipulation_option.gripper_kinova_valve_location_option.str_valve_rotation;
+
+                valve_rotation = InterpreteDoubleVariable(str_valve_rotation, mpary_mission_script[i]);
+                mpary_mission_script[i].step_vecor.at(j).manipulation_option.gripper_kinova_valve_location_option.valve_rotation = valve_rotation;
+
+
+                mpc_manipulation->SetManipulationOption(mpary_mission_script[i].step_vecor.at(j).manipulation_option.gripper_kinova_valve_location_option);
+                mpc_manipulation->SelectMainFunction(MANIPUL_INX_GRIPPER_FIND_VALVE_LOCATION);
+
+                while(mpc_manipulation->isRunning());
+            }
+
             if(mpary_mission_script[i].step_vecor.at(j).function_index == MP_GRIPPER_VALVE_SIZE_RECOG){
                 mpc_manipulation->SetManipulationOption(mpary_mission_script[i].step_vecor.at(j).manipulation_option.gripper_kinova_valve_recog_option);
                 mpc_manipulation->SelectMainFunction(MANIPUL_INX_GRIPPER_VALVE_SIZE_RECOG);

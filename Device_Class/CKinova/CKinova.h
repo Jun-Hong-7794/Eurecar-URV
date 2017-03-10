@@ -23,8 +23,8 @@
 #define STEP_NUM        5 // unit
 #define SLEEP_TIME      5000
 
-#define ALIGN_TO_PANEL_ROLL_VALUE 2.1474//2.0974
-#define ALIGN_TO_PANEL_PITCH_VALUE 1.5575
+#define ALIGN_TO_PANEL_ROLL_VALUE 2.1474 //2.0974
+#define ALIGN_TO_PANEL_PITCH_VALUE (1.5575 + 0.044)
 #define ALIGN_TO_PANEL_YAW_VALUE -2.2821
 
 typedef enum Direction {CW, CCW} VALVE_ROTATE_DIR;
@@ -83,6 +83,9 @@ public://Function pointers to the functions we need
     int (*KinovaUnitStepMoving)(TrajectoryPoint command);
     //int (*Kinova_InitFingers)();
     int (*Kinova_SetFrameType)(int);
+
+    int (*Kinova_SetTorqueZero)(int);
+    int (*Kinova_SetTorqueGain)(int, int);
 
     //Arm & Finger
     int (*Kinova_SendBasicTrajectory)(TrajectoryPoint command);
@@ -144,7 +147,7 @@ public: // Basic Motion
     bool KinovaMoveUnitStepBw();
 
     void SetKinovaRotateValve(bool _using_current_coord, bool _init_angle,double _x, double _y, double _z);
-    void KinovaRotateValveMotion(VALVE_ROTATE_DIR _dir, int _radius, int _theta);
+    void KinovaRotateValveMotion(VALVE_ROTATE_DIR _dir, double _radius, int _theta);
 
     bool KinovaRotateValveMotion(bool _using_constant_c_point, CartesianPosition _center_point, int _radius, int _theta, double _unit_angle = 5/*deg*/);
 

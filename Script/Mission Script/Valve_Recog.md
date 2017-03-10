@@ -5,8 +5,8 @@
 
 # Title: Valve Recognition
 
-global_int gi_valve_size = 19
-global_double gb_valve_rotation = 60
+global_int gi_valve_size = 24
+global_double gb_valve_rotation = 45
 
 global_double gd_check_v_dst = 30
 global_bool gb_check_v_dst_rst = false
@@ -56,6 +56,7 @@ A_Sleep(300)
 ## Step3: LRF-Kinova Vertical CTRL(NEW Using Scara)
 
 LRF_K_VERTICAL_CTRL_STRUCT.mode = 4
+LRF_K_VERTICAL_CTRL_STRUCT.force_option = false
 LRF_K_VERTICAL_CTRL_STRUCT.only_sensing_moving = false
 
 LRF_K_VERTICAL_CTRL_STRUCT.desired_v_dst = 290
@@ -75,6 +76,7 @@ A_Sleep(3000)
 ## Step3: LRF-Kinova Vertical CTRL(NEW)
 
 LRF_K_VERTICAL_CTRL_STRUCT.mode = 2
+LRF_K_VERTICAL_CTRL_STRUCT.force_option = false
 LRF_K_VERTICAL_CTRL_STRUCT.only_sensing_moving = false
 
 LRF_K_VERTICAL_CTRL_STRUCT.desired_v_dst = 240
@@ -146,7 +148,7 @@ A_Sleep(300)
 ## Step7: LRF-Kinova Vertical CTRL(NEW)
 
 LRF_K_VERTICAL_CTRL_STRUCT.mode = 2
-
+LRF_K_VERTICAL_CTRL_STRUCT.force_option = false
 LRF_K_VERTICAL_CTRL_STRUCT.only_sensing_moving = false
 
 LRF_K_VERTICAL_CTRL_STRUCT.desired_v_dst = 240
@@ -188,11 +190,9 @@ A_Sleep(300)
 
 LRF_K_HORIZEN_CTRL_STRUCT.mode = 2
 
-LRF_K_HORIZEN_CTRL_STRUCT.only_sensing_moving = false
+LRF_K_HORIZEN_CTRL_STRUCT.only_sensing_moving = true
 
 LRF_K_HORIZEN_CTRL_STRUCT.desired_h_dst = 345
-/*Center Point
-/*LRF_K_HORIZEN_CTRL_STRUCT.desired_h_dst = 335
 
 LRF_K_HORIZEN_CTRL_STRUCT.error = 2.0
 
@@ -218,7 +218,7 @@ KINOVA_MANIPULATE_STRUCT.y = ==
 KINOVA_MANIPULATE_STRUCT.z = 0.1723
 
 KINOVA_MANIPULATE_STRUCT.roll = 2.1374
-KINOVA_MANIPULATE_STRUCT.pitch = 1.5575
+KINOVA_MANIPULATE_STRUCT.pitch = 1.6015
 KINOVA_MANIPULATE_STRUCT.yaw = -2.2821
 
 KINOVA_MANIPULATE_STRUCT.force_threshold = 10
@@ -234,7 +234,7 @@ KINOVA_FORCE_CTRL_STRUCT.step_count = 100
 KINOVA_FORCE_CTRL_STRUCT.mode = 1
 
 KINOVA_FORCE_CTRL_STRUCT.force_threshold = 0
-KINOVA_FORCE_CTRL_STRUCT.force_threshold_x = 12
+KINOVA_FORCE_CTRL_STRUCT.force_threshold_x = 8
 KINOVA_FORCE_CTRL_STRUCT.force_threshold_y = 0
 KINOVA_FORCE_CTRL_STRUCT.force_threshold_z = 0
 
@@ -253,6 +253,7 @@ A_Sleep(300)
 ## Step13: Kinova Arm Backward
 
 KINOVA_MANIPULATE_STRUCT.x = --0.015
+/*KINOVA_MANIPULATE_STRUCT.x = --0.025
 KINOVA_MANIPULATE_STRUCT.y = ==
 KINOVA_MANIPULATE_STRUCT.z = ==
 
@@ -265,6 +266,21 @@ KINOVA_MANIPULATE_STRUCT.force_threshold = 15
 KINOVA_MANIPULATE_FUNCTION()
 
 A_Sleep(500)
+
+## Step14: Find Valve Location Recognition(Using Gripper)
+
+FIND_VALVE_LOCATION_STRUCT.grap_error = 3
+FIND_VALVE_LOCATION_STRUCT.grasp_pose_1 = 1570
+FIND_VALVE_LOCATION_STRUCT.grasp_pose_2 = 1570
+
+FIND_VALVE_LOCATION_STRUCT.release_pose_1 = 1950
+FIND_VALVE_LOCATION_STRUCT.release_pose_2 = 1950
+
+FIND_VALVE_LOCATION_STRUCT.force_threshold = 120
+
+FIND_VALVE_LOCATION_STRUCT.trial = 5
+
+FIND_VALVE_LOCATION_FUNCTION()
 
 ## Step14: Valve Size Recognition(Using Gripper)
 
@@ -295,6 +311,7 @@ GRIPPER_FORCE_CTRL_STRUCT.pose_2 = 2800
 GRIPPER_FORCE_CTRL_STRUCT.force_threshold = -2
 
 GRIPPER_FORCE_CTRL_FUNCTION()
+
 ## Step16: Kinova Arm Back
 
 KINOVA_MANIPULATE_STRUCT.x = --0.08

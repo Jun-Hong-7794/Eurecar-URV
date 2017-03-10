@@ -4,6 +4,8 @@
 #include "opencv_header.h"
 #include "../../Caffe_Header.h"
 
+#include <QMutex>
+
 class CSSD {
 
  public:
@@ -20,6 +22,8 @@ class CSSD {
   std::string mstr_weight_path;
   std::string mstr_mean_file;
   std::string mstr_mean_value;
+
+  QMutex mtx_ssd;
 
  private:
   void SetMean(const string& mean_value);

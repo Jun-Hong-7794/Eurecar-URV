@@ -131,6 +131,7 @@ private:
     bool InterpreteGripperGotoRelPose(QString _line, STEP_INFO& _step_info);
     bool InterpreteGripperMagnetCtrl(QString _line, STEP_INFO& _step_info);
     bool InterpreteGripperValveSizeRecog(QString _line, STEP_INFO& _step_info);
+    bool InterpreteGripperFindValveLocation(QString _line, STEP_INFO& _step_info);
 
     bool InterpreteRotator(QString _line, STEP_INFO& _step_info);
 

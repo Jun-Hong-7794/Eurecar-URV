@@ -46,6 +46,7 @@ A_Sleep(500)
 
 LRF_K_VERTICAL_CTRL_STRUCT.mode = 3
 
+LRF_K_VERTICAL_CTRL_STRUCT.force_option = false
 LRF_K_VERTICAL_CTRL_STRUCT.only_sensing_moving = false
 
 LRF_K_VERTICAL_CTRL_STRUCT.desired_v_dst = 240
@@ -128,6 +129,7 @@ A_Sleep(1000)
 
 LRF_K_VERTICAL_CTRL_STRUCT.mode = 3
 
+LRF_K_VERTICAL_CTRL_STRUCT.force_option = false
 LRF_K_VERTICAL_CTRL_STRUCT.only_sensing_moving = true
 
 LRF_K_VERTICAL_CTRL_STRUCT.desired_v_dst = 240
@@ -148,7 +150,7 @@ A_Sleep(500)
 
 LRF_K_HORIZEN_CTRL_STRUCT.mode = 3
 
-LRF_K_VERTICAL_CTRL_STRUCT.only_sensing_moving = false
+LRF_K_HORIZEN_CTRL_STRUCT.only_sensing_moving = false
 
 LRF_K_HORIZEN_CTRL_STRUCT.wrench_hanger_index = gi_wrench_hanger_index
 
@@ -180,7 +182,7 @@ IF(gi_valve_size > 19)
 
 KINOVA_MANIPULATE_STRUCT.x = ==
 KINOVA_MANIPULATE_STRUCT.y = ==
-KINOVA_MANIPULATE_STRUCT.z = 0.3057
+KINOVA_MANIPULATE_STRUCT.z = 0.3207
 
 KINOVA_MANIPULATE_STRUCT.roll = ==
 KINOVA_MANIPULATE_STRUCT.pitch = ==
@@ -222,13 +224,13 @@ LRF_K_VERTICAL_CTRL_STRUCT.mode = 3
 
 LRF_K_VERTICAL_CTRL_STRUCT.force_option = true
 
-LRF_K_VERTICAL_CTRL_STRUCT.force_x = 10
+LRF_K_VERTICAL_CTRL_STRUCT.force_x = 8
 LRF_K_VERTICAL_CTRL_STRUCT.force_y = 0
 LRF_K_VERTICAL_CTRL_STRUCT.force_z = 0
 
 LRF_K_VERTICAL_CTRL_STRUCT.only_sensing_moving = true
 
-LRF_K_VERTICAL_CTRL_STRUCT.desired_v_dst = 115
+LRF_K_VERTICAL_CTRL_STRUCT.desired_v_dst = 110
 LRF_K_VERTICAL_CTRL_STRUCT.error = 2
 
 LRF_K_VERTICAL_CTRL_STRUCT.s_deg = 10
@@ -281,8 +283,7 @@ GRIPPER_FORCE_CTRL_FUNCTION()
 
 A_Sleep(500)
 
-## Step13: Grasp2
-/*IF(gb_froce_check)
+## Step13: Grasp
 
 GRIPPER_FORCE_CTRL_STRUCT.pose_1 = 1570
 GRIPPER_FORCE_CTRL_STRUCT.pose_2 = 1570
@@ -292,7 +293,39 @@ GRIPPER_FORCE_CTRL_FUNCTION()
 
 A_Sleep(500)
 
-ELSE(GoTo: 0)
+## Step18: Gripper Release
+
+GRIPPER_GO_TO_REL_POSE_STRUCT.pose_1 = 30
+GRIPPER_GO_TO_REL_POSE_STRUCT.pose_2 = 30
+
+GRIPPER_GO_TO_REL_POSE_FUNCTION()
+
+A_Sleep(500)
+
+## Step9: Magnet Off
+
+GRIPPER_MAGNET_CTRL_STRUCT.fl_magnet = false
+GRIPPER_MAGNET_CTRL_FUNCTION()
+
+A_Sleep(500)
+
+## Step9: Magnet On
+
+GRIPPER_MAGNET_CTRL_STRUCT.fl_magnet = true
+GRIPPER_MAGNET_CTRL_FUNCTION()
+
+A_Sleep(500)
+
+## Step13: Grasp2
+
+GRIPPER_FORCE_CTRL_STRUCT.pose_1 = 1570
+GRIPPER_FORCE_CTRL_STRUCT.pose_2 = 1570
+GRIPPER_FORCE_CTRL_STRUCT.force_threshold = 350
+
+GRIPPER_FORCE_CTRL_FUNCTION()
+
+A_Sleep(500)
+
 
 ## Step14: Align to Panel
 KINOVA_ALIGN_TO_PANEL.do_init_motion = false

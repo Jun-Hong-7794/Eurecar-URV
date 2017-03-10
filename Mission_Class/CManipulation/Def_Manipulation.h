@@ -482,6 +482,36 @@ typedef struct _Gripper_Kinova_Valve_Size_Recognition_Struct{
 
 }GRIPPER_KINOVA_VALVE_SIZE_RECOG_STRUCT;
 
+typedef struct _Gripper_Kinova_Find_Valve_Location_Struct{
+
+    bool gripper_kinova_valve_size_recog_mission;
+
+    // Setting
+    double grasp_pose_1;
+    double grasp_pose_2;
+
+    double release_pose_1;
+    double release_pose_2;
+
+    double grap_error;
+
+    double force_threshold;
+
+    int trial;//Recomand 36trial
+
+    int retry_num;
+
+    QString str_valve_size;
+    int valve_size;
+    QString str_valve_rotation;
+    double valve_rotation;
+
+    // Output
+    QString str_y_axis;
+    double y_axis;
+
+}GRIPPER_KINOVA_FIND_VALVE_LOCATION_STRUCT;
+
 typedef struct _Gripper_Force_Ctrl_Struct{
 
     bool gripper_force_ctrl_mission;
@@ -577,6 +607,8 @@ typedef struct _Manipulation_Option{
     GRIPPER_GO_TO_REL_POSE_STRUCT grippper_go_to_rel_pose_option;
 
     GRIPPER_KINOVA_VALVE_SIZE_RECOG_STRUCT gripper_kinova_valve_recog_option;
+
+    GRIPPER_KINOVA_FIND_VALVE_LOCATION_STRUCT gripper_kinova_valve_location_option;
 
     KINOVA_LRF_VALVE_SEARCHING_STRUCT kinova_lrf_valve_searching_option;
 

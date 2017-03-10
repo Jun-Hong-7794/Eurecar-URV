@@ -54,6 +54,8 @@
 
 #define MP_KINOVA_LRF_CHECK_V_DST            0x2025
 
+#define MP_GRIPPER_FIND_VALVE_LOCATION       0x2026
+
 /*Old LRF Kinova Control*/
 #define MP_LRF_KINOVA_VERTIVAL_CONTROL       0x2008
 #define MP_LRF_KINOVA_HORIZEN_CONTROL        0x2009
