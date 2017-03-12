@@ -23,5 +23,8 @@ VEHICLE_DRIVE_TO_PANEL_STRUCT.panel_center_check_point = 0.1
 VEHICLE_DRIVE_TO_PANEL_STRUCT.parking_dist = 1.14
 VEHICLE_DRIVE_TO_PANEL_STRUCT.parking_thres = 0.05
 
+/*1.45 m
+VEHICLE_DRIVE_TO_PANEL_STRUCT.side_center_margin = 1.0
+
 VEHICLE_DRIVE_TO_PANEL_FUNCTION()
 ##########################################_MISSION_END_##########################################

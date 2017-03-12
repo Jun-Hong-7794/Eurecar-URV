@@ -2770,6 +2770,8 @@ bool CManipulation::KinovaRotateValveMotion(){
         }
     }
 
+    std::cout << "Check Rotate Valve Motion -1 s" << std::endl;
+
     if(kinova_rotate_valve.theta < 0){
         kinova_rotate_valve.theta = (-1) * kinova_rotate_valve.theta;
         mpc_kinova->KinovaRotateValveMotion(VALVE_ROTATE_DIR(CW), kinova_rotate_valve.radius, kinova_rotate_valve.theta);
@@ -2778,6 +2780,7 @@ bool CManipulation::KinovaRotateValveMotion(){
         mpc_kinova->KinovaRotateValveMotion(VALVE_ROTATE_DIR(CCW), kinova_rotate_valve.radius, kinova_rotate_valve.theta);
     }
 
+    std::cout << "Check Rotate Valve Motion -1 e" << std::endl;
     return true;
 }
 
@@ -3056,8 +3059,8 @@ bool CManipulation::GripperKinovaFindValveLocation(){
         mpc_kinova->KinovaMoveUnitStepLe();
         msleep(300);
 
-        mpc_kinova->KinovaMoveUnitStepLe();
-        msleep(300);
+//        mpc_kinova->KinovaMoveUnitStepLe();
+//        msleep(300);
     }
 
     return true;

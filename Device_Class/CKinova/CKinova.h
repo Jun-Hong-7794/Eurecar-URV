@@ -147,7 +147,7 @@ public: // Basic Motion
     bool KinovaMoveUnitStepBw();
 
     void SetKinovaRotateValve(bool _using_current_coord, bool _init_angle,double _x, double _y, double _z);
-    void KinovaRotateValveMotion(VALVE_ROTATE_DIR _dir, double _radius, int _theta);
+    bool KinovaRotateValveMotion(VALVE_ROTATE_DIR _dir, double _radius, int _theta);
 
     bool KinovaRotateValveMotion(bool _using_constant_c_point, CartesianPosition _center_point, int _radius, int _theta, double _unit_angle = 5/*deg*/);
 

@@ -913,6 +913,11 @@ bool CScript::InterpreteVehicleDriveToPanel(QString _line, STEP_INFO& _step_info
             return true;
         }
 
+        if(_line.contains("side_center_margin")){
+            int colone_index = _line.indexOf("=");
+            _step_info.driving_option.driving_option.side_center_margin = _line.mid(colone_index + 1).trimmed().toDouble();
+            return true;
+        }
     }
 
     else if(_line.contains("VEHICLE_DRIVE_TO_PANEL_FUNCTION")){

@@ -722,12 +722,37 @@ bool CGripper::CatesianRotatorGoToThePosition(double _dist_error)
     dxl_comm_result = mp_rotator_packetHandler->read4ByteTxRx(mp_rotator_portHandler,DXL4_ID,ADDR_PR_PRESENT_POSITION,(uint32_t*)&cartesian_cur_rotate_index);
 
     m_dxl_pro_catesian_goal_position = cartesian_cur_rotate_index - ((((asin(_dist_error / 162.5) * 180 / DMX_PI)) * 250950 / 180));
+    if(m_dxl_pro_catesian_goal_position > 155686)
+        m_dxl_pro_catesian_goal_position = 155686;
+    else if(m_dxl_pro_catesian_goal_position < 6275)
+        m_dxl_pro_catesian_goal_position = 6269;
+
     dxl_comm_result = mp_rotator_packetHandler->write4ByteTxRx(mp_rotator_portHandler, DXL4_ID, ADDR_PR_GOAL_POSITION, m_dxl_pro_catesian_goal_position/*+DXL1_OFFSET*/, &dxl_error);
 
-    m_dxl_pro_goal_position = dxl3_present_position + (((asin(_dist_error / 162.5) * 180 / DMX_PI)) * 250950 / 180);
-    dxl_comm_result = mp_rotator_packetHandler->write4ByteTxRx(mp_rotator_portHandler, DXL3_ID, ADDR_PR_GOAL_POSITION, m_dxl_pro_goal_position/*+DXL1_OFFSET*/, &dxl_error);
+    if(m_dxl_pro_catesian_goal_position == 6269 && cartesian_cur_rotate_index < 6279 && cartesian_cur_rotate_index > 6259)
+    {
+        m_dxl_pro_goal_position = dxl3_present_position;
+    }
+    else
+    {
+        m_dxl_pro_goal_position = dxl3_present_position + (((asin(_dist_error / 162.5) * 180 / DMX_PI)) * 250950 / 180);
 
-    dxl3_present_position = m_dxl_pro_goal_position;
+        dxl3_present_position = m_dxl_pro_goal_position;
+
+        if(m_dxl_pro_goal_position < -20000000)
+        {
+            m_dxl_pro_goal_position = -6267;
+            dxl3_present_position = m_dxl_pro_goal_position;
+        }
+        else if(m_dxl_pro_goal_position < -155686)
+        {
+            m_dxl_pro_goal_position = -155686;
+            dxl3_present_position = m_dxl_pro_goal_position;
+        }
+    }
+
+
+    dxl_comm_result = mp_rotator_packetHandler->write4ByteTxRx(mp_rotator_portHandler, DXL3_ID, ADDR_PR_GOAL_POSITION, m_dxl_pro_goal_position/*+DXL1_OFFSET*/, &dxl_error);
 
     if(dxl_comm_result != COMM_SUCCESS)
         mp_rotator_packetHandler->printTxRxResult(dxl_comm_result);

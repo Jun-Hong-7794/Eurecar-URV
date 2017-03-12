@@ -47,8 +47,8 @@
 #define ACCEL_RATE 15
 #define TURN_ACCEL_RATE 1
 #define PARKING_TURN_ACCEL_RATE 1
-#define DECEL_RATE -30
-#define DECEL_START_DIST 2.0
+#define DECEL_RATE -50
+#define DECEL_START_DIST 2.5
 
 class CDriving:public QThread{
     Q_OBJECT
@@ -98,7 +98,7 @@ private:
 
 
     // parking parameter
-    double side_center_margin = 1.25;
+
     double desirable_parking_dist = 0.9;
 
     // ugv info variables

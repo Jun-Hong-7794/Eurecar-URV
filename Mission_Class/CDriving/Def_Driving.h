@@ -26,6 +26,8 @@ typedef struct _Driving_struct{
     double parking_dist;
     double parking_thres;
 
+    double side_center_margin;
+
 }DRIVING_STRUCT;
 
 typedef struct _Parking_struct{

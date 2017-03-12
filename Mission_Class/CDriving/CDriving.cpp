@@ -29,6 +29,8 @@ int first_surface = -1; // -1 : none, 0: front, 1:back, 2:side
 bool first_ignore_sequence = false;
 int current_waypoint_index = -1;
 bool long_panel_first_finshed = false;
+
+double side_center_margin = 1.45;
 //-----------------------------------------
 
 CDriving::CDriving(){
@@ -381,6 +383,8 @@ void CDriving::SetDrivingOption(DRIVING_STRUCT _driving_option){
         parking_dist = _driving_option.parking_dist;
         parking_thres = _driving_option.parking_thres;
 
+        side_center_margin = _driving_option.side_center_margin;
+
         mstruct_driving = _driving_option;
     }
     mtx_driving_struct.unlock();
@@ -732,14 +736,14 @@ bool CDriving::DriveToPanel(){
 
         Sleep(20);
 
-    }while(driving_struct.driving_mission);
+    }while(true);
     cout << "driving mision done"<< endl;
 
     mpc_vehicle->Move(UGV_move_backward, 0);
 
     mpc_velodyne->SetVelodyneMode(VELODYNE_MODE_PARKING);
 
-    Sleep(2500);
+    Sleep(2000);
 
 //    //heading compensate before parking
 
@@ -760,7 +764,7 @@ bool CDriving::DriveToPanel(){
         current_waypoint_index = mpc_velodyne->GetCurrentWaypointIndex();
     }while((panel_point_array[0].x == 0) && (panel_point_array[1].x == 0) );
 
-    if((current_waypoint_index == 0) || (current_waypoint_index == 7))
+    if((current_waypoint_index == 0) || (current_waypoint_index == 7) || (current_waypoint_index == 6))
     {
         first_ignore_sequence = true;
     }
@@ -981,6 +985,7 @@ bool CDriving::ParkingFrontPanel(){
         }
         else
         {
+            cout << "side center margin : " << side_center_margin << endl;
             memcpy(lrf_distance, &lrf_distance_raw[s_lrf_index], sizeof(long)*(number_of_point));
             mpc_velodyne->SetLRFDataToPCL(lrf_distance,number_of_point);
 
@@ -1614,7 +1619,7 @@ bool CDriving::ParkingFrontPanel(){
     // -----------------------------------------------------------------------------------------------
     cout << "Parking finished !" << endl;
 
-    mpc_velodyne->SetVelodyneThread(false);
+//    mpc_velodyne->SetVelodyneThread(false);
     return true;
 }
 

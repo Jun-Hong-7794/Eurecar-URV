@@ -5,7 +5,7 @@
 
 # Title: Valve Recognition
 
-global_int gi_valve_size = 24
+global_int gi_valve_size = 16
 global_double gb_valve_rotation = 45
 
 global_double gd_check_v_dst = 30
@@ -214,8 +214,8 @@ KINOVA_MANIPULATE_STRUCT.mode = 2
 
 KINOVA_MANIPULATE_STRUCT.x = ==
 KINOVA_MANIPULATE_STRUCT.y = ==
-/*KINOVA_MANIPULATE_STRUCT.z = 0.1583
-KINOVA_MANIPULATE_STRUCT.z = 0.1723
+KINOVA_MANIPULATE_STRUCT.z = 0.1483
+/*KINOVA_MANIPULATE_STRUCT.z = 0.1723
 
 KINOVA_MANIPULATE_STRUCT.roll = 2.1374
 KINOVA_MANIPULATE_STRUCT.pitch = 1.6015
