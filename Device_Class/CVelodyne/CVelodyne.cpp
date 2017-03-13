@@ -212,6 +212,10 @@ bool CVelodyne::RunVelodyne(){
 
                     if(CheckInBoundary(mpc_pcl->lms511_cloud->points[lms511_point_index].x, mpc_pcl->lms511_cloud->points[lms511_point_index].y) && (lms_point_dist > 0.3) )
                     {
+                        mpc_pcl->lms511_cloud->points[lms511_point_index].r = 255;
+                        mpc_pcl->lms511_cloud->points[lms511_point_index].g = 0;
+                        mpc_pcl->lms511_cloud->points[lms511_point_index].b = 0;
+
                         lms511_point_in_arena->points.push_back(mpc_pcl->lms511_cloud->points[lms511_point_index]);
                         sum_panel_x += mpc_pcl->lms511_cloud->points[lms511_point_index].x ;
                         sum_panel_y += mpc_pcl->lms511_cloud->points[lms511_point_index].y ;
@@ -1825,7 +1829,7 @@ bool CVelodyne::SetLRFDataToPCL(long *_lrf_data,int _num_of_points)
             point_lrf.x = -(_lrf_data[i]*cos(0.25/180.0*PI*i)*0.001-0.35);
             point_lrf.y = -(_lrf_data[i]*sin(0.25/180.0*PI*i)*0.001+0.25);
             point_lrf.z = 0;
-            point_lrf.r = 0;
+            point_lrf.r = 255;
             point_lrf.g = 255;
             point_lrf.b = 0;
             mpc_pcl->lrf_cloud->points.push_back(point_lrf);
@@ -1873,7 +1877,7 @@ void CVelodyne::SlotLMS511UpdatePoints(vector<vector<double>> _x_and_y)
             point_lms511.y = (_x_and_y.at(i)).at(0);
             point_lms511.z = 0.3;
             point_lms511.r = 255;
-            point_lms511.g = 0;
+            point_lms511.g = 255;
             point_lms511.b = 0;
             mpc_pcl->lms511_cloud->points.push_back(point_lms511);
         }
@@ -2000,7 +2004,6 @@ bool CVelodyne::CheckInBoundary(double _x, double _y)
 {
     double rotated_x = (_x)*cos(-arena_rotation_angle) - (_y)*sin(-arena_rotation_angle);
     double rotated_y = (_x)*sin(-arena_rotation_angle) + (_y)*cos(-arena_rotation_angle);
-
 
     double min_x = (rotated_arena_info.at(1)).at(0);
     double max_x = (rotated_arena_info.at(0)).at(0);

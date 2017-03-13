@@ -162,7 +162,7 @@ bool CVehicle::Move(int _dir, int _vel){
     case UGV_move_forward:
         m_vel = control_target_velocity;
         m_dir = UGV_move_forward;
-        rst__left_side = mc_device.SetCommand(UGV_DEF_GO,1,m_vel*(1.1));
+        rst__left_side = mc_device.SetCommand(UGV_DEF_GO,1,m_vel*(1.3));
         rst_right_side = mc_device.SetCommand(UGV_DEF_GO,2,m_vel*(-1.1));
         turn_continue_flag_left =0;
         turn_continue_flag_right=0;

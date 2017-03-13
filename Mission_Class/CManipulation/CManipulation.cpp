@@ -2521,6 +2521,7 @@ bool CManipulation::KinovaForceCtrl(){
 
     do{
         CartesianPosition current_pos = mpc_kinova->KinovaGetPosition();
+        msleep(1);
         CartesianPosition cartesian_pos = mpc_kinova->KinovaGetCartesianForce();
         emit SignalKinovaForceVector(cartesian_pos);
 
@@ -2717,6 +2718,8 @@ bool CManipulation::KinovaDoManipulate(){
 
 bool CManipulation::KinovaRotateValveMotion(){
 
+    std::cout << "Check Rotate Valve Motion -1 s" << std::endl;
+
     KINOVA_ROTATE_VALVE_STRUCT kinova_rotate_valve = GetKinovaRotateValveOption();
 
     mpc_kinova->SetKinovaRotateValve(kinova_rotate_valve.using_current_coord, kinova_rotate_valve.init_angle,
@@ -2743,14 +2746,17 @@ bool CManipulation::KinovaRotateValveMotion(){
         break;
     }
 
+    std::cout << "Check Rotate Valve Motion -1 s" << std::endl;
+
     double radius = kinova_rotate_valve.radius;
 
     kinova_rotate_valve.radius -= kinova_rotate_valve.radius_offset_mm;
-
+    std::cout << "Check Rotate Valve Motion -1 s" << std::endl;
     //Move Kinova Arm...
-    if(kinova_rotate_valve.valve_rotation_angle > 0){
+    if(kinova_rotate_valve.valve_rotation_angle >= 0){
 
         //Get Present Position
+        std::cout << "Check Rotate Valve Motion -1 s" << std::endl;
         CartesianPosition present_position;
         present_position = mpc_kinova->KinovaGetPosition();
 
@@ -2760,17 +2766,18 @@ bool CManipulation::KinovaRotateValveMotion(){
 
         msleep(500);
 
-        if(kinova_rotate_valve.valve_rotation_angle <= 55){//CW
-            if(kinova_rotate_valve.theta > 0)
-                kinova_rotate_valve.theta = (-1)* kinova_rotate_valve.theta;
-        }
-        else if(kinova_rotate_valve.valve_rotation_angle > 55){//CCW
+        if((kinova_rotate_valve.valve_rotation_angle > 55)){//CCW
             if(kinova_rotate_valve.theta < 0)
                 kinova_rotate_valve.theta = (-1)* kinova_rotate_valve.theta;
         }
-    }
+        else if(kinova_rotate_valve.valve_rotation_angle <= 55||
+                (kinova_rotate_valve.valve_rotation_angle <= 20) ||
+                (kinova_rotate_valve.valve_rotation_angle >= 70)){//CW
+            if(kinova_rotate_valve.theta > 0)
+                kinova_rotate_valve.theta = (-1)* kinova_rotate_valve.theta;
+        }
 
-    std::cout << "Check Rotate Valve Motion -1 s" << std::endl;
+    }
 
     if(kinova_rotate_valve.theta < 0){
         kinova_rotate_valve.theta = (-1) * kinova_rotate_valve.theta;
@@ -2862,7 +2869,8 @@ bool CManipulation::KinovaFitToValvePose(){
 
     valve_rotation_angle = kinova_fit_to_valve_optio.valve_rotation_angle + 45;
 
-    if(valve_rotation_angle == 0){
+    if((valve_rotation_angle == 0)){
+        valve_rotation_angle = 0;
         added_x_value = (valve_size * sqrt(2.0)) / 2;
 
         int num_move = (int)(added_x_value / kinova_fit_to_valve_optio.move_step);
@@ -2879,11 +2887,30 @@ bool CManipulation::KinovaFitToValvePose(){
         }
         return true;
     }
+    else if((valve_rotation_angle >= 115) || (valve_rotation_angle <= 65)){
+        valve_rotation_angle = 0;
+        added_x_value = (valve_size * sqrt(2.0)) / 2;
+
+        int num_move = (int)(added_x_value / kinova_fit_to_valve_optio.move_step);
+
+        std::cout << "x_value : " << added_x_value << std::endl;
+        std::cout << "rotation angle : " << valve_rotation_angle << std::endl;
+
+        std::cout << "Angle zero. Right num_move: " << num_move << std::endl;
+        if(num_move > 7)
+            num_move = 7;
+        for(int i = 0; i < num_move; i++){
+            mpc_kinova->KinovaMoveUnitStepLe();
+            msleep(500);
+        }
+        return true;
+    }
 
     else if(valve_rotation_angle < 90)
         added_x_value = ((valve_size * sqrt(2.0)) / 2) * cos(RGBD_D2R * valve_rotation_angle);
     else
         added_x_value = (-1) * ((valve_size * sqrt(2.0)) / 2) * cos(RGBD_D2R * (180 - valve_rotation_angle));
+
 
     std::cout << "x_value : " << added_x_value << std::endl;
     std::cout << "rotation angle : " << valve_rotation_angle << std::endl;

@@ -529,14 +529,15 @@ bool CKinova::KinovaRotateValveMotion(VALVE_ROTATE_DIR _dir, double _radius, int
 
     theta = 0.0;
 
-    for(double i = 1; i <= _theta/5; i++){
+    double unit_deg = 5;
+    for(double i = 1; i <= _theta/unit_deg; i++){
 
         std::cout << "Check Rotate Valve Motion -3 s" << std::endl;
         if(_dir == CW){
-            theta -= 5.0*3.14159265359/180.0;
+            theta -= unit_deg*3.14159265359/180.0;
         }
         else if(_dir == CCW){
-            theta += 5.0*3.14159265359/180.0;
+            theta += unit_deg*3.14159265359/180.0;
         }
 
         position.Coordinates.X = x_coord; //0.38487;
@@ -552,7 +553,7 @@ bool CKinova::KinovaRotateValveMotion(VALVE_ROTATE_DIR _dir, double _radius, int
         _radius -= 0.05;
 
         if(fabs(_theta) < 120){
-            msleep(800);
+            msleep(100);
         }
         else {
             msleep(50);
@@ -1037,6 +1038,7 @@ bool CKinova::KinovaDoManipulate(CartesianPosition _desired_position,int _mode, 
     else if(_mode == 4){ // Mode 2 : Trajectory Mode
         double error0;
 
+        std::cout << "Check Rotate Valve Motion -4 s" << std::endl;
         Kinova_GetCartesianPosition(position);
 
         error0 =  pow((desired_position.Position.CartesianPosition.X - position.Coordinates.X),2)
@@ -1052,9 +1054,12 @@ bool CKinova::KinovaDoManipulate(CartesianPosition _desired_position,int _mode, 
         double thresh = 0.01;
         double thresh2 = 1e-1;
 
+        std::cout << "Check Rotate Valve Motion -4 e" << std::endl;
+
         while(error>thresh && count < 5)
         {
 
+            std::cout << "Check Rotate Valve Motion -5 s" << std::endl;
             if(fabs(error-error_old)<thresh2 && error0>error)
             {
                 count++;
@@ -1066,7 +1071,9 @@ bool CKinova::KinovaDoManipulate(CartesianPosition _desired_position,int _mode, 
 
             error_old = error;
 
+            std::cout << "Check Rotate Valve Motion -6 s" << std::endl;
             Kinova_GetCartesianPosition(position);
+            std::cout << "Check Rotate Valve Motion -6 e" << std::endl;
             error =   pow((desired_position.Position.CartesianPosition.X - position.Coordinates.X),2)
                     + pow((desired_position.Position.CartesianPosition.Y - position.Coordinates.Y),2)
                     + pow((desired_position.Position.CartesianPosition.Z - position.Coordinates.Z),2);
@@ -1075,6 +1082,7 @@ bool CKinova::KinovaDoManipulate(CartesianPosition _desired_position,int _mode, 
 
             Kinova_SendAdvanceTrajectory(desired_position);
             msleep(10);
+            std::cout << "Check Rotate Valve Motion -5 e" << std::endl;
         }
     }
 

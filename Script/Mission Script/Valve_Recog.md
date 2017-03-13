@@ -6,7 +6,7 @@
 # Title: Valve Recognition
 
 global_int gi_valve_size = 16
-global_double gb_valve_rotation = 45
+global_double gb_valve_rotation = 5
 
 global_double gd_check_v_dst = 30
 global_bool gb_check_v_dst_rst = false

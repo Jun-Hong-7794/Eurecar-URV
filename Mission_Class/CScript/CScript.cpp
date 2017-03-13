@@ -1587,6 +1587,28 @@ bool CScript::InterpreteParkingRetry(QString _line, STEP_INFO& _step_info){
             _step_info.driving_option.parking_retry_option.str_bias = _line.mid(colone_index + 1).trimmed();
             return true;
         }
+
+        if(_line.contains("max_dst")){
+            int colone_index = _line.indexOf("=");
+            _step_info.driving_option.parking_retry_option.max_dst = _line.mid(colone_index + 1).trimmed().toDouble();
+            return true;
+        }
+        if(_line.contains("min_dst")){
+            int colone_index = _line.indexOf("=");
+            _step_info.driving_option.parking_retry_option.min_dst = _line.mid(colone_index + 1).trimmed().toDouble();
+            return true;
+        }
+
+        if(_line.contains("desired_dst")){
+            int colone_index = _line.indexOf("=");
+            _step_info.driving_option.parking_retry_option.desired_dst = _line.mid(colone_index + 1).trimmed().toDouble();
+            return true;
+        }
+        if(_line.contains("error_bound")){
+            int colone_index = _line.indexOf("=");
+            _step_info.driving_option.parking_retry_option.error_bound = _line.mid(colone_index + 1).trimmed().toDouble();
+            return true;
+        }
     }
     else if(_line.contains("PARKING_RETRY_FUNCTION")){
         _step_info.function_index = DR_PARKING_RETRY;
@@ -3153,7 +3175,8 @@ bool CScript::MissionPlayer(){
 
                 parking_option.bias = InterpreteDoubleVariable(str_bias, mpary_mission_script[i]);
 
-                mpc_drivig->SetManipulationOption(parking_option);
+//                mpc_drivig->SetManipulationOption(parking_option);
+                mpc_drivig->SetManipulationOption(mpary_mission_script[i].step_vecor.at(j).driving_option.parking_retry_option);
                 mpc_drivig->SelectMainFunction(DRIVE_INX_PARKING_RETRY);
 
                 while(mpc_drivig->isRunning());

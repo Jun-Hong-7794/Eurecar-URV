@@ -39,6 +39,14 @@ typedef struct _Parking_struct{
 typedef struct _Parking_Retry_Struct{
 
     double bias;
+    /*m*/
+    double desired_dst;
+
+    double max_dst;
+    double min_dst;
+
+    double error_bound;
+
     QString str_bias;
 
 }PARKING_RETRY_STRUCT;

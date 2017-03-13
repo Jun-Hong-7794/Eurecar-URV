@@ -39,7 +39,7 @@
 #define DRIVE_INX_LRF_VEHICLE_HORIZEN  4
 #define DRIVE_INX_PARKING_RETRY        5
 
-#define MAX_VEL 300
+#define MAX_VEL 200
 #define MAX_VEL_TURN 200
 #define MAX_VEL_PARKING_TURN 200
 
@@ -201,6 +201,9 @@ public:
     //-------------------------------------------------
     bool DriveToPanel();
     bool ParkingFrontPanel();
+    bool ParkingFrontPanel(double _bias);
+    double LrfParkingDistnaceCheck(double _desirable_dist);
+
 
     void ParkingDistanceControl();
     void ParkingDistanceControl(double _bias);
