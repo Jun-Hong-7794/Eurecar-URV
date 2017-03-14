@@ -26,6 +26,9 @@ typedef struct _Driving_struct{
     double parking_dist;
     double parking_thres;
 
+    int max_vel_script;
+    int min_vel_script;
+
     double side_center_margin;
 
 }DRIVING_STRUCT;

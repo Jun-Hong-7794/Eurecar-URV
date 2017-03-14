@@ -918,6 +918,18 @@ bool CScript::InterpreteVehicleDriveToPanel(QString _line, STEP_INFO& _step_info
             _step_info.driving_option.driving_option.side_center_margin = _line.mid(colone_index + 1).trimmed().toDouble();
             return true;
         }
+
+        if(_line.contains("max_vel_script")){
+            int colone_index = _line.indexOf("=");
+            _step_info.driving_option.driving_option.max_vel_script = _line.mid(colone_index + 1).trimmed().toInt();
+            return true;
+        }
+        if(_line.contains("min_vel_script")){
+            int colone_index = _line.indexOf("=");
+            _step_info.driving_option.driving_option.min_vel_script = _line.mid(colone_index + 1).trimmed().toInt();
+            return true;
+        }
+
     }
 
     else if(_line.contains("VEHICLE_DRIVE_TO_PANEL_FUNCTION")){

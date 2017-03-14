@@ -3400,8 +3400,10 @@ bool CManipulation::WrenchRecognition(){
 
     WRENCH_RECOGNITION wrench_recognition = GetWrenchRecognitionOption();
 
-    if(!mpc_camera->isRunning())
-        return false;
+    if(!mpc_camera->isRunning()){
+//        if(!mpc_camera->InitCamera("192.168.0.44"))
+            return false;
+    }
 
     cv::Mat camera_image;
     vector<vector<int>> bb_info;

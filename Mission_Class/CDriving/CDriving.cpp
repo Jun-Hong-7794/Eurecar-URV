@@ -33,6 +33,9 @@ bool long_panel_first_finshed = false;
 double side_center_margin = 1.45;
 //-----------------------------------------
 
+int MAX_VEL_SCRIPT = 250;
+int MIN_VEL_SCRIPT = 80;
+
 CDriving::CDriving(){
 
 }
@@ -385,7 +388,11 @@ void CDriving::SetDrivingOption(DRIVING_STRUCT _driving_option){
 
         side_center_margin = _driving_option.side_center_margin;
 
+        MAX_VEL_SCRIPT = _driving_option.max_vel_script;
+        MIN_VEL_SCRIPT = _driving_option.min_vel_script;
+
         mstruct_driving = _driving_option;
+
     }
     mtx_driving_struct.unlock();
 }
@@ -557,14 +564,16 @@ int CDriving::VelGen(double _dist_error)
     if(_dist_error >DECEL_START_DIST)
     {
         velocity= (mpc_vehicle->GetVel() + ACCEL_RATE);
-        if(velocity > MAX_VEL)
-            velocity = MAX_VEL;
+        //if(velocity > MAX_VEL)
+        if(velocity > MAX_VEL_SCRIPT)
+            velocity = MAX_VEL_SCRIPT;
     }
     else
     {
         velocity= (mpc_vehicle->GetVel() + DECEL_RATE);
-        if(velocity < MIN_VEL)
-            velocity = MIN_VEL;
+//        if(velocity < MIN_VEL)
+        if(velocity < MIN_VEL_SCRIPT)
+            velocity = MIN_VEL_SCRIPT;
     }
     return velocity;
 }
