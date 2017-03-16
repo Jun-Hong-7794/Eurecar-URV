@@ -83,7 +83,7 @@ vector<vector<int>> CSSD::GetSSDImage(cv::Mat& _org_image) {
     // Detection format: [image_id, label, score, xmin, ymin, xmax, ymax].
     CHECK_EQ(d.size(), 7);
     const float score = d[2];
-    if (score >= 0.27) {
+    if (score >= 0.25) {
       if(!((d[1] == 1)|| (d[1] == 2)))
             continue;
       cv::Point2d tl,br;

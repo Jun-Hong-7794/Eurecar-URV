@@ -553,7 +553,7 @@ bool CKinova::KinovaRotateValveMotion(VALVE_ROTATE_DIR _dir, double _radius, int
         _radius -= 0.05;
 
         if(fabs(_theta) < 120){
-            msleep(100);
+            msleep(600);
         }
         else {
             msleep(50);

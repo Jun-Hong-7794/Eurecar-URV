@@ -38,6 +38,7 @@
 #define DRIVE_INX_LRF_VEHICLE_ANGLE    3
 #define DRIVE_INX_LRF_VEHICLE_HORIZEN  4
 #define DRIVE_INX_PARKING_RETRY        5
+#define DRIVE_INX_LOCAL_ON_PANE        6
 
 #define MAX_VEL 200
 #define MAX_VEL_TURN 200
@@ -69,17 +70,17 @@ private:
     LRF_VEHICLE_ANGLE_STRUCT mstruct_lrf_vehicle_angle;
     LRF_VEHICLE_HORIZEN_STRUCT mstruct_lrf_vehicle;
     PARKING_RETRY_STRUCT mstruct_parking_retry;
-
+    VEHICLE_LOCALIZATION_ON_PANEL_STRUCT mstruct_local_on_panel;
     //Mutex
     QMutex mtx_driving_struct;
     QMutex mtx_parking_struct;
     QMutex mxt_lrf_vehicle;
     QMutex mxt_lrf_vehicle_angle;
     QMutex mxt_parking_retry;
-
+    QMutex mxt_local_on_panel;
 
     // Aerna info
-    vector<vector<double>> m_arena_info = {{0,-45},{-60,-45},{-60,45},{0,45}};
+    vector<vector<double>> m_arena_info = {{0,-10},{-50,-10},{-50,5},{0,5}};
     bool arena_aligned_compensate = false;
     bool IMU_update_finished = true;
 
@@ -183,10 +184,13 @@ public:
     void SetManipulationOption(LRF_VEHICLE_ANGLE_STRUCT _driving_option);
     void SetManipulationOption(LRF_VEHICLE_HORIZEN_STRUCT _driving_option);
     void SetManipulationOption(PARKING_RETRY_STRUCT _driving_option);
+    void SetManipulationOption(VEHICLE_LOCALIZATION_ON_PANEL_STRUCT _driving_option);
 
     vector<double> GetWaypointError(double _way_x,double _way_y);
 
     int GetParkingControl(vector<double> _waypoint_error);
+
+
 
 
     DRIVING_STRUCT GetDrivingOption();
@@ -196,6 +200,8 @@ public:
     LRF_VEHICLE_ANGLE_STRUCT GetLRFVehicleAngleOption();
     LRF_VEHICLE_HORIZEN_STRUCT GetLRFVehicleHorizenOption();
 
+    VEHICLE_LOCALIZATION_ON_PANEL_STRUCT GetVehicleLocalOnPanelOption();
+
     //-------------------------------------------------
     // Drive Class Main Function
     //-------------------------------------------------
@@ -203,12 +209,12 @@ public:
     bool ParkingFrontPanel();
     bool ParkingFrontPanel(double _bias);
     double LrfParkingDistnaceCheck(double _desirable_dist);
-
+    double DriveByVelodyne(double _desirable_pos);
 
     void ParkingDistanceControl();
     void ParkingDistanceControl(double _bias);
 
-
+    void LocalizationOnPanel();
 
     int VelGen(double);
     int VelGen_turn_left();
@@ -216,6 +222,8 @@ public:
 
     int VelGen_parking_turn_left();
     int VelGen_parking_turn_right();
+
+    int VelGen_panel_dist_error(double _dist_error);
 
     bool ParkingRetry();
 

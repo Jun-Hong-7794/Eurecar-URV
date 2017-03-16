@@ -366,6 +366,9 @@ bool CVelodyne::RunVelodyne(){
             pcl::PointCloud<pcl::PointXYZRGBA>::Ptr ransac_result_lrf (new pcl::PointCloud<pcl::PointXYZRGBA>);
             std::vector<int> inliers_lrf;
 
+            pcl::PointCloud<pcl::PointXYZRGBA>::Ptr ransac_result_velo_panel (new pcl::PointCloud<pcl::PointXYZRGBA>);
+
+
 
             (*disp_indices).indices.clear();
 
@@ -427,17 +430,43 @@ bool CVelodyne::RunVelodyne(){
             int max_clustering_member_count1 = 0;
 
 
-
+            mpc_pcl->velo_panel_cloud->points.clear();
 
             for(int k = 0;k < VELODYNE_LASERS_NUM;k++){
                 for(int i=0; i< VELODYNE_TOTAL_PACKET_NUMBER;i++){
                     for(int j=0; j < VELODYNE_BOLCKS_NUM;j++){
 
+                        if((firing_vertical_angle[k] == 0.0))
+                        {
+                            //////////////////////////////////////
+                            if((mpc_pcl->m_dist_data[k][(j + i*VELODYNE_BOLCKS_NUM)]*0.001 < 3.5) && (mpc_pcl->m_dist_data[k][(j + i*VELODYNE_BOLCKS_NUM)]*0.001 > 0.1) && (mpc_pcl->cloud->points[point_index].y < 0))
+                            {
+                                pcl::PointXYZRGBA velo_panel_point_tmp;
+                                velo_panel_point_tmp.x = mpc_pcl->cloud->points[point_index].x;
+                                velo_panel_point_tmp.y = mpc_pcl->cloud->points[point_index].y;
+                                velo_panel_point_tmp.z = mpc_pcl->cloud->points[point_index].z;
+
+                                mpc_pcl->velo_panel_cloud->points.push_back(velo_panel_point_tmp);
+                            }
+                            //////////////////////////////////////
+                        }
+
+
                         if((std::abs((mpc_pcl->cloud->points[point_index].z - minimum_z)) > 0) && ((mpc_pcl->m_dist_data[k][(j + i*VELODYNE_BOLCKS_NUM)] < velodyne_range*1000.0)) && mpc_pcl->cloud->points[point_index].x < 0)
                         {
                             if((firing_vertical_angle[k] == 0.0))
                             {
+//                                //////////////////////////////////////
+//                                if((mpc_pcl->m_dist_data[k][(j + i*VELODYNE_BOLCKS_NUM)]*0.001 < 3.5) && (mpc_pcl->m_dist_data[k][(j + i*VELODYNE_BOLCKS_NUM)]*0.001 > 0.1) && (mpc_pcl->cloud->points[point_index].y < 0))
+//                                {
+//                                    pcl::PointXYZRGBA velo_panel_point_tmp;
+//                                    velo_panel_point_tmp.x = mpc_pcl->cloud->points[point_index].x;
+//                                    velo_panel_point_tmp.y = mpc_pcl->cloud->points[point_index].y;
+//                                    velo_panel_point_tmp.z = mpc_pcl->cloud->points[point_index].z;
 
+//                                    mpc_pcl->velo_panel_cloud->points.push_back(velo_panel_point_tmp);
+//                                }
+//                                //////////////////////////////////////
                                 if(mpc_pcl->m_dist_data[k][(j + i*VELODYNE_BOLCKS_NUM)]*0.001 > max_dist)
                                 {
                                     max_dist = mpc_pcl->m_dist_data[k][(j + i*VELODYNE_BOLCKS_NUM)]*0.001;
@@ -662,6 +691,134 @@ bool CVelodyne::RunVelodyne(){
             {
                 lrf_find_panel = false;
             }
+
+            if(mpc_pcl->velo_panel_cloud->points.size() >= 2)
+            {
+                Eigen::VectorXf coeff_velo_panel;
+                pcl::SampleConsensusModelLine<pcl::PointXYZRGBA>::Ptr model_velo_panel(new pcl::SampleConsensusModelLine<pcl::PointXYZRGBA> (mpc_pcl->velo_panel_cloud));
+                pcl::RandomSampleConsensus<pcl::PointXYZRGBA> sac_velo_panel (model_velo_panel,0.03);
+                std::vector<int> inliers_velo_panel;
+
+                sac_velo_panel.computeModel();
+                sac_velo_panel.getInliers(inliers_velo_panel);
+                sac_velo_panel.getModelCoefficients(coeff_velo_panel);
+
+                pcl::copyPointCloud(*mpc_pcl->velo_panel_cloud, inliers_velo_panel, *ransac_result_velo_panel);
+
+                double velo_panel_ransac_line_sum_x = 0;
+                double velo_panel_ransac_line_sum_y = 0;
+
+                // Calculate ransac mean
+                for(unsigned int i = 0; i < ransac_result_velo_panel->points.size();i++)
+                {
+                    velo_panel_ransac_line_sum_x += ransac_result_velo_panel->points[i].x;
+                    velo_panel_ransac_line_sum_y += ransac_result_velo_panel->points[i].y;
+                }
+                velo_panel_ransac_line_mean_x = velo_panel_ransac_line_sum_x/(double)ransac_result_velo_panel->points.size();
+                velo_panel_ransac_line_mean_y = velo_panel_ransac_line_sum_y/(double)ransac_result_velo_panel->points.size();
+
+                // Calculate maximum distance
+
+                double velo_panel_maximum_dist_from_ransac_mean = 0;
+                for(unsigned int i = 0; i < ransac_result_velo_panel->points.size();i++)
+                {
+                    double velo_panel_dist_from_ransac_mean = sqrt((velo_panel_ransac_line_mean_x - ransac_result_velo_panel->points[i].x)*(velo_panel_ransac_line_mean_x - ransac_result_velo_panel->points[i].x) + (velo_panel_ransac_line_mean_y - ransac_result_velo_panel->points[i].y)*(velo_panel_ransac_line_mean_y - ransac_result_velo_panel->points[i].y));
+                    if (velo_panel_maximum_dist_from_ransac_mean < velo_panel_dist_from_ransac_mean)
+                    {
+                        velo_panel_maximum_dist_from_ransac_mean = velo_panel_dist_from_ransac_mean;
+                    }
+
+                }
+
+                velo_panel_length = 2*velo_panel_maximum_dist_from_ransac_mean;
+
+                if(coeff_velo_panel.rows() == 6)
+                {
+                    if(coeff_velo_panel[3] != 0)
+                    {
+                        double velo_panel_slope = coeff_velo_panel[4] / coeff_velo_panel[3];
+
+
+                        if(abs(atan(velo_panel_slope)) < 0.25*PI)
+                        {
+
+                            double velo_eq_a = velo_panel_slope;
+                            double velo_eq_b = velo_panel_ransac_line_mean_y - velo_eq_a*velo_panel_ransac_line_mean_x;
+
+                            velo_ugv_dist = abs(-velo_eq_b)/sqrt(velo_eq_a*velo_eq_a + 1);
+
+                            double velo_panel_line_x,velo_panel_line_y;
+
+                            if(coeff_velo_panel[3] > 0)
+                            {
+                                velo_panel_line_x = -coeff_velo_panel[3];
+                                velo_panel_line_y = -coeff_velo_panel[4];
+                            }
+                            else
+                            {
+                                velo_panel_line_x = coeff_velo_panel[3];
+                                velo_panel_line_y = coeff_velo_panel[4];
+                            }
+
+                            double velo_rightest_point_x = velo_panel_ransac_line_mean_x + velo_panel_maximum_dist_from_ransac_mean*velo_panel_line_x;
+                            double velo_rightest_point_y = velo_panel_ransac_line_mean_y + velo_panel_maximum_dist_from_ransac_mean*velo_panel_line_y;
+
+                            double velo_rightest_proj = velo_rightest_point_x - abs(velo_rightest_point_y)*velo_panel_slope;
+
+                            double position_x_from_rightest = abs(velo_rightest_point_x/cos(atan(velo_panel_slope)));
+
+//                            position_x_from_leftest = 1.0 - position_x_from_rightest;
+
+                            position_x_from_leftest = 1.0 + velo_rightest_proj;
+                        }
+                        else
+                        {
+                            double velo_panel_line_x, velo_panel_line_y;
+                            if(coeff_velo_panel[4] < 0)
+                            {
+                                velo_panel_line_x = -coeff_velo_panel[3];
+                                velo_panel_line_y = -coeff_velo_panel[4];
+                            }
+                            else
+                            {
+                                velo_panel_line_x = coeff_velo_panel[3];
+                                velo_panel_line_y = coeff_velo_panel[4];
+                            }
+
+                            double velo_rightest_point_x = velo_panel_ransac_line_mean_x + velo_panel_maximum_dist_from_ransac_mean*velo_panel_line_x;
+                            double velo_rightest_point_y = velo_panel_ransac_line_mean_y + velo_panel_maximum_dist_from_ransac_mean*velo_panel_line_y;
+
+                            double angle_velo_panel_slope;
+                            if(atan(velo_panel_slope) > 0)
+                            {
+                                angle_velo_panel_slope = atan(velo_panel_slope) - 0.5*PI;
+                            }
+                            else
+                            {
+                                angle_velo_panel_slope = atan(velo_panel_slope) + 0.5*PI;
+                            }
+
+
+                            double velo_rightest_proj = velo_rightest_point_x - abs(velo_rightest_point_y)*tan(angle_velo_panel_slope);
+
+                            double position_x_from_rightest = abs(velo_rightest_point_x/cos(atan(velo_panel_slope)));
+
+//                            position_x_from_leftest = 1.0 - position_x_from_rightest;
+                            position_x_from_leftest = 1.0 + velo_rightest_proj;
+                        }
+                    }
+
+                }
+
+
+            }
+            else
+            {
+                position_x_from_leftest = -1;
+                velo_ugv_dist = -1;
+            }
+
+
 
             if((max_clustering_result->points.size() < 2) || (max_clustering_result1->points.size() < 2))
             {
@@ -1961,6 +2118,18 @@ double* CVelodyne::GetPanelPoint_y()
 int CVelodyne::GetCurrentWaypointIndex()
 {
     return current_waypoint_index;
+}
+
+double CVelodyne::GetCurrentUGVPosition()
+{
+    double current_ugv_position = position_x_from_leftest;
+
+    return current_ugv_position;
+}
+
+double CVelodyne::GetCurrentUGVDepth()
+{
+    return velo_ugv_dist;
 }
 
 bool boundary_update_finsh = true;

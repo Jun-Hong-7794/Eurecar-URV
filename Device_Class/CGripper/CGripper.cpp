@@ -721,6 +721,9 @@ bool CGripper::CatesianRotatorGoToThePosition(double _dist_error)
     int32_t cartesian_cur_rotate_index = 0;
     dxl_comm_result = mp_rotator_packetHandler->read4ByteTxRx(mp_rotator_portHandler,DXL4_ID,ADDR_PR_PRESENT_POSITION,(uint32_t*)&cartesian_cur_rotate_index);
 
+    //125476 mid
+    //100491 50
+
     m_dxl_pro_catesian_goal_position = cartesian_cur_rotate_index - ((((asin(_dist_error / 162.5) * 180 / DMX_PI)) * 250950 / 180));
     if(m_dxl_pro_catesian_goal_position > 155686)
         m_dxl_pro_catesian_goal_position = 155686;
@@ -751,6 +754,13 @@ bool CGripper::CatesianRotatorGoToThePosition(double _dist_error)
         }
     }
 
+    int32_t tmp = 0;
+    dxl_comm_result = mp_rotator_packetHandler->read4ByteTxRx(mp_rotator_portHandler,DXL4_ID,ADDR_PR_PRESENT_POSITION,(uint32_t*)&tmp);
+    double theta = ((double)(125476 - tmp) / (250950.0)) * 3.141592653;
+
+    m_kinova_body_x = -162.5 * sin(theta);
+    m_kinova_body_y = 162.5 - 162.5 * cos(theta);
+
 
     dxl_comm_result = mp_rotator_packetHandler->write4ByteTxRx(mp_rotator_portHandler, DXL3_ID, ADDR_PR_GOAL_POSITION, m_dxl_pro_goal_position/*+DXL1_OFFSET*/, &dxl_error);
 
@@ -766,6 +776,40 @@ bool CGripper::CatesianRotatorGoToThePosition(double _dist_error)
 
     return true;
 }
+
+bool CGripper::GetKinovaBodyPose(double &_x, double &_y){
+
+    _x = m_kinova_body_x;
+    _y =  m_kinova_body_y;
+
+    return true;
+}
+
+bool CGripper::CatesianRotatorGoToOposite(bool _home)
+{
+    if(_home == true)
+    {
+        dxl_comm_result = mp_rotator_packetHandler->write4ByteTxRx(mp_rotator_portHandler, DXL3_ID, ADDR_PR_GOAL_POSITION, 125504, &dxl_error);
+        dxl_comm_result = mp_rotator_packetHandler->write4ByteTxRx(mp_rotator_portHandler, DXL4_ID, ADDR_PR_GOAL_POSITION, -124545, &dxl_error);
+        return dxl_comm_result;
+    }
+    else
+    {
+        int32_t id3_cur_rotate_index = m_dxl_pro_current_position;
+        int32_t id4_cur_rotate_index = 0;
+        dxl_comm_result = mp_rotator_packetHandler->read4ByteTxRx(mp_rotator_portHandler,DXL4_ID,ADDR_PR_PRESENT_POSITION,(uint32_t*)&id4_cur_rotate_index);
+
+        dxl_comm_result = mp_rotator_packetHandler->write4ByteTxRx(mp_rotator_portHandler, DXL3_ID, ADDR_PR_GOAL_POSITION, (-1) * id3_cur_rotate_index, &dxl_error);
+        dxl_comm_result = mp_rotator_packetHandler->write4ByteTxRx(mp_rotator_portHandler, DXL4_ID, ADDR_PR_GOAL_POSITION, (-1) * id4_cur_rotate_index, &dxl_error);
+
+        m_dxl_pro_current_position = (-1) * id3_cur_rotate_index;
+
+
+        return dxl_comm_result;
+    }
+
+}
+
 
 bool CGripper::CatesianRotatorGoToRelPosition(int _step)
 {

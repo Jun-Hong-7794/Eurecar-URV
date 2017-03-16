@@ -192,6 +192,10 @@ private://Mutex
     QMutex mtx_rotator_handle;
     QMutex mtx_gripper_status;
 
+    //catesian pos
+    double m_kinova_body_x;
+    double m_kinova_body_y;
+
 public:
     bool IsDmxInit();
     bool IsDmxTorqueOn();
@@ -235,6 +239,10 @@ public:
 
     bool CatesianRotatorGoToThePosition(double _dist_error); // Go to The Position // _dist_error = current depth - ref depth [mm]
     bool CatesianRotatorGoToRelPosition(int _step); // Go to Relative Position From Present Position
+
+    bool CatesianRotatorGoToOposite(bool _home);
+
+    bool GetKinovaBodyPose(double &_x, double &_y);
 
     //Gripper
     bool InitGripper(char* _device_port = (char *)"/dev/ttyUSB0");

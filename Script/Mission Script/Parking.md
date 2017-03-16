@@ -17,4 +17,7 @@ PARKING_RETRY_STRUCT.desired_dst = 1.05
 
 PARKING_RETRY_FUNCTION()
 
+## Step1: Vehicle Moving
+VEHICLE_LOCALIZATION_ON_PANEL_STRUCT.desired_h_dst = 0.44
+VEHICLE_LOCALIZATION_ON_PANEL_FUNCTION()
 ##########################################_MISSION_END_##########################################

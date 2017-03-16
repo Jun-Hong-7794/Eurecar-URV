@@ -39,6 +39,21 @@ void CScript::SetKinovaAxisValue(KINOVA_DO_MANIPULATE_STRUCT &_manipulat_option)
 
 }
 
+void CScript::SetKinovaAxisValue(KINOVA_CURRENT_POSITION &_manipulat_option, MISSION_SCRIPT& _mission_script){
+
+    CartesianPosition kinova_present_pose;
+    mpc_manipulation->KinovaGetPosition(kinova_present_pose);
+
+    SetDoubleVariable(_manipulat_option.str_roll, _mission_script, kinova_present_pose.Coordinates.ThetaZ);
+    SetDoubleVariable(_manipulat_option.str_pitch, _mission_script, kinova_present_pose.Coordinates.ThetaY);
+    SetDoubleVariable(_manipulat_option.str_yaw, _mission_script, kinova_present_pose.Coordinates.ThetaX);
+
+    SetDoubleVariable(_manipulat_option.str_x, _mission_script, kinova_present_pose.Coordinates.X);
+    SetDoubleVariable(_manipulat_option.str_y, _mission_script, kinova_present_pose.Coordinates.Y);
+    SetDoubleVariable(_manipulat_option.str_z, _mission_script, kinova_present_pose.Coordinates.Z);
+
+}
+
 double CScript::ReturnKinovaAxisValue(QString _axis, QString _char){
     CartesianPosition kinova_present_pose;
     mpc_manipulation->KinovaGetPosition(kinova_present_pose);
@@ -424,6 +439,13 @@ bool CScript::InterpreteMissionScriptLine(QString _line, MISSION_SCRIPT* _missio
         else
             return false;
     }
+    if(_line.contains("VEHICLE_LOCALIZATION_ON_PANEL")){
+
+        if(InterpreteVehicleLocalizationOnPanel(_line, _step_info))
+            return true;
+        else
+            return false;
+    }
 
     if(_line.contains("VEHICLE_PARKING")){
 
@@ -548,6 +570,14 @@ bool CScript::InterpreteMissionScriptLine(QString _line, MISSION_SCRIPT* _missio
     if(_line.contains("LRF_V_HORIZEN_CTRL")){
 
         if(InterpreteLRFVHorizenCtrl(_line, _step_info))
+            return true;
+        else
+            return false;
+    }
+
+    if(_line.contains("KINOVA_CURRENT_POSITION")){
+
+        if(InterpreteKinovaCurrentPosition(_line, _step_info))
             return true;
         else
             return false;
@@ -935,6 +965,24 @@ bool CScript::InterpreteVehicleDriveToPanel(QString _line, STEP_INFO& _step_info
     else if(_line.contains("VEHICLE_DRIVE_TO_PANEL_FUNCTION")){
         _step_info.function_index = DR_VEHICLE_DRIVE_TO_PANEL;
     }
+    return true;
+}
+bool CScript::InterpreteVehicleLocalizationOnPanel(QString _line, STEP_INFO& _step_info){
+
+
+    if(_line.contains("VEHICLE_LOCALIZATION_ON_PANEL_STRUCT")){
+        if(_line.contains("desired_h_dst")){
+            int colone_index = _line.indexOf("=");
+            _step_info.driving_option.vehicle_localization_option.desired_h_dst = _line.mid(colone_index + 1).trimmed().toDouble();
+            return true;
+        }
+    }
+
+    else if(_line.contains("VEHICLE_LOCALIZATION_ON_PANEL_FUNCTION")){
+        _step_info.function_index = DR_LOCALIZATION ;
+    }
+    return true;
+
     return true;
 }
 
@@ -1945,6 +1993,9 @@ bool CScript::InterpreteLRFKHorizenCtrl(QString _line, STEP_INFO& _step_info){
             if(_line.mid(colone_index + 1).trimmed().toInt() == 3){
                 _step_info.manipulation_option.lrf_k_h_ctrl_struct.lrf_info_struct.mode = (L_M_PRECISE | L_M_DIR_RIGHT | L_M_VALUE_RANSAC);
             }
+            if(_line.mid(colone_index + 1).trimmed().toInt() == 4){
+                _step_info.manipulation_option.lrf_k_h_ctrl_struct.lrf_info_struct.mode = 4;
+            }
             return true;
         }
 
@@ -2017,6 +2068,13 @@ bool CScript::InterpreteLRFKHorizenCtrl(QString _line, STEP_INFO& _step_info){
             _step_info.manipulation_option.lrf_k_h_ctrl_struct.loop_sleep = _line.mid(colone_index + 1).trimmed().toInt();
             return true;
         }
+
+        if(_line.contains("kinova_current_y")){
+            int colone_index = _line.indexOf("=");
+            _step_info.manipulation_option.lrf_k_h_ctrl_struct.str_kinova_current_y = _line.mid(colone_index + 1).trimmed();
+            return true;
+        }
+
     }
     else if(_line.contains("LRF_K_HORIZEN_CTRL_FUNCTION")){
         _step_info.function_index = MP_LRF_K_HORIZEN_CONTROL;
@@ -2171,6 +2229,41 @@ bool CScript::InterpreteLRFVAngleCtrl(QString _line, STEP_INFO& _step_info){
     }
     else
         return false;
+
+    return true;
+}
+
+bool CScript::InterpreteKinovaCurrentPosition(QString _line, STEP_INFO& _step_info){
+
+    if(_line.contains("KINOVA_CURRENT_POSITION_STRUCT")){
+
+        if(_line.contains("x")){
+            int equal_index = _line.indexOf("=");
+
+            if(equal_index >= 0){
+                _step_info.manipulation_option.kinova_force_option.str_result_variable =
+                        _line.mid(0, equal_index - 1).trimmed();
+            }
+            return true;
+        }
+        if(_line.contains("y")){
+            int colone_index = _line.indexOf("=");
+            _step_info.manipulation_option.kinova_current_position.str_y = _line.mid(colone_index + 1).trimmed();
+            return true;
+        }
+        if(_line.contains("z")){
+            int colone_index = _line.indexOf("=");
+            _step_info.manipulation_option.kinova_current_position.str_z = _line.mid(colone_index + 1).trimmed();
+            return true;
+        }
+
+    }
+    else if(_line.contains("KINOVA_CURRENT_POSITION_FUNCTION")){
+        _step_info.function_index = MP_KINOVA_CURRENT_POSITION;
+    }
+    else
+        return false;
+
 
     return true;
 }
@@ -3201,6 +3294,23 @@ bool CScript::MissionPlayer(){
                 while(mpc_drivig->isRunning());
             }
 
+            if(mpary_mission_script[i].step_vecor.at(j).function_index == DR_LOCALIZATION){
+
+                double body_x = 0;
+                double body_y = 0;
+
+                mpc_manipulation->GetKinovaBodyPose(body_x, body_y);
+                body_x *= 0.001;
+                body_y *= 0.001;
+
+                mpary_mission_script[i].step_vecor.at(j).driving_option.vehicle_localization_option.desired_h_dst -= body_y;
+
+                mpc_drivig->SetManipulationOption(mpary_mission_script[i].step_vecor.at(j).driving_option.vehicle_localization_option);
+                mpc_drivig->SelectMainFunction(DRIVE_INX_LOCAL_ON_PANE);
+
+                while(mpc_drivig->isRunning());
+            }
+
             if(mpary_mission_script[i].step_vecor.at(j).function_index == DR_VEHICLE_PARKING){
                 mpc_drivig->SetParkingOption(mpary_mission_script[i].step_vecor.at(j).driving_option.parking_option);
                 mpc_drivig->SelectMainFunction(DRIVE_INX_PARKING__PANEL);
@@ -3249,6 +3359,16 @@ bool CScript::MissionPlayer(){
                 mpary_mission_script[i].step_vecor.at(j).manipulation_option.lrf_k_h_ctrl_struct.wrench_hanger_index =
                         wrench_index;
 
+                QString str_current_y;
+                double kinova_current_y;
+
+                str_current_y = mpary_mission_script[i].step_vecor.at(j).manipulation_option.lrf_k_h_ctrl_struct.str_kinova_current_y;
+
+                kinova_current_y = InterpreteDoubleVariable(str_current_y, mpary_mission_script[i]);
+
+                mpary_mission_script[i].step_vecor.at(j).manipulation_option.lrf_k_h_ctrl_struct.kinova_current_y =
+                        kinova_current_y;
+
                 mpc_manipulation->SetManipulationOption(mpary_mission_script[i].step_vecor.at(j).manipulation_option.lrf_k_h_ctrl_struct);
                 mpc_manipulation->SelectMainFunction(MANIPUL_INX_LRF_K_HORIZEN_CTRL);
 
@@ -3265,6 +3385,17 @@ bool CScript::MissionPlayer(){
             if(mpary_mission_script[i].step_vecor.at(j).function_index == MP_LRF_V_ANGLE_CONTROL){
                 mpc_manipulation->SetManipulationOption(mpary_mission_script[i].step_vecor.at(j).manipulation_option.lrf_v_a_ctrl_struct);
                 mpc_manipulation->SelectMainFunction(MANIPUL_INX_LRF_V_ANGLE_CTRL);
+
+                while(mpc_manipulation->isRunning());
+            }
+
+            if(mpary_mission_script[i].step_vecor.at(j).function_index == MP_KINOVA_CURRENT_POSITION){
+
+                SetKinovaAxisValue(mpary_mission_script[i].step_vecor.at(j).manipulation_option.kinova_current_position,
+                                    mpary_mission_script[i]);
+
+                mpc_manipulation->SetManipulationOption(mpary_mission_script[i].step_vecor.at(j).manipulation_option.kinova_current_position);
+                mpc_manipulation->SelectMainFunction(MANIPUL_INX_KINOVA_POSITION);
 
                 while(mpc_manipulation->isRunning());
             }
@@ -3453,6 +3584,7 @@ bool CScript::MissionPlayer(){
 
             if(mpary_mission_script[i].step_vecor.at(j).function_index == MP_KINOVA_MANIPULATE){
                 SetKinovaAxisValue(mpary_mission_script[i].step_vecor.at(j).manipulation_option.kinova_manipulate_option);
+
                 mpc_manipulation->SetManipulationOption(mpary_mission_script[i].step_vecor.at(j).manipulation_option.kinova_manipulate_option);
                 mpc_manipulation->SelectMainFunction(MANIPUL_INX_KINOVA_MANIPULATE);
 

@@ -39,6 +39,10 @@ typedef struct _Parking_struct{
 
 }PARKING_STRUCT;
 
+typedef struct _VEHICLE_LOCALIZATION_ON_PANEL_STRUCT{
+    double desired_h_dst; // 1: Driving 2: Parking
+}VEHICLE_LOCALIZATION_ON_PANEL_STRUCT;
+
 typedef struct _Parking_Retry_Struct{
 
     double bias;
@@ -111,6 +115,8 @@ typedef struct _Driving_Option{
     DRIVING_STRUCT driving_option;
 
     PARKING_STRUCT parking_option;
+
+    VEHICLE_LOCALIZATION_ON_PANEL_STRUCT vehicle_localization_option;
 
     PARKING_RETRY_STRUCT parking_retry_option;
 

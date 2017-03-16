@@ -381,6 +381,10 @@ bool CManipulation::ScaraRotatorMoveErrorDist(double _dst_error){
 
     return true;
 }
+void CManipulation::GetKinovaBodyPose(double &_x, double &_y){
+
+    mpc_gripper->GetKinovaBodyPose(_x, _y);
+}
 
 //----------------------------------------------------------------
 // Option Function
@@ -575,6 +579,12 @@ bool CManipulation::SelectMainFunction(int _fnc_index_){
 
         return true;
     }
+    else if(_fnc_index_ == MANIPUL_INX_KINOVA_POSITION){
+        m_main_fnc_index = MANIPUL_INX_KINOVA_POSITION;
+        this->start();
+
+        return true;
+    }
 
     else
         return false;
@@ -693,6 +703,28 @@ LRF_K_A_CTRL_STRUCT CManipulation::GetLRFKAngleCtrlOption(){
     mxt_lrf_k_a_ctrl.unlock();
 
     return lrf_kinova_struct;
+}
+
+void CManipulation::SetManipulationOption(KINOVA_CURRENT_POSITION _manipulation_option){
+
+    mxt_kinova_current_position .lock();
+    {
+       mstruct_kinova_current_position = _manipulation_option;
+    }
+    mxt_kinova_current_position.unlock();
+}
+
+KINOVA_CURRENT_POSITION CManipulation::GetKinovaCurrentPosition(){
+
+    KINOVA_CURRENT_POSITION kinova_struct;
+
+    mxt_kinova_current_position .lock();
+    {
+       kinova_struct = mstruct_kinova_current_position;
+    }
+    mxt_kinova_current_position.unlock();
+
+    return kinova_struct;
 }
 
 //---------------Vehicle---------------//
@@ -2085,6 +2117,39 @@ bool CManipulation::LRFK_HCtrl(){
     if(!mpc_kinova->IsKinovaInitialized())
         return false;
 
+    if(lrf_kinova_struct.lrf_info_struct.mode == 4){
+        switch(lrf_kinova_struct.wrench_hanger_index){
+
+        case 1:
+            lrf_kinova_struct.desired_h_location = lrf_kinova_struct.kinova_current_y + lrf_kinova_struct.wrench_location_1;
+            break;
+        case 2:
+            lrf_kinova_struct.desired_h_location = lrf_kinova_struct.kinova_current_y + lrf_kinova_struct.wrench_location_2;
+            break;
+        case 3:
+            lrf_kinova_struct.desired_h_location = lrf_kinova_struct.kinova_current_y + lrf_kinova_struct.wrench_location_3;
+            break;
+        case 4:
+            lrf_kinova_struct.desired_h_location = lrf_kinova_struct.kinova_current_y + lrf_kinova_struct.wrench_location_4;
+            break;
+        case 5:
+            lrf_kinova_struct.desired_h_location = lrf_kinova_struct.kinova_current_y + lrf_kinova_struct.wrench_location_5;
+            break;
+        case 6:
+            lrf_kinova_struct.desired_h_location = lrf_kinova_struct.kinova_current_y + lrf_kinova_struct.wrench_location_6;
+            break;
+        }
+
+        CartesianPosition position;
+        KinovaGetPosition(position);
+
+        position.Coordinates.Y = lrf_kinova_struct.desired_h_location;
+
+        mpc_kinova->KinovaDoManipulate(position, 2);
+
+        return true;
+    }
+
     if(lrf_kinova_struct.desired_h_location == 0){
 
         switch(lrf_kinova_struct.wrench_hanger_index){
@@ -2336,6 +2401,26 @@ bool CManipulation::LRFV_ACtrl(){
     return true;
 }
 
+bool CManipulation::KinovaCurrentPosition(){
+
+    KINOVA_CURRENT_POSITION kinova_struct = GetKinovaCurrentPosition();
+
+    CartesianPosition position;
+    mpc_kinova->Get_Kinova_Position(position);
+
+    kinova_struct.x = position.Coordinates.X;
+    kinova_struct.y = position.Coordinates.Y;
+    kinova_struct.z =position.Coordinates.Z;
+
+    kinova_struct.yaw =position.Coordinates.ThetaX;
+    kinova_struct.pitch =position.Coordinates.ThetaY;
+    kinova_struct.roll =position.Coordinates.ThetaZ;
+
+    SetManipulationOption(kinova_struct);
+
+    return true;
+}
+
 bool CManipulation::LRFV_HCtrl(){
 
     LRF_V_H_CTRL_STRUCT lrf_vehicle_struct = GetLRFVHorizenCtrlOption();
@@ -2546,8 +2631,8 @@ bool CManipulation::KinovaForceCtrl(){
                     }
                 }
                 else if(mode == 3){//Range
-                    if((kinova_force_ctrl.force_threshold_x > kinova_force_ctrl.force_range_s) &&
-                            (kinova_force_ctrl.force_threshold_x > kinova_force_ctrl.force_range_e)){//Range
+                    if((cartesian_pos.Coordinates.X > kinova_force_ctrl.force_range_s) &&
+                            (cartesian_pos.Coordinates.X < kinova_force_ctrl.force_range_e)){//Range
                         break;
                     }
                 }
@@ -2571,8 +2656,8 @@ bool CManipulation::KinovaForceCtrl(){
                     }
                 }
                 else if(mode == 3){//Range
-                    if((kinova_force_ctrl.force_threshold_y > kinova_force_ctrl.force_range_s) &&
-                            (kinova_force_ctrl.force_threshold_y > kinova_force_ctrl.force_range_e)){//Range
+                    if((cartesian_pos.Coordinates.Y > kinova_force_ctrl.force_range_s) &&
+                            (cartesian_pos.Coordinates.Y < kinova_force_ctrl.force_range_e)){//Range
                         break;
                     }
                 }
@@ -2596,8 +2681,8 @@ bool CManipulation::KinovaForceCtrl(){
                     }
                 }
                 else if(mode == 3){//Range
-                    if((kinova_force_ctrl.force_threshold_z > kinova_force_ctrl.force_range_s) &&
-                            (kinova_force_ctrl.force_threshold_z > kinova_force_ctrl.force_range_e)){//Range
+                    if((cartesian_pos.Coordinates.Z > kinova_force_ctrl.force_range_s) &&
+                            (cartesian_pos.Coordinates.Z < kinova_force_ctrl.force_range_e)){//Range
                         break;
                     }
                 }
@@ -3083,8 +3168,8 @@ bool CManipulation::GripperKinovaFindValveLocation(){
         mpc_kinova->KinovaMoveUnitStepLe();
         msleep(300);
 
-        mpc_kinova->KinovaMoveUnitStepLe();
-        msleep(300);
+//        mpc_kinova->KinovaMoveUnitStepLe();
+//        msleep(300);
 
 //        mpc_kinova->KinovaMoveUnitStepLe();
 //        msleep(300);
@@ -3146,11 +3231,11 @@ bool CManipulation::GripperKinovaValveSizeRecognition(){
 
         gripper_status = mpc_gripper->GetGripperStatus();
 
-        if(gripper_status.present_pose_1 < grasp_pose_1 + 15){
+        if(gripper_status.present_pose_1 < grasp_pose_1 + 5){
             fl_gripper_1_not_reach = true;
         }
 
-        if(gripper_status.present_pose_2 < grasp_pose_2 + 15){
+        if(gripper_status.present_pose_2 < grasp_pose_2 + 5){
             fl_gripper_2_not_reach = true;
         }
 
@@ -3598,6 +3683,10 @@ void CManipulation::run(){
     case MANIPUL_INX_ROTATOR:
         DynamixelRotate();
         break;
+    case MANIPUL_INX_KINOVA_POSITION:
+        KinovaCurrentPosition();
+        break;
+
     case SENSING_LRF_PANEL_LOCALIZATION:
         LRFLocalizationOnPanel();
     default:

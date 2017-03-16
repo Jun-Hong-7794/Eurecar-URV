@@ -121,6 +121,7 @@ EurecarURV_Dlg::EurecarURV_Dlg(QWidget *parent) :
     (mpc_drivig->GetPCL())->viewer->addPointCloud( (mpc_drivig->GetPCL())->lrf_cloud, "lrf_cloud");
     (mpc_drivig->GetPCL())->viewer->addPointCloud( (mpc_drivig->GetPCL())->lrf_waypoint_cloud, "lrf_waypoint_cloud");
     (mpc_drivig->GetPCL())->viewer->addPointCloud( (mpc_drivig->GetPCL())->mission_boundary_cloud,"mission_boundary_cloud");
+    (mpc_drivig->GetPCL())->viewer->addPointCloud( (mpc_drivig->GetPCL())->velo_panel_cloud,"velo_panel_cloud");
 
     (mpc_drivig->GetPCL())->viewer->setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE,1,"cloud");
     (mpc_drivig->GetPCL())->viewer->setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE,10,"lms511_cloud");
@@ -129,7 +130,7 @@ EurecarURV_Dlg::EurecarURV_Dlg(QWidget *parent) :
     (mpc_drivig->GetPCL())->viewer->setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE,1,"lrf_cloud");
     (mpc_drivig->GetPCL())->viewer->setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE,5,"lrf_waypoint_cloud");
     (mpc_drivig->GetPCL())->viewer->setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE,20,"mission_boundary_cloud");
-
+    (mpc_drivig->GetPCL())->viewer->setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE,1,"velo_panel_cloud");
 
 
     // Velodyne View Connect

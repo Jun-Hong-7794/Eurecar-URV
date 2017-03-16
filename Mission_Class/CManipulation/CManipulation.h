@@ -63,9 +63,12 @@
 
 #define MANIPUL_INX_ROTATOR                     24
 
+
 #define MANIPUL_INX_KINOVA_LRF_VALVE_SEARCHING  25
 #define MANIPUL_INX_KINOVA_LRF_CHECK_V_DST      26
 #define MANIPUL_INX_GRIPPER_FIND_VALVE_LOCATION 27
+
+#define MANIPUL_INX_KINOVA_POSITION             28
 
 class CManipulation:public QThread{
     Q_OBJECT
@@ -179,6 +182,10 @@ private:
 
     CHECK_CURRENT_V_DISTANCE_STRUCT mstruct_check_v_dst;
     QMutex mxt__check_v_dst;
+
+    KINOVA_CURRENT_POSITION mstruct_kinova_current_position;
+    QMutex mxt_kinova_current_position;
+
     //-------------------------------------------------
     // ElementTech Class
     //-------------------------------------------------
@@ -304,6 +311,7 @@ public:
 public:
     bool SelectMainFunction(int _fnc_index_);
 
+    void GetKinovaBodyPose(double &_x, double &_y);
     //-------------------------------------------------
     // Sensor Test Function
     //-------------------------------------------------
@@ -325,6 +333,9 @@ public:
 
     void SetManipulationOption(LRF_K_A_CTRL_STRUCT _manipulation_option);
     LRF_K_A_CTRL_STRUCT GetLRFKAngleCtrlOption();
+
+    void SetManipulationOption(KINOVA_CURRENT_POSITION _manipulation_option);
+    KINOVA_CURRENT_POSITION GetKinovaCurrentPosition();
 
     //---------------Vehicle---------------//
     void SetManipulationOption(LRF_V_A_CTRL_STRUCT _manipulation_option);
@@ -426,6 +437,8 @@ private:
 
     bool LRFV_ACtrl();
     bool LRFV_HCtrl();
+
+    bool KinovaCurrentPosition();
     /*----------------------------*/
 
     bool KinovaForceCtrl();

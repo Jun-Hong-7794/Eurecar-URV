@@ -361,6 +361,12 @@ bool CDriving::SelectMainFunction(int _fnc_index_){
 
         return true;
     }
+    else if(_fnc_index_ == DRIVE_INX_LOCAL_ON_PANE){
+        m_main_fnc_index = DRIVE_INX_LOCAL_ON_PANE;
+        this->start();
+
+        return true;
+    }
     else
         return false;
 }
@@ -464,6 +470,27 @@ void CDriving::SetManipulationOption(PARKING_RETRY_STRUCT _driving_option){
 }
 
 
+void CDriving::SetManipulationOption(VEHICLE_LOCALIZATION_ON_PANEL_STRUCT _driving_option){
+    mxt_local_on_panel.lock();
+    {
+        mstruct_local_on_panel = _driving_option;
+    }
+    mxt_local_on_panel.unlock();
+}
+
+VEHICLE_LOCALIZATION_ON_PANEL_STRUCT CDriving::GetVehicleLocalOnPanelOption(){
+
+    VEHICLE_LOCALIZATION_ON_PANEL_STRUCT local_on_panel;
+
+    mxt_local_on_panel.lock();
+    {
+        local_on_panel = mstruct_local_on_panel;
+    }
+    mxt_local_on_panel.unlock();
+
+    return local_on_panel;
+}
+
 LRF_VEHICLE_HORIZEN_STRUCT CDriving::GetLRFVehicleHorizenOption(){
 
     LRF_VEHICLE_HORIZEN_STRUCT lrf_vehicle;
@@ -528,12 +555,12 @@ int CDriving::GetParkingControl(vector<double> _waypoint_error)
 
     int dir = -1;
 
-    if(heading_error < -5.0 / 180.0 * PI) // waypoint on the left
+    if(heading_error < -8.0 / 180.0 * PI) // waypoint on the left
     {
         dir = UGV_move_left;
         return dir;
     }
-    else if(heading_error > 5.0 / 180 * PI) // waypoint on the right
+    else if(heading_error > 8.0 / 180 * PI) // waypoint on the right
     {
         dir = UGV_move_right;
         return dir;
@@ -650,6 +677,30 @@ int CDriving::VelGen_parking_turn_right()
         velocity= 100;
         mpc_vehicle->turn_continue_flag_right = true;
     }
+    return velocity;
+}
+
+int CDriving::VelGen_panel_dist_error(double _dist_error)
+{
+    int velocity = 0;
+    int min_vel = 70;
+    if(_dist_error >= 0.8)
+    {
+        velocity = 90;
+    }
+    else if(_dist_error < 0.8 && _dist_error >= 0.5)
+    {
+        velocity = 80;
+    }
+    else if(_dist_error < 0.5 && _dist_error >= 0.3)
+    {
+        velocity = 75;
+    }
+    else if(_dist_error < 0.3)
+    {
+        velocity = min_vel;
+    }
+
     return velocity;
 }
 
@@ -1123,7 +1174,7 @@ bool CDriving::ParkingFrontPanel(){
                         if((panel_slope_norm_angle > (0.5*PI + (5.0/180.0*PI))) && (panel_slope_norm_angle < (1.5*PI - (5.0/180.0*PI))))
                         {
                             driving_struct.direction = UGV_move_differ_left;
-                            driving_struct.velocity = parking_left;
+                            driving_struct.velocity = parking_differ_left;
 //                            driving_struct.direction = UGV_move_left;
 //                            driving_struct.velocity = VelGen_parking_turn_left();
                         }
@@ -1152,7 +1203,7 @@ bool CDriving::ParkingFrontPanel(){
                         else if ((panel_slope_norm_angle > (PI + (5.0/180.0*PI))) && (panel_slope_norm_angle < (2*PI - (5.0/180.0*PI))))
                         {
                             driving_struct.direction = UGV_move_differ_right;
-                            driving_struct.velocity = parking_right;
+                            driving_struct.velocity = parking_differ_right;
 //                            driving_struct.direction = UGV_move_right;
 //                            driving_struct.velocity = VelGen_parking_turn_right();
                         }
@@ -2331,12 +2382,83 @@ double CDriving::LrfParkingDistnaceCheck(double _desirable_dist)
     }
     }while((detected_panel_info.at(0) == 0) &&(detected_panel_info.at(0) == 0));
 
-    double current_dist = abs(detected_panel_info.at(4));
+//    double current_dist = abs(detected_panel_info.at(4));
+
+
+    double current_dist = mpc_velodyne->GetCurrentUGVDepth();
+
+
 //    double return_bias = _desirable_dist - current_dist;
 
     cout << "%% current dist : " << current_dist << endl;
 
     return current_dist;
+}
+
+double CDriving::DriveByVelodyne(double _desirable_pos)
+{
+    mpc_velodyne->SetVelodyneMode(VELODYNE_MODE_PARKING);
+    Sleep(300);
+
+    DRIVING_STRUCT driving_struct;
+
+    double current_ugv_pos = 0;
+
+    int empty_count = 0;
+    do{
+        do{
+            current_ugv_pos = mpc_velodyne->GetCurrentUGVPosition();
+        }while(current_ugv_pos == 0);
+
+        cout << " velodyne point number : " << mpc_velodyne->GetPCL()->velo_panel_cloud->points.size() << endl;
+        cout << " current ugv pos : " << current_ugv_pos << endl;
+
+        if(mpc_velodyne->GetPCL()->velo_panel_cloud->points.size() == 0)
+        {
+            empty_count++;
+        }
+        else
+        {
+            empty_count = 0;
+        }
+
+        if(empty_count > 10)
+        {
+            cout << "fuck" << endl;
+
+            break;
+        }
+
+        if(current_ugv_pos < _desirable_pos)
+        {
+            driving_struct.direction = UGV_move_forward;
+        }
+        else
+        {
+            driving_struct.direction = UGV_move_backward;
+        }
+
+        driving_struct.velocity = VelGen_panel_dist_error(abs(_desirable_pos - current_ugv_pos));
+
+        mpc_vehicle->Move(driving_struct.direction, driving_struct.velocity);
+
+        Sleep(10);
+    }while(abs(current_ugv_pos - _desirable_pos) > 0.05);
+
+    driving_struct.velocity = 0;
+    mpc_vehicle->Move(driving_struct.direction, driving_struct.velocity);
+
+    Sleep(2000);
+
+    current_ugv_pos = mpc_velodyne->GetCurrentUGVPosition();
+    double control_err = _desirable_pos - current_ugv_pos;
+
+    if(current_ugv_pos == -1)
+    {
+        control_err = 0;
+    }
+
+    return control_err;
 }
 
 void CDriving::ParkingDistanceControl()
@@ -2666,6 +2788,12 @@ void CDriving::ParkingDistanceControl()
     }
 
     Sleep(1000);
+}
+
+void CDriving::LocalizationOnPanel(){
+    VEHICLE_LOCALIZATION_ON_PANEL_STRUCT local_panel = GetVehicleLocalOnPanelOption();
+
+    DriveByVelodyne(local_panel.desired_h_dst);
 }
 
 void CDriving::ParkingDistanceControl(double _bias)
@@ -3808,7 +3936,9 @@ void CDriving::run(){
     case DRIVE_INX_LRF_VEHICLE_HORIZEN:
         LRFVehicleHorizenControl();
         break;
-
+    case DRIVE_INX_LOCAL_ON_PANE:
+        LocalizationOnPanel();
+        break;
     default:
         break;
 

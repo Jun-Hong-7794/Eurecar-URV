@@ -77,17 +77,20 @@ typedef struct _LRFK_HCtrl_Struct{
 
     bool fl_only_sensing_moving;
 
-    int desired_h_location;
+    double desired_h_location;
 
     QString wrench_hanger_index_str/*1~6*/;
     int wrench_hanger_index/*1~6*/;
 
-    int wrench_location_1/*mm*/;
-    int wrench_location_2/*mm*/;
-    int wrench_location_3/*mm*/;
-    int wrench_location_4/*mm*/;
-    int wrench_location_5/*mm*/;
-    int wrench_location_6/*mm*/;
+    double wrench_location_1/*mm*/;
+    double wrench_location_2/*mm*/;
+    double wrench_location_3/*mm*/;
+    double wrench_location_4/*mm*/;
+    double wrench_location_5/*mm*/;
+    double wrench_location_6/*mm*/;
+
+    QString str_kinova_current_y/*1~6*/;
+    double kinova_current_y;
 
     int error;
 
@@ -110,6 +113,8 @@ typedef struct _LRFK_ACtrl_Struct{
     double error;
 
     int loop_sleep;
+
+    double kinova_current_y;
 
     LRF_SENSING_INFO_STRUCT lrf_info_struct;
 
@@ -544,6 +549,27 @@ typedef struct _Gripper_Magnet_Ctrl_Struct{
 
 }GRIPPER_MAGNET_CTRL_STRUCT;
 
+typedef struct _Kinova_Current_Position{
+
+    QString str_x;
+    QString str_y;
+    QString str_z;
+
+    QString str_roll;
+    QString str_pitch;
+    QString str_yaw;
+
+    double x;
+    double y;
+    double z;
+
+    double roll;
+    double pitch;
+    double yaw;
+
+
+}KINOVA_CURRENT_POSITION;
+
 typedef struct _Wrench_Recognition{
 
     bool wrench_recognition_mission;
@@ -579,6 +605,8 @@ typedef struct _Manipulation_Option{
 
     LRF_V_A_CTRL_STRUCT lrf_v_a_ctrl_struct;
     //--------------------------------------
+
+    KINOVA_CURRENT_POSITION kinova_current_position;
 
     CHECK_CURRENT_V_DISTANCE_STRUCT check_v_distance_option;
 

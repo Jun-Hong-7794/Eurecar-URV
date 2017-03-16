@@ -31,6 +31,12 @@
 
 typedef int VELODYNE_MODE;
 
+typedef struct PanelPositionInfo{
+    double current_position_x;
+    double current_position_y;
+    double current_heading_err;
+}panel_position_info;
+
 class CVelodyne : public QThread
 {
     Q_OBJECT
@@ -127,6 +133,15 @@ private:
 
     bool lrf_find_panel = false;
 
+    double velo_panel_ransac_line_mean_x = 0;
+    double velo_panel_ransac_line_mean_y = 0;
+    double velo_panel_length = 0.0;
+    double velo_panel_slope_x = 0.0;
+    double velo_panel_Slope_y = 0.0;
+
+    double position_x_from_leftest = 0.0;
+
+
 
     double lms511_slope_x = 0.0;
     double lms511_slope_y = 0.0;
@@ -142,12 +157,13 @@ private:
     double velodyne_range = 100.0;
     VELODYNE_MODE velodyne_mode = VELODYNE_MODE_DRIVING;
 
-    vector<vector<double>> arena_default_info = {{0,-45},{-60,-45},{-60,45},{0,45}};
-    vector<vector<double>> arena_info = {{0,-45},{-60,-45},{-60,45},{0,45}};
-    vector<vector<double>> rotated_arena_info = {{0,-45},{-60,-45},{-60,45},{0,45}};
+    vector<vector<double>> arena_default_info = {{0,-10},{-50,-10},{-50,5},{0,5}};
+    vector<vector<double>> arena_info = {{0,-10},{-50,-10},{-50,5},{0,5}};
+    vector<vector<double>> rotated_arena_info = {{0,-10},{-50,-10},{-50,5},{0,5}};
     double arena_rotation_angle = 0.0; // 0~2PI
     double arena_shift_x = 0.0;
     double arena_shift_y = 0.0;
+    double velo_ugv_dist = 0.0;
 
     bool RunVelodyne();
 public:
@@ -195,6 +211,10 @@ public:
 
     // Get current_waypoint_index
     int GetCurrentWaypointIndex();
+
+    double GetCurrentUGVPosition();
+
+    double GetCurrentUGVDepth();
 
     // Set Arena boundary
     void SetArenaBoundary(vector<vector<double>> _arena_info, double _shift_x, double _shift_y, double _rotation_angle);

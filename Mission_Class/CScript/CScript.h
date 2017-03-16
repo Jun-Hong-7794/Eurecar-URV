@@ -117,6 +117,7 @@ private:
 
     bool InterpreteVehicleDriveToPanel(QString _line, STEP_INFO& _step_info);
     bool InterpreteVehicleParking(QString _line, STEP_INFO& _step_info);
+    bool InterpreteVehicleLocalizationOnPanel(QString _line, STEP_INFO& _step_info);
 
     bool InterpreteKinovaForceCtrl(QString _line, STEP_INFO& _step_info);
     bool InterpreteKinovaForceCheck(QString _line, STEP_INFO& _step_info);
@@ -145,6 +146,8 @@ private:
 
     bool InterpreteLRFVAngleCtrl(QString _line, STEP_INFO& _step_info);
     bool InterpreteLRFVHorizenCtrl(QString _line, STEP_INFO& _step_info);
+
+    bool InterpreteKinovaCurrentPosition(QString _line, STEP_INFO& _step_info);
 
     /*Old LRF Kinova Control*/
     bool InterpreteLRFKinovaVerticalCtrl(QString _line, STEP_INFO& _step_info);
@@ -177,6 +180,8 @@ private:
     //-------------------------------------------------
     double ReturnKinovaAxisValue(QString _axis, QString _char);
     void SetKinovaAxisValue(KINOVA_DO_MANIPULATE_STRUCT &_manipulat_option);
+    void SetKinovaAxisValue(KINOVA_CURRENT_POSITION &_manipulat_option,MISSION_SCRIPT& _mission_script);
+
 
 public:
     void GetStepTitle(int _mission_index, QStringList& _step_title_list);

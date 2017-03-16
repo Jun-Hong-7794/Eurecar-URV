@@ -90,6 +90,7 @@ public:
         lrf_cloud.reset(new PointCloudT);
         lrf_waypoint_cloud.reset(new PointCloudT);
         mission_boundary_cloud.reset(new PointCloudT);
+        velo_panel_cloud.reset(new PointCloudT);
         // PCL display setting
 
         viewer.reset (new pcl::visualization::PCLVisualizer ("viewer" , false));
@@ -143,6 +144,7 @@ public:
     PointCloudT::Ptr lrf_cloud;
     PointCloudT::Ptr lrf_waypoint_cloud;
     PointCloudT::Ptr mission_boundary_cloud;
+    PointCloudT::Ptr velo_panel_cloud;
 };
 
 #endif // CPCL_H
