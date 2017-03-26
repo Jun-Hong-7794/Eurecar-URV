@@ -239,6 +239,7 @@ public:
 
     bool DrivingMissionManager();
 
+    int VelGen_Cnt(int _cnt, bool _update);
 
 
 signals:

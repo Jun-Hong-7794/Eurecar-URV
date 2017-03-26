@@ -3944,3 +3944,25 @@ void CDriving::run(){
 
     }
 }
+
+//
+
+int CDriving::VelGen_Cnt(int _cnt, bool _update)
+{
+    int min_vel = 50;
+    int max_vel = 100;
+    int velocity = 0;
+    int cnt_thres = 5000;
+
+    if(_update == true)
+    {
+        velocity = min_vel;
+    }
+    else if(_update == false && _cnt >= cnt_thres)
+    {
+        velocity = mpc_vehicle->GetVel();
+        velocity++;
+    }
+
+    return velocity;
+}
