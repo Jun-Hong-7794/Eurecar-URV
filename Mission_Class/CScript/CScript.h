@@ -116,6 +116,8 @@ private:
     bool InterpreteKinovaLRFValveSearching(QString _line, STEP_INFO& _step_info);
 
     bool InterpreteVehicleDriveToPanel(QString _line, STEP_INFO& _step_info);
+    bool InterpreteDriveByWrenchRecog(QString _line, STEP_INFO& _step_info);
+
     bool InterpreteVehicleParking(QString _line, STEP_INFO& _step_info);
     bool InterpreteVehicleLocalizationOnPanel(QString _line, STEP_INFO& _step_info);
 
@@ -148,6 +150,7 @@ private:
     bool InterpreteLRFVHorizenCtrl(QString _line, STEP_INFO& _step_info);
 
     bool InterpreteKinovaCurrentPosition(QString _line, STEP_INFO& _step_info);
+    bool InterpreteKinovaByWrenchRecog(QString _line, STEP_INFO& _step_info);
 
     /*Old LRF Kinova Control*/
     bool InterpreteLRFKinovaVerticalCtrl(QString _line, STEP_INFO& _step_info);

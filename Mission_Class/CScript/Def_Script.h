@@ -26,6 +26,7 @@
 #define DR_VEHICLE_PARKING                   0x1004
 #define DR_PARKING_RETRY                     0x1005
 #define DR_LOCALIZATION                      0x1006
+#define DR_WRENCH_RECOG                      0x1007
 
 //Manipulation
 /*New LRF Kinova Control*/
@@ -58,6 +59,7 @@
 #define MP_GRIPPER_FIND_VALVE_LOCATION       0x2026
 
 #define MP_KINOVA_CURRENT_POSITION           0x2027
+#define MP_KINOVA_WRENCH_SEARCHING           0x2028
 /*Old LRF Kinova Control*/
 #define MP_LRF_KINOVA_VERTIVAL_CONTROL       0x2008
 #define MP_LRF_KINOVA_HORIZEN_CONTROL        0x2009

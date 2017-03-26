@@ -43,6 +43,14 @@ typedef struct _VEHICLE_LOCALIZATION_ON_PANEL_STRUCT{
     double desired_h_dst; // 1: Driving 2: Parking
 }VEHICLE_LOCALIZATION_ON_PANEL_STRUCT;
 
+typedef struct _Wrench_Recog_STRUCT{
+
+    QString str_desired_wrench_index;
+    double desired_wrench_index;
+    QString str_lrf_v_dst;
+    double lrf_v_dst;
+}WRENCH_RECOGNITION_STRUCT;
+
 typedef struct _Parking_Retry_Struct{
 
     double bias;
@@ -117,6 +125,8 @@ typedef struct _Driving_Option{
     PARKING_STRUCT parking_option;
 
     VEHICLE_LOCALIZATION_ON_PANEL_STRUCT vehicle_localization_option;
+
+    WRENCH_RECOGNITION_STRUCT wrench_recog_option;
 
     PARKING_RETRY_STRUCT parking_retry_option;
 

@@ -7,18 +7,18 @@ global_bool gb_bool_kinova_force_ctrl_rst = true;
 
 # Title: Fit To Valve
 
-## Step1: Vehicle Moving
-VEHICLE_LOCALIZATION_ON_PANEL_STRUCT.desired_h_dst = 0.5
+## Step0: Vehicle Moving
+VEHICLE_LOCALIZATION_ON_PANEL_STRUCT.desired_h_dst = 0.47
 VEHICLE_LOCALIZATION_ON_PANEL_FUNCTION()
 
-## Step0: Align to Panel
+## Step1: Align to Panel
 
 KINOVA_ALIGN_TO_PANEL.do_init_motion = false
 KINOVA_ALIGN_TO_PANEL_FUNCTION()
 
 A_Sleep(3000)
 
-## Step4: LRF-Kinova Vertical CTRL(NEW Using Scara)
+## Step2: LRF-Kinova Vertical CTRL(NEW Using Scara)
 
 LRF_K_VERTICAL_CTRL_STRUCT.mode = 4
 LRF_K_VERTICAL_CTRL_STRUCT.force_option = false
@@ -38,32 +38,12 @@ LRF_K_VERTICAL_CTRL_FUNCTION()
 
 A_Sleep(3000)
 
-## Step4: LRF-Kinova Vertical CTRL(NEW Using Scara)
-
-LRF_K_VERTICAL_CTRL_STRUCT.mode = 4
-LRF_K_VERTICAL_CTRL_STRUCT.force_option = false
-LRF_K_VERTICAL_CTRL_STRUCT.only_sensing_moving = false
-
-LRF_K_VERTICAL_CTRL_STRUCT.desired_v_dst = 190
-LRF_K_VERTICAL_CTRL_STRUCT.error = 2
-
-LRF_K_VERTICAL_CTRL_STRUCT.s_deg = 10
-LRF_K_VERTICAL_CTRL_STRUCT.e_deg = 170
-
-LRF_K_VERTICAL_CTRL_STRUCT.inlier_lrf_dst = 1100
-
-LRF_K_VERTICAL_CTRL_STRUCT.loop_sleep = 30
-
-LRF_K_VERTICAL_CTRL_FUNCTION()
-
-A_Sleep(3000)
-
-## Step1: Vehicle Moving
-VEHICLE_LOCALIZATION_ON_PANEL_STRUCT.desired_h_dst = 0.44
+## Step3: Vehicle Moving
+VEHICLE_LOCALIZATION_ON_PANEL_STRUCT.desired_h_dst = 0.42
 VEHICLE_LOCALIZATION_ON_PANEL_FUNCTION()
 
 
-## Step3: KINOVA Angle Control(New, Using Dynamixel Pro-LRF)
+## Step4: KINOVA Angle Control(New, Using Dynamixel Pro-LRF)
 /* mode =2 => Left
 LRF_K_ANGLE_CTRL_STRUCT.mode = 2
 
@@ -158,7 +138,7 @@ KINOVA_FORCE_CTRL_STRUCT.step_count = 100
 KINOVA_FORCE_CTRL_STRUCT.mode = 1
 
 KINOVA_FORCE_CTRL_STRUCT.force_threshold = 0
-KINOVA_FORCE_CTRL_STRUCT.force_threshold_x = 8
+KINOVA_FORCE_CTRL_STRUCT.force_threshold_x = 5
 KINOVA_FORCE_CTRL_STRUCT.force_threshold_y = 0
 KINOVA_FORCE_CTRL_STRUCT.force_threshold_z = 0
 
@@ -176,7 +156,7 @@ A_Sleep(1000)
 
 ## Step15: Kinova Arm Backward
 
-KINOVA_MANIPULATE_STRUCT.x = --0.06
+KINOVA_MANIPULATE_STRUCT.x = --0.05
 KINOVA_MANIPULATE_STRUCT.y = ==
 KINOVA_MANIPULATE_STRUCT.z = ==
 
@@ -197,7 +177,7 @@ KINOVA_FORCE_CTRL_STRUCT.step_count = 100
 
 KINOVA_FORCE_CTRL_STRUCT.force_threshold = 0
 KINOVA_FORCE_CTRL_STRUCT.force_threshold_x = 0
-KINOVA_FORCE_CTRL_STRUCT.force_threshold_y = 20
+KINOVA_FORCE_CTRL_STRUCT.force_threshold_y = 18
 KINOVA_FORCE_CTRL_STRUCT.force_threshold_z = 0
 
 KINOVA_FORCE_CTRL_STRUCT.position_limit_x = 0
@@ -254,7 +234,7 @@ A_Sleep(1000)
 KINOVA_MANIPULATE_STRUCT.mode = 2
 
 KINOVA_MANIPULATE_STRUCT.x = ==
-KINOVA_MANIPULATE_STRUCT.y = ++0.06
+KINOVA_MANIPULATE_STRUCT.y = ++0.04
 KINOVA_MANIPULATE_STRUCT.z = ==
 
 KINOVA_MANIPULATE_STRUCT.roll = 2.1374
@@ -360,7 +340,7 @@ KINOVA_FORCE_CTRL_STRUCT.step_count = 100
 KINOVA_FORCE_CTRL_STRUCT.mode = 1
 
 KINOVA_FORCE_CTRL_STRUCT.force_threshold = 0
-KINOVA_FORCE_CTRL_STRUCT.force_threshold_x = 8
+KINOVA_FORCE_CTRL_STRUCT.force_threshold_x = 9
 KINOVA_FORCE_CTRL_STRUCT.force_threshold_y = 0
 KINOVA_FORCE_CTRL_STRUCT.force_threshold_z = 0
 
@@ -378,7 +358,55 @@ A_Sleep(300)
 
 ## Step15: Kinova Arm Backward
 
-KINOVA_MANIPULATE_STRUCT.x = --0.04
+KINOVA_MANIPULATE_STRUCT.x = --0.005
+KINOVA_MANIPULATE_STRUCT.y = ==
+KINOVA_MANIPULATE_STRUCT.z = ==
+
+KINOVA_MANIPULATE_STRUCT.roll = ==
+KINOVA_MANIPULATE_STRUCT.pitch = ==
+KINOVA_MANIPULATE_STRUCT.yaw = ==
+
+KINOVA_MANIPULATE_STRUCT.force_threshold = 15
+
+KINOVA_MANIPULATE_FUNCTION()
+
+A_Sleep(500)
+
+## Step15: Kinova Arm Backward
+
+KINOVA_MANIPULATE_STRUCT.x = --0.005
+KINOVA_MANIPULATE_STRUCT.y = ==
+KINOVA_MANIPULATE_STRUCT.z = ==
+
+KINOVA_MANIPULATE_STRUCT.roll = ==
+KINOVA_MANIPULATE_STRUCT.pitch = ==
+KINOVA_MANIPULATE_STRUCT.yaw = ==
+
+KINOVA_MANIPULATE_STRUCT.force_threshold = 15
+
+KINOVA_MANIPULATE_FUNCTION()
+
+A_Sleep(500)
+
+## Step15: Kinova Arm Backward
+
+KINOVA_MANIPULATE_STRUCT.x = --0.005
+KINOVA_MANIPULATE_STRUCT.y = ==
+KINOVA_MANIPULATE_STRUCT.z = ==
+
+KINOVA_MANIPULATE_STRUCT.roll = ==
+KINOVA_MANIPULATE_STRUCT.pitch = ==
+KINOVA_MANIPULATE_STRUCT.yaw = ==
+
+KINOVA_MANIPULATE_STRUCT.force_threshold = 15
+
+KINOVA_MANIPULATE_FUNCTION()
+
+A_Sleep(500)
+
+## Step15: Kinova Arm Backward
+
+KINOVA_MANIPULATE_STRUCT.x = --0.03
 KINOVA_MANIPULATE_STRUCT.y = ==
 KINOVA_MANIPULATE_STRUCT.z = ==
 
@@ -463,6 +491,7 @@ KINOVA_MANIPULATE_FUNCTION()
 A_Sleep(500)
 
 ## Step21: KINOVA Manipulate(Up)
+IF(gb_bool_kinova_force_ctrl_rst)
 
 KINOVA_MANIPULATE_STRUCT.x = ==
 KINOVA_MANIPULATE_STRUCT.y = ==
@@ -478,7 +507,7 @@ KINOVA_MANIPULATE_FUNCTION()
 
 A_Sleep(500)
 
-
+ELSE(GoTo:5)
 ## Step32: Magnet ON
 
 GRIPPER_MAGNET_CTRL_STRUCT.fl_magnet = true

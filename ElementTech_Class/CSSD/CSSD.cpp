@@ -77,6 +77,7 @@ vector<vector<int>> CSSD::GetSSDImage(cv::Mat& _org_image) {
   }
 
   vector<vector<int>> bb_info;
+  rench_loc_list.clear();
   /* Print the detection results. */
   for (unsigned int i = 0; i < detections.size(); ++i) {
     const vector<float>& d = detections[i];
@@ -99,6 +100,7 @@ vector<vector<int>> CSSD::GetSSDImage(cv::Mat& _org_image) {
       string labelstring;
       cv::Scalar box_color;
       vector<int> bb_info_xy;
+      double bb_box_mean;
       switch(int(d[1]))
       {
       case 1:
@@ -107,6 +109,9 @@ vector<vector<int>> CSSD::GetSSDImage(cv::Mat& _org_image) {
           bb_info_xy.push_back(br.x);
           bb_info_xy.push_back(br.y);
           bb_info.push_back(bb_info_xy);
+          bb_box_mean= 0.5*(tl.x + br.x);
+          rench_loc_list.push_back((int)bb_box_mean);
+
           break;
       case 2:
           labelstring = "Valve";
@@ -121,9 +126,37 @@ vector<vector<int>> CSSD::GetSSDImage(cv::Mat& _org_image) {
     }
   }
 
+  if(rench_loc_list.size() != 0)
+  {
+
+      std::sort(rench_loc_list.begin(),rench_loc_list.end());
+
+      for(unsigned int i = 0; i < rench_loc_list.size();i++)
+      {
+          rench_loc_list_arr[i] = (int)rench_loc_list.at(i);
+      }
+//      std::cout << "Localization List: " << rench_loc_list.at(rench_loc_list.size() - 1)<< std::endl;
+  }
   mtx_ssd.unlock();
 
   return bb_info;
+}
+
+vector<int> CSSD::GetRenchLocList()
+{
+    mtx_ssd.lock();
+    vector<int> rench_loc_return;
+
+    rench_loc_return = rench_loc_list;
+
+    mtx_ssd.unlock();
+    return rench_loc_return;
+
+}
+
+int* CSSD::GetRenchLocListArr()
+{
+    return rench_loc_list_arr;
 }
 
 /* Load the mean file in binaryproto format. */

@@ -157,9 +157,9 @@ private:
     double velodyne_range = 100.0;
     VELODYNE_MODE velodyne_mode = VELODYNE_MODE_DRIVING;
 
-    vector<vector<double>> arena_default_info = {{0,-10},{-50,-10},{-50,5},{0,5}};
-    vector<vector<double>> arena_info = {{0,-10},{-50,-10},{-50,5},{0,5}};
-    vector<vector<double>> rotated_arena_info = {{0,-10},{-50,-10},{-50,5},{0,5}};
+    vector<vector<double>> arena_default_info = {{-10,-7},{-21,-7},{-21,7},{-10,7}};
+    vector<vector<double>> arena_info = {{-10,-7},{-21,-7},{-21,7},{-10,7}};
+    vector<vector<double>> rotated_arena_info = {{-10,-7},{-21,-7},{-21,7},{-10,7}};
     double arena_rotation_angle = 0.0; // 0~2PI
     double arena_shift_x = 0.0;
     double arena_shift_y = 0.0;

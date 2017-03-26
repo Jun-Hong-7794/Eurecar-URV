@@ -39,6 +39,7 @@
 #define DRIVE_INX_LRF_VEHICLE_HORIZEN  4
 #define DRIVE_INX_PARKING_RETRY        5
 #define DRIVE_INX_LOCAL_ON_PANE        6
+#define DRIVE_INX_WRENCH_RECOG         7
 
 #define MAX_VEL 200
 #define MAX_VEL_TURN 200
@@ -59,7 +60,7 @@ protected:
 
 public:
     CDriving();
-    CDriving(CIMU* _p_imu, CGPS* _p_gps, CLRF* _p_lrf, CCamera* _p_camera, CKinova* _p_kinova, CVehicle* _p_vehicle, CVelodyne* _p_velodyne, CLMS511* _p_lms511);
+    CDriving(CIMU* _p_imu, CGPS* _p_gps, CLRF* _p_lrf, CCamera* _p_camera, CKinova* _p_kinova, CVehicle* _p_vehicle, CVelodyne* _p_velodyne, CLMS511* _p_lms511, CSSD* _p_ssd);
 
     ~CDriving();
 private:
@@ -71,6 +72,7 @@ private:
     LRF_VEHICLE_HORIZEN_STRUCT mstruct_lrf_vehicle;
     PARKING_RETRY_STRUCT mstruct_parking_retry;
     VEHICLE_LOCALIZATION_ON_PANEL_STRUCT mstruct_local_on_panel;
+    WRENCH_RECOGNITION_STRUCT mstruct_wrench_recog;
     //Mutex
     QMutex mtx_driving_struct;
     QMutex mtx_parking_struct;
@@ -79,8 +81,10 @@ private:
     QMutex mxt_parking_retry;
     QMutex mxt_local_on_panel;
 
+    QMutex mxt_wrench_recog;
+
     // Aerna info
-    vector<vector<double>> m_arena_info = {{0,-10},{-50,-10},{-50,5},{0,5}};
+    vector<vector<double>> m_arena_info = {{-10,-7},{-21,-7},{-21,7},{-10,7}};
     bool arena_aligned_compensate = false;
     bool IMU_update_finished = true;
 
@@ -113,6 +117,7 @@ private:
     bool parking_short = true;
     bool panel_found = true;
 
+
     double m_dist_error_from_p1_km=0.0;
 
     vector<double> euler_angles = {0,0,0};
@@ -136,7 +141,7 @@ private:
     CVelodyne* mpc_velodyne;
     CRGBD* mpc_rgb_d;
     CLMS511* mpc_lms511;
-
+    CSSD* mpc_ssd;
 
 public:
 
@@ -186,6 +191,9 @@ public:
     void SetManipulationOption(PARKING_RETRY_STRUCT _driving_option);
     void SetManipulationOption(VEHICLE_LOCALIZATION_ON_PANEL_STRUCT _driving_option);
 
+    void SetManipulationOption(WRENCH_RECOGNITION_STRUCT _driving_option);
+    WRENCH_RECOGNITION_STRUCT GetWrenchRecogOption();
+
     vector<double> GetWaypointError(double _way_x,double _way_y);
 
     int GetParkingControl(vector<double> _waypoint_error);
@@ -210,11 +218,13 @@ public:
     bool ParkingFrontPanel(double _bias);
     double LrfParkingDistnaceCheck(double _desirable_dist);
     double DriveByVelodyne(double _desirable_pos);
+    double DriveByRenchRecog(int _rench_index, double _dist_to_panel = 0);
 
     void ParkingDistanceControl();
     void ParkingDistanceControl(double _bias);
 
     void LocalizationOnPanel();
+    void WRenchRecog();
 
     int VelGen(double);
     int VelGen_turn_left();
@@ -224,6 +234,8 @@ public:
     int VelGen_parking_turn_right();
 
     int VelGen_panel_dist_error(double _dist_error);
+
+    int VelGen_Cnt(int _cnt, bool _update,int _thres);
 
     bool ParkingRetry();
 
@@ -238,6 +250,9 @@ public:
     double CalcDistErrorToCheckPoint(double _dist_m);
 
     bool DrivingMissionManager();
+
+
+    int vel_tick = 0;
 
 
 

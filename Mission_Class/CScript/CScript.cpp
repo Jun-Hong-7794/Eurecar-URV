@@ -425,6 +425,13 @@ bool CScript::InterpreteMissionScriptLine(QString _line, MISSION_SCRIPT* _missio
             return true;
     }
 
+
+    if(_line.contains("DRIVE_BY_WRENCH_RECOG")){
+        if(InterpreteDriveByWrenchRecog(_line, _step_info))
+            return true;
+        else
+            return false;
+    }
     if(_line.contains("CONDITIONALLY_ITERATION")){
         if(InterpreteConditionallyIterate(_line, _step_info))
             return true;
@@ -566,6 +573,15 @@ bool CScript::InterpreteMissionScriptLine(QString _line, MISSION_SCRIPT* _missio
         else
             return false;
     }
+    if(_line.contains("KINOVA_BY_WRENCH_RECOG")){
+
+        if(InterpreteKinovaByWrenchRecog(_line, _step_info))
+            return true;
+        else
+            return false;
+    }
+
+
 
     if(_line.contains("LRF_V_HORIZEN_CTRL")){
 
@@ -865,6 +881,27 @@ bool CScript::InterpreteLocalValue(QString _line, MISSION_SCRIPT* _mission_scrip
 
     return true;
 }
+bool CScript::InterpreteDriveByWrenchRecog(QString _line, STEP_INFO& _step_info){
+
+    if(_line.contains("DRIVE_BY_WRENCH_RECOG_STRUCT")){
+        if(_line.contains("desired_wrench_index")){
+            int colone_index = _line.indexOf("=");
+            _step_info.driving_option.wrench_recog_option.str_desired_wrench_index = _line.mid(colone_index + 1).trimmed();
+            return true;
+        }
+        if(_line.contains("lrf_v_dst")){
+            int colone_index = _line.indexOf("=");
+            _step_info.driving_option.wrench_recog_option.str_lrf_v_dst = _line.mid(colone_index + 1).trimmed();
+            return true;
+        }
+    }
+
+    else if(_line.contains("DRIVE_BY_WRENCH_RECOG_FUNCTION")){
+        _step_info.function_index = DR_WRENCH_RECOG ;
+    }
+    return true;
+
+}
 
 bool CScript::InterpreteVehicleDriveToPanel(QString _line, STEP_INFO& _step_info){
 
@@ -969,7 +1006,6 @@ bool CScript::InterpreteVehicleDriveToPanel(QString _line, STEP_INFO& _step_info
 }
 bool CScript::InterpreteVehicleLocalizationOnPanel(QString _line, STEP_INFO& _step_info){
 
-
     if(_line.contains("VEHICLE_LOCALIZATION_ON_PANEL_STRUCT")){
         if(_line.contains("desired_h_dst")){
             int colone_index = _line.indexOf("=");
@@ -981,8 +1017,6 @@ bool CScript::InterpreteVehicleLocalizationOnPanel(QString _line, STEP_INFO& _st
     else if(_line.contains("VEHICLE_LOCALIZATION_ON_PANEL_FUNCTION")){
         _step_info.function_index = DR_LOCALIZATION ;
     }
-    return true;
-
     return true;
 }
 
@@ -2233,6 +2267,24 @@ bool CScript::InterpreteLRFVAngleCtrl(QString _line, STEP_INFO& _step_info){
     return true;
 }
 
+bool CScript::InterpreteKinovaByWrenchRecog(QString _line, STEP_INFO& _step_info){
+
+    if(_line.contains("KINOVA_BY_WRENCH_RECOG_STRUCT")){
+
+        if(_line.contains("desired_wrench_index")){
+            int colone_index = _line.indexOf("=");
+            _step_info.manipulation_option.wrench_searching_option.str_desired_wrench_index = _line.mid(colone_index + 1).trimmed();
+            return true;
+        }
+    }
+    else if(_line.contains("KINOVA_BY_WRENCH_RECOG_FUNCTION")){
+        _step_info.function_index = MP_KINOVA_WRENCH_SEARCHING;
+    }
+    else
+        return false;
+}
+
+
 bool CScript::InterpreteKinovaCurrentPosition(QString _line, STEP_INFO& _step_info){
 
     if(_line.contains("KINOVA_CURRENT_POSITION_STRUCT")){
@@ -3287,6 +3339,20 @@ bool CScript::MissionPlayer(){
                 while(mpc_drivig->isRunning());
             }
 
+            if(mpary_mission_script[i].step_vecor.at(j).function_index == DR_WRENCH_RECOG){
+
+                QString str_index;
+                str_index = mpary_mission_script[i].step_vecor.at(j).driving_option.wrench_recog_option.str_desired_wrench_index;
+
+                mpary_mission_script[i].step_vecor.at(j).driving_option.wrench_recog_option.desired_wrench_index =
+                        InterpreteIntVariable(str_index, mpary_mission_script[i]);
+
+                mpc_drivig->SetManipulationOption(mpary_mission_script[i].step_vecor.at(j).driving_option.wrench_recog_option);
+                mpc_drivig->SelectMainFunction(DRIVE_INX_WRENCH_RECOG);
+
+                while(mpc_drivig->isRunning());
+            }
+
             if(mpary_mission_script[i].step_vecor.at(j).function_index == DR_VEHICLE_DRIVE_TO_PANEL){
                 mpc_drivig->SetDrivingOption(mpary_mission_script[i].step_vecor.at(j).driving_option.driving_option);
                 mpc_drivig->SelectMainFunction(DRIVE_INX_DRIVE_TO_PANEL);
@@ -3385,6 +3451,20 @@ bool CScript::MissionPlayer(){
             if(mpary_mission_script[i].step_vecor.at(j).function_index == MP_LRF_V_ANGLE_CONTROL){
                 mpc_manipulation->SetManipulationOption(mpary_mission_script[i].step_vecor.at(j).manipulation_option.lrf_v_a_ctrl_struct);
                 mpc_manipulation->SelectMainFunction(MANIPUL_INX_LRF_V_ANGLE_CTRL);
+
+                while(mpc_manipulation->isRunning());
+            }
+
+            if(mpary_mission_script[i].step_vecor.at(j).function_index == MP_KINOVA_WRENCH_SEARCHING){
+
+                QString str_index;
+                str_index = mpary_mission_script[i].step_vecor.at(j).manipulation_option.wrench_searching_option.str_desired_wrench_index;
+
+                mpary_mission_script[i].step_vecor.at(j).manipulation_option.wrench_searching_option.desired_wrench_index =
+                        InterpreteIntVariable(str_index, mpary_mission_script[i]);
+
+                mpc_manipulation->SetManipulationOption(mpary_mission_script[i].step_vecor.at(j).manipulation_option.wrench_searching_option);
+                mpc_manipulation->SelectMainFunction(MANIPUL_INX_WRENCH_SEARCHING);
 
                 while(mpc_manipulation->isRunning());
             }

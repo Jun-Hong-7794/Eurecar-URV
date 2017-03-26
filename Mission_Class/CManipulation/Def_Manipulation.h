@@ -570,6 +570,13 @@ typedef struct _Kinova_Current_Position{
 
 }KINOVA_CURRENT_POSITION;
 
+typedef struct _Kinova_Wrench_Searching{
+
+    QString str_desired_wrench_index;
+    int desired_wrench_index;
+
+}KINOVA_WRENCH_SEARCHING;
+
 typedef struct _Wrench_Recognition{
 
     bool wrench_recognition_mission;
@@ -645,6 +652,8 @@ typedef struct _Manipulation_Option{
     GRIPPER_MAGNET_CTRL_STRUCT gripper_magnet_option;
 
     WRENCH_RECOGNITION wrench_recognition_option;
+
+    KINOVA_WRENCH_SEARCHING wrench_searching_option;
 
 }MANIPULATION_OPTION;
 

@@ -79,6 +79,7 @@ public:
     bool ActiveMagnet(bool _on_off);
     int GetVel();
 
+
 public slots:
     void SlotVehicleHeading(double _heading);
 

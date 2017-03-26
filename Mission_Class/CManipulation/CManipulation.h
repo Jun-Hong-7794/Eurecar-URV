@@ -69,6 +69,7 @@
 #define MANIPUL_INX_GRIPPER_FIND_VALVE_LOCATION 27
 
 #define MANIPUL_INX_KINOVA_POSITION             28
+#define MANIPUL_INX_WRENCH_SEARCHING            29
 
 class CManipulation:public QThread{
     Q_OBJECT
@@ -185,6 +186,9 @@ private:
 
     KINOVA_CURRENT_POSITION mstruct_kinova_current_position;
     QMutex mxt_kinova_current_position;
+
+    KINOVA_WRENCH_SEARCHING mstruct_wrench_searching;
+    QMutex mxt_wrench_searching;
 
     //-------------------------------------------------
     // ElementTech Class
@@ -337,6 +341,9 @@ public:
     void SetManipulationOption(KINOVA_CURRENT_POSITION _manipulation_option);
     KINOVA_CURRENT_POSITION GetKinovaCurrentPosition();
 
+    void SetManipulationOption(KINOVA_WRENCH_SEARCHING _manipulation_option);
+    KINOVA_WRENCH_SEARCHING GetKinovaWrenchSearching();
+
     //---------------Vehicle---------------//
     void SetManipulationOption(LRF_V_A_CTRL_STRUCT _manipulation_option);
     LRF_V_A_CTRL_STRUCT GetLRFVAngleCtrlOption();
@@ -439,6 +446,8 @@ private:
     bool LRFV_HCtrl();
 
     bool KinovaCurrentPosition();
+
+    bool KinovaWrenchSearching();
     /*----------------------------*/
 
     bool KinovaForceCtrl();

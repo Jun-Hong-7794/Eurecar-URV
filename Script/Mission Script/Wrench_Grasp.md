@@ -7,15 +7,6 @@
 
 global_bool gb_froce_check = false;
 
-global_double gd_standard_x = 0;
-global_double gd_standard_y = 0;
-global_double gd_standard_z = 0;
-
-## Step1: Vehicle Moving
-
-VEHICLE_LOCALIZATION_ON_PANEL_STRUCT.desired_h_dst = 0.9
-VEHICLE_LOCALIZATION_ON_PANEL_FUNCTION()
-
 ## Step0: Align to Panel
 
 KINOVA_ALIGN_TO_PANEL.do_init_motion = false
@@ -71,15 +62,8 @@ LRF_K_VERTICAL_CTRL_FUNCTION()
 
 A_Sleep(500)
 
-## Step4: Vehicle Horizen Control(Hanger Index < 4)
-IF(gi_wrench_hanger_index < 4)
-/*>
-VEHICLE_LOCALIZATION_ON_PANEL_STRUCT.desired_h_dst = 0.8
-VEHICLE_LOCALIZATION_ON_PANEL_FUNCTION()
-A_Sleep(500)
-## Step4: Vehicle Horizen Control(Hanger Index > 3)
-IF(gi_wrench_hanger_index > 3)
-/*>
+
+## Step4: Vehicle Horizen Control(Hanger Index > 4)
 
 LRF_V_HORIZEN_CTRL_STRUCT.mode = 3
 
@@ -98,9 +82,82 @@ LRF_V_HORIZEN_CTRL_FUNCTION()
 
 A_Sleep(500)
 
+## Step5: KINOVA Angle Control(New, Using Dynamixel Pro-LRF)
+/* mode =2 => Left
+/* mode =3 => Right
+LRF_K_ANGLE_CTRL_STRUCT.mode = 3
+
+LRF_K_ANGLE_CTRL_STRUCT.error = 0.3
+LRF_K_ANGLE_CTRL_STRUCT.desired_angle = -0
+
+LRF_K_ANGLE_CTRL_STRUCT.inlier_lrf_dst = 1100
+
+LRF_K_ANGLE_CTRL_STRUCT.s_deg = 10
+LRF_K_ANGLE_CTRL_STRUCT.e_deg = 170
+
+LRF_K_ANGLE_CTRL_STRUCT.unit_deg = 0.8
+
+LRF_K_ANGLE_CTRL_STRUCT.loop_sleep = 30
+
+LRF_K_ANGLE_CTRL_FUNCTION()
+
+A_Sleep(1000)
+
+## Step6: LRF-Kinova Vertical CTRL(NEW)
+
+LRF_K_VERTICAL_CTRL_STRUCT.mode = 3
+
+LRF_K_VERTICAL_CTRL_STRUCT.force_option = false
+LRF_K_VERTICAL_CTRL_STRUCT.only_sensing_moving = true
+
+LRF_K_VERTICAL_CTRL_STRUCT.desired_v_dst = 300
+LRF_K_VERTICAL_CTRL_STRUCT.error = 2
+
+LRF_K_VERTICAL_CTRL_STRUCT.s_deg = 10
+LRF_K_VERTICAL_CTRL_STRUCT.e_deg = 170
+
+LRF_K_VERTICAL_CTRL_STRUCT.inlier_lrf_dst = 1100
+
+LRF_K_VERTICAL_CTRL_STRUCT.loop_sleep = 30
+
+LRF_K_VERTICAL_CTRL_FUNCTION()
+
+A_Sleep(500)
+
+## Step8: LRF-Kinova Horizen CTRL(NEW)
+IF(gi_wrench_hanger_index == 4)
+LRF_K_HORIZEN_CTRL_STRUCT.mode = 3
+
+LRF_K_HORIZEN_CTRL_STRUCT.only_sensing_moving = false
+
+LRF_K_HORIZEN_CTRL_STRUCT.wrench_hanger_index = 5
+
+LRF_K_HORIZEN_CTRL_STRUCT.wrench_location_1 = 704 
+LRF_K_HORIZEN_CTRL_STRUCT.wrench_location_2 = 754 
+LRF_K_HORIZEN_CTRL_STRUCT.wrench_location_3 = 804 
+LRF_K_HORIZEN_CTRL_STRUCT.wrench_location_4 = 857
+LRF_K_HORIZEN_CTRL_STRUCT.wrench_location_5 = 900 
+LRF_K_HORIZEN_CTRL_STRUCT.wrench_location_6 = 950
+
+LRF_K_HORIZEN_CTRL_STRUCT.desired_h_dst = 0
+
+LRF_K_HORIZEN_CTRL_STRUCT.error = 3
+
+LRF_K_HORIZEN_CTRL_STRUCT.s_deg = 10 
+LRF_K_HORIZEN_CTRL_STRUCT.e_deg = 170
+
+LRF_K_HORIZEN_CTRL_STRUCT.inlier_lrf_dst = 800
+
+LRF_K_HORIZEN_CTRL_STRUCT.loop_sleep = 30 
+
+LRF_K_HORIZEN_CTRL_FUNCTION()
+
+A_Sleep(500)
+
+## Step8: LRF-Kinova Horizen CTRL(NEW)
+IF(gi_wrench_hanger_index == 4)
 ## Step7: Kinova Arm Go Right
-IF(gi_wrench_hanger_index < 4)
-/*>
+
 KINOVA_MANIPULATE_STRUCT.mode = 2
 
 KINOVA_MANIPULATE_STRUCT.x = ==
@@ -118,121 +175,8 @@ KINOVA_MANIPULATE_FUNCTION()
 A_Sleep(1000)
 
 
-## Step4: KINOVA Angle Control(New, Using Dynamixel Pro-LRF)
-/* mode =2 => Left
-LRF_K_ANGLE_CTRL_STRUCT.mode = 3
-
-LRF_K_ANGLE_CTRL_STRUCT.error = 0.3
-LRF_K_ANGLE_CTRL_STRUCT.desired_angle = 0
-
-LRF_K_ANGLE_CTRL_STRUCT.inlier_lrf_dst = 1100
-
-LRF_K_ANGLE_CTRL_STRUCT.s_deg = 10
-LRF_K_ANGLE_CTRL_STRUCT.e_deg = 170
-
-LRF_K_ANGLE_CTRL_STRUCT.unit_deg = 0.8
-
-LRF_K_ANGLE_CTRL_STRUCT.loop_sleep = 30
-
-LRF_K_ANGLE_CTRL_FUNCTION()
-
-A_Sleep(1000)
-
-## Step5: LRF-Kinova Vertical CTRL(NEW)
-
-LRF_K_VERTICAL_CTRL_STRUCT.mode = 3
-
-LRF_K_VERTICAL_CTRL_STRUCT.force_option = false
-LRF_K_VERTICAL_CTRL_STRUCT.only_sensing_moving = true
-
-LRF_K_VERTICAL_CTRL_STRUCT.desired_v_dst = 275
-LRF_K_VERTICAL_CTRL_STRUCT.error = 2
-
-LRF_K_VERTICAL_CTRL_STRUCT.s_deg = 10
-LRF_K_VERTICAL_CTRL_STRUCT.e_deg = 170
-
-LRF_K_VERTICAL_CTRL_STRUCT.inlier_lrf_dst = 1100
-
-LRF_K_VERTICAL_CTRL_STRUCT.loop_sleep = 30
-
-LRF_K_VERTICAL_CTRL_FUNCTION()
-
-A_Sleep(500)
-
-
-## Step7: LRF-Kinova Horizen Move to Wrench Hanger CTRL(NEW) Index < 4
-IF(gi_wrench_hanger_index < 4)
-/*>
-LRF_K_HORIZEN_CTRL_STRUCT.mode = 3
-
-LRF_K_HORIZEN_CTRL_STRUCT.only_sensing_moving = false
-
-LRF_K_HORIZEN_CTRL_STRUCT.wrench_hanger_index = 4
-
-LRF_K_HORIZEN_CTRL_STRUCT.wrench_location_1 = 704 
-LRF_K_HORIZEN_CTRL_STRUCT.wrench_location_2 = 754 
-LRF_K_HORIZEN_CTRL_STRUCT.wrench_location_3 = 804 
-LRF_K_HORIZEN_CTRL_STRUCT.wrench_location_4 = 857
-LRF_K_HORIZEN_CTRL_STRUCT.wrench_location_5 = 900 
-LRF_K_HORIZEN_CTRL_STRUCT.wrench_location_6 = 950
-
-LRF_K_HORIZEN_CTRL_STRUCT.desired_h_dst = 0
-
-LRF_K_HORIZEN_CTRL_STRUCT.error = 3
-
-LRF_K_HORIZEN_CTRL_STRUCT.s_deg = 10 
-LRF_K_HORIZEN_CTRL_STRUCT.e_deg = 170
-
-LRF_K_HORIZEN_CTRL_STRUCT.inlier_lrf_dst = 800
-
-LRF_K_HORIZEN_CTRL_STRUCT.loop_sleep = 30 
-
-LRF_K_HORIZEN_CTRL_FUNCTION()
-
-A_Sleep(500)
-
-## Step11: Get Kinova Y Pose(Wrench INdex 1)
-IF(gi_wrench_hanger_index < 4)
-/*>
-B_Sleep(1000)
-KINOVA_CURRENT_POSITION_STRUCT.x = gd_standard_x
-KINOVA_CURRENT_POSITION_STRUCT.y = gd_standard_y
-KINOVA_CURRENT_POSITION_STRUCT.z = gd_standard_z
-
-KINOVA_CURRENT_POSITION_FUNCTION()
-A_Sleep(500)
-
-## Step7: LRF-Kinova Horizen Move to Wrench Hanger CTRL(NEW) Index < 3
-IF(gi_wrench_hanger_index < 4)
-/*>
-LRF_K_HORIZEN_CTRL_STRUCT.mode = 4
-
-LRF_K_HORIZEN_CTRL_STRUCT.only_sensing_moving = false
-LRF_K_HORIZEN_CTRL_STRUCT.kinova_current_y = gd_standard_y
-LRF_K_HORIZEN_CTRL_STRUCT.wrench_hanger_index = gi_wrench_hanger_index
-
-LRF_K_HORIZEN_CTRL_STRUCT.wrench_location_1 = 0.15 
-LRF_K_HORIZEN_CTRL_STRUCT.wrench_location_2 = 0.10 
-LRF_K_HORIZEN_CTRL_STRUCT.wrench_location_3 = 0.05 
-
-LRF_K_HORIZEN_CTRL_STRUCT.desired_h_dst = 0
-
-LRF_K_HORIZEN_CTRL_STRUCT.error = 3
-
-LRF_K_HORIZEN_CTRL_STRUCT.s_deg = 10 
-LRF_K_HORIZEN_CTRL_STRUCT.e_deg = 170
-
-LRF_K_HORIZEN_CTRL_STRUCT.inlier_lrf_dst = 800
-
-LRF_K_HORIZEN_CTRL_STRUCT.loop_sleep = 30 
-
-LRF_K_HORIZEN_CTRL_FUNCTION()
-
-A_Sleep(1000)
-
-## Step7: LRF-Kinova Horizen Move to Wrench Hanger CTRL(NEW) Index > 4
-IF(gi_wrench_hanger_index > 3)
-/*>
+## Step8: LRF-Kinova Horizen CTRL(NEW)
+IF(gi_wrench_hanger_index > 4)
 LRF_K_HORIZEN_CTRL_STRUCT.mode = 3
 
 LRF_K_HORIZEN_CTRL_STRUCT.only_sensing_moving = false
@@ -259,9 +203,9 @@ LRF_K_HORIZEN_CTRL_STRUCT.loop_sleep = 30
 
 LRF_K_HORIZEN_CTRL_FUNCTION()
 
-A_Sleep(1000)
+A_Sleep(500)
 
-## Step8: Kinova Arm Down 
+## Step9: Kinova Arm Down 
 /*<
 IF(gi_valve_size > 19)
 
@@ -279,7 +223,7 @@ KINOVA_MANIPULATE_FUNCTION()
 
 A_Sleep(1000)
 
-## Step8: Kinova Arm Down 
+## Step10: Kinova Arm Down 
 IF(gi_valve_size < 22)
 /*>
 KINOVA_MANIPULATE_STRUCT.x = ==
@@ -296,14 +240,14 @@ KINOVA_MANIPULATE_FUNCTION()
 
 A_Sleep(1000)
 
-## Step9: Magnet On
+## Step11: Magnet On
 
 GRIPPER_MAGNET_CTRL_STRUCT.fl_magnet = true
 
 GRIPPER_MAGNET_CTRL_FUNCTION()
 A_Sleep(1000)
 
-## Step5: LRF-Kinova Go Forward
+## Step12: LRF-Kinova Go Forward
 
 LRF_K_VERTICAL_CTRL_STRUCT.mode = 3
 
@@ -329,36 +273,25 @@ LRF_K_VERTICAL_CTRL_FUNCTION()
 
 A_Sleep(2000)
 
-## Step5: LRF-Kinova Backward
+## Step11: Kinova Arm Go Back
 
-LRF_K_VERTICAL_CTRL_STRUCT.mode = 3
+KINOVA_MANIPULATE_STRUCT.mode = 2
 
-LRF_K_VERTICAL_CTRL_STRUCT.only_sensing_moving = false
+KINOVA_MANIPULATE_STRUCT.x = --0.10
+KINOVA_MANIPULATE_STRUCT.y = ==
+KINOVA_MANIPULATE_STRUCT.z = ==
 
-LRF_K_VERTICAL_CTRL_STRUCT.desired_v_dst = 270
-LRF_K_VERTICAL_CTRL_STRUCT.error = 2
+KINOVA_MANIPULATE_STRUCT.roll = 2.1374
+KINOVA_MANIPULATE_STRUCT.pitch = 1.6015
+KINOVA_MANIPULATE_STRUCT.yaw = -2.2821
 
-LRF_K_VERTICAL_CTRL_STRUCT.s_deg = 10
-LRF_K_VERTICAL_CTRL_STRUCT.e_deg = 170
+KINOVA_MANIPULATE_STRUCT.force_threshold = 10
 
-LRF_K_VERTICAL_CTRL_STRUCT.inlier_lrf_dst = 1100
+KINOVA_MANIPULATE_FUNCTION()
 
-LRF_K_VERTICAL_CTRL_STRUCT.loop_sleep = 30
+A_Sleep(1000)
 
-LRF_K_VERTICAL_CTRL_FUNCTION()
-
-A_Sleep(500)
-
-##Step12: Wrench Check!
-
-KINOVA_FORCE_CHECK_STRUCT.force_threshold_x = 0
-KINOVA_FORCE_CHECK_STRUCT.force_threshold_y = 0
-KINOVA_FORCE_CHECK_STRUCT.force_threshold_z = 6.5
-
-KINOVA_FORCE_CHECK_STRUCT. = check_threshold = 75
-KINOVA_FORCE_CHECK_STRUCT.check_count = 100
-
-gb_froce_check = KINOVA_FORCE_CHECK_FUNCTION()
+##Step14: Grasp - 1
 
 GRIPPER_FORCE_CTRL_STRUCT.pose_1 = 1800
 GRIPPER_FORCE_CTRL_STRUCT.pose_2 = 1900
@@ -368,7 +301,7 @@ GRIPPER_FORCE_CTRL_FUNCTION()
 
 A_Sleep(500)
 
-## Step13: Grasp
+## Step15: Grasp - 2
 
 GRIPPER_FORCE_CTRL_STRUCT.pose_1 = 1570
 GRIPPER_FORCE_CTRL_STRUCT.pose_2 = 1570
@@ -378,7 +311,7 @@ GRIPPER_FORCE_CTRL_FUNCTION()
 
 A_Sleep(500)
 
-## Step18: Gripper Release
+## Step16: Gripper Release
 
 GRIPPER_GO_TO_REL_POSE_STRUCT.pose_1 = 30
 GRIPPER_GO_TO_REL_POSE_STRUCT.pose_2 = 30
@@ -387,14 +320,8 @@ GRIPPER_GO_TO_REL_POSE_FUNCTION()
 
 A_Sleep(500)
 
-## Step9: Magnet On
 
-GRIPPER_MAGNET_CTRL_STRUCT.fl_magnet = true
-GRIPPER_MAGNET_CTRL_FUNCTION()
-
-A_Sleep(500)
-
-## Step13: Grasp2
+## Step17: Grasp2
 
 GRIPPER_FORCE_CTRL_STRUCT.pose_1 = 1570
 GRIPPER_FORCE_CTRL_STRUCT.pose_2 = 1570
@@ -404,8 +331,7 @@ GRIPPER_FORCE_CTRL_FUNCTION()
 
 A_Sleep(500)
 
-
-## Step14: Align to Panel
+## Step18: Align to Panel
 KINOVA_ALIGN_TO_PANEL.do_init_motion = false
 KINOVA_ALIGN_TO_PANEL_FUNCTION()
 

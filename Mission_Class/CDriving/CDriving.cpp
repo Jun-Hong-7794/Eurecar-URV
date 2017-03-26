@@ -40,7 +40,7 @@ CDriving::CDriving(){
 
 }
 
-CDriving::CDriving(CIMU* _p_imu, CGPS* _p_gps, CLRF* _p_lrf, CCamera* _p_camera, CKinova* _p_kinova, CVehicle* _p_vehicle, CVelodyne* _p_velodyne, CLMS511* _p_lms511){
+CDriving::CDriving(CIMU* _p_imu, CGPS* _p_gps, CLRF* _p_lrf, CCamera* _p_camera, CKinova* _p_kinova, CVehicle* _p_vehicle, CVelodyne* _p_velodyne, CLMS511* _p_lms511, CSSD* _p_ssd){
 
     qRegisterMetaType<vector<double>>("vector<double>");
     qRegisterMetaType<mip_filter_linear_acceleration>("mip_filter_linear_acceleration");
@@ -54,6 +54,7 @@ CDriving::CDriving(CIMU* _p_imu, CGPS* _p_gps, CLRF* _p_lrf, CCamera* _p_camera,
     mpc_vehicle = _p_vehicle;
     mpc_velodyne = _p_velodyne;
     mpc_lms511 = _p_lms511;
+    mpc_ssd = _p_ssd;
 
     mpc_rgb_d = new CRGBD(_p_lrf);
 
@@ -367,6 +368,12 @@ bool CDriving::SelectMainFunction(int _fnc_index_){
 
         return true;
     }
+    else if(_fnc_index_ == DRIVE_INX_WRENCH_RECOG){
+        m_main_fnc_index = DRIVE_INX_WRENCH_RECOG;
+        this->start();
+
+        return true;
+    }
     else
         return false;
 }
@@ -467,6 +474,28 @@ void CDriving::SetManipulationOption(PARKING_RETRY_STRUCT _driving_option){
         mstruct_parking_retry = _driving_option;
     }
     mxt_parking_retry.unlock();
+}
+
+void CDriving::SetManipulationOption(WRENCH_RECOGNITION_STRUCT _driving_option){
+
+    mxt_wrench_recog.lock();
+    {
+        mstruct_wrench_recog = _driving_option;
+    }
+    mxt_wrench_recog.unlock();
+}
+
+WRENCH_RECOGNITION_STRUCT CDriving::GetWrenchRecogOption(){
+
+    WRENCH_RECOGNITION_STRUCT wrench_recog;
+
+    mxt_wrench_recog.lock();
+    {
+        wrench_recog = mstruct_wrench_recog;
+    }
+    mxt_wrench_recog.unlock();
+
+    return wrench_recog;
 }
 
 
@@ -754,7 +783,7 @@ bool CDriving::DriveToPanel(){
     cout << "Driving Start " << endl;
     mpc_velodyne->SetVelodyneMode(VELODYNE_MODE_DRIVING);
 
-    if(!InitialSearching(10))
+    if(!InitialSearching(30))
     {
         return false;
     }
@@ -2461,6 +2490,119 @@ double CDriving::DriveByVelodyne(double _desirable_pos)
     return control_err;
 }
 
+
+double CDriving::DriveByRenchRecog(int _rench_index, double _dist_to_panel)
+{
+
+    DRIVING_STRUCT driving_struct;
+
+    vector<int> rench_recog_list;
+
+    double rench_desirable_differ_current = _rench_index;
+
+    int max_rench_cnt = 0;
+    long vel_up_cnt = 0;
+    bool new_rench_update = false;
+    do{
+
+        rench_recog_list = mpc_ssd->GetRenchLocList();
+        if (max_rench_cnt < (int)rench_recog_list.size())
+        {
+            new_rench_update = true;
+            vel_up_cnt = 0;
+            max_rench_cnt = (int)rench_recog_list.size();
+        }
+        else if((int)rench_recog_list.size() <= max_rench_cnt)
+        {
+            new_rench_update = false;
+            vel_up_cnt++;
+        }
+
+        if(rench_recog_list.size() == 0)
+        {
+            driving_struct.direction = UGV_move_forward;
+//            driving_struct.velocity = 45;
+            driving_struct.velocity = VelGen_Cnt(vel_up_cnt,new_rench_update,500);
+            mpc_vehicle->Move(driving_struct.direction, driving_struct.velocity);
+//            Sleep(3);
+            continue;
+        }
+
+
+
+        bool recog_err = false;
+        if(rench_recog_list.size() >= 2)
+        {
+            for(int rench_index = 0; rench_index < (rench_recog_list.size()-1);rench_index++)
+            {
+                double rench_distance = rench_recog_list.at(rench_index + 1) - rench_recog_list.at(rench_index);
+                if( (rench_distance > 250) ||  (rench_distance < 50))
+                {
+                    recog_err = true;
+                }
+            }
+        }
+
+
+        if (recog_err)
+            continue;
+
+
+        rench_desirable_differ_current = (int)_rench_index - (int)rench_recog_list.size();
+
+        if(rench_desirable_differ_current > 0)
+        {
+            driving_struct.direction = UGV_move_forward;
+        }
+        else
+        {
+            driving_struct.direction = UGV_move_backward;
+        }
+
+//        if(vel_tick % 10 == 0)
+//            driving_struct.velocity = 200;
+//        else
+//            driving_struct.velocity = 0;
+
+//        vel_tick++;
+
+//        driving_struct.velocity = 45;
+        driving_struct.velocity = VelGen_Cnt(vel_up_cnt,new_rench_update,20);
+        mpc_vehicle->Move(driving_struct.direction, driving_struct.velocity);
+//        Sleep(30);
+    }while(rench_desirable_differ_current != 0);
+
+//    driving_struct.velocity = 0;
+    mpc_vehicle->Move(1,0);
+}
+
+
+int CDriving::VelGen_Cnt(int _cnt, bool _update, int _thres)
+{
+    int min_vel = 30;
+    int max_vel = 100;
+    int velocity = 0;
+    int cnt_thres = _thres;
+
+    if(_update == true)
+    {
+        velocity = min_vel;
+    }
+    else if(_update == false && _cnt >= cnt_thres)
+    {
+        velocity = mpc_vehicle -> GetVel();
+        if(velocity == 0)
+        {
+            velocity = 30;
+        }
+        else
+            velocity++;
+    }
+
+    return velocity;
+
+}
+
 void CDriving::ParkingDistanceControl()
 {
     DRIVING_STRUCT driving_struct;
@@ -2788,6 +2930,13 @@ void CDriving::ParkingDistanceControl()
     }
 
     Sleep(1000);
+}
+
+void CDriving::WRenchRecog(){
+
+    WRENCH_RECOGNITION_STRUCT wrench_gecog = GetWrenchRecogOption();
+
+    DriveByRenchRecog(wrench_gecog.desired_wrench_index, wrench_gecog.lrf_v_dst);
 }
 
 void CDriving::LocalizationOnPanel(){
@@ -3938,6 +4087,9 @@ void CDriving::run(){
         break;
     case DRIVE_INX_LOCAL_ON_PANE:
         LocalizationOnPanel();
+        break;
+    case DRIVE_INX_WRENCH_RECOG:
+        WRenchRecog();
         break;
     default:
         break;

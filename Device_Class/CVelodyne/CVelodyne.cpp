@@ -1978,7 +1978,7 @@ bool CVelodyne::SetLRFDataToPCL(long *_lrf_data,int _num_of_points)
     mpc_pcl->lrf_cloud->clear();
     for(int i = 0;i<_num_of_points;i++)
     {
-        if((_lrf_data[i] <= 3500)&& (_lrf_data[i] >= 30))
+        if((_lrf_data[i] <= 2800)&& (_lrf_data[i] >= 30))
         {
 
 

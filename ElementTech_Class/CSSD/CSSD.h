@@ -16,6 +16,8 @@ class CSSD {
            const string& mean_value);
 
   vector<vector<int>> GetSSDImage(cv::Mat& _org_image);
+  vector<int> GetRenchLocList();
+  int* GetRenchLocListArr();
 
  private:
   std::string mstr_model_path;
@@ -38,6 +40,10 @@ class CSSD {
   cv::Size input_geometry_;
   int num_channels_;
   cv::Mat mean_;
+
+  vector<int> rench_loc_list;
+  int rench_loc_list_arr[6] = {0, 0, 0, 0, 0, 0};
+
 };
 
 

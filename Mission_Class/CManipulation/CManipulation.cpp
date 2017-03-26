@@ -395,6 +395,12 @@ bool CManipulation::SelectMainFunction(int _fnc_index_){
         return false;
     }
 
+    if(_fnc_index_ == MANIPUL_INX_WRENCH_SEARCHING){
+        m_main_fnc_index = MANIPUL_INX_WRENCH_SEARCHING;
+        this->start();
+
+        return true;
+    }
     if(_fnc_index_ == MANIPUL_INX_KINOVA_INIT_MOTION){
         m_main_fnc_index = MANIPUL_INX_KINOVA_INIT_MOTION;
         this->start();
@@ -723,6 +729,28 @@ KINOVA_CURRENT_POSITION CManipulation::GetKinovaCurrentPosition(){
        kinova_struct = mstruct_kinova_current_position;
     }
     mxt_kinova_current_position.unlock();
+
+    return kinova_struct;
+}
+
+void CManipulation::SetManipulationOption(KINOVA_WRENCH_SEARCHING _manipulation_option){
+
+    mxt_wrench_searching.lock();
+    {
+       mstruct_wrench_searching = _manipulation_option;
+    }
+    mxt_wrench_searching.unlock();
+}
+
+KINOVA_WRENCH_SEARCHING CManipulation::GetKinovaWrenchSearching(){
+
+    KINOVA_WRENCH_SEARCHING kinova_struct;
+
+    mxt_wrench_searching.lock();
+    {
+       kinova_struct = mstruct_wrench_searching;
+    }
+    mxt_wrench_searching.unlock();
 
     return kinova_struct;
 }
@@ -2401,6 +2429,54 @@ bool CManipulation::LRFV_ACtrl(){
     return true;
 }
 
+bool CManipulation::KinovaWrenchSearching(){
+
+    KINOVA_WRENCH_SEARCHING kinova_struct = GetKinovaWrenchSearching();
+
+    int wrench_index =
+    kinova_struct.desired_wrench_index;
+
+    do{
+        if(mpc_ssd->GetRenchLocList().size() > wrench_index){
+            KinovaMoveUnitStepLe();
+            msleep(300);
+        }
+        else
+            break;
+
+    }while(true);
+
+    do{
+        int *wrench_arr;
+        wrench_arr = new int[6];
+        wrench_arr = mpc_ssd->GetRenchLocListArr();
+
+        vector<int> wrench_list = mpc_ssd->GetRenchLocList();
+        if( (wrench_list.size() - (wrench_index - 1)) < 0){
+            std::cout << "No SSD" << std::endl;
+            continue;
+        }
+
+//        vector<iterator> it = wrench_list.begin();
+
+        std::cout << "Wrench Center!!!!!!!!1" << wrench_arr[wrench_index - 1] << std::endl;
+
+        if(wrench_arr[wrench_index - 1] < 660 ){
+            KinovaMoveUnitStepLe();
+            msleep(300);
+        }
+        else if((wrench_arr[wrench_index - 1]) > 690 ){
+            KinovaMoveUnitStepRi();
+            msleep(300);
+        }
+        else
+            break;
+
+    }while(true);
+
+    return true;
+}
+
 bool CManipulation::KinovaCurrentPosition(){
 
     KINOVA_CURRENT_POSITION kinova_struct = GetKinovaCurrentPosition();
@@ -3168,11 +3244,11 @@ bool CManipulation::GripperKinovaFindValveLocation(){
         mpc_kinova->KinovaMoveUnitStepLe();
         msleep(300);
 
-//        mpc_kinova->KinovaMoveUnitStepLe();
-//        msleep(300);
+        mpc_kinova->KinovaMoveUnitStepLe();
+        msleep(300);
 
-//        mpc_kinova->KinovaMoveUnitStepLe();
-//        msleep(300);
+        mpc_kinova->KinovaMoveUnitStepLe();
+        msleep(300);
     }
 
     return true;
@@ -3686,7 +3762,9 @@ void CManipulation::run(){
     case MANIPUL_INX_KINOVA_POSITION:
         KinovaCurrentPosition();
         break;
-
+    case MANIPUL_INX_WRENCH_SEARCHING:
+        KinovaWrenchSearching();
+        break;
     case SENSING_LRF_PANEL_LOCALIZATION:
         LRFLocalizationOnPanel();
     default:

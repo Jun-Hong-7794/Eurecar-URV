@@ -226,6 +226,9 @@ bool CVehicle::Move(int _dir, int _vel){
     return true;
 }
 
+
+
+
 //bool CVehicle::Move(int _dir, int _vel) { // use double velocity
 
 //    int control_target_velocity = _vel;
