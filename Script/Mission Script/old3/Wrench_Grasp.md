@@ -1,0 +1,437 @@
+/* Eurecar Scenario Script 
+/* Made By Jun Hong 28.01.2017
+/* This Script is for 2107 MBZIRC Challenge2
+/*
+/*<
+# Title: Wrench Grasp
+
+global_bool gb_froce_check = false;
+global_double gd_standard_x = 0;
+global_double gd_standard_y = 0;
+global_double gd_standard_z = 0;
+
+## Step1: Vehicle Moving
+VEHICLE_LOCALIZATION_ON_PANEL_STRUCT.desired_h_dst = 0.6
+VEHICLE_LOCALIZATION_ON_PANEL_FUNCTION()
+
+## Step0: Align to Panel
+
+KINOVA_ALIGN_TO_PANEL.do_init_motion = false
+KINOVA_ALIGN_TO_PANEL_FUNCTION()
+
+A_Sleep(500)
+
+## Step1: Release
+/*IF(gb_froce_check)
+
+GRIPPER_FORCE_CTRL_STRUCT.pose_1 = 1550
+GRIPPER_FORCE_CTRL_STRUCT.pose_2 = 1550
+GRIPPER_FORCE_CTRL_STRUCT.force_threshold = 350
+
+GRIPPER_FORCE_CTRL_FUNCTION()
+
+A_Sleep(500)
+
+## Step3: LRF-Kinova Vertical CTRL(NEW)
+
+LRF_K_VERTICAL_CTRL_STRUCT.mode = 3
+LRF_K_VERTICAL_CTRL_STRUCT.force_option = false
+LRF_K_VERTICAL_CTRL_STRUCT.only_sensing_moving = false
+
+LRF_K_VERTICAL_CTRL_STRUCT.desired_v_dst = 270
+LRF_K_VERTICAL_CTRL_STRUCT.error = 2
+
+LRF_K_VERTICAL_CTRL_STRUCT.s_deg = 10
+LRF_K_VERTICAL_CTRL_STRUCT.e_deg = 170
+
+LRF_K_VERTICAL_CTRL_STRUCT.inlier_lrf_dst = 1100
+
+LRF_K_VERTICAL_CTRL_STRUCT.loop_sleep = 30
+
+LRF_K_VERTICAL_CTRL_FUNCTION()
+
+A_Sleep(500)
+
+## Step2: Kinova Arm Left(PLZ Tune!!)
+
+KINOVA_MANIPULATE_STRUCT.x = ==
+KINOVA_MANIPULATE_STRUCT.y = -0.1833
+KINOVA_MANIPULATE_STRUCT.z = ==
+
+KINOVA_MANIPULATE_STRUCT.roll = ==
+KINOVA_MANIPULATE_STRUCT.pitch = ==
+KINOVA_MANIPULATE_STRUCT.yaw = ==
+
+KINOVA_MANIPULATE_STRUCT.force_threshold = 10
+
+KINOVA_MANIPULATE_FUNCTION()
+
+A_Sleep(500)
+
+## Step2: Kinova Arm DW(PLZ Tune!!)
+
+KINOVA_MANIPULATE_STRUCT.x = ==
+KINOVA_MANIPULATE_STRUCT.y = ==
+KINOVA_MANIPULATE_STRUCT.z = 0.3621
+
+KINOVA_MANIPULATE_STRUCT.roll = ==
+KINOVA_MANIPULATE_STRUCT.pitch = ==
+KINOVA_MANIPULATE_STRUCT.yaw = ==
+
+KINOVA_MANIPULATE_STRUCT.force_threshold = 10
+
+KINOVA_MANIPULATE_FUNCTION()
+
+A_Sleep(500)
+
+## Step12: Kinova Force Control(Go Forward)
+
+KINOVA_FORCE_CTRL_STRUCT.step_count = 100
+
+KINOVA_FORCE_CTRL_STRUCT.mode = 1
+
+KINOVA_FORCE_CTRL_STRUCT.force_threshold = 0
+KINOVA_FORCE_CTRL_STRUCT.force_threshold_x = 20
+KINOVA_FORCE_CTRL_STRUCT.force_threshold_y = 0
+KINOVA_FORCE_CTRL_STRUCT.force_threshold_z = 0
+
+KINOVA_FORCE_CTRL_STRUCT.position_limit_x = 0.5
+KINOVA_FORCE_CTRL_STRUCT.position_limit_y = 0
+KINOVA_FORCE_CTRL_STRUCT.position_limit_z = 0
+
+KINOVA_FORCE_CTRL_STRUCT.move_step_x = 0.05
+KINOVA_FORCE_CTRL_STRUCT.move_step_y = 0
+KINOVA_FORCE_CTRL_STRUCT.move_step_z = 0
+
+KINOVA_FORCE_CTRL_FUNCTION()
+
+A_Sleep(300)
+
+## Step11: Kinova Arm Go Back
+
+KINOVA_MANIPULATE_STRUCT.mode = 2
+
+KINOVA_MANIPULATE_STRUCT.x = --0.02
+KINOVA_MANIPULATE_STRUCT.y = ==
+KINOVA_MANIPULATE_STRUCT.z = ==
+
+KINOVA_MANIPULATE_STRUCT.roll = 2.1374
+KINOVA_MANIPULATE_STRUCT.pitch = 1.6015
+KINOVA_MANIPULATE_STRUCT.yaw = -2.2821
+
+KINOVA_MANIPULATE_STRUCT.force_threshold = 10
+
+KINOVA_MANIPULATE_FUNCTION()
+
+A_Sleep(1000)
+
+## Step6: KINOVA Force Ctrl(Go Right)
+
+KINOVA_FORCE_CTRL_STRUCT.mode = 3
+
+KINOVA_FORCE_CTRL_STRUCT.force_range_s = -10
+KINOVA_FORCE_CTRL_STRUCT.force_range_e = 3
+
+KINOVA_FORCE_CTRL_STRUCT.step_count = 100
+
+KINOVA_FORCE_CTRL_STRUCT.force_threshold = 0
+KINOVA_FORCE_CTRL_STRUCT.force_threshold_x = 0
+KINOVA_FORCE_CTRL_STRUCT.force_threshold_y = 1
+KINOVA_FORCE_CTRL_STRUCT.force_threshold_z = 0
+
+KINOVA_FORCE_CTRL_STRUCT.position_limit_x = 0
+KINOVA_FORCE_CTRL_STRUCT.position_limit_y = -0.45
+KINOVA_FORCE_CTRL_STRUCT.position_limit_z = 0
+
+KINOVA_FORCE_CTRL_STRUCT.move_step_x = 0
+KINOVA_FORCE_CTRL_STRUCT.move_step_y = -0.05
+KINOVA_FORCE_CTRL_STRUCT.move_step_z = 0
+
+gb_bool_kinova_force_ctrl_rst = KINOVA_FORCE_CTRL_FUNCTION()
+
+A_Sleep(500)
+
+## Step11: Kinova Arm Go Left
+
+KINOVA_MANIPULATE_STRUCT.mode = 2
+
+KINOVA_MANIPULATE_STRUCT.x = ==
+KINOVA_MANIPULATE_STRUCT.y = ++0.010
+KINOVA_MANIPULATE_STRUCT.z = ==
+
+KINOVA_MANIPULATE_STRUCT.roll = 2.1374
+KINOVA_MANIPULATE_STRUCT.pitch = 1.6015
+KINOVA_MANIPULATE_STRUCT.yaw = -2.2821
+
+KINOVA_MANIPULATE_STRUCT.force_threshold = 10
+
+KINOVA_MANIPULATE_FUNCTION()
+
+A_Sleep(1000)
+
+## Step11: Get Kinova Y Pose(Wrench INdex 1)
+
+KINOVA_CURRENT_POSITION_STRUCT.x = gd_standard_x
+KINOVA_CURRENT_POSITION_STRUCT.y = gd_standard_y
+KINOVA_CURRENT_POSITION_STRUCT.z = gd_standard_z
+
+KINOVA_CURRENT_POSITION_FUNCTION()
+
+## Step11: Kinova Arm Go Back
+
+KINOVA_MANIPULATE_STRUCT.mode = 2
+
+KINOVA_MANIPULATE_STRUCT.x = --0.14
+KINOVA_MANIPULATE_STRUCT.y = ==
+KINOVA_MANIPULATE_STRUCT.z = ==
+
+KINOVA_MANIPULATE_STRUCT.roll = 2.1374
+KINOVA_MANIPULATE_STRUCT.pitch = 1.6015
+KINOVA_MANIPULATE_STRUCT.yaw = -2.2821
+
+KINOVA_MANIPULATE_STRUCT.force_threshold = 10
+
+KINOVA_MANIPULATE_FUNCTION()
+
+A_Sleep(1000)
+
+## Step0: Align to Panel
+
+KINOVA_ALIGN_TO_PANEL.do_init_motion = false
+KINOVA_ALIGN_TO_PANEL_FUNCTION()
+
+A_Sleep(500)
+
+
+## Step4: KINOVA Angle Control(New, Using Dynamixel Pro-LRF)
+/* mode =2 => Left
+LRF_K_ANGLE_CTRL_STRUCT.mode = 3
+
+LRF_K_ANGLE_CTRL_STRUCT.error = 0.3
+LRF_K_ANGLE_CTRL_STRUCT.desired_angle = 0
+
+LRF_K_ANGLE_CTRL_STRUCT.inlier_lrf_dst = 500
+
+LRF_K_ANGLE_CTRL_STRUCT.s_deg = 10
+LRF_K_ANGLE_CTRL_STRUCT.e_deg = 170
+
+LRF_K_ANGLE_CTRL_STRUCT.unit_deg = 0.8
+
+LRF_K_ANGLE_CTRL_STRUCT.loop_sleep = 30
+
+LRF_K_ANGLE_CTRL_FUNCTION()
+
+A_Sleep(1000)
+
+## Step5: LRF-Kinova Vertical CTRL(NEW)
+
+LRF_K_VERTICAL_CTRL_STRUCT.mode = 3
+
+LRF_K_VERTICAL_CTRL_STRUCT.force_option = false
+LRF_K_VERTICAL_CTRL_STRUCT.only_sensing_moving = true
+
+LRF_K_VERTICAL_CTRL_STRUCT.desired_v_dst = 280
+LRF_K_VERTICAL_CTRL_STRUCT.error = 2
+
+LRF_K_VERTICAL_CTRL_STRUCT.s_deg = 10
+LRF_K_VERTICAL_CTRL_STRUCT.e_deg = 170
+
+LRF_K_VERTICAL_CTRL_STRUCT.inlier_lrf_dst = 1100
+
+LRF_K_VERTICAL_CTRL_STRUCT.loop_sleep = 30
+
+LRF_K_VERTICAL_CTRL_FUNCTION()
+
+A_Sleep(500)
+
+## Step7: LRF-Kinova Horizen CTRL(NEW)
+
+LRF_K_HORIZEN_CTRL_STRUCT.mode = 4
+
+LRF_K_HORIZEN_CTRL_STRUCT.only_sensing_moving = false
+LRF_K_HORIZEN_CTRL_STRUCT.kinova_current_y = gd_standard_y
+LRF_K_HORIZEN_CTRL_STRUCT.wrench_hanger_index = gi_wrench_hanger_index
+
+LRF_K_HORIZEN_CTRL_STRUCT.wrench_location_1 = 0.09 
+LRF_K_HORIZEN_CTRL_STRUCT.wrench_location_2 = 0.135 
+LRF_K_HORIZEN_CTRL_STRUCT.wrench_location_3 = 0.19 
+LRF_K_HORIZEN_CTRL_STRUCT.wrench_location_4 = 857
+LRF_K_HORIZEN_CTRL_STRUCT.wrench_location_5 = 900 
+LRF_K_HORIZEN_CTRL_STRUCT.wrench_location_6 = 950
+
+LRF_K_HORIZEN_CTRL_STRUCT.desired_h_dst = 0
+
+LRF_K_HORIZEN_CTRL_STRUCT.error = 3
+
+LRF_K_HORIZEN_CTRL_STRUCT.s_deg = 10 
+LRF_K_HORIZEN_CTRL_STRUCT.e_deg = 170
+
+LRF_K_HORIZEN_CTRL_STRUCT.inlier_lrf_dst = 800
+
+LRF_K_HORIZEN_CTRL_STRUCT.loop_sleep = 30 
+
+LRF_K_HORIZEN_CTRL_FUNCTION()
+
+A_Sleep(500)
+
+## Step13: Grasp
+
+GRIPPER_FORCE_CTRL_STRUCT.pose_1 = 2700
+GRIPPER_FORCE_CTRL_STRUCT.pose_2 = 2700
+GRIPPER_FORCE_CTRL_STRUCT.force_threshold = -2
+
+GRIPPER_FORCE_CTRL_FUNCTION()
+
+A_Sleep(500)
+
+
+## Step8: Kinova Arm Down 
+/*<
+IF(gi_valve_size > 19)
+
+KINOVA_MANIPULATE_STRUCT.x = ==
+KINOVA_MANIPULATE_STRUCT.y = ==
+KINOVA_MANIPULATE_STRUCT.z = 0.2807
+
+KINOVA_MANIPULATE_STRUCT.roll = ==
+KINOVA_MANIPULATE_STRUCT.pitch = ==
+KINOVA_MANIPULATE_STRUCT.yaw = ==
+
+KINOVA_MANIPULATE_STRUCT.force_threshold = 10
+
+KINOVA_MANIPULATE_FUNCTION()
+
+A_Sleep(1000)
+
+## Step8: Kinova Arm Down 
+IF(gi_valve_size < 22)
+/*>
+KINOVA_MANIPULATE_STRUCT.x = ==
+KINOVA_MANIPULATE_STRUCT.y = ==
+KINOVA_MANIPULATE_STRUCT.z = 0.2957
+/*KINOVA_MANIPULATE_STRUCT.z = 0.27
+
+KINOVA_MANIPULATE_STRUCT.roll = ==
+KINOVA_MANIPULATE_STRUCT.pitch = ==
+KINOVA_MANIPULATE_STRUCT.yaw = ==
+
+KINOVA_MANIPULATE_STRUCT.force_threshold = 10
+
+KINOVA_MANIPULATE_FUNCTION()
+
+A_Sleep(1000)
+
+## Step9: Magnet On
+
+GRIPPER_MAGNET_CTRL_STRUCT.fl_magnet = true
+
+GRIPPER_MAGNET_CTRL_FUNCTION()
+A_Sleep(1000)
+
+## Step5: LRF-Kinova Go Forward
+
+LRF_K_VERTICAL_CTRL_STRUCT.mode = 3
+
+LRF_K_VERTICAL_CTRL_STRUCT.force_option = true
+
+LRF_K_VERTICAL_CTRL_STRUCT.force_x = 8
+LRF_K_VERTICAL_CTRL_STRUCT.force_y = 0
+LRF_K_VERTICAL_CTRL_STRUCT.force_z = 0
+
+LRF_K_VERTICAL_CTRL_STRUCT.only_sensing_moving = true
+
+LRF_K_VERTICAL_CTRL_STRUCT.desired_v_dst = 110
+LRF_K_VERTICAL_CTRL_STRUCT.error = 2
+
+LRF_K_VERTICAL_CTRL_STRUCT.s_deg = 10
+LRF_K_VERTICAL_CTRL_STRUCT.e_deg = 170
+
+LRF_K_VERTICAL_CTRL_STRUCT.inlier_lrf_dst = 1100
+
+LRF_K_VERTICAL_CTRL_STRUCT.loop_sleep = 30
+
+LRF_K_VERTICAL_CTRL_FUNCTION()
+
+A_Sleep(2000)
+
+## Step5: LRF-Kinova Backward
+
+LRF_K_VERTICAL_CTRL_STRUCT.mode = 3
+
+LRF_K_VERTICAL_CTRL_STRUCT.only_sensing_moving = false
+
+LRF_K_VERTICAL_CTRL_STRUCT.desired_v_dst = 270
+LRF_K_VERTICAL_CTRL_STRUCT.error = 2
+
+LRF_K_VERTICAL_CTRL_STRUCT.s_deg = 10
+LRF_K_VERTICAL_CTRL_STRUCT.e_deg = 170
+
+LRF_K_VERTICAL_CTRL_STRUCT.inlier_lrf_dst = 1100
+
+LRF_K_VERTICAL_CTRL_STRUCT.loop_sleep = 30
+
+LRF_K_VERTICAL_CTRL_FUNCTION()
+
+A_Sleep(500)
+
+##Step12: Wrench Check!
+
+KINOVA_FORCE_CHECK_STRUCT.force_threshold_x = 0
+KINOVA_FORCE_CHECK_STRUCT.force_threshold_y = 0
+KINOVA_FORCE_CHECK_STRUCT.force_threshold_z = 6.5
+
+KINOVA_FORCE_CHECK_STRUCT. = check_threshold = 75
+KINOVA_FORCE_CHECK_STRUCT.check_count = 100
+
+gb_froce_check = KINOVA_FORCE_CHECK_FUNCTION()
+
+GRIPPER_FORCE_CTRL_STRUCT.pose_1 = 1800
+GRIPPER_FORCE_CTRL_STRUCT.pose_2 = 1900
+GRIPPER_FORCE_CTRL_STRUCT.force_threshold = -2
+
+GRIPPER_FORCE_CTRL_FUNCTION()
+
+A_Sleep(500)
+
+## Step13: Grasp
+
+GRIPPER_FORCE_CTRL_STRUCT.pose_1 = 1570
+GRIPPER_FORCE_CTRL_STRUCT.pose_2 = 1570
+GRIPPER_FORCE_CTRL_STRUCT.force_threshold = 350
+
+GRIPPER_FORCE_CTRL_FUNCTION()
+
+A_Sleep(500)
+
+## Step18: Gripper Release
+
+GRIPPER_GO_TO_REL_POSE_STRUCT.pose_1 = 30
+GRIPPER_GO_TO_REL_POSE_STRUCT.pose_2 = 30
+
+GRIPPER_GO_TO_REL_POSE_FUNCTION()
+
+A_Sleep(500)
+
+## Step9: Magnet On
+
+GRIPPER_MAGNET_CTRL_STRUCT.fl_magnet = true
+GRIPPER_MAGNET_CTRL_FUNCTION()
+
+A_Sleep(500)
+
+## Step13: Grasp2
+
+GRIPPER_FORCE_CTRL_STRUCT.pose_1 = 1570
+GRIPPER_FORCE_CTRL_STRUCT.pose_2 = 1570
+GRIPPER_FORCE_CTRL_STRUCT.force_threshold = 350
+
+GRIPPER_FORCE_CTRL_FUNCTION()
+
+A_Sleep(500)
+
+
+## Step14: Align to Panel
+KINOVA_ALIGN_TO_PANEL.do_init_motion = false
+KINOVA_ALIGN_TO_PANEL_FUNCTION()
+
+##########################################_MISSION_END_##########################################

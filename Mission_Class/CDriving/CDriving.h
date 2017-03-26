@@ -251,6 +251,7 @@ public:
 
     bool DrivingMissionManager();
 
+    int VelGen_Cnt(int _cnt, bool _update);
 
     int vel_tick = 0;
 

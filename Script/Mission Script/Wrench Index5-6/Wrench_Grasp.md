@@ -7,13 +7,6 @@
 
 global_bool gb_froce_check = false;
 
-<<<<<<< HEAD
-=======
-global_double gd_standard_x = 0;
-global_double gd_standard_y = 0;
-global_double gd_standard_z = 0;
-
->>>>>>> 32b90df0bb36e1eb07cf5e7d126956d97d2fe16a
 ## Step0: Align to Panel
 
 KINOVA_ALIGN_TO_PANEL.do_init_motion = false
@@ -21,7 +14,6 @@ KINOVA_ALIGN_TO_PANEL_FUNCTION()
 
 A_Sleep(500)
 
-<<<<<<< HEAD
 ## Step1: Release
 /*IF(gb_froce_check)
 
@@ -164,18 +156,12 @@ A_Sleep(500)
 
 ## Step8: LRF-Kinova Horizen CTRL(NEW)
 IF(gi_wrench_hanger_index == 4)
-=======
->>>>>>> 32b90df0bb36e1eb07cf5e7d126956d97d2fe16a
 ## Step7: Kinova Arm Go Right
 
 KINOVA_MANIPULATE_STRUCT.mode = 2
 
 KINOVA_MANIPULATE_STRUCT.x = ==
-<<<<<<< HEAD
 KINOVA_MANIPULATE_STRUCT.y = --0.05
-=======
-KINOVA_MANIPULATE_STRUCT.y = --0.10
->>>>>>> 32b90df0bb36e1eb07cf5e7d126956d97d2fe16a
 KINOVA_MANIPULATE_STRUCT.z = ==
 
 KINOVA_MANIPULATE_STRUCT.roll = 2.1374
@@ -188,7 +174,6 @@ KINOVA_MANIPULATE_FUNCTION()
 
 A_Sleep(1000)
 
-<<<<<<< HEAD
 
 ## Step8: LRF-Kinova Horizen CTRL(NEW)
 IF(gi_wrench_hanger_index > 4)
@@ -263,9 +248,6 @@ GRIPPER_MAGNET_CTRL_FUNCTION()
 A_Sleep(1000)
 
 ## Step12: LRF-Kinova Go Forward
-=======
-## Step5: LRF-Kinova Go Forward
->>>>>>> 32b90df0bb36e1eb07cf5e7d126956d97d2fe16a
 
 LRF_K_VERTICAL_CTRL_STRUCT.mode = 3
 
@@ -311,7 +293,6 @@ A_Sleep(1000)
 
 ##Step14: Grasp - 1
 
-<<<<<<< HEAD
 GRIPPER_FORCE_CTRL_STRUCT.pose_1 = 1800
 GRIPPER_FORCE_CTRL_STRUCT.pose_2 = 1900
 GRIPPER_FORCE_CTRL_STRUCT.force_threshold = -2
@@ -321,9 +302,6 @@ GRIPPER_FORCE_CTRL_FUNCTION()
 A_Sleep(500)
 
 ## Step15: Grasp - 2
-=======
-## Step13: Grasp
->>>>>>> 32b90df0bb36e1eb07cf5e7d126956d97d2fe16a
 
 GRIPPER_FORCE_CTRL_STRUCT.pose_1 = 1570
 GRIPPER_FORCE_CTRL_STRUCT.pose_2 = 1570
